@@ -21,6 +21,7 @@ import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.various.model.reloadSrtClient
+import com.moblin.android.various.model.updateSrtClientVideoSourcesAndMics
 
 private fun status(srtClient: SettingsSrtClient): String =
     srtClient.streams.count { it.enabled }.toString()
@@ -29,6 +30,7 @@ private fun deleteStream(model: Model, srtClient: SettingsSrtClient, indexes: Se
     srtClient.streams =
         srtClient.streams.filterIndexed { index, _ -> index !in indexes }.toMutableList()
     model.reloadSrtClient()
+    model.updateSrtClientVideoSourcesAndMics()
 }
 
 @Composable
@@ -94,6 +96,7 @@ fun SrtClientSettingsDestination(
                     srtClient.streams,
                 )
                 srtClient.streams = (srtClient.streams + stream).toMutableList()
+                model.updateSrtClientVideoSourcesAndMics()
             }
         }
     }

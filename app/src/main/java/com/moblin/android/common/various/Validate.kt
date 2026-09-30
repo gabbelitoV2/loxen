@@ -14,6 +14,17 @@ fun isValidIngestLatency(value: String): String? {
     return null
 }
 
+fun isValidRistVirtualPort(value: String): String? {
+    isValidPort(value = value)?.let { error ->
+        return error
+    }
+    val port = value.toUIntOrNull() ?: return localized("Not a number")
+    if (port % 2u != 0u) {
+        return localized("Must be even")
+    }
+    return null
+}
+
 fun isValidPort(value: String): String? {
     val port = value.toUIntOrNull() ?: return localized("Not a number")
     if (port <= 0u) {

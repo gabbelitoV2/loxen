@@ -21,6 +21,7 @@ import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
+import com.moblin.android.various.model.updateRtmpVideoSourcesAndMics
 import com.moblin.android.various.settings.SettingsRtmpServer
 import com.moblin.android.various.settings.SettingsRtmpServerStream
 import com.moblin.android.view.utils.NameEditView
@@ -118,7 +119,13 @@ fun RtmpServerStreamSettingsForm(
         ) {
             NameEditView(
                 name = stream.name,
-                onNameChange = { stream.name = it },
+                onNameChange = {
+                    val changed = stream.name != it
+                    stream.name = it
+                    if (changed) {
+                        model.updateRtmpVideoSourcesAndMics()
+                    }
+                },
                 existingNames = streams,
             )
             TextEditNavigationView(

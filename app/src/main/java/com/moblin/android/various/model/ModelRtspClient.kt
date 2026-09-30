@@ -11,8 +11,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-fun Model.rtspCameras(): List<Camera> {
-    return database.rtspClient.streams.map { stream ->
+fun Model.updateRtspVideoSources() {
+    videoSources.rtsp.value = database.rtspClient.streams.map { stream ->
         Camera(id = stream.id.toString(), name = stream.camera())
     }
 }

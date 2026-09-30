@@ -5,7 +5,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.isValidIngestLatency
-import com.moblin.android.common.various.isValidPort
+import com.moblin.android.common.various.isValidRistVirtualPort
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
@@ -21,6 +21,7 @@ import com.moblin.android.view.utils.UrlsView
 import com.moblin.android.various.model.isRistStreamConnected
 import com.moblin.android.various.model.reloadRistServer
 import com.moblin.android.various.model.ristServerEnabled
+import com.moblin.android.various.model.updateRistVideoSourcesAndMics
 
 @Composable
 fun RistServerStreamSettingsView(
@@ -30,9 +31,26 @@ fun RistServerStreamSettingsView(
     stream: SettingsRistServerStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
+    fun isPortInUse(port: Int): Boolean {
+        return ristServer.streams.any {
+            it.id != stream.id && it.virtualDestinationPort == port
+        }
+    }
+
+    fun changePort(value: String): String? {
+        val error = isValidRistVirtualPort(value)
+        if (error != null) {
+            return error
+        }
+        if (isPortInUse(value.toIntOrNull()!!)) {
+            return localized("Already in use")
+        }
+        return null
+    }
+
     fun submitPort(value: String) {
         val port = value.trim().toIntOrNull()
-        if (port == null || port > 65535) {
+        if (port == null || port > 65535 || port % 2 != 0 || isPortInUse(port)) {
             return
         }
         stream.virtualDestinationPort = port
@@ -58,7 +76,13 @@ fun RistServerStreamSettingsView(
                     NameEditView(
                         name = stream.name,
                         existingNames = ristServer.streams,
-                        onNameChange = { stream.name = it },
+                        onNameChange = {
+                            val changed = stream.name != it
+                            stream.name = it
+                            if (changed) {
+                                model.updateRistVideoSourcesAndMics()
+                            }
+                        },
                     )
                 }
                 Section(
@@ -67,7 +91,7 @@ fun RistServerStreamSettingsView(
                     TextEditNavigationView(
                         title = localized("Virtual port"),
                         value = stream.virtualDestinationPort.toString(),
-                        onChange = { isValidPort(it) },
+                        onChange = { changePort(it) },
                         onSubmit = { submitPort(it) },
                         footers = emptyList(),
                         onNavigate = onNavigate,

@@ -16,6 +16,7 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
 import com.moblin.android.various.model.isSrtlaStreamConnected
+import com.moblin.android.various.model.updateSrtlaVideoSourcesAndMics
 
 private fun changeStreamId(value: String, srtlaServer: SettingsSrtlaServer): String? {
     val streamId = value.trim()
@@ -96,7 +97,10 @@ fun SrtlaServerStreamSettingsDetailView(
         ) {
             NameEditView(
                 name = stream.name,
-                onNameChange = { stream.name = it },
+                onNameChange = {
+                    stream.name = it
+                    model.updateSrtlaVideoSourcesAndMics()
+                },
                 existingNames = srtlaServer.streams,
             )
             TextEditNavigationView(

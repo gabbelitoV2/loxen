@@ -11,6 +11,7 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.CreateWidgetWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.VideoSources
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsWidgetVideoSource
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelectScenesNavigationView
@@ -19,7 +20,6 @@ import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.getCameraId
-import com.moblin.android.various.model.listCameras
 
 @Composable
 private fun PickerView(
@@ -50,6 +50,7 @@ fun WidgetWizardVideoSourceSettingsView(
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     videoSource: SettingsWidgetVideoSource,
+    videoSources: VideoSources,
     presentingCreateWizard: Boolean,
     onPresentingCreateWizardChange: (Boolean) -> Unit,
 ) {
@@ -71,7 +72,7 @@ fun WidgetWizardVideoSourceSettingsView(
                         cameraId = cameraId,
                     )
                 },
-                items = model.listCameras(excludeBuiltin = false).map {
+                items = videoSources.all().map {
                     InlinePickerItem(id = it.id, text = it.name)
                 },
                 selectedId = model.getCameraId(videoSourceWidget = videoSource),

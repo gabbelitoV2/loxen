@@ -24,10 +24,10 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.VideoSources
 import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.getCameraId
 import com.moblin.android.various.model.getCameraPositionName
-import com.moblin.android.various.model.listCameras
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetVTuber
 import com.moblin.android.various.settings.SettingsWidgetVTuberType
@@ -149,6 +149,7 @@ fun WidgetVTuberSettingsView(
     model: Model = LocalModel.current,
     widget: SettingsWidget,
     vTuber: SettingsWidgetVTuber,
+    videoSources: VideoSources,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
@@ -181,7 +182,7 @@ fun WidgetVTuberSettingsView(
                 InlinePickerView(
                     title = localized("Video source"),
                     onChange = { onCameraChange(it) },
-                    items = model.listCameras(excludeBuiltin = false).map {
+                    items = videoSources.all().map {
                         InlinePickerItem(id = it.id, text = it.name)
                     },
                     initialSelectedId = model.getCameraId(vTuberWidget = vTuber),

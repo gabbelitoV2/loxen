@@ -32,6 +32,7 @@ import com.moblin.android.platform.swiftui.*
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.VideoSources
 import com.moblin.android.various.model.appendWidgetToScene
 import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.findWidget
@@ -42,7 +43,6 @@ import com.moblin.android.various.model.getSelectedScene
 import com.moblin.android.various.model.isCaptureDeviceWidget
 import com.moblin.android.various.model.isSceneVideoSourceActive
 import com.moblin.android.various.model.isScreenCaptureCamera
-import com.moblin.android.various.model.listCameras
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.sceneUpdated
 import com.moblin.android.various.model.switchMicIfNeededAfterSceneSwitch
@@ -158,6 +158,7 @@ private fun VideoSourceView(
     model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene,
+    videoSources: VideoSources,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingScreenCaptureAlert by remember { mutableStateOf(false) }
@@ -198,7 +199,7 @@ private fun VideoSourceView(
                                 "one is used at a time. This allows the phone to quickly change camera when zooming.",
                         ),
                     ),
-                    items = model.listCameras().map { InlinePickerItem(id = it.id, text = it.name) },
+                    items = videoSources.all().map { InlinePickerItem(id = it.id, text = it.name) },
                     initialSelectedId = model.getCameraId(scene = scene),
                 )
             },
@@ -471,7 +472,13 @@ fun SceneSettingsView(
             onNameChange = { scene.name = it },
             existingNames = scenes,
         )
-        VideoSourceView(model = model, database = database, scene = scene, onNavigate = onNavigate)
+        VideoSourceView(
+            model = model,
+            database = database,
+            scene = scene,
+            videoSources = model.videoSources,
+            onNavigate = onNavigate,
+        )
         QuickSwitchGroupView(model = model, database = database, scene = scene)
         SceneMicView(model = model, database = database, scene = scene, onNavigate = onNavigate)
         WidgetsView(model = model, database = database, scene = scene, onNavigate = onNavigate)

@@ -22,6 +22,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.VideoSources
 import com.moblin.android.various.settings.SettingsSensitivity
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetPngTuber
@@ -32,7 +33,6 @@ import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.getCameraId
 import com.moblin.android.various.model.getCameraPositionName
 import com.moblin.android.various.model.getPngTuberEffect
-import com.moblin.android.various.model.listCameras
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.sceneUpdated
 
@@ -148,6 +148,7 @@ fun WidgetPngTuberSettingsView(
     model: Model = LocalModel.current,
     widget: SettingsWidget,
     pngTuber: SettingsWidgetPngTuber,
+    videoSources: VideoSources,
 ) {
     var sensitivity by remember(pngTuber) { mutableStateOf(pngTuber.sensitivity) }
     var mirror by remember(pngTuber) { mutableStateOf(pngTuber.mirror) }
@@ -158,7 +159,7 @@ fun WidgetPngTuberSettingsView(
                     InlinePickerView(
                         title = localized("Video source"),
                         onChange = { cameraId -> onCameraChange(model, pngTuber, cameraId) },
-                        items = model.listCameras(excludeBuiltin = false).map {
+                        items = videoSources.all().map {
                             InlinePickerItem(id = it.id, text = it.name)
                         },
                         initialSelectedId = model.getCameraId(pngTuberWidget = pngTuber),

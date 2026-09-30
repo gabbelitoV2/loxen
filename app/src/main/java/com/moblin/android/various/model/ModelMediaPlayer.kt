@@ -49,12 +49,10 @@ fun Model.addMediaPlayer(settings: SettingsMediaPlayer) {
     )
     mediaPlayer.delegate = MediaPlayerDelegateImpl(this)
     mediaPlayers.put(settings.id, mediaPlayer)?.close()
-    updateMicsListAsync()
 }
 
 fun Model.deleteMediaPlayer(playerId: UUID) {
     mediaPlayers.remove(playerId)?.close()
-    updateMicsListAsync()
 }
 
 fun Model.updateMediaPlayerSettings(playerId: UUID, settings: SettingsMediaPlayer) {
@@ -103,10 +101,15 @@ fun Model.deactivateAllMediaPlayers() {
     }
 }
 
-fun Model.playerCameras(): List<Camera> {
-    return database.mediaPlayers.players.map {
+fun Model.updateMediaPlayerVideoSources() {
+    videoSources.mediaPlayer.value = database.mediaPlayers.players.map {
         Camera(id = it.id.toString().uppercase(), name = it.camera())
     }
+}
+
+fun Model.updateMediaPlayerVideoSourcesAndMics() {
+    updateMediaPlayerVideoSources()
+    updateMediaPlayerMics()
 }
 
 fun Model.getMediaPlayer(idString: String): SettingsMediaPlayer? {

@@ -19,6 +19,7 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
 import com.moblin.android.various.model.isWhipStreamConnected
+import com.moblin.android.various.model.updateWhipVideoSourcesAndMics
 
 private const val WhipServerStreamDestination = "whipServerStream"
 
@@ -87,7 +88,13 @@ fun WhipServerStreamSettingsDetail(
             NameEditView(
                 name = stream.name,
                 existingNames = whipServer.streams,
-                onNameChange = { stream.name = it }
+                onNameChange = {
+                    val changed = stream.name != it
+                    stream.name = it
+                    if (changed) {
+                        model.updateWhipVideoSourcesAndMics()
+                    }
+                }
             )
             TextEditNavigationView(
                 title = localized("Stream key"),

@@ -33,7 +33,7 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
 import com.moblin.android.various.model.reloadRistServer
 import com.moblin.android.various.model.ristServerEnabled
-import com.moblin.android.various.model.updateMicsListAsync
+import com.moblin.android.various.model.updateRistVideoSourcesAndMics
 
 @Composable
 fun RistServerSettingsView(
@@ -141,7 +141,7 @@ fun RistServerSettingsDetailView(
                         stream.virtualDestinationPort =
                             ristServer.makeUniqueVirtualDestinationPort()
                         ristServer.streams.add(stream)
-                        model.updateMicsListAsync()
+                        model.updateRistVideoSourcesAndMics()
                     },
                 )
             }
@@ -173,7 +173,7 @@ private fun deleteStream(model: Model, ristServer: SettingsRistServer, indexes: 
         }
     }
     model.reloadRistServer()
-    model.updateMicsListAsync()
+    model.updateRistVideoSourcesAndMics()
 }
 
 private data class IdentifiedStream(override val id: UUID) : Identifiable<UUID>

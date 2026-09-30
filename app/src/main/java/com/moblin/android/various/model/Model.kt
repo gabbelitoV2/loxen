@@ -580,6 +580,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val twitchPrediction = TwitchPrediction()
     val moblink = Moblink()
     val ingests = Ingests()
+    val videoSources = VideoSources()
     val bitrate = Bitrate()
     val bonding = Bonding()
     var currentFps: Int? = null
@@ -751,9 +752,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var latestDebugLines: List<String> = emptyList()
     var latestDebugActions: List<String> = emptyList()
     var streamingHistoryStream: StreamingHistoryStream? = null
-    var backCameras: MutableList<Camera> = mutableListOf()
-    var frontCameras: MutableList<Camera> = mutableListOf()
-    var externalCameras: MutableList<Camera> = mutableListOf()
     var recordingsStorage = RecordingsStorage()
     var recordingThumbnailsCache: MutableMap<String, ByteArray> = mutableMapOf()
     var latestLowBitrateTime = Instant.now()
@@ -1245,7 +1243,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setDisplayPortrait(portrait = database.portrait)
         setBitrateDropFix()
         setupLogging()
-        updateCameraLists()
+        updateVideoSources()
         updateBatteryLevel()
         setupInputGainObserver()
         setupAudioSession()
@@ -1658,13 +1656,13 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun handleCaptureDeviceWasConnected() {
         mainScope.launch {
-            updateCameraLists()
+            updateDeviceVideoSources()
         }
     }
 
     fun handleCaptureDeviceWasDisconnected() {
         mainScope.launch {
-            updateCameraLists()
+            updateDeviceVideoSources()
         }
     }
 

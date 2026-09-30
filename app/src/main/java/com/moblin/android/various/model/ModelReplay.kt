@@ -53,7 +53,7 @@ fun Model.saveReplay(
                 replaySettings.start = start ?: database.replay.start
                 replaySettings.stop = database.replay.stop
                 replaySettings.duration = file.duration
-                runCatching { File(file.url).copyTo(replaySettings.url()) }
+                runCatching { File(file.url).copyTo(replaysStorage.url(replay = replaySettings)) }
                 replaysStorage.append(replay = replaySettings)
                 completion?.invoke(replaySettings)
             }
@@ -67,7 +67,11 @@ fun Model.loadReplay(video: ReplaySettings, completion: (suspend () -> Unit)? = 
     replay.startFromEnd.value = video.startFromEnd()
     replay.selectedId.value = video.id
     replayFrameExtractor = ReplayFrameExtractor(
-        video = ReplayBufferFile(url = video.url().path, duration = video.duration, remove = false),
+        video = ReplayBufferFile(
+            url = replaysStorage.url(replay = video).path,
+            duration = video.duration,
+            remove = false,
+        ),
         offset = video.thumbnailOffset(),
         pixelFormatType = stream.value.colorRange.pixelFormatType(),
         delegate = ModelReplayDelegate(this),

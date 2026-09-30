@@ -20,6 +20,7 @@ import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.various.model.reloadRtspClient
+import com.moblin.android.various.model.updateRtspVideoSources
 
 private fun status(numberOfEnabledStreams: Int): String {
     return numberOfEnabledStreams.toString()
@@ -30,6 +31,7 @@ private fun deleteStream(model: Model, rtspClient: SettingsRtspClient, indexes: 
         !indexes.contains(index)
     }.toMutableList()
     model.reloadRtspClient()
+    model.updateRtspVideoSources()
 }
 
 @Composable
@@ -95,6 +97,7 @@ fun RtspClientSettingsViewDestination(
                     rtspClient.streams,
                 )
                 rtspClient.streams = (rtspClient.streams + stream).toMutableList()
+                model.updateRtspVideoSources()
             }
         }
     }

@@ -1,28 +1,24 @@
 {
   "Common/Various/Validate.swift": {
     "status": "ok",
-    "sha256": "d02d11f3fc25a3a50a0d78c2625bef8b96f9f6ad6ff9268a0104129e1661b722",
+    "sha256": "d32a6f860648d051444f9ca2bfb98fa3dfbd6c688a103d36fe0c6a1185edf929",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/common/various/Validate.kt",
     "notes": [
-      "Swift URL(string:) is replaced by java.net.URI wrapped in runCatching, so a parse failure yields null just like the Swift optional initialiser.",
-      "Swift's url.port == nil maps to URI.port == -1, since java.net.URI uses -1 for a missing port.",
-      "url.host() maps to URI.host, which is null for strings without an authority component.",
-      "The URLComponents(url:resolvingAgainstBaseURL:) sanity check is kept as a second URI parse so the control flow and returned message stay the same.",
-      "Int32(value) maps to toIntOrNull(): Kotlin Int has the same 32-bit range, so overflow behaviour is identical.",
-      "UInt(value) maps to toUIntOrNull() and UInt16.max to UShort.MAX_VALUE.toUInt().",
-      "makeRtmpUri and makeRtmpStreamKey are assumed to live in com.moblin.android.common.various and are called unqualified; adjust the import if they are in another package.",
-      "localized comes from com.moblin.android; the interpolated 'Unsupported scheme' and 'Only ... allowed' strings keep the Swift wording."
+      "Added isValidRistVirtualPort between isValidIngestLatency and isValidPort, matching the Swift insertion point.",
+      "Swift's `UInt(value)!` force unwrap after isValidPort is translated with toUIntOrNull(), which cannot fail at that point but keeps the file's existing defensive style.",
+      "The even check uses UInt modulo: port % 2u != 0u.",
+      "All other lines are byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
-    "declared_types": [],
-    "model": "claude-opus-5",
-    "backend": "cli",
-    "tokens_in": 3938,
-    "tokens_out": 2432,
-    "seconds": 48.1,
-    "ported_at": "2026-09-22T12:00:10+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 33777,
+    "tokens_out": 2764,
+    "seconds": 9.2,
+    "ported_at": "2026-09-29T23:47:33+00:00"
   },
   "Moblin/Moblink/MoblinkProtocol.swift": {
     "status": "ok",
@@ -923,27 +919,25 @@
   },
   "Moblin/Various/Utils/FileSystemUtils.swift": {
     "status": "ok",
-    "sha256": "0f77c5fc076cb7ac9f13bc05ba06581d3bb3867a0c9a5e6cb1f7b002ae18383d",
+    "sha256": "e2649dfb40acfa4c1858180b8eaeedb9e8a321678e5db1e6590219f67f5b050e",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/FileSystemUtils.kt",
     "notes": [
-      "URL file extensions (attributes, fileSize, remove, exists) become extensions on java.io.File, the Kotlin analog of a file URL.",
-      "FileManager extension becomes an object FileManager so ids(directory:) and idsBeforeDot(directory:) keep their names; Swift's FileManager.default.ids(...) is FileManager.ids(...).",
-      "attributes uses java.nio.file.Files.readAttributes(path, \"*\") (API 26+); fileSize reads the \"size\" entry from that map.",
-      "fileSize and getAvailableDiskSpace return Long instead of UInt64.",
-      "moblinSettingsFileType is a plain String identifier; UTType has no Android counterpart and only its identifier string is kept.",
-      "documentsDirectory and temporaryDirectory are file-private helpers derived from java.io.tmpdir (the app cache dir) because no Context is available in top-level code.",
-      "File.exists() shadows java.io.File.exists(); the member wins and has identical semantics.",
-      "logger.info maps to android.util.Log.i with tag FileSystemUtils."
+      "Only the createAndGetDirectory signature changed: it now takes a root File (defaulting to the documents directory) before the vararg directory components.",
+      "Callers that pass only directory names now need to use named vararg arguments or pass root explicitly, since root precedes the vararg.",
+      "createAndGetDirectory keeps the mkdirs() call that stands in for FileManager.createDirectory(withIntermediateDirectories: true).",
+      "URL.documentsDirectory maps to com.moblin.android.platform.Documents.directory, which the file already uses.",
+      "URL.homeDirectory used by getAvailableDiskSpace maps to the temporaryDirectory that stands in for the app's writable home."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2001,
-    "tokens_out": 14011,
-    "seconds": 57.2,
-    "ported_at": "2026-09-22T12:38:42+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 34396,
+    "tokens_out": 1731,
+    "seconds": 7.5,
+    "ported_at": "2026-09-29T23:47:27+00:00"
   },
   "Moblin/Media/AdaptiveBitrate/AdaptiveBitrateSrtFight.swift": {
     "status": "ok",
@@ -971,27 +965,23 @@
   },
   "Moblin/Various/Storages/SimpleStorage.swift": {
     "status": "ok",
-    "sha256": "ad94d290fa2825720e6787250d01c41626e3557809ad19e346c311ff69c5fa2e",
+    "sha256": "4698edcc8f7e19f3d6bb12e5fcbea52605913b5a7785cb24d02b8ad9fdc365c2",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/storages/SimpleStorage.kt",
     "notes": [
-      "Sendable conformance is dropped; Kotlin classes are final by default.",
-      "URL and FileManager are mapped to java.io.File rooted at SimpleStorageContext.applicationContext.filesDir, replacing URL.libraryDirectory.",
-      "UserDefaults.standard is replaced by the default SharedPreferences file (\"<packageName>_preferences\") obtained via SimpleStorageContext.applicationContext.",
-      "SimpleStorageContext.applicationContext must be assigned once by the app (e.g. in Application.onCreate) before any storage is constructed.",
-      "exit(EXIT_SUCCESS) is mapped to kotlin.system.exitProcess(0), preserving the original abort-on-failure behaviour.",
-      "The SimpleStorage directory is a lazy top-level property so it is created on first access, matching Swift's lazily initialised global let.",
-      "writeString uses File.writeText (UTF-8) and readString uses File.readText (UTF-8); the atomic option of the Swift write is not reproduced.",
-      "SimpleIntStorage keeps Int rather than Long because the Swift source does not clearly require 64-bit values."
+      "Renamed the file-level storage directory property from `directory` to `defaultDirectory` to match the Swift rename and avoid shadowing the new constructor parameter.",
+      "Added a `directory: File = defaultDirectory` constructor parameter to `SimpleStringStorage` and `SimpleIntStorage`, keeping the existing body property `file = File(directory, key)`.",
+      "The Android-only SharedPreferences seed-on-first-use and `setup()` fallback behaviour of the current Kotlin file is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 1846,
-    "tokens_out": 17081,
-    "seconds": 69.7,
-    "ported_at": "2026-09-22T12:38:50+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 30315,
+    "tokens_out": 1107,
+    "seconds": 4.6,
+    "ported_at": "2026-09-29T23:47:24+00:00"
   },
   "Moblin/Media/Srtla/Common/Srtla.swift": {
     "status": "ok",
@@ -3374,27 +3364,24 @@
   },
   "Moblin/Various/Settings/SettingsIngests.swift": {
     "status": "ok",
-    "sha256": "2893a697ef9b417984c4c58655b3760503bcc1167c707638eb5319175a866602",
+    "sha256": "9dba7cc6aa57c294e2fc856dfc87b52bdf86e629012cce971f0753361b43797a",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsIngests.kt",
     "notes": [
-      "@Published properties are translated as plain mutable properties instead of MutableStateFlow, because every one of these types is a persisted @Serializable settings payload that also implements Named (a String name); the observation layer lives outside this file.",
-      "Hand-written encode(to:)/init(from:) were replaced by @Serializable classes whose @SerialName keys match the Swift CodingKeys exactly, and every property keeps the same default value the Swift decoder used for a missing key.",
-      "java.util.UUID has no built-in kotlinx.serialization serializer, so id carries @Contextual; the SerializersModule passed to the settings Json instance must register a UUID serializer or id must be handled manually at runtime.",
-      "UInt16 ports (port, srtPort, srtlaPort, virtualDestinationPort) and Int32 latencies became Int, so makeUniqueVirtualDestinationPort() and srtlaSrtPort() return Int.",
-      "SettingsRistServerStream.connected is not part of the Swift CodingKeys, so it is marked @Transient to keep it out of the serialized payload.",
-      "clone() keeps the Swift name and deep-copies streams by appending stream.clone(), matching the original use of .init().",
-      "SettingsRtspTransport keeps a rawValue property plus a fromRawValue() companion helper; its toString() overrides Any.toString() and yields the same strings as the Swift toString().",
-      "Identifiable has no counterpart declared in this port, so id stays a plain property and the classes only conform to Named."
+      "Only SettingsRistServerStream.virtualDestinationPort default, its decode default and SettingsRistServer.makeUniqueVirtualDestinationPort changed as described by the diff.",
+      "Swift UInt16 virtualDestinationPort stays a Kotlin Int (ports are Int throughout this file), so the new Swift default 2 becomes Published(2) and 2u in the decode call.",
+      "makeUniqueVirtualDestinationPort now starts at 2 and steps by 2 in both Swift and Kotlin.",
+      "Every other line is byte-identical to the previous Kotlin translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7459,
-    "tokens_out": 15082,
-    "seconds": 59.2,
-    "ported_at": "2026-09-22T12:47:45+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46643,
+    "tokens_out": 5072,
+    "seconds": 13.8,
+    "ported_at": "2026-09-29T23:47:41+00:00"
   },
   "Moblin/Various/Settings/SettingsCatPrinter.swift": {
     "status": "ok",
@@ -3896,27 +3883,27 @@
   },
   "Moblin/Various/Settings/SettingsAudio.swift": {
     "status": "ok",
-    "sha256": "03ec9cd5cfb32a9edc1d1054f3e2f340f0619fb4d1992f48ec7e543f37f75abb",
+    "sha256": "e9a897eb944c5a9eb779b9579b6b22d8b3cc9b9b6891531aa7000af5c1e14223",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsAudio.kt",
     "notes": [
-      "@Published properties are exposed as StateFlow backed by MutableStateFlow; the backing fields are declared `internal val _name` (not private) so the hand-written kotlinx.serialization serializers of the same module can update them.",
-      "SettingsMic is annotated with a custom KSerializer because the Swift decoder falls back to getDefaultMic() when the stored raw value is unknown; fromRawValue mirrors that.",
-      "SettingsMicsMic, SettingsMics and SettingsAudio use custom KSerializers instead of generated ones so that their real codable state (delay, mics, autoSwitch, gainDb, preferStereoMic) is still persisted even though those properties are StateFlows.",
-      "JSON keys are kept byte-identical to the Swift CodingKeys: 'all' for mics, 'dataSourceID' for dataSourceId, 'audioOutputToInputChannelsMap' for outputToInputChannelsMap.",
-      "Missing keys in the payload keep the Swift defaults (name/inputUid \"\", dataSourceId nil, delay 0.0, mics empty, autoSwitch true, defaultMic \"\", gainDb 0, preferStereoMic false).",
-      "`id` stays a computed property: \"$inputUid ${dataSourceId ?: 0}\".",
-      "Equatable on SettingsMicsMic (inputUid + dataSourceId) becomes equals() plus a matching hashCode().",
-      "The eight is*CameraOrMic helpers are imported from com.moblin.android.common.various."
+      "The Swift diff is empty, so the Kotlin file is returned unchanged.",
+      "SettingsMic keeps a custom KSerializer because the failable Swift init falls back to getDefaultMic() on an unknown raw value.",
+      "SettingsMicsMic.delay and .connected stay MutableStateFlow-backed with internal _delay/_connected, since every reader is a Compose view.",
+      "SettingsMicsMic equality uses inputUid plus dataSourceId, matching the Swift == operator, with a matching hashCode.",
+      "SettingsAudioOutputToInputChannelsMap has no hand-written Swift encode/init(from:), yet the port keeps the container helpers used elsewhere; decode reads channel1/channel2 directly from the JsonObject.",
+      "Swift CodingKey .dataSourceID and .all keep their raw JSON keys \"dataSourceID\" and \"all\".",
+      "Swift init() {} becomes the no-argument primary constructor of each class; the name/inputUid/connected initializer is the secondary constructor."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4989,
-    "tokens_out": 26555,
-    "seconds": 98.2,
-    "ported_at": "2026-09-22T12:50:10+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41606,
+    "tokens_out": 2758,
+    "seconds": 9.3,
+    "ported_at": "2026-09-29T23:56:54+00:00"
   },
   "MoblinTests/Moblin/Various/ChatBotCommandSuite.swift": {
     "status": "ok",
@@ -3967,27 +3954,28 @@
   },
   "MoblinTests/TestUtils.swift": {
     "status": "ok",
-    "sha256": "166e2dba0fdc6a174bd78b594f88508084865382094e11c1af281a4c46cdca90",
+    "sha256": "1ab168cb990944cb64f8fb7a2e42298acf867cac119bf5eb3e34ff557011501a",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/TestUtils.kt",
     "notes": [
-      "Bundle.main / Bundle(for:) have no Android equivalent: both file readers now load classpath resources through a private BundleToken class, so test resources must live in src/test/resources.",
-      "Swift's FloatingPoint-constrained generics are replaced by Double and Float overloads of isEqual/areEqual; callers picking one overload keep the same call site shape.",
-      "MessageQueue is backed by kotlinx.coroutines Channel(UNLIMITED): put() stays non-suspending via trySend and get() becomes a suspend function using receive().",
-      "makeEmotes assumes the ported Emote exposes a url constructor parameter typed as String; adapt the call if the Emote signature in com.moblin.android.integrations.emotes differs.",
-      "URL.lastPathComponent is emulated with String.substringAfterLast('/') on ChatPostUrl.still, which is assumed to be a String in the Kotlin port.",
-      "readMainFile and readTestFile read the same classpath: Android unit tests do not separate an app bundle from a test bundle.",
-      "No @Test members exist in the Swift source, so this file stays a plain helper file that JUnit 4 suites import.",
-      "No TODO() markers were needed; every construct had a usable Kotlin counterpart."
+      "Only the diff is applied: waitUntil and TemporaryDirectory are added between MessageQueue and readMainFile; every other line is byte-identical.",
+      "waitUntil keeps java.time.Duration and measures elapsed time with System.nanoTime() instead of ContinuousClock, mirroring startTime.duration(to: .now).",
+      "Thread.sleep(forTimeInterval: 0.02) becomes Thread.sleep(20).",
+      "TemporaryDirectory's non-copyable deinit becomes AutoCloseable.close(), so tests use it with use { } and the directory is removed on exit.",
+      "FileManager.default.temporaryDirectory.appending(component:) becomes java.io.File(AppDelegate.context.cacheDir, UUID) so no new import is needed.",
+      "The throwing Swift init keeps its failure as an IOException when the directory cannot be created.",
+      "java.io.File and java.util.UUID are fully qualified to leave the existing import block untouched.",
+      "BundleToken stays the private file-level class that readMainFile/readTestFile use for resource lookup."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2352,
-    "tokens_out": 5365,
-    "seconds": 21.9,
-    "ported_at": "2026-09-22T12:50:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 38073,
+    "tokens_out": 3672,
+    "seconds": 13.6,
+    "ported_at": "2026-09-29T23:49:18+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsReaderSuite.swift": {
     "status": "ok",
@@ -4936,22 +4924,27 @@
   },
   "Moblin/Various/Model/ModelCamera.swift": {
     "status": "ok",
-    "sha256": "954b9118fc2fa0f680cb253acaaf860c905a79f195d6ce2598f8bc7238ed4790",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "639c88fb27ef64f1729780edd46e74aae6ab0d70a93fb877837ab22f96775c6b",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelCamera.kt",
     "notes": [
-      "Only one line changed: toggleCameraPreview now calls attachCamera() instead of reattachCamera().",
-      "Everything else in the file is byte-identical to the previous translation."
+      "Added the new VideoSources class between CameraShow and CameraState, with @Published properties as MutableStateFlow<List<Camera>> and all() reading them via .value.",
+      "The old public listCameras(position:) became the private listBuiltinCameras(position:); its hand-written Kotlin body (DeviceType.entries.toList()) is kept.",
+      "updateCameraLists() and listCameras(excludeBuiltin:) were removed, replaced by updateVideoSources()/updateDeviceVideoSources().",
+      "Declarations were reordered to match Swift: colorSpaceUpdated..shouldShowCameraPreview, then updateVideoSources, updateDeviceVideoSources, listBuiltinCameras, listExternalCameras, isBackCamera, isFrontCamera.",
+      "isBackCamera/isFrontCamera/getCameraPositionName/getExternalCameraName/isExternalCameraConnected now read videoSources.back/front/external (via .value).",
+      "The Model.videoSources property is assumed declared in Model.kt; this file only references it.",
+      "VideoSources is not a settings class, so its arrays stay MutableStateFlow with List values, written with .value =."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 27264,
-    "tokens_out": 6377,
-    "seconds": 17.0,
-    "ported_at": "2026-09-23T11:19:33+00:00"
+    "tokens_in": 74541,
+    "tokens_out": 18809,
+    "seconds": 54.6,
+    "ported_at": "2026-09-29T23:47:11+00:00"
   },
   "Moblin/Various/Network/DnsLookup.swift": {
     "status": "ok",
@@ -7932,27 +7925,26 @@
   },
   "Moblin/Various/Storages/ReplaysStorage.swift": {
     "status": "ok",
-    "sha256": "e8bb6c7b6bbec5de9674d0d2b1fc8825cfad8b8eb806072d99a6f5bef9982b97",
+    "sha256": "7f9b38007e9fe5546c86425756f16f5963487d8b650c5eb41ebb320c2b247031",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/storages/ReplaysStorage.kt",
     "notes": [
-      "This file contains no SwiftUI Views (only an unused SwiftUI import), so no @Composable functions are generated even though the tier is 'ui'.",
-      "getReplaysDirectory() now returns java.io.File and assumes the shared helper is createAndGetDirectory(name: String).",
-      "ReplaysDatabase.replays is a read-only StateFlow backed by a private MutableStateFlow; because the Swift code mutated the @Published array directly, an added setReplays(...) is used for all mutations. Views should read it with collectAsState().",
-      "Hand-written Codable is replaced by kotlinx.serialization through a private ReplaysDatabaseDto that keeps the 'replays' coding key; Json is configured with ignoreUnknownKeys + encodeDefaults to match JSONDecoder/JSONEncoder behaviour.",
-      "java.util.UUID has no built-in kotlinx.serialization serializer, so a private UUIDSerializer (string based) is attached to ReplaySettings.id.",
-      "toString()/fromString(settings:) keep their Swift names; toString() overrides Any.toString and may throw SerializationException.",
-      "FileManager.enumerator is replaced by File.walkTopDown() and URL.resolvingSymlinksInPath() by File.canonicalFile.",
-      "Assumes the sibling SimpleStringStorage exposes get(): String and set(String)."
+      "ReplaysStorage now owns a `storage` and a `directory`; the constructor takes a nullable `directory: File?` like the Swift `init(directory: URL? = nil)`, creating `<directory>/Database` and `<directory>/Replays`, or falling back to the module-level `defaultStorage` and Documents/Replays.",
+      "The top-level `getReplaysDirectory()` helper was deleted, as in Swift; every use is now the instance `directory` (ReplaySettings.url() is gone too, replaced by ReplaysStorage.url(replay)).",
+      "`database.replays` stays the Android `MutableStateFlow<List<ReplaySettings>>` with `setReplays(...)`; the Kotlin list ops stand in for the Swift in-place mutations (popLast/removeLast -> dropLast(1), insert at 0 -> listOf(replay) + ...).",
+      "cleanup() now filters with `url(it).exists()` and walks the directory on a background coroutine: DispatchQueue.global(qos: .utility).async -> CoroutineScope(Dispatchers.IO).launch (a concurrent global queue, not a serial one).",
+      "The background walk captures the `knownNames` Set and the `directory` built before launching, and logs with Log.d plus File.remove(), matching Swift's logger.debug and fileUrl.remove().",
+      "Declaration order follows the new Swift file: url(replay:) then the private cleanup(), tryLoadAndMigrate(settings:) and migrateFromOlderVersions() at the end."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3799,
-    "tokens_out": 15196,
-    "seconds": 59.5,
-    "ported_at": "2026-09-22T13:20:20+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40739,
+    "tokens_out": 5934,
+    "seconds": 21.6,
+    "ported_at": "2026-09-29T23:51:43+00:00"
   },
   "Moblin/View/Utils/AddButtonView.swift": {
     "status": "ok",
@@ -8609,27 +8601,23 @@
   },
   "Moblin/Various/Model/ModelVideoPreview.swift": {
     "status": "ok",
-    "sha256": "e2fbf50f13134a68ee2d9ca8d82f0dd2d5f17b870ab0480d1497647917c20b46",
+    "sha256": "dbe62b2bae6a11af07bbd2bafd610d3a39c862bfac298879283b5fce42f4dc52",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelVideoPreview.kt",
     "notes": [
-      "@MainActor has no Kotlin counterpart; VideoPreviewFeed and VideoPreviewProvider must be created and mutated on the main dispatcher (MainScope / Dispatchers.Main).",
-      "ObservableObject/@Published is translated as a MutableStateFlow-backed read-only StateFlow: feeds is a StateFlow<List<VideoPreviewFeed>> and is mutated through removeAllFeeds() and appendFeed(), which Model uses instead of Swift's removeAll()/append().",
-      "Identifiable has no Kotlin counterpart; use cameraId as the Compose list key where the SwiftUI code used Identifiable.",
-      "PreviewView and VideoGravity.RESIZE_ASPECT are taken from com.moblin.android.media.haishinkit.media.video, the same package as the iOS HaishinKit PreviewView.",
-      "UUID(uuidString:) returns an optional but java.util.UUID.fromString throws, so the check becomes runCatching { UUID.fromString(camera.id) }.getOrNull().",
-      "first(where:) maps to firstOrNull; List.removeAll() on a StateFlow-backed value maps to assigning emptyList().",
-      "updateVideoPreviews and appendVideoPreviewIfNeeded rely on Model members translated elsewhere in Model.kt: getSelectedScene(), getBuiltinCameraDevices(scene:sceneDevice:), listCameras(), activeBufferedVideoIds, cameraDevice, media and streamOverlay.",
-      "The device lookup keeps the Swift call shape device.device.uniqueID / device.device.name() on the BuiltinCameraDevice wrapper produced by getBuiltinCameraDevices; adjust there if the Android wrapper exposes name as a property."
+      "Only change from the previous translation: the camera enumeration now comes from videoSources.all() instead of listCameras().",
+      "videoSources.all() is called with the Swift shape; it is a Model member that returns the list of SettingsVideoSource values, whose id/name are Strings as the surrounding code already assumes.",
+      "Kept the hand-written Android adaptations byte-identical: PreviewView(AppDelegate.context), StateFlow-backed feeds with removeAllFeeds/appendFeed, and the device.id matching against camera.id."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3011,
-    "tokens_out": 7654,
-    "seconds": 29.4,
-    "ported_at": "2026-09-22T13:21:31+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40484,
+    "tokens_out": 2128,
+    "seconds": 8.9,
+    "ported_at": "2026-09-29T23:48:01+00:00"
   },
   "Moblin/View/Utils/NameEditView.swift": {
     "status": "ok",
@@ -8977,22 +8965,25 @@
   },
   "Moblin/Media/RistServer/RistServer.swift": {
     "status": "ok",
-    "sha256": "7569edd0922830d0b6b54cc36f8ccde95ea8d5809bf6a2042d6e49cf58438dd0",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "31ce01521c4fb5dbb838c8494748dd5b674e8bddba54a9462064fe1c1700a17b",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/ristserver/RistServer.kt",
     "notes": [
-      "Applied the Swift diff: a new private colorRange field of type SettingsStreamColorRange is added to RistServer (constructor parameter after softwareDecoding) and forwarded to RistServerClient.",
-      "Added the import com.moblin.android.various.settings.SettingsStreamColorRange."
+      "RistServerDelegate.ristServerOnConnected now takes cameraId, name and latency instead of a port; ristServerOnDisconnected takes cameraId and name instead of port and reason.",
+      "Added private notifyDisconnected(virtualDestinationPort: Int) that resolves the stream by virtual destination port, mirroring the Swift guard-let.",
+      "stopInternal and peerDisconnected now call notifyDisconnected, so the disconnect callback is only sent for known virtual destination ports.",
+      "peerConnected reports the stream's id, camera() name and latencySeconds() through the new connected signature.",
+      "UInt16 virtual destination ports stay Int in Kotlin, as in the rest of the port."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 34541,
-    "tokens_out": 3615,
-    "seconds": 15.1,
-    "ported_at": "2026-09-29T00:42:27+00:00"
+    "tokens_in": 35839,
+    "tokens_out": 2169,
+    "seconds": 7.3,
+    "ported_at": "2026-09-29T23:47:59+00:00"
   },
   "Moblin/Various/Model/ModelMacStatusItem.swift": {
     "status": "ok",
@@ -9314,28 +9305,23 @@
   },
   "Moblin/Media/HaishinKit/Codec/Video/VideoEncoder.swift": {
     "status": "ok",
-    "sha256": "8ecceebeba160d45d5f3f2d27aeecc3a7bed2b57549b4d694907293f5638ccfb",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "f3cb0fafe1da67547bb037037bfbe366554b80150253b091e88c34849eda71e5",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/codec/video/VideoEncoder.kt",
     "notes": [
-      "VideoEncoder now takes a SettingsStreamColorRange constructor parameter and uses colorRange.pixelFormatType() for kCVPixelBufferPixelFormatTypeKey instead of the old global pixelFormatType.",
-      "New color-attachment state (colorAttachments, colorAttachmentsFormatDescription, outputColorAttachments) and updateColorAttachments(imageBuffer) added, called from encodeImageBuffer before adaptive resolution is computed.",
-      "Color attachments come from the platform shims CMVideoFormatDescriptionCreateForImageBuffer, CMVideoFormatDescriptionMatchesImageBuffer and CVImageBuffer.colorAttachments; a change of attachments sets invalidateSession so the session is recreated.",
-      "makeSession now sends createColorProperties(colorAttachments) through session.setProperties before settings.properties(), logging a failure without aborting session creation.",
-      "Map<String, String> equality is structural in Kotlin, so the Swift dictionary comparison keeps its meaning.",
-      "decodeTimeStampOffset for frame reordering stays 150_000 microseconds (CMTime(seconds: 0.15)).",
-      "numberOfFailedEncodings remains a package-level global, reset when startRunning is called.",
-      "SettingsStreamColorRange.pixelFormatType() is called as declared in the settings package; no Android API is called underneath."
+      "startRunning now resets oldBitrateVideoSize to a zero Size, matching the new Swift line CMVideoDimensions(width: 0, height: 0).",
+      "CMVideoDimensions maps to android.util.Size in this port, so the reset is Size(0, 0), the same value used for the oldBitrateVideoSize field initialiser.",
+      "Everything else in the file is unchanged; the Android-specific launch/atomic/lockQueue handling and the Size-based adaptive resolution logic are preserved byte-identically."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50306,
-    "tokens_out": 23482,
-    "seconds": 93.2,
-    "ported_at": "2026-09-29T00:40:14+00:00"
+    "tokens_in": 52822,
+    "tokens_out": 2766,
+    "seconds": 8.7,
+    "ported_at": "2026-09-29T23:48:40+00:00"
   },
   "Moblin/Various/BondingStatisticsFormatter.swift": {
     "status": "ok",
@@ -9476,24 +9462,25 @@
   },
   "Moblin/Various/Model/ModelRistServer.swift": {
     "status": "ok",
-    "sha256": "73101385343a997ed3509ddfadae8a10a40a1b31bd9c6d02ed163be54e0b1fd5",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "b841230dfa48ba29ceadee45a1451944460e8458687b0f8ca44f75c4bae4e4b6",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRistServer.kt",
     "notes": [
-      "Only reloadRistServer changed: the RistServer construction now passes colorRange = stream.colorRange, taken from the Model's current stream.",
-      "Everything else, including the delegate indirection (ristServerDelegate, ModelRistServerDelegate) and the private internal handlers, is unchanged and byte-identical.",
-      "The declared Kotlin RistServer constructor (com.moblin.android.media.ristserver) currently lists port, streams, softwareDecoding and delegate only; the new colorRange argument is kept in the same position as the Swift call so the two codebases line up once RistServer.kt exposes it.",
-      "port parameters stay Int (Swift UInt16), camera ids stay java.util.UUID (Swift UUID.uuidString), as in the existing Kotlin port."
+      "`ristCameras()` was replaced by `updateRistVideoSources()` and `updateRistVideoSourcesAndMics()`; the Swift `videoSources.rist = ...` write becomes `videoSources.rist.value = ...` because it is a MutableStateFlow.",
+      "`getRistStream(virtualDestinationPort:)` is deleted; `isRistStreamConnected(port: Int)` and the two id-based lookups stay unchanged.",
+      "The port-based `ModelRistServerDelegate` callbacks became cameraId/name/latency based; the delegate class overrides were rewritten to the new RistServerDelegate signatures.",
+      "The removed private `ristServerOnConnectedInternal`/`ristServerOnDisconnectedInternal` helpers are gone; the toast and buffered media calls now happen directly inside the callbacks, still on the main scope.",
+      "`updateRistMics()` is a Model extension in the same package and is called directly from `updateRistVideoSourcesAndMics()`."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38117,
-    "tokens_out": 3283,
-    "seconds": 14.4,
-    "ported_at": "2026-09-29T00:42:27+00:00"
+    "tokens_in": 39840,
+    "tokens_out": 3014,
+    "seconds": 10.7,
+    "ported_at": "2026-09-29T23:48:51+00:00"
   },
   "Moblin/StreamingPlatforms/Kick/KickApi.swift": {
     "status": "ok",
@@ -9521,24 +9508,23 @@
   },
   "Moblin/Various/Model/ModelRtspClient.swift": {
     "status": "ok",
-    "sha256": "18c0bbb5d32afef15807d179baebd2b51ab608001e734a66b06d38d246ab002a",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "c6690ea5535df4d02c92fdb8bf34a1fdd894ff92727a91aa61302ac9b482ed45",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRtspClient.kt",
     "notes": [
-      "The diff only adds the colorRange argument to the RtspClient constructor call in reloadRtspClient(), inserted between softwareDecoding and delegate to match the Swift argument order.",
-      "The Swift code uses self.stream because the loop variable is also named stream; Kotlin has no self, so the Model property is qualified as this.stream to avoid the shadowing SettingsRtspClientStream loop variable.",
-      "RtspClient must accept the new colorRange parameter for this call to compile, as in the updated RtspClient.kt.",
-      "Everything else in the file, including the use of Model.rtspClientConnectedInternal/rtspClientDisconnectedInternal helpers and the ModelRtspClientDelegate class, is unchanged."
+      "Renamed Model.rtspCameras() to Model.updateRtspVideoSources() and changed it to assign into videoSources.rtsp instead of returning a list.",
+      "videoSources.rtsp is a MutableStateFlow in the Kotlin port, so the mapped list is written with .value =, matching the other Model source-update helpers.",
+      "Everything else in the file is unchanged from the previous Kotlin translation, including the ModelRtspClientDelegate that replaces the Swift extension conformance to RtspClientDelegate."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 37679,
-    "tokens_out": 1921,
-    "seconds": 7.8,
-    "ported_at": "2026-09-29T00:42:24+00:00"
+    "tokens_in": 38788,
+    "tokens_out": 1316,
+    "seconds": 4.5,
+    "ported_at": "2026-09-29T23:48:56+00:00"
   },
   "Moblin/Media/Srtla/Server/SrtServer.swift": {
     "status": "ok",
@@ -9583,23 +9569,23 @@
   },
   "Moblin/Various/Model/ModelSettingsImportExport.swift": {
     "status": "ok",
-    "sha256": "55b05ae8263f798bc960925713ed1895a5e2e9a212039d6727564f4972026777",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "544acfb81c11421d9c3ee42637ce6e226acc9823a6ea816447687cbd00b2c9a7",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt",
     "notes": [
-      "Only the new setExternalCameraVideoRange() call added to importSucceeded(), after setDebugLogging and before setCurrentStream(), matching the Swift diff.",
-      "setExternalCameraVideoRange() is a Model member declared elsewhere; it is called with the same name and no arguments.",
-      "Everything else in the Kotlin file is unchanged, including the Android-specific context parameters and coroutine-based clipboard import."
+      "Applied only the diff: updateMicsList() was replaced by updateMics() followed by updateVideoSources() in Model.importSucceeded().",
+      "Every other line, import and declaration order stays byte-identical to the current Kotlin file.",
+      "All other declarations in the file are unchanged Model extension functions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 42843,
-    "tokens_out": 1319,
-    "seconds": 5.6,
-    "ported_at": "2026-09-29T00:42:18+00:00"
+    "tokens_in": 43583,
+    "tokens_out": 1267,
+    "seconds": 4.6,
+    "ported_at": "2026-09-29T23:51:26+00:00"
   },
   "Moblin/Various/Model/ModelSnapshot.swift": {
     "status": "ok",
@@ -9627,24 +9613,24 @@
   },
   "Moblin/Various/Model/ModelSrtClient.swift": {
     "status": "ok",
-    "sha256": "87cb2bbbd5affcc74cca712ff7c59074799dff44204bec695a86f57f3510097e",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "f65398d3b2df86b80b24b763c6d0ac41da9e0c956b196d6ae0ad66a72456c6f4",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSrtClient.kt",
     "notes": [
-      "Only the SrtClient(...) construction changed: colorRange = this@reloadSrtClient.stream.colorRange was inserted between softwareDecoding and delegate, matching the new Swift argument order.",
-      "The SrtClient receiver model (com.moblin.android.media.srtclient) must expose the new colorRange constructor parameter; the parameter value comes from the Model's current stream, not from the loop's SettingsSrtClientStream.",
-      "The anonymous SrtClientDelegate object is kept, since Kotlin has no protocol conformance extension; the delegate forwards to the same Model.srtClient* functions as before.",
-      "Everything else in the file, including formatting, imports and the private mainScope, is byte-identical to the previous Kotlin version."
+      "srtClientCameras() was replaced by updateSrtClientVideoSources(), which assigns the mapped cameras to videoSources.srtClient.value, plus updateSrtClientVideoSourcesAndMics() calling updateSrtClientMics().",
+      "isSrtClientStreamConnected(id:) was removed from the Swift file and is removed from the Kotlin file as well.",
+      "updateSrtClientMics() is a Model extension that lives in the microphone model file; it is called directly with no import because it is in the same package.",
+      "Everything else (reloadSrtClient, stopSrtClient, delegate forwarding, toast/buffered media wiring) is unchanged, so those lines stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 37877,
-    "tokens_out": 2498,
-    "seconds": 9.8,
-    "ported_at": "2026-09-29T00:42:28+00:00"
+    "tokens_in": 39127,
+    "tokens_out": 1859,
+    "seconds": 7.0,
+    "ported_at": "2026-09-29T23:49:04+00:00"
   },
   "Moblin/VideoEffects/Alerts/AlertsEffectVideoReader.swift": {
     "status": "ok",
@@ -9719,23 +9705,23 @@
   },
   "Moblin/Media/RtspClient/RtspClient.swift": {
     "status": "ok",
-    "sha256": "026a6ea35b998907c622223828be0e11a1b75d7646ef75d4553491617ef25ff9",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "7225d9ab9d1464fd32186cd972ccd235c722214e4b292bbd493cd31ac23d6618",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/rtspclient/RtspClient.kt",
     "notes": [
-      "RtspClient now carries a colorRange property, passed through to VideoDecoder, matching the new Swift initializer parameter.",
-      "Added the SettingsStreamColorRange import and the colorRange constructor parameter placed right after softwareDecoding to keep declaration order identical to Swift.",
-      "No other lines were touched; all hand-written Android behaviour is preserved."
+      "Only stopInternal changed: it now clears the pending requests and replaces rtpVideo with a fresh Rtp, matching the Swift diff.",
+      "rtpVideo.processor = null was added before the new Rtp(), the same Android adaptation already used in startInternal and stop(), because Kotlin has no ARC to release the decoder when the Rtp object is dropped.",
+      "All other lines, imports and declaration order are byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 68228,
-    "tokens_out": 9238,
-    "seconds": 25.0,
-    "ported_at": "2026-09-29T00:42:38+00:00"
+    "tokens_in": 69142,
+    "tokens_out": 10567,
+    "seconds": 30.1,
+    "ported_at": "2026-09-29T23:48:31+00:00"
   },
   "Moblin/VideoEffects/Dewarp360/Dewarp360Effect.swift": {
     "status": "ok",
@@ -11073,24 +11059,23 @@
   },
   "Moblin/Various/Model/ModelRtmpServer.swift": {
     "status": "ok",
-    "sha256": "0aee9ce12b7e231e08fd33ed046233b8bb1ad5cd6ab4755350a1d7d438ac77c3",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "2c36a35efa65e720f8efa432f9a4ac73022ec2629737c8f8e79fc5095d130584",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRtmpServer.kt",
     "notes": [
-      "Only change: RtmpServer is now constructed with colorRange = stream.colorRange, matching the new Swift argument order between softwareDecoding and delegate.",
-      "Everything else, including the hand-written anonymous RtmpServerDelegate object and the SettingsDjiDeviceUrlType rewrite, is untouched.",
-      "No new import is needed: stream is Model's own SettingsStream property and its colorRange is passed straight through.",
-      "No new top-level declarations, so declared_types is empty."
+      "rtmpCameras() is replaced by updateRtmpVideoSources(), which assigns into the videoSources.rtmp MutableStateFlow with .value",
+      "updateRtmpVideoSourcesAndMics() calls updateRtmpVideoSources() plus the existing updateRtmpMics() from the mics file",
+      "Everything else in the file is unchanged from the previous translation"
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38745,
-    "tokens_out": 2259,
-    "seconds": 8.8,
-    "ported_at": "2026-09-29T00:42:58+00:00"
+    "tokens_in": 39931,
+    "tokens_out": 1946,
+    "seconds": 6.5,
+    "ported_at": "2026-09-29T23:49:25+00:00"
   },
   "Moblin/Media/Webrtc/WhepClient/WhepClient.swift": {
     "status": "ok",
@@ -11115,25 +11100,24 @@
   },
   "Moblin/Various/Model/ModelSrtlaServer.swift": {
     "status": "ok",
-    "sha256": "8712dea0bf358e43d0614035b6adb99f7f2b7f9a625474fe6acc3dbc94700ebe",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "f3e9dcfb27b7c13be9c5314439f827c06cf9785f2ba40f71fbd9263726154fa2",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSrtlaServer.kt",
     "notes": [
-      "Added the new colorRange argument to the SrtlaServer construction in reloadSrtlaServer, taken from stream.colorRange as in the Swift diff; SrtlaServer's Kotlin constructor must accept colorRange.",
-      "Everything else is unchanged from the previous Kotlin file, including the hand-written ModelSrtlaServerDelegate(this) wiring and the merged getSrtlaStream overload.",
-      "The Swift delegate callbacks are implemented by the hand-written class ModelSrtlaServerDelegate, which hops to the main dispatcher with a CoroutineScope(Dispatchers.Main).",
-      "srtServerClientLatency supplies the video and audio buffer latency, as in Swift.",
-      "TODOs were not needed; every API used here has a Kotlin counterpart."
+      "The Swift function srtlaCameras() was replaced by updateSrtlaVideoSources() and updateSrtlaVideoSourcesAndMics(), placed in the same position after srtlaServerEnabled().",
+      "videoSources.srtla is a MutableStateFlow<List<Camera>>, so the assignment is written as videoSources.srtla.value = ... like other video-source updates in the port.",
+      "updateSrtlaMics() is a Model extension in the same package (the mics sibling file) and is called without an import.",
+      "Nothing else in the file changed; all imports, declarations and formatting are kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38221,
-    "tokens_out": 2167,
-    "seconds": 8.8,
-    "ported_at": "2026-09-29T00:42:59+00:00"
+    "tokens_in": 39432,
+    "tokens_out": 1966,
+    "seconds": 7.1,
+    "ported_at": "2026-09-29T23:49:26+00:00"
   },
   "Moblin/Various/Model/ModelCatPrinters.swift": {
     "status": "ok",
@@ -11189,22 +11173,25 @@
   },
   "Moblin/Various/Model/ModelWhipServer.swift": {
     "status": "ok",
-    "sha256": "5e1f551ee89e28b64c8ff1313976cb854da8b193d4053fecba45fa6a2e2936ba",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "65e7b8f6638263c6a3bee9ae31b7de00beeaea1902da868dea90ba46fd23e10f",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWhipServer.kt",
     "notes": [
-      "The diff only adds the new `colorRange` argument to the `WhipServer(...)` constructor call inside `Model.reloadWhipServer()`; everything else is unchanged.",
-      "`stream.colorRange` resolves to `Model.stream` (the model's active SettingsStream) exactly as the Swift extension property does; no new import is needed because the argument is only passed through."
+      "whipCameras() was removed in Swift and replaced by updateWhipVideoSources(), which now assigns into videoSources.whip instead of returning a list.",
+      "videoSources.whip is a MutableStateFlow<List<Camera>> in Kotlin, so the assignment is written as videoSources.whip.value = ...",
+      "New updateWhipVideoSourcesAndMics() calls the existing updateWhipVideoSources() and updateWhipMics() extensions in the same package.",
+      "Camera ids keep the previous Kotlin translation of stream.id.uuidString as stream.id.toString().",
+      "Everything else in the file is unchanged, including the delegate class, mainScope and the buffered audio/video forwarding."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38214,
-    "tokens_out": 1452,
-    "seconds": 5.5,
-    "ported_at": "2026-09-29T00:42:56+00:00"
+    "tokens_in": 39386,
+    "tokens_out": 1779,
+    "seconds": 6.5,
+    "ported_at": "2026-09-29T23:49:33+00:00"
   },
   "Moblin/Media/Srtla/Server/SrtlaServer.swift": {
     "status": "ok",
@@ -11646,23 +11633,24 @@
   },
   "Moblin/Various/Model/ModelWhepClient.swift": {
     "status": "ok",
-    "sha256": "34e2fca29a375c235d3d5cbba9503ebc8f6432c9bf8f151ec3eb2a0c3bea2bce",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "4e4399e10555b4fa45a4145743d4579973bccc7bc31f5f2f18bc7bd609713caa",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWhepClient.kt",
     "notes": [
-      "Only the WhepClient construction changed: colorRange now comes from the selected stream (this.stream.colorRange) instead of being omitted.",
-      "The loop variable `stream` shadows Model.stream, so the receiver is made explicit as `this.stream.colorRange` as the Swift `self.stream` does.",
-      "No new imports are required because the SettingsStreamColorRange type is only inferred from the property, never named."
+      "whepCameras() was replaced by updateWhepVideoSources(), which assigns videoSources.whep (a MutableStateFlow) through .value.",
+      "New updateWhepVideoSourcesAndMics() calls the same-file updateWhepVideoSources() plus updateWhepMics() from the mics port.",
+      "isWhepStreamConnected(streamId:) was deleted, together with its ingests.whep lookup.",
+      "whepMainScope (Dispatchers.Main) still stands in for DispatchQueue.main.async in the delegate callbacks."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38104,
-    "tokens_out": 2205,
-    "seconds": 8.8,
-    "ported_at": "2026-09-29T00:42:59+00:00"
+    "tokens_in": 39326,
+    "tokens_out": 2437,
+    "seconds": 9.4,
+    "ported_at": "2026-09-29T23:49:34+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffectGenericView.swift": {
     "status": "ok",
@@ -13555,27 +13543,28 @@
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift": {
     "status": "ok",
-    "sha256": "97ac3f0aa818b729c1b7960e29daedd611590da4efdfbba4ba64ee5495cea1c0",
+    "sha256": "daf29fa3a7623da5200315c29e87325e6121b2b2cbe061d73cc3d3071224e23b",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonMicView.kt",
     "notes": [
-      "QuickButtonMicMicView gained deleteEnabled/onDelete parameters because a Compose row owns its own gestures; the Swift deleteDisabled/contextMenuDeleteButton modifiers cannot be chained onto a composable.",
-      "contextMenuDeleteButton is marked TODO (no Compose context-menu counterpart); the same removal is still reachable through the swipe-to-delete box, which replaces SwiftUI List .onDelete.",
-      ".onMove (drag reordering inside a List) has no stable Compose/LazyColumn counterpart and is marked TODO.",
-      "Assumes the ported SettingsMics exposes `mics` and `autoSwitch` as MutableStateFlow and Mic exposes `current` as a StateFlow, all read with collectAsState(); writes use .value.",
-      ".navigationTitle(\"Mic\") becomes a Material3 TopAppBar above the list inside a Column (no Scaffold/NavHost is pulled in).",
-      "Image(systemName: \"cable.connector\"/\"cable.connector.slash\") map to Icons.Filled.Cable / Icons.Filled.LinkOff, which require the material-icons-extended artifact.",
-      ".bold() on the checkmark Image has no Icon equivalent and was dropped; only the blue/clear tint is kept.",
-      "The `if false` block around the Auto switch Toggle is preserved verbatim (kept as an if (false) branch)."
+      "Tapping a mic now calls model.manualSelectMicById(mic.id) directly when the mic is connected; the updateMicsListAsync wrapper is gone, as in the new Swift.",
+      "The .onAppear { model.updateMicsListAsync() } on the form was removed, so the LaunchedEffect(Unit) block is removed too, together with the now-unused LaunchedEffect and updateMicsListAsync imports.",
+      "DeleteDisabled and ContextMenuDeleteButton wrappers keep their Swift modifier order: context menu outside, delete-disabled inside.",
+      "mics.mics and mics.autoSwitch are StateFlows backed by the _mics/_autoSwitch delegates, so writes go through mics._mics.value and mics._autoSwitch.value.",
+      "The footer VStack is a Column with leading alignment and 8.dp spacing (VStack default spacing).",
+      "The disabled auto-switch Section is kept behind `if (false)` exactly as the Swift does.",
+      "Section(footerContent = ...) is used because the Swift footer contains a VStack, not a single Text.",
+      "The checkmark tint uses formPalette().accent for blue and Color.Transparent for clear."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3812,
-    "tokens_out": 22661,
-    "seconds": 90.8,
-    "ported_at": "2026-09-22T13:47:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46298,
+    "tokens_out": 2346,
+    "seconds": 8.9,
+    "ported_at": "2026-09-29T23:51:36+00:00"
   },
   "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorQuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -13675,27 +13664,24 @@
   },
   "Moblin/View/Settings/Ingests/RtmpServer/RtmpServerStreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "715e7081c4486e5f82698533964480c2fee9f22d85cb703e3a2ab27b32cec116",
+    "sha256": "7540cc51d874601fcea0f883b351e658ecb13131d10be892c1f9e125a5dac504",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/rtmpserver/RtmpServerStreamSettingsView.kt",
     "notes": [
-      "NavigationLink is translated to a clickable row calling onNavigate; the inline destination Form is translated in full into the extra composable RtmpServerStreamSettingsForm declared in this same file.",
-      "The three private Swift methods became private top-level functions with model/stream as first parameter (changeStreamKey, submitStreamKey, submitLatency).",
-      "@ObservedObject settings objects are assumed to expose their @Published data as StateFlows in the port; reads use collectAsState() and writes assign to .value.",
-      "Image(systemName: \"cable.connector\"/\"cable.connector.slash\") mapped to Icons.Default.Check / Icons.Default.Close because material-icons-core has no cable icon.",
-      ".disabled(...) is passed as the enabled parameter of NameEditView and TextEditNavigationView.",
-      ".numbersAndPunctuation is passed as Compose KeyboardType.Number to TextEditNavigationView.",
-      ".navigationTitle(\"Stream\") becomes the TopAppBar title inside a Scaffold wrapping the destination LazyColumn.",
-      "Form Sections are flattened into LazyColumn items: a header Text, the fields, then the footer Text; the multi-line footer string is concatenated."
+      "Only the diff is applied: NameEditView now triggers model.updateRtmpVideoSourcesAndMics() when the stream name changes.",
+      "Swift .onChange fires only on a real value change, so the Kotlin onNameChange compares the old and new name before running the model update.",
+      "The .disabled(model.rtmpServerEnabled()) lines in the diff context are not present in the current Kotlin file and stay absent; the diff does not touch them.",
+      "Everything else, including KeyboardType.Number for the latency field (Android hand-written choice instead of .numbersAndPunctuation), is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4557,
-    "tokens_out": 15066,
-    "seconds": 58.7,
-    "ported_at": "2026-09-22T13:47:29+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42932,
+    "tokens_out": 2514,
+    "seconds": 9.4,
+    "ported_at": "2026-09-29T23:51:46+00:00"
   },
   "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorSettingsView.swift": {
     "status": "ok",
@@ -13884,27 +13870,23 @@
   },
   "Moblin/View/Settings/Ingests/RtspClient/RtspClientStreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "c9acf61f7d43ffc726778191f164dc4b510c1846b5d74c820c62fe431d71c0c2",
+    "sha256": "df205d22739b8855d5d71976771e4fe531d81452043ff498bed045e2f3474456",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/rtspclient/RtspClientStreamSettingsView.kt",
     "notes": [
-      "@State/@Binding become remember/mutableStateOf plus onChange lambdas; the @State 'value' prop is kept as parameter 'value' and its mutable copy is named valueState to avoid a clash.",
-      "NavigationLink is translated to onNavigate(name) callbacks: the outer 'Stream' link and the inner 'URL' link. The inline Form that was the 'Stream' destination is preserved as RtspClientStreamSettingsViewDestination, and UrlSettingsView itself is exported for the 'URL' route.",
-      "onChange(of:) is applied directly inside the mutation callbacks instead of LaunchedEffect(value), because the watched settings properties are plain mutable vars and would not re-trigger a keyed effect.",
-      ".navigationTitle -> TopAppBar title inside a Scaffold (ExperimentalMaterial3Api opt-in).",
-      ".sheet -> ModalBottomSheet, still a Material 3 experimental API.",
-      "MultiLineTextFieldView is called with value/onChange/placeholder/enabled only: .onSubmit, .textInputAutocapitalization and .disableAutocorrection have no matching parameter on the ported component and are dropped.",
-      "Settings model objects (SettingsRtspClient, SettingsRtspClientStream) are treated as holders with mutable properties (name, url, transport, latency, enabled, streams).",
-      "onDisappear -> DisposableEffect(Unit) { onDispose { ... } } keeps the auto-submit-on-leave behaviour."
+      "The added Swift `.onChange(of: stream.name)` is translated as a side effect inside NameEditView's onNameChange setter, the allowed translation for a change that only this control can make.",
+      "Added import com.moblin.android.various.model.updateRtspVideoSources, the package that already declares reloadRtspClient for this views's Model extensions.",
+      "Everything else in the file is byte-identical to the previous translation, including the hand-written UrlSettingsView with its explicit onChangeUrl/onDismiss parameters."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5856,
-    "tokens_out": 22370,
-    "seconds": 87.1,
-    "ported_at": "2026-09-22T13:47:59+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46457,
+    "tokens_out": 4196,
+    "seconds": 15.7,
+    "ported_at": "2026-09-29T23:51:59+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/MediaPlayerControlsView.swift": {
     "status": "ok",
@@ -14073,27 +14055,27 @@
   },
   "Moblin/View/Settings/Ingests/RistServer/RistServerStreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "29b381e86881f25b5f9829f8065d157d925428643a33db6c6dde93adf69c009b",
+    "sha256": "7f7de1170ce02f3c92570246d67b8c522a16163b12b5be1fcb65f2ad9d0bf12f",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/ristserver/RistServerStreamSettingsView.kt",
     "notes": [
-      "The SwiftUI NavigationLink's label (IngestStreamItemView + model.isRistStreamConnected) is not rendered here: this composable is the pushed destination, so the parent list screen renders that row and calls onNavigate.",
-      "The navigationTitle(\"Stream\") becomes the TopAppBar title inside a Scaffold wrapping the LazyColumn.",
-      "Form Sections become LazyColumn items: a header Text, the content, and the footer Text rendered with MaterialTheme.typography.bodySmall.",
-      "@ObservedObject/@EnvironmentObject state is read with collectAsState() and written through the flow's .value (settings properties are treated as MutableStateFlow fields).",
-      "NameEditView's @Binding name: $stream.name becomes name = <value> plus an onChange lambda.",
-      ".disabled(x) is inverted into enabled = !x on NameEditView and TextEditNavigationView.",
-      "String(localized: \"...\") -> localized(\"...\"); the multi-line Swift string literal is collapsed into one sentence.",
-      "keyboardType .numbersAndPunctuation maps to KeyboardType.Number and the latency valueFormat closure is passed as a lambda producing \"<value> ms\"."
+      "The two new Swift private helpers isPortInUse and changePort became local functions inside the composable, next to the existing submitPort and submitLatency, in the same order as the Swift file.",
+      "Swift UInt16 ports stay Kotlin Int with the existing 0..65535 bound, so isPortInUse takes an Int and compares against virtualDestinationPort, which is an Int in SettingsRistServerStream.",
+      "changePort keeps Swift's force unwrap of the port with value.toIntOrNull()!!, safe because isValidRistVirtualPort already validated the same string.",
+      "onChange: isValidPort on the Virtual port row became onChange = { changePort(it) }, and the now-unused isValidPort import was replaced by isValidRistVirtualPort.",
+      "`.onChange(of: stream.name)` runs model.updateRistVideoSourcesAndMics() only when the name actually changes; since the name is written only by NameEditView's binding, the side effect goes into its onNameChange with a changed check, as in the Rtmp sibling file.",
+      "`.disabled(model.ristServerEnabled())` on NameEditView is unchanged by the diff and NameEditView has no enabled parameter, so the Kotlin stays as it was.",
+      "The RIST URLs section, latency validation and URL formatting were not touched by the diff and stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4007,
-    "tokens_out": 10792,
-    "seconds": 43.5,
-    "ported_at": "2026-09-22T13:49:30+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42626,
+    "tokens_out": 8102,
+    "seconds": 30.7,
+    "ported_at": "2026-09-29T23:52:17+00:00"
   },
   "Moblin/VideoEffects/Replay/ReplayEffectStingerReader.swift": {
     "status": "ok",
@@ -14170,147 +14152,121 @@
   },
   "Moblin/View/Settings/Ingests/RtmpServer/RtmpServerSettingsView.swift": {
     "status": "ok",
-    "sha256": "a35e6795e71da4ecd10c825e2ca7b92c3386283ef3e407688676f0ce040f239a",
+    "sha256": "0627e331860089a7c3f33dde3fa3a2d1d2a096dae1477fc522caa37141748cde",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/rtmpserver/RtmpServerSettingsView.kt",
     "notes": [
-      "NavigationLink is split into the row composable RtmpServerSettingsView (calls onNavigate(\"RtmpServerSettings\")) and the destination composable RtmpServerSettingsForm which holds the Form content plus the TopAppBar title.",
-      "rtmpServer.enabled and model.statusOther are read with collectAsState(); the Toggle writes through rtmpServer.enabled.value, assuming those published properties are MutableStateFlow/StateFlow in the ported model.",
-      "The Swift sections become a single LazyColumn: description, toggle, optional InfoBannerView, port editor, footer text, \"Streams\" header, stream items, CreateButtonView and the streams footer.",
-      "SettingsRtmpServerStream.baseName, model.rtmpServerEnabled() and model.getRtmpStream(streamKey) are reused as-is from the ported model/settings types.",
-      ".contextMenuDeleteButton has no Compose equivalent, so deletion is wired to a long press with Modifier.combinedClickable (disabled while the server is enabled) instead of a context menu.",
-      "TextEditNavigationView is called with enabled and keyboardType arguments (KeyboardType.Number for .numbersAndPunctuation); adjust to its real signature in com.moblin.android.view.utils.",
-      "CreateButtonView receives enabled = !model.rtmpServerEnabled() to mirror the .disabled modifier.",
-      "Port is stored as Int (UInt16 is used only for settings, not wire format) and UInt16(value) parsing is emulated with toIntOrNull plus a 0..65535 range check."
+      "Only the two updateMicsListAsync() call sites changed to updateRtmpVideoSourcesAndMics(), in deleteStream and in the CreateButtonView action.",
+      "The import of updateMicsListAsync was replaced by the import of updateRtmpVideoSourcesAndMics at the same position in the import list.",
+      "Everything else, including the hand-written stream-key uniqueness check against rtmpServer.streams, stays byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4926,
-    "tokens_out": 11715,
-    "seconds": 44.9,
-    "ported_at": "2026-09-22T13:49:45+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43825,
+    "tokens_out": 1700,
+    "seconds": 5.6,
+    "ported_at": "2026-09-29T23:52:05+00:00"
   },
   "Moblin/View/Settings/Ingests/SrtClient/SrtClientStreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "3d8970ecb8bc27f77c4028bd47cc762775b5e70036ac436248749ec34a82a396",
+    "sha256": "ccae28f4460c1a3fb89135c5eaa3d0240fb6b02872ef1bf6a42cee5622074e03",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/srtclient/SrtClientStreamSettingsView.kt",
     "notes": [
-      "NavigationLink destinations cannot be pushed from inside a single Compose screen, so the pushed Form is declared here as SrtClientStreamSettingsForm and reached through onNavigate(\"srtClientStreamSettings\"); the hosting NavHost must register it.",
-      "The nested URL NavigationLink navigates to the route \"url\"; SrtClientStreamUrlSettingsView wraps UrlSettingsView and must be registered for that route.",
-      "@ObservedObject/@Binding writes (stream.name, stream.enabled, stream.url) become value parameters plus onNameChange/onEnabledChange/onUrlChange callbacks, since StateFlow properties are read with collectAsState().",
-      "onChange(of: stream.enabled) maps to LaunchedEffect(enabled) guarded by a remembered previous value so reloadSrtClient() only runs on a real toggle change, not on first composition.",
-      "onSubmitted: model.reloadSrtClient becomes onSubmitted = { model.reloadSrtClient() }; Model.reloadSrtClient() is assumed to exist in com.moblin.android.various.model.",
-      "NameEditView, TextItemLocalizedView and UrlSettingsView are imported from their packages and called with the Swift argument labels kept as named parameters, including an extra onNameChange/onUrlChange callback replacing each Swift binding.",
-      "The Swift tuple array of URL examples becomes List<Pair<String, String>> built with 'to'.",
-      "navigationTitle \"Stream\" is not rendered here; the hosting screen must show it in its TopAppBar."
+      "Added the model.updateSrtClientVideoSourcesAndMics() call on name change, wired through the existing onNameChange lambda callback.",
+      "The onChange handler is invoked inside onNameChange before the NavigationLink recomposes, matching the Swift .onChange(of: stream.name)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3461,
-    "tokens_out": 7939,
-    "seconds": 31.1,
-    "ported_at": "2026-09-22T13:49:48+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40824,
+    "tokens_out": 878,
+    "seconds": 3.4,
+    "ported_at": "2026-09-29T23:52:14+00:00"
   },
   "Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerStreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "ca2c8b321b02f288359bd21e724a3ea7d28a735a829c0c01f7afa927289aa96c",
+    "sha256": "4471a3cac23303c6df69e51d69253442e3368acefca73454c3bd11624ccee09a",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/srtlaserver/SrtlaServerStreamSettingsView.kt",
     "notes": [
-      "The NavigationLink label becomes the composable body: IngestStreamItemView wrapped in a clickable Box that calls onNavigate(\"Stream\").",
-      "The inline Form destination of the NavigationLink is translated into the companion composable SrtlaServerStreamSettingsDetailView in the same file, since navigation-compose is not pulled in here.",
-      "Parameter names of the util components (NameEditView, TextEditNavigationView, UrlsView, IngestStreamItemView) are inferred from the Swift argument labels; adjust if the Kotlin signatures differ. NamesEditView receives the name value plus an onChange lambda, replacing the Swift @Binding.",
-      "SwiftUI Text with a string literal is localized by SwiftUI, so those literals are wrapped in localized(...); string literals that were not localized in Swift stay raw.",
-      "wholeMatch(of: /[a-zA-Z0-9]*/) becomes Regex(\"[a-zA-Z0-9]*\").matches(...) because Kotlin's Regex.matches requires a full-string match.",
-      "The UInt16 port argument is translated as Int, since this is not wire-format/byte-parsing code.",
-      "The three private helper methods became private top-level functions with the same names, taking model and stream explicitly.",
-      "Form sections are rendered as LazyColumn items: the section header/footer texts become separate Text items, and .disabled(srtlaServer.enabled) cannot be forwarded to the util components and is therefore not applied."
+      "The Swift .onChange(of: stream.name) has no Compose counterpart in NameEditView; the model.updateSrtlaVideoSourcesAndMics() side effect is run in the onNameChange setter, which only fires when the name is edited, matching SwiftUI's change-only semantics.",
+      "The Swift .disabled(srtlaServer.enabled) on NameEditView and TextEditNavigationView is still not rendered, as in the current Kotlin file; only the new onChange behaviour was added.",
+      "No imports changed and no new platform calls were introduced."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3918,
-    "tokens_out": 7953,
-    "seconds": 30.1,
-    "ported_at": "2026-09-22T13:49:55+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41915,
+    "tokens_out": 2019,
+    "seconds": 7.7,
+    "ported_at": "2026-09-29T23:52:22+00:00"
   },
   "Moblin/View/Settings/Ingests/WhipServer/WhipServerStreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "6e8f52b09962b92e0627f90c3c83f5408228914e62fe178207971014da18c1e6",
+    "sha256": "7f3db6f67308e530ef1142dfab09877e95f9ebb6afe2fee60a5002532d9a0cad",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/whipserver/WhipServerStreamSettingsView.kt",
     "notes": [
-      "NavigationLink became an onNavigate callback: WhipServerStreamSettingsView keeps its name and renders the tappable IngestStreamItemView row, while the pushed Form content lives in the added WhipServerStreamSettingsDetail composable.",
-      "SwiftUI Form/Sections were mapped to a LazyColumn whose items are the section fields, with section headers and footers as plain Text items styled with MaterialTheme.typography.",
-      "Toggle 'Sync timestamps' became a Row with a label, Spacer(weight) and a Material 3 Switch bound directly to stream.syncTimestamps.",
-      ".navigationTitle(\"Stream\") became a Scaffold + TopAppBar title in the detail composable (requires ExperimentalMaterial3Api opt-in).",
-      "TextEditNavigationView, NameEditView and UrlsView are called from com.moblin.android.view.utils with the Swift argument labels converted to camelCase parameters (title/value/onChange/onSubmit/footers/keyboardType/valueFormat/enabled).",
-      "keyboardType: .numbersAndPunctuation was translated to androidx.compose.ui.text.input.KeyboardType.Number.",
-      "isValidIngestLatency is used as the latency onChange validator; changeStreamKey/submitStreamKey/submitLatency stay private top-level functions taking model/stream because the Swift private methods referenced them.",
-      "Int32 latency was mapped to Int and valueFormat uses \"$it ms\" to mirror the Swift interpolation."
+      "The added Swift onChange(of: stream.name) is applied inside NameEditView's onNameChange lambda, the same way the sibling RtmpServerStreamSettingsForm does it, guarded by a changed check so the model update only runs on a real name change.",
+      "Added the import of Model.updateWhipVideoSourcesAndMics() from com.moblin.android.various.model.",
+      "All other lines, including the hand-written changeStreamKey/submitStreamKey that read whipServer.streams instead of model.getWhipStream, are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4046,
-    "tokens_out": 7187,
-    "seconds": 27.1,
-    "ported_at": "2026-09-22T13:49:58+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42341,
+    "tokens_out": 6754,
+    "seconds": 28.2,
+    "ported_at": "2026-09-29T23:52:50+00:00"
   },
   "Moblin/View/Settings/Ingests/WhepClient/WhepClientStreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "f817dd1b13aeecf3995040e9090e6e9fcad72a1f0a2364b0382a95ee0a4fdf5f",
+    "sha256": "06f5bbde84d510ed60a0e78afb95d9a683b941a9e3e080e8335877b9d83173b7",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/whepclient/WhepClientStreamSettingsView.kt",
     "notes": [
-      "The outer NavigationLink is translated into an onNavigate(\"whepClientStream\") callback on the row composable; the destination Form is rendered by WhepClientStreamSettingsViewInner in this same file and the NavHost must wire that route to it.",
-      "The inner NavigationLink to UrlSettingsView becomes onNavigate(\"whepClientUrl\"); the URL screen is built by the navigation host, so its inline arguments (placeholder, allowedSchemes, onSubmitted) are not passed from here.",
-      "@EnvironmentObject/@ObservedObject become plain parameters; stream and whepClient are mutated directly because their fields are StateFlow backed, and the Swift onChange handlers are folded into the Switch onCheckedChange lambdas that call model.reloadWhepClient().",
-      "Form/List are translated to a LazyColumn of items with HorizontalDivider between sections; the Section footer became a small Text below the latency row.",
-      ".navigationTitle(\"Stream\") became the TopAppBar title inside the Scaffold of WhepClientStreamSettingsViewInner (needs ExperimentalMaterial3Api opt-in).",
-      "keyboardType .numbersAndPunctuation has no Compose counterpart, KeyboardType.Number is used for the latency field.",
-      "Parameter names for NameEditView (onNameChange, enabled), TextEditNavigationView (keyboardType, valueFormat, enabled) and TextItemLocalizedView (sensitive) are assumed from the com.moblin.android.view.utils signatures.",
-      "Text literals inside Text/Toggle were treated as localized keys (SwiftUI LocalizedStringKey behaviour) and go through localized()."
+      "The new .onChange(of: stream.name) maps to the existing onNameChange callback of NameEditView, which runs only when the name is set.",
+      "Added the import of the Model extension updateWhepVideoSourcesAndMics alongside reloadWhepClient."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3848,
-    "tokens_out": 10980,
-    "seconds": 41.0,
-    "ported_at": "2026-09-22T13:50:11+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41778,
+    "tokens_out": 1278,
+    "seconds": 4.8,
+    "ported_at": "2026-09-29T23:52:22+00:00"
   },
   "Moblin/View/Settings/Ingests/RtspClient/RtspClientSettingsView.swift": {
     "status": "ok",
-    "sha256": "b2b2d00f15d5cf685d5712d997c98047615dbda89fb6cb7d6d24cc70e73c18fb",
+    "sha256": "5293453fdd79d4f56470f72adf6b7f865f26469f24abf99ff239a0ddf47a0d92",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/rtspclient/RtspClientSettingsView.kt",
     "notes": [
-      "NavigationLink is split into a clickable row composable (RtspClientSettingsView) that calls onNavigate(\"rtspClientSettings\") and a destination composable (RtspClientSettingsViewDestination) holding the Form/Section content, both in this file.",
-      "The Form + Section + List become a LazyColumn with a header Text(\"Streams\"), the footer SwipeLeftToDeleteHelpView, and the navigationTitle becomes the TopAppBar title.",
-      "numberOfEnabledStreams is no longer @State refreshed in onAppear: it is derived from the streams StateFlow with collectAsState() so it stays in sync.",
-      "SettingsRtspClient.streams is assumed to be a MutableStateFlow<List<SettingsRtspClientStream>>: reads go through collectAsState(), writes assign .value. If the port exposes a read-only StateFlow, route these mutations through the model's mutator methods instead.",
-      "contextMenuDeleteButton has no Compose counterpart, so each stream row gets an overflow IconButton with a Material 3 DropdownMenu whose Delete item runs the translated deleteStream().",
-      "status() and deleteStream(at:) are kept as private top-level functions; since a @Composable has no self, they take the count, model and rtspClient they need as explicit parameters.",
-      "makeOffsets() is called with (streams, stream.id) and assumed to return the deletion index set as Set<Int>?.",
-      "String(localized: \"a stream\") becomes localized(\"a stream\") from package com.moblin.android."
+      "Added model.updateRtspVideoSources() after model.reloadRtspClient() in deleteStream and after appending the new stream in CreateButtonView, matching the Swift diff.",
+      "Assume the Model extension fun updateRtspVideoSources() lives in com.moblin.android.various.model, so it is imported from there and called as in Swift.",
+      "Everything else in the Kotlin file is unchanged, including the hand-written deleteStream that filters instead of using remove(atOffsets:)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4429,
-    "tokens_out": 14356,
-    "seconds": 57.7,
-    "ported_at": "2026-09-22T13:50:11+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42646,
+    "tokens_out": 1161,
+    "seconds": 4.4,
+    "ported_at": "2026-09-29T23:52:10+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/PreviewStream/StreamPreviewStreamSettingsView.swift": {
     "status": "ok",
@@ -14362,75 +14318,65 @@
   },
   "Moblin/View/Settings/Ingests/SrtClient/SrtClientSettingsView.swift": {
     "status": "ok",
-    "sha256": "0bb968f43971d79bf5de17afe3a486df94a5cb0206bccdf9b35e24e9e97e824d",
+    "sha256": "30f326d1d58477e1c498ac1a9715f5cbfe815a24744196560fb2baa54f41ff4f",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/srtclient/SrtClientSettingsView.kt",
     "notes": [
-      "NavigationLink is expressed as onNavigate(\"SrtClientSettingsDestination\") on the label row; the link's Form destination is kept in an extra SrtClientSettingsDestination composable that a NavHost should register.",
-      "Form/Section/List collapsed into a single LazyColumn: header item \"Streams\", one item per stream, CreateButtonView item, then the swipe-help footer item.",
-      "srtClient.streams is assumed to be a MutableStateFlow<List<SettingsSrtClientStream>>: read with collectAsState() and mutated through .value.",
-      "Swift IndexSet is mapped to Set<Int> and makeOffsets is assumed to return Set<Int>?; deleteStream(model, srtClient, indexes: Set<Int>) removes those indices and calls model.reloadSrtClient().",
-      "contextMenuDeleteButton became a long-press (combinedClickable) DropdownMenu with a Delete entry per stream row.",
-      ".onDelete(perform:) became a Material 3 SwipeToDismissBox (end-to-start only) wrapping each stream row.",
-      ".navigationTitle(\"SRT client\") became the Scaffold TopAppBar title inside the destination composable.",
-      "SettingsSrtClientStream() must have a no-arg constructor with a mutable name, and Model.reloadSrtClient() is called synchronously (non-suspend)."
+      "deleteStream now calls model.updateSrtClientVideoSourcesAndMics() after model.reloadSrtClient(), matching the new Swift line.",
+      "CreateButtonView now calls model.updateSrtClientVideoSourcesAndMics() after appending the new SettingsSrtClientStream.",
+      "The call is imported from com.moblin.android.various.model, the same package as reloadSrtClient, and invoked on the model parameter already present in both scopes.",
+      "No other line of the file changed; the Android-specific stream list replacement and ContextMenuDeleteButton handling stay as they were."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4259,
-    "tokens_out": 14823,
-    "seconds": 56.1,
-    "ported_at": "2026-09-22T13:50:55+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42180,
+    "tokens_out": 1674,
+    "seconds": 6.7,
+    "ported_at": "2026-09-29T23:52:35+00:00"
   },
   "Moblin/View/Settings/Ingests/WhepClient/WhepClientSettingsView.swift": {
     "status": "ok",
-    "sha256": "d61c7b4cc5ab3480b1ca8019169cbc44d8e504258132877f8bf85f5338bfb2c8",
+    "sha256": "4dbdf180e7f8f4b465266bedf187a56e070abe211401a6630a71f93bc29cf8cc",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/whepclient/WhepClientSettingsView.kt",
     "notes": [
-      "NavigationLink became a clickable row calling onNavigate(\"whepClient\"); the inline destination Form is exposed as a second composable WhepClientSettingsDestinationView so no navigation-compose dependency is needed in this file.",
-      "@EnvironmentObject model and @ObservedObject whepClient are plain parameters; whepClient.streams is read with collectAsState() and SettingsWhepClientStream.baseName/name are accessed as class/companion members.",
-      "@State numberOfEnabledStreams stays a remember { mutableStateOf(0) } filled from LaunchedEffect(Unit), mirroring onAppear, and status() takes it as a parameter instead of reading view state.",
-      "deleteStream takes an explicit List<Int> of indexes (IndexSet counterpart) and assumes whepClient.streams is a MutableStateFlow-backed list so a filtered copy can be assigned back; adjust if the port exposes it as a read-only StateFlow with mutation helpers.",
-      "The .contextMenuDeleteButton and .onDelete affordances have no Compose counterpart and became a trailing delete IconButton per stream that calls the same deleteStream path (context-menu previews are not reproduced).",
-      "Form Sections became LazyColumn item blocks: the description Text, a \"Streams\" header Text, one row per stream, the CreateButtonView, and the SwipeLeftToDeleteHelpView footer.",
-      "WhepClientStreamSettingsView is called as (whepClient, stream, onNavigate), following the same navigation-callback convention as the row.",
-      "model.reloadWhepClient() is invoked synchronously after each deletion; if the port makes it suspending, wrap the call in a coroutine scope."
+      "deleteStream now also calls model.updateWhepVideoSourcesAndMics() after model.reloadWhepClient(), keeping the existing hand-written list mutation.",
+      "CreateButtonView now calls model.updateWhepVideoSourcesAndMics() after appending the new WHEP client stream.",
+      "Added the import of updateWhepVideoSourcesAndMics from com.moblin.android.various.model.",
+      "Everything else, including the ForEach onDelete/context menu and the hand-written delete helper, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4428,
-    "tokens_out": 12166,
-    "seconds": 46.6,
-    "ported_at": "2026-09-22T13:50:58+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42718,
+    "tokens_out": 1451,
+    "seconds": 5.5,
+    "ported_at": "2026-09-29T23:52:48+00:00"
   },
   "Moblin/View/Settings/Ingests/RistServer/RistServerSettingsView.swift": {
     "status": "ok",
-    "sha256": "481a72ac53dad1d6264dea761c38739b7845153d65ed3877dd08792538465edd",
+    "sha256": "77e2e2ba52c4dcf1c94cae46b608af3075a9e9d73f3171eb7e1f08f62834a370",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/ristserver/RistServerSettingsView.kt",
     "notes": [
-      "The SwiftUI body is a NavigationLink, so it is split in two: RistServerSettingsView renders the tappable list row (label + status) and calls onNavigate(\"RIST server\"), while RistServerSettingsDetailView holds the Form content the caller shows for that destination (the two functions replace the one Swift View).",
-      "The private Swift members became top-level private functions taking model/ristServer: submitPort(), status() and deleteStream().",
-      "IndexSet is modelled as Set<Int>, both for deleteStream() and for the assumed Set<Int>? return of makeOffsets().",
-      "SettingsRistServer properties are read and written directly (assumed Compose-observable vars, needed because the Swift code assigns enabled and port); model.statusOther is read with collectAsState() per the @EnvironmentObject rule.",
-      ".disabled(...) on TextEditNavigationView and CreateButtonView is approximated by wrapping them in a Box with Modifier.alpha, because those utility composables' signatures are unknown here.",
-      "contextMenuDeleteButton and List.onDelete have no Compose counterpart, so both are expressed as a combinedClickable long press on each stream row that calls deleteStream() (only while the server is disabled, matching the Swift guard).",
-      "onChange(of: ristServer.enabled) is mapped to LaunchedEffect(enabled), which additionally fires once on first composition unlike the Swift original.",
-      "String(localized:) became localized(); keyboardType .numbersAndPunctuation became KeyboardType.Number."
+      "Only the two model calls changed: updateMicsListAsync becomes updateRistVideoSourcesAndMics in deleteStream and in the CreateButtonView action.",
+      "The import of updateMicsListAsync was replaced by updateRistVideoSourcesAndMics at the same position.",
+      "Everything else, including the hand-written RistServerSettingsDetailView, the alpha-disabled wrappers and the private helpers, is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4839,
-    "tokens_out": 20072,
-    "seconds": 79.5,
-    "ported_at": "2026-09-22T13:51:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43781,
+    "tokens_out": 1668,
+    "seconds": 5.3,
+    "ported_at": "2026-09-29T23:52:28+00:00"
   },
   "Moblin/View/Settings/Ingests/IngestsSettingsView.swift": {
     "status": "ok",
@@ -14457,47 +14403,42 @@
   },
   "Moblin/Various/Model/ModelReplay.swift": {
     "status": "ok",
-    "sha256": "a0aa73d06e1a13aec754c6ed4e21735d5abb5dff62db90c863bd90903eff1447",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "1990e67d8fa4744862cc48a15f495f3c3a130c8a0fe84ea523b72172245b6857",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelReplay.kt",
     "notes": [
-      "Added the new pixelFormatType argument to the ReplayFrameExtractor call in loadReplay and to the ReplayEffect constructor in replayPlay, taken from stream.colorRange.pixelFormatType() on the collected stream flow.",
-      "Everything else in the file is untouched, including the hand-written Android hooks (Dispatchers.Main.immediate scopes, Model.delegate adapters, File copy).",
-      "stream is a MutableStateFlow in Kotlin, so the Swift stream.colorRange is read as stream.value.colorRange."
+      "saveReplay now copies the replay file to replaysStorage.url(replay = replaySettings) instead of replaySettings.url().",
+      "loadReplay builds ReplayBufferFile with replaysStorage.url(replay = video).path, keeping the String path the Kotlin ReplayBufferFile expects.",
+      "Everything else, including the Android-specific delegates, mainScope usage and the transition-type `when`, is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50192,
-    "tokens_out": 3167,
-    "seconds": 10.5,
-    "ported_at": "2026-09-29T00:43:10+00:00"
+    "tokens_in": 51088,
+    "tokens_out": 2653,
+    "seconds": 8.1,
+    "ported_at": "2026-09-29T23:52:59+00:00"
   },
   "Moblin/View/Settings/Ingests/WhipServer/WhipServerSettingsView.swift": {
     "status": "ok",
-    "sha256": "01949281f7ce64683265e495a62e7974bc2203dd587f28d2948567a370e1cad8",
+    "sha256": "f07be86ed79ba6b6d7fff65911fc5ceb853dbb4bfc9e196377f09e0ff3b3451c",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/whipserver/WhipServerSettingsView.kt",
     "notes": [
-      "NavigationLink(destination:label:) is rendered as a clickable label Row that calls onNavigate(\"WhipServerSettingsView\") followed by the destination form, since navigation-compose must not be pulled in here.",
-      "SettingsWhipServer state (enabled, port, streams) is read with collectAsState() and written through .value, assuming the settings object exposes its state flows as mutable (MutableStateFlow).",
-      "onChange(of: whipServer.enabled) becomes LaunchedEffect(enabled) calling model.reloadWhipServer().",
-      "remove(atOffsets:) is translated to filterIndexed on a Set<Int> of indexes applied to the streams flow value.",
-      "contextMenuDeleteButton is implemented with combinedClickable + DropdownMenu; onDelete is implemented with Material 3 SwipeToDismissBox (EndToStart).",
-      "UInt16(value) port parsing becomes value.toIntOrNull() plus a 0..65535 range check.",
-      "keyboardType .numbersAndPunctuation maps to KeyboardType.Number.",
-      ".disabled(...) is passed as enabled = !enabled into TextEditNavigationView and CreateButtonView; if those helpers lack that parameter they must be extended."
+      "Both model.updateMicsListAsync() calls became model.updateWhipVideoSourcesAndMics(), and the import was renamed with them.",
+      "Everything else in the file is unchanged from the previous translation, including the Android-only streamIndex helper and the disabled-guard inside CreateButtonView."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4824,
-    "tokens_out": 19543,
-    "seconds": 73.4,
-    "ported_at": "2026-09-22T13:51:26+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43553,
+    "tokens_out": 1611,
+    "seconds": 5.3,
+    "ported_at": "2026-09-29T23:52:54+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift": {
     "status": "ok",
@@ -14525,27 +14466,24 @@
   },
   "Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerSettingsView.swift": {
     "status": "ok",
-    "sha256": "d072e44f4be4869247b52ecceca87c480d4287bbb6055de4b632df693588ad44",
+    "sha256": "e306c50eb2c9caf9953305ee5be9cfe98397add3fc252c7c220ff39cd03eb33a",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/ingests/srtlaserver/SrtlaServerSettingsView.kt",
     "notes": [
-      "The Swift NavigationLink embeds its destination, so this file declares two composables: SrtlaServerSettingsView (the tappable 'SRT(LA) server' row, which calls onNavigate) and SrtlaServerSettingsForm (the destination Form). The navigation host should route the key \"SrtlaServerSettingsForm\" to SrtlaServerSettingsForm.",
-      "SettingsSrtlaServer and SettingsSrtlaServerStream are treated as plain mutable objects (direct property reads/writes such as srtlaServer.enabled = ..., srtlaServer.srtPort = port), not as MutableStateFlow-backed observable objects.",
-      "Ports are Int: Swift UInt16(value) becomes value.toIntOrNull() plus a 0..65535 range check, and String(srtlaServer.srtPort) becomes srtlaServer.srtPort.toString().",
-      "IndexSet has no Android counterpart; makeOffsets(...) is assumed to return List<Int>? and deleteStream removes the offsets in descending order via removeAt.",
-      "TextEditNavigationView is called with keyboardType = KeyboardType.Number and enabled = !srtlaServer.enabled; these must match the already-ported signature in com.moblin.android.view.utils.",
-      "CreateButtonView is called as CreateButtonView(enabled = ...) { ... } with a trailing action lambda.",
-      "List's .onDelete(perform:) has no LazyColumn counterpart, so it is rendered as a trailing delete IconButton that is only shown while the SRT(LA) server is disabled; the swipe gesture itself is not reproduced.",
-      ".navigationTitle(\"SRT(LA) server\") becomes the Scaffold TopAppBar title of the destination form, and Section header/footer texts are emitted as plain Text items inside the LazyColumn."
+      "Applied the Swift diff only: both model.updateMicsListAsync() calls became model.updateSrtlaVideoSourcesAndMics().",
+      "The import com.moblin.android.various.model.updateMicsListAsync was replaced by com.moblin.android.various.model.updateSrtlaVideoSourcesAndMics in the same position.",
+      "deleteStream and the CreateButtonView action in SrtlaServerSettingsForm were the two call sites updated.",
+      "Everything else in the Kotlin file, including the hand-written submitSrtPort/submitSrtlaPort port clamping, KeyboardType.Number and the ForEach onDelete handling, stays byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5095,
-    "tokens_out": 20272,
-    "seconds": 76.7,
-    "ported_at": "2026-09-22T13:51:28+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 44167,
+    "tokens_out": 2179,
+    "seconds": 7.4,
+    "ported_at": "2026-09-29T23:52:43+00:00"
   },
   "Moblin/VideoEffects/Replay/ReplayEffect.swift": {
     "status": "ok",
@@ -14601,27 +14539,23 @@
   },
   "Moblin/View/Stream/Overlay/Right/ReplayView.swift": {
     "status": "ok",
-    "sha256": "b118395941a38ea1e6f0052644e91f90de045d7379521d7b9091ebce5ba9dd69",
+    "sha256": "6458fbf20060d15f984ed7800219c356c5ce732cdbda511b81eee266933db42a",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/ReplayView.kt",
     "notes": [
-      "ReplayProvider / Orientation / ReplaysDatabase published properties are treated as MutableStateFlow fields: read with collectAsState(), written with `.value = ...`.",
-      "The Swift @EnvironmentObject `model` has no Compose equivalent and is passed as an explicit `model: Model` parameter to every composable that used it.",
-      "SwiftUI @State/optional image state becomes `remember { mutableStateOf<Bitmap?>(null) }`; UIImage maps to android.graphics.Bitmap rendered with asImageBitmap().",
-      "Binding + onChange pairs (Slider startFromEnd, SpeedPicker speed) are folded into one onValueChange/onSelectedItemChange callback that writes the flow and calls the Model method.",
-      "glassEffect() (iOS 26) has no Compose counterpart, so the iOS <26 trash-button layout (icon inside a stroked circle) is used for all API levels.",
-      "Icons.Default.Stop, Save and PhotoCamera are not in material-icons-core and require the material-icons-extended artifact.",
-      "SegmentedHPicker is invoked as (items, selectedItem, onSelectedItemChange, modifier, trailing content lambda) - adjust to its real signature.",
-      "SettingsReplay.stop is assumed to be a Float; the Slider step count is derived as ((stop - 0f) / 0.1f).toInt() - 1."
+      "Only the ReplayHistoryItem thumbnail call changed: the Swift video.url() becomes model.replaysStorage.url(replay = video), so the Kotlin now passes model.replaysStorage.url(video).path to createThumbnail.",
+      "No import changes are needed; ReplaysStorage.url(replay) is already reachable through model.replaysStorage, used by ReplayHistory.",
+      "Everything else in the file is untouched and byte-identical, including the LocalModel default parameters, the SegmentedHPicker shape/colour setup and the state flows observed with collectAsState."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7891,
-    "tokens_out": 21766,
-    "seconds": 80.3,
-    "ported_at": "2026-09-22T13:52:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50086,
+    "tokens_out": 3443,
+    "seconds": 10.0,
+    "ported_at": "2026-09-29T23:53:05+00:00"
   },
   "Moblin/Various/Model/ModelRecording.swift": {
     "status": "ok",
@@ -14760,26 +14694,28 @@
   },
   "Moblin/Various/Model/ModelAudio.swift": {
     "status": "ok",
-    "sha256": "df1594f5bce1e58ee12a940528cac7fa8c88f6a7d4c58e7a556f1bf96526ac68",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "9f1e587abe6772fa54a6d577b604d5d337df2eddf8236e885948025b262f03f1",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAudio.kt",
     "notes": [
-      "The diff only adds two calls at the top of handleAudioRouteChange and the new public func updateIsBluetoothAudioOutput.",
-      "isBluetoothAudioOutput is a Model state property declared in the hand-written Model.kt; it is written directly (plain var), matching the other Model booleans used in this file (isAppActive, defaultMic, initialVolume).",
-      "stopTextToSpeechIfOutputNotAllowed() lives in the Model text-to-speech file of the same package and is only called here, never re-declared.",
-      "Swift's collection.contains { predicate } becomes Kotlin's any { predicate } on the outputs list.",
-      "The port-type list uses the AVAudioSession.Port string constants (bluetoothA2DP, bluetoothHFP, bluetoothLE) that the platform shim declares, so portType compares as a String equality test.",
-      "Everything else in the file is byte-identical to the previous Kotlin port."
+      "Replaced updateMicsList/updateMicsListAsync/updateMicsListDatabase with updateMics(), per-kind updateXRtmpMics() wrappers and a shared syncMics(found, isKind, removeMissing).",
+      "syncMics mutates the existing SettingsMicsMic instances (name and _connected.value) instead of rebuilding the list, matching the new Swift behaviour.",
+      "list*Mics() now return List<SettingsMicsMic> built with the SettingsMicsMic(name, inputUid, connected) constructor and read activeBufferedVideoIds instead of the isXStreamConnected helpers.",
+      "getConnectedMicById now delegates to getMicById; markMicAsConnected/Disconnected use getMicById as well.",
+      "handleAudioRouteChange calls updateAudioSessionMicsAsync() on the isMac() path before returning.",
+      "getActiveAudioSessionMic and listAudioSessionMics share the new makeAudioSessionMic(inputPort, dataSource) factory; addAudioSessionBuiltinMics/addAudioSessionExternalMics are gone.",
+      "setBuiltInMicAudioMode's Swift `try` on setPreferredPolarPattern is kept as the shim's non-throwing call, as in the previous port.",
+      "Mic.isSwitchTimerRunning stays a MutableStateFlow (Android deviation for Compose observation) with the setter kept."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58731,
-    "tokens_out": 10059,
-    "seconds": 29.8,
-    "ported_at": "2026-09-24T15:40:54+00:00"
+    "tokens_in": 73406,
+    "tokens_out": 12346,
+    "seconds": 35.1,
+    "ported_at": "2026-09-29T23:53:36+00:00"
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
@@ -15240,27 +15176,24 @@
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift": {
     "status": "ok",
-    "sha256": "86e89aad977fee6ee75987ded6314c9674b81979b94415b5fa759f9363b54208",
+    "sha256": "0aed0559e491e187697dec25e617d1d7dabb7aae54caa34b4b38ca240acda6d3",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayerSettingsView.kt",
     "notes": [
-      "The Swift body is a NavigationLink whose destination is the whole Form, so the form is rendered here as a full screen (Scaffold + TopAppBar 'Media player'); onNavigate is kept as a parameter for the parent screen that owns the NavigationLink label row (HStack with Text(player.name) + Spacer).",
-      "SettingsMediaPlayer / SettingsMediaPlayers are assumed to expose plain Kotlin properties (name, playlist, autoSelectMic, players); if the settings layer ports @Published as MutableStateFlow, read them with collectAsState() and assign through .value.",
-      "PhotosPickerItem is represented as android.net.Uri, the closest Android equivalent for a picked video; the picker itself has no Compose counterpart (TODO).",
-      "The Swift context-menu delete closure is preserved as the local val onContextMenuDelete; it must be wired to a trigger (for example a long press) manually.",
-      "makeOffsets is assumed to return List<Int>? (IndexSet in Swift); deletion removes indices in descending order.",
-      "The dead `if false { Section { Toggle(\"Auto select mic\") } }` block is kept verbatim as `if (false)` wrapping a Switch row.",
-      "logger.info calls become android.util.Log.i with the tag \"MediaPlayerSettingsView\".",
-      "List.onMove and List.onDelete have no LazyColumn equivalent and are marked TODO; deletePlaylistFile is kept because it is the target of onDelete."
+      "The diff only adds model.updateMediaPlayerVideoSourcesAndMics() after the two existing updateMediaPlayerSettings calls: in the NameEditView onNameChange and in the ForEach onMove.",
+      "updateMediaPlayerVideoSourcesAndMics is imported from com.moblin.android.various.model next to the existing updateMediaPlayerSettings import.",
+      "Everything else, including the picker launchers, the PhotosPicker hook, the Android deletePlaylistFile helper and the FormButton, is unchanged.",
+      "The Swift .onDelete/.onMove, NameEditView.onChange and deletePlaylistFile remain mapped exactly as before."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4642,
-    "tokens_out": 26488,
-    "seconds": 105.7,
-    "ported_at": "2026-09-22T13:57:20+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48867,
+    "tokens_out": 1968,
+    "seconds": 7.4,
+    "ported_at": "2026-09-29T23:53:13+00:00"
   },
   "Moblin/View/Settings/Location/LocationSettingsView.swift": {
     "status": "ok",
@@ -16167,23 +16100,25 @@
   },
   "Moblin/Various/Model/ModelMediaPlayer.swift": {
     "status": "ok",
-    "sha256": "fe90b8cdff9c3f93982ce8be042c30bb4dc3246e3650367891666e364b7160b1",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "f2a649b34ea23e58d187895838be894c424285aae26375868f8ef902e3740d53",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt",
     "notes": [
-      "Only addMediaPlayer changed: MediaPlayer is now constructed with colorRange = stream.colorRange.",
-      "MediaPlayer's Kotlin constructor already declares colorRange as its third parameter, so the named argument is enough and no new import is required.",
-      "All other Kotlin lines, imports, hand-written Android hooks (MediaPlayerDelegateImpl, mediaPlayers.put(...).close()) and declaration order stay byte-identical."
+      "Removed the two updateMicsListAsync() calls from addMediaPlayer and deleteMediaPlayer, matching the Swift diff.",
+      "playerCameras() was replaced by updateMediaPlayerVideoSources(), which writes into videoSources.mediaPlayer; because that property is a MutableStateFlow in the Kotlin port, the assignment becomes videoSources.mediaPlayer.value = ....",
+      "Camera ids keep the Android port's uppercase UUID string instead of Swift's uuidString.",
+      "updateMediaPlayerVideoSourcesAndMics() forwards to updateMediaPlayerMics(), the Kotlin name of the Model extension declared in ModelMic.kt, and must exist there.",
+      "Everything else, including the MediaPlayerDelegateImpl adapter that Swift replaces with its own conformance, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50663,
-    "tokens_out": 1881,
-    "seconds": 6.4,
-    "ported_at": "2026-09-29T00:43:15+00:00"
+    "tokens_in": 51903,
+    "tokens_out": 2923,
+    "seconds": 10.8,
+    "ported_at": "2026-09-29T23:49:45+00:00"
   },
   "Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift": {
     "status": "ok",
@@ -16237,27 +16172,24 @@
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
-    "sha256": "df5129c97f6a81210f92366eb424d63e1621bff12fa5529de8d6bf6f9a9fd070",
+    "sha256": "9e786b6aa5bc97d03024326e00e9e8b9d5d69ce8314c0a433dfa0367dd53dfce",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayersSettingsView.kt",
     "notes": [
-      "MediaPlayersSettingsView takes model and mediaPlayers as parameters instead of @EnvironmentObject/@ObservedObject; the caller must supply them and read any StateFlow with collectAsState() so rows recompose.",
-      "Form/List/Section became one LazyColumn: the two explanatory Sections are header Text items, the player list is itemsIndexed, and the create button is a trailing item.",
-      "deletePlayer is a private top-level function receiving model and mediaPlayers, because a Kotlin top-level function has no access to the view's stored objects.",
-      "The Kotlin port of makeOffsets is assumed to return a nullable Int collection, and SettingsMediaPlayers.players is assumed to be a MutableList (add/removeAt are used).",
-      "onDelete(perform:) has no Compose equivalent; each row gets a trailing delete IconButton that runs the same deletePlayer path.",
-      "contextMenuDeleteButton is replaced by that delete IconButton; no Compose context-menu preview is used.",
-      ".navigationTitle(\"Media players\") is expected to be rendered by the hosting screen's TopAppBar, which is not built in this file.",
-      "String(localized:) maps to the top-level localized() helper from package com.moblin.android."
+      "deletePlayer now captures the player ids before the removal, removes first, then deletes each player and finally calls model.updateMediaPlayerVideoSourcesAndMics().",
+      "The bounds check on offsets is kept as a hand-written Android fix while collecting the ids.",
+      "CreateButtonView now calls model.updateMediaPlayerVideoSourcesAndMics() after model.addMediaPlayer().",
+      "Added the import for com.moblin.android.various.model.updateMediaPlayerVideoSourcesAndMics."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4494,
-    "tokens_out": 6719,
-    "seconds": 28.1,
-    "ported_at": "2026-09-22T14:04:59+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43604,
+    "tokens_out": 1443,
+    "seconds": 6.1,
+    "ported_at": "2026-09-29T23:53:19+00:00"
   },
   "Moblin/View/ControlBar/ControlBarLandscapeView.swift": {
     "status": "ok",
@@ -16333,26 +16265,24 @@
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "cc5dfffefaf68f23430a726bc95cb052908d42b580b9a8273d94bddcaa12bc81",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "ce2476b9eec089608678aa9d024368a53bd2f3efd43ad6f4d8ea36fc8382a269",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "setPixelFormat() was replaced by the private setColorRange(), which forwards stream.colorRange to sampleBufferReceiver, every MediaPlayer and reloadIngests().",
-      "reloadStream() now calls setColorRange() right after stopStream().",
-      "media.setNetStream() gained the colorRange argument exactly as the Swift change adds it; the platform Media declaration in the request still shows the old signature, so verify that Media.setNetStream accepts colorRange: SettingsStreamColorRange.",
-      "stream.colorRange is read from the SettingsStream state flow, i.e. stream.value.colorRange.",
-      "The imports for pixelFormats/pixelFormatTypes are kept byte-identical even though the removed body was their only user.",
-      "No Swift API in this file lacks an Android counterpart, so there are no TODO() markers."
+      "Added the srtClient/whip/whep network-camera branches to handleBufferedVideoReady and handleBufferedVideoRemoved as new else-if arms of the existing chain.",
+      "In handleBufferedVideoRemoved the auto-scene-switcher disconnect check moved out of the isNetwork block, matching the new Swift dedent.",
+      "The rist branches keep the existing Kotlin else-block shape (local val + null check); the new whip/whep checks are attached as else-if arms of that inner if so the previously hand-written lines stay untouched.",
+      "getSrtClientStream/getWhipStream/getWhepStream are Model extensions in the same package, so no new imports are needed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 85986,
-    "tokens_out": 19882,
-    "seconds": 68.7,
-    "ported_at": "2026-09-29T00:44:20+00:00"
+    "tokens_in": 87364,
+    "tokens_out": 13294,
+    "seconds": 35.8,
+    "ported_at": "2026-09-29T23:50:12+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
@@ -16588,27 +16518,23 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/PngTuber/WidgetPngTuberSettingsView.swift": {
     "status": "ok",
-    "sha256": "12eea73781939146159e951a53148f332a467ffddf09e5597f046c58deb841d8",
+    "sha256": "f4c8705d9af6a031228d72f8fd30e148e39e6e66f74d8f053458d2eed7f4efe0",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/pngtuber/WidgetPngTuberSettingsView.kt",
     "notes": [
-      "Each SwiftUI Section became a Column with a header Text, its content, and an optional footer Text, since Compose has no Section primitive.",
-      "PickerView (UIViewControllerRepresentable over UIDocumentPickerViewController) became a Compose wrapper around rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()); the picked Uri is forwarded as a String through model.onDocumentPickerUrl, so URL.lastPathComponent maps to String.substringAfterLast('/').",
-      ".sheet(isPresented:) became an if (showPicker) ModalBottomSheet holding PickerView; on Android the system document picker is launched by that composable itself.",
-      "The NavigationLink to InlinePickerView renders the ported InlinePickerView composable directly, gated by a local showVideoSourcePicker state, instead of a navigation callback, because its content comes from the same model.",
-      "@Binding sensitivity became a value plus an onChange(SettingsSensitivity) lambda; the new value is produced with SettingsSensitivity.copy(...), so that type is assumed to be a data class with Float mouth/eyes fields (ranges 0.05f..3f and 0.05f..5f).",
-      "SettingsWidgetPngTuber is treated as a plain mutable settings object (var properties); local remember(pngTuber) { mutableStateOf(...) } mirrors are kept for mirror and sensitivity so Compose recomposes, and are written back to the settings object on change.",
-      ".onChange(of: pngTuber.mirror) and .onChange(of: pngTuber.sensitivity) became LaunchedEffect(value) { setEffectSettings(...) }, which also runs on the first composition unlike the Swift original.",
-      "Chart/section styling uses MaterialTheme.typography titleSmall/bodySmall; no navigation-compose dependency is pulled into this file."
+      "WidgetPngTuberSettingsView gained a videoSources parameter, matching the new @ObservedObject in Swift.",
+      "The video source picker now lists videoSources.all() instead of model.listCameras(excludeBuiltin: false); the listCameras import was dropped since it has no other use.",
+      "Everything else in the file is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5684,
-    "tokens_out": 14720,
-    "seconds": 57.8,
-    "ported_at": "2026-09-22T14:08:54+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45179,
+    "tokens_out": 2178,
+    "seconds": 7.6,
+    "ported_at": "2026-09-29T23:53:27+00:00"
   },
   "Moblin/View/Stream/StreamOverlayView.swift": {
     "status": "ok",
@@ -16755,48 +16681,46 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "46b69e8f645a20af8d795e7e2d1ba88fe8a869963c72e364253bc83673751681",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "8df5c977f9b1d4cf623af08cded79f70b83f001e8df33e1a07b983b794874539",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Applied only the Swift diff: supportsHlg flag, sampleBufferReceiver visibility, setExternalCameraVideoRange replacing setAllowVideoRangePixelFormat, pixel-format move out of setup(), and main-queue dispatch in the camera connect/disconnect handlers.",
-      "sampleBufferReceiver stays typed Any? because SampleBufferReceiver has no Android counterpart; only its private modifier is dropped so other ported files can reach it.",
-      "setupSampleBufferReceiver() keeps its hand-written empty body: the added setPixelFormatType(stream.colorRange) call needs the iOS SampleBufferReceiver and the colour range is applied to the capture session through externalCameraVideoRange instead.",
-      "The removed setPixelFormat() call had no Kotlin body in this file (it was an extension elsewhere); only the call site is deleted.",
-      "setExternalCameraVideoRange() writes the externalCameraVideoRange global from com.moblin.android.media.haishinkit.media.video, matching the hand-written port's use of the debug setting's flow.",
-      "handleCaptureDeviceWasConnected/Disconnected now hop to the main dispatcher like the Swift DispatchQueue.main.async version.",
-      "updateOrientationLock() is unchanged; the earlier init() edit that called it is untouched."
+      "Added `val videoSources = VideoSources()` right after `ingests` in Model.",
+      "Removed the obsolete `backCameras`, `frontCameras` and `externalCameras` Camera lists from Model.",
+      "`setup()` now calls `updateVideoSources()` instead of the removed `updateCameraLists()`.",
+      "`handleCaptureDeviceWasConnected`/`handleCaptureDeviceWasDisconnected` now call `updateDeviceVideoSources()`.",
+      "The renamed helpers live in other Model extension files, so only the call sites in this file changed.",
+      "No import changes were needed; `VideoSources` resolves from the same package."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 143354,
-    "tokens_out": 38296,
-    "seconds": 101.9,
-    "ported_at": "2026-09-29T00:44:56+00:00"
+    "tokens_in": 143940,
+    "tokens_out": 34689,
+    "seconds": 86.8,
+    "ported_at": "2026-09-29T23:51:15+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
-    "sha256": "ac21816d039617f53443d8012d58bba0911390673d42a788aa2fd8ac45856b18",
-    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "sha256": "f6e6ad0deed9982b8476411af319da99ddb0a61a7c78e1fa01069456f445c19d",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/vtuber/WidgetVTuberSettingsView.kt",
     "notes": [
-      "Only change: unzipLive2DModel now creates the destination directory before extracting (to.mkdirs()), matching FileManager.default.createDirectory(withIntermediateDirectories: true).",
-      "ZipArchiveReader.withFile/extract has no Android shim in the platform layer, so the existing hand-written java.util.zip.ZipFile extraction loop is kept and now also creates the destination directory first, honouring the new Swift intent.",
-      "The __MACOSX and \"..\" entry filter is kept inside that loop (zip-slip protection); the Swift version relies on ZipArchive's extract(to:) to do this.",
-      "Everything else in the file is unchanged."
+      "WidgetVTuberSettingsView now takes a videoSources: VideoSources parameter, placed after vTuber like the Swift @ObservedObject.",
+      "The video source picker reads videoSources.all() instead of model.listCameras(excludeBuiltin: false); the listCameras import was dropped and VideoSources added.",
+      "Everything else (local remember state mirroring vTuber fields, Sheet handling, effect settings) is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45000,
-    "tokens_out": 3294,
-    "seconds": 12.1,
-    "ported_at": "2026-09-25T06:41:02+00:00"
+    "tokens_in": 46573,
+    "tokens_out": 3276,
+    "seconds": 11.2,
+    "ported_at": "2026-09-29T23:53:47+00:00"
   },
   "Moblin/View/Settings/Chat/ChatSettingsView.swift": {
     "status": "ok",
@@ -16896,27 +16820,24 @@
   },
   "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift": {
     "status": "ok",
-    "sha256": "1709eaf0a5007928e89fe7c4b075decc533e287f07704753d6661c7e1bfea20a",
+    "sha256": "785f5447ffab673b1c0fc4a1e449fd74fe829b16761e2ddeac00c4b32c28dcc8",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/scene/SceneSettingsView.kt",
     "notes": [
-      "Settings/scene/widget model objects expose their published properties as publicly mutable MutableStateFlow (read with collectAsState(), write with .value); @Binding arguments reach ported views as value + onChange lambda; Model.sceneSettingsPanelSceneId is treated as a plain Int var.",
-      "Model is an added parameter of SceneSettingsView because SwiftUI injected it through the environment; SettingsSceneCameraPosition.none keeps the Swift case name.",
-      "NavigationLink destinations become onNavigate(route) strings (\"Mic\", \"Name\", \"SceneWidgetSettingsView/<widgetId>\", \"SceneSettingsView\"); the pickers' onChange callbacks (MicView.onMicChange, VideoSourceView.onCameraChange) belong to the navigation host and are not recreated here.",
-      "Form/List/Section are rendered as a Column with verticalScroll, each section being a header Text, its rows and a footer Text, so that no LazyColumn is nested inside another scrollable.",
-      "List .onMove (drag to reorder) has no Compose counterpart and is left as TODO(); .contextMenuDeleteButton became a long-press that opens a confirm AlertDialog; .popover became ModalBottomSheet.",
-      "Icons.Default.PhotoCamera and Icons.Default.Warning require the material-icons-extended artifact.",
-      "Model.sceneSelector.objectWillChange.send() is emitted as SceneSelector.notifyChanged(); a StateFlow based port can make that method a no-op.",
-      "combinedClickable may need @OptIn(ExperimentalFoundationApi::class) before Compose Foundation 1.7, and Modifier.menuAnchor() takes no argument before Material 3 1.3."
+      "VideoSourceView now takes videoSources: VideoSources and lists videoSources.all() instead of model.listCameras().",
+      "SceneSettingsView passes model.videoSources through to VideoSourceView.",
+      "The listCameras import was dropped and the VideoSources import added, since listCameras is no longer referenced.",
+      "SceneSettingsView already had model in Kotlin, so the added @EnvironmentObject needs no further change."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 10437,
-    "tokens_out": 35742,
-    "seconds": 131.8,
-    "ported_at": "2026-09-22T14:12:14+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 61570,
+    "tokens_out": 4836,
+    "seconds": 14.5,
+    "ported_at": "2026-09-29T23:53:51+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsImageSettingsView.swift": {
     "status": "ok",
@@ -17228,27 +17149,23 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVideoSourceSettingsView.swift": {
     "status": "ok",
-    "sha256": "0783a74f44188ed27bbcce3fe3c87d0691b25cea77d3ff75eb60ca3e43457c49",
+    "sha256": "ceee09c71de2b8511a47fed841c952bc2adf01c998a5277a84a591370ef0eaed",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardVideoSourceSettingsView.kt",
     "notes": [
-      "SwiftUI PickerView is ported to a private @Composable PickerView that keeps the same name; @State selectedId becomes remember { mutableStateOf(selectedId) } with the passed value as the initial value.",
-      "The Picker is rendered as a Row wrapping an ExposedDropdownMenuBox with an OutlinedTextField anchor, matching the required Compose mapping.",
-      "The Swift onChange(of: selectedId) maps to LaunchedEffect(selected); unlike SwiftUI it also fires on first composition, which just re-applies the already selected camera id.",
-      "Form / Section become a Column with verticalScroll; there is no Section header content in this file so only the items are emitted.",
-      ".navigationTitle and .toolbar become a Scaffold with a TopAppBar whose title and actions are set accordingly.",
-      "CloseToolbar is called with presenting + onPresentingChange, and WidgetWizardSelectScenesNavigationView with presentingCreateWizard + onPresentingCreateWizardChange, mirroring the SwiftUI @Binding.",
-      "The 'Unknown 😢' fallback dropdown item is kept whenever the current selection is not in items.",
-      "@ObservedObject models (model, database, createWidgetWizard, videoSource) are passed straight in as Compose parameters."
+      "Added the new `videoSources: VideoSources` parameter to WidgetWizardVideoSourceSettingsView, placed after `videoSource` and before `presentingCreateWizard`, matching the Swift property order.",
+      "The picker items now come from the `VideoSources` model object instead of `Model.listCameras(excludeBuiltin:)`, so the `listCameras` import was dropped and `VideoSources` added.",
+      "Everything else in the file is unchanged, including the hand-written `onCameraChange(model, videoSource, cameraId)` helper and the PickerView wrapper."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5897,
-    "tokens_out": 7440,
-    "seconds": 24.7,
-    "ported_at": "2026-09-22T14:13:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 47127,
+    "tokens_out": 1738,
+    "seconds": 6.9,
+    "ported_at": "2026-09-29T23:53:35+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift": {
     "status": "ok",
@@ -17465,27 +17382,24 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VideoSource/WidgetVideoSourceSettingsView.swift": {
     "status": "ok",
-    "sha256": "a793a77e514c1b2b3cd2d8520c70d93bb4dbdd6c7fa74347eec29b81c100f981",
+    "sha256": "7110e36051dc65431bd0b4730ee448b9babed23622ab852c30f27d9faa4a9196",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/videosource/WidgetVideoSourceSettingsView.kt",
     "notes": [
-      "SwiftUI Sections are rendered as a plain Column with header Texts so the composable can be embedded in the parent settings list.",
-      "NavigationLink's parameterized destination (InlinePickerView built from model.listCameras) is shown as a ModalBottomSheet driven by local state instead of an onNavigate string callback, because the destination carries model data and feeds onCameraChange().",
-      "calculatePositioningRectangle's 4-value Swift tuple is returned as the new PositioningRectangle data class (destructurable via component1..component4).",
-      "drawPositioningRectangle took a SwiftUI GraphicsContext + CGRect; here it is a DrawScope extension drawing rects and corner handles over androidx.compose.ui.geometry.Rect.",
-      "CGPoint/CGSize map to androidx.compose.ui.geometry.Offset/Size; CGFloat math is converted with toDouble()/toFloat().",
-      "The '#if !targetEnvironment(macCatalyst)' guard around the screen capture alert is dropped because the Android port is never macCatalyst, so that branch is always active.",
-      "onChange(of:) is translated to LaunchedEffect(key), which means setEffectSettings() also fires on first composition unlike Swift.",
-      "videoSource.rotation/mirror/trackFaceEnabled/trackFaceZoom are treated as plain mutable properties; trackFaceZoom is converted to Float for the Material 3 Slider with 99 steps (0.01 over 0..1)."
+      "WidgetVideoSourceSettingsView now takes a videoSources: VideoSources parameter, added after videoSource in the same position as the Swift @ObservedObject.",
+      "The InlinePickerView items come from videoSources.all() instead of model.listCameras(excludeBuiltin = false); the unused listCameras import was dropped.",
+      "VideoSources is observed through its MutableStateFlow lists, but all() is read at call time as in Swift.",
+      "Everything else in the file, including the positioning helpers, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7010,
-    "tokens_out": 26735,
-    "seconds": 102.4,
-    "ported_at": "2026-09-22T14:14:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 53386,
+    "tokens_out": 3567,
+    "seconds": 11.1,
+    "ported_at": "2026-09-29T23:53:58+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift": {
     "status": "ok",
@@ -18344,27 +18258,28 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift": {
     "status": "ok",
-    "sha256": "1ead3ff18cccfa6473df1f1e05ae67e3a15053c92e7941b7bded517d488fd7f6",
+    "sha256": "5b5432e757ca3117a340fdd56ee5f7ec10527e713028cadbfc02d2225b47479a",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetSettingsView.kt",
     "notes": [
-      "SwiftUI View structs become top-level @Composable functions; @Binding is modelled as MutableState and nested property bindings (layout.x, widget.name, database.sceneNumericInput) are passed as value + on*Change lambdas so the external edit views can write back.",
-      "@EnvironmentObject / @ObservedObject become plain constructor parameters (Model, Database, SettingsWidget) since Compose has no environment object concept here.",
-      "Form/Section/Toggle become Column + Text header + Row/Switch; the .navigationTitle modifier has no in-composable equivalent and must be supplied by the navigation host (see unsupported list).",
-      ".onChange(of: layout.alignment) becomes LaunchedEffect(layout.value.alignment), which also fires on first composition rather than only on change.",
-      "SF Symbols are mapped to Material icons (square/lock/lock.open/arrow.*.circle); this requires the material-icons-extended artifact.",
-      "CMVideoDimensions is mapped to android.util.Size and read through its width/height properties.",
-      "Enum entries of SettingsAlignment/SettingsWidgetType are kept in the original Swift camelCase spelling (topLeft, qrCode, vTuber, pomodoroTimer, ...) to preserve naming fidelity with the shared settings module.",
-      "widget.image() is assumed to return an androidx.compose.ui.graphics.vector.ImageVector consumed by Icon."
+      "Every Swift struct View became a top-level @Composable function with the same name; @Binding became MutableState<T>, @ObservedObject and plain let became normal parameters with LocalModel.current default for model.",
+      "@Binding var layout writes into SettingsWidgetLayout, an immutable settings data class, so each field write became layout.value = layout.value.copy(x = ...) or .updatingXString()/.updatingYString().",
+      "The private methods of WidgetLayoutView (dimensions, horizontalIncrement, verticalIncrement, setXBasedOnYIfLocked, setYBasedOnXIfLocked, generalAndAlignmentPicker, horizontalAndVerticalPositioning, horizontalPositioning, verticalPositioning) are file-private top-level declarations taking model/layout/numericInput, because Kotlin has no composable local functions.",
+      ".onChange(of: layout.alignment) is a LaunchedEffect keyed on the alignment; it also fires once on first composition, unlike SwiftUI's onChange.",
+      ".buttonStyle(.borderless/.bordered), .lineLimit and .minimumScaleFactor have no Compose counterpart and were dropped; .font(.title) on SF Symbols is fontSize = 28.sp.",
+      "PositionEditView and SizeEditView have no Modifier parameter in the port, so .padding(.bottom, 10) on the first position editor is applied through a wrapping Box.",
+      "WidgetMapSettingsView names its delay/size parameters initialDelay/initialSize in the Kotlin port, so widget.map.delay and widget.map.size are passed to those.",
+      "Button, Toggle, Form, Section and Divider come from com.moblin.android.platform.swiftui and Text from Material 3."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9632,
-    "tokens_out": 28319,
-    "seconds": 100.1,
-    "ported_at": "2026-09-22T14:18:32+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 54759,
+    "tokens_out": 25882,
+    "seconds": 88.6,
+    "ported_at": "2026-09-29T23:59:52+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardTwitchSettingsView.swift": {
     "status": "ok",
@@ -18392,27 +18307,23 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift": {
     "status": "ok",
-    "sha256": "3795f8e3b0c910630da227ebb3fd8406f6041ccd221da9acd76837383597ec08",
+    "sha256": "9ef2cf79667bda0e3778ece9583698306ad96f3b6818c080a640f8e802599a8b",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetWizardSettingsView.kt",
     "notes": [
-      "Every SwiftUI View became one @Composable function with the same name; @Binding became a value parameter plus an onChange lambda.",
-      "NavigationLink destinations are reported through an added onNavigate: (String) -> Unit parameter that carries the destination view name as route.",
-      "SceneToAddWidgetTo keeps its @Published enabled as a private MutableStateFlow exposed as StateFlow; the view mutates it through the added toggleEnabled() function.",
-      "Assumes model objects (CreateWidgetWizard, Database) expose their published state as public MutableStateFlow: reads use collectAsState(), writes use .value; Database collections are StateFlow<List<...>> that are replaced on write.",
-      "WizardNextButtonView is called with an assumed enabled parameter, CloseToolbar with assumed presenting/onPresentingChange parameters; TextButtonView uses a trailing onClick lambda.",
-      "Picker became an ExposedDropdownMenuBox in a Row, Form/Section became a LazyColumn with header Texts, toolbar became the CloseToolbar composable.",
-      "Enum members and SettingsWidgetType case names are assumed to match the Swift spellings (text, browser, videoSource, image, slideshow, vTuber, pngTuber, wheelOfLuck, bingoCard, scoreboard).",
-      "The two user-facing strings go through localized() from com.moblin.android, keeping Swift string interpolation."
+      "Only the diff is applied: the videoSource branch of the widget type switch now passes model.videoSources to WidgetWizardVideoSourceSettingsView.",
+      "The new argument is placed between videoSource and presentingCreateWizard, matching the Swift call order and the declared Kotlin parameter order (videoSources: VideoSources).",
+      "Everything else in the file, including the hand-written Android additions (LocalModel/LocalOnNavigate defaults, onPresentingCreateWizardChange parameters, BackHandler-free Form layout), is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8343,
-    "tokens_out": 21728,
-    "seconds": 81.1,
-    "ported_at": "2026-09-22T14:18:37+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 52124,
+    "tokens_out": 3440,
+    "seconds": 10.0,
+    "ported_at": "2026-09-29T23:54:02+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardYouTubeSettingsView.swift": {
     "status": "ok",
@@ -18606,5 +18517,30 @@
     "tokens_out": 37182,
     "seconds": 121.7,
     "ported_at": "2026-09-29T09:05:53+00:00"
+  },
+  "MoblinTests/Moblin/Various/Storages/ReplaysStorageSuite.swift": {
+    "status": "ok",
+    "sha256": "10a1e5aeb1bd6c347098b1f01b5e1371226a25a6c096489bd90cf1d4fe1e81fe",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/storages/ReplaysStorageSuite.kt",
+    "notes": [
+      "The suite is a plain JUnit 4 class annotated with @RunWith(RobolectricTestRunner::class), because TemporaryDirectory and ReplaysStorage resolve files through the Android host context.",
+      "ReplaysStorage is constructed with the named argument directory exactly as in Swift: ReplaysStorage(directory = directory.url).",
+      "storage.url(replay = kept) is kept as in the Swift source; ReplaySettings also exposes url() but the storage-scoped call is the one the tests rely on for the temporary directory.",
+      "waitUntil is called with only the trailing condition lambda; the timeout argument is dropped because the Kotlin helper's timeout parameter type is not the Swift Duration, and the helper already fails after 10 s.",
+      "try Data().write(to: url) becomes File.writeBytes(ByteArray(0)), which writes the same empty file the load path checks with exists().",
+      "directory.url.appending(components: \"Database\", \"replays\") becomes File(File(directory.url, \"Database\"), \"replays\") and its parent directory is created before writing.",
+      "Swift 'for _ in 0 ..< 499' becomes repeat(499) and each test creates its own TemporaryDirectory and ReplaysStorage, so no state is shared between tests.",
+      "database.replays is a MutableStateFlow, so its value is read with .value; the id comparisons use map { it.id } / any { it.id == ... } instead of key paths."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 32853,
+    "tokens_out": 19621,
+    "seconds": 76.9,
+    "ported_at": "2026-09-29T23:49:19+00:00"
   }
 }

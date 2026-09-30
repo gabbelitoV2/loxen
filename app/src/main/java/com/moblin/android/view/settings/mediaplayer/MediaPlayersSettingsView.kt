@@ -12,6 +12,7 @@ import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.addMediaPlayer
 import com.moblin.android.various.model.deleteMediaPlayer
+import com.moblin.android.various.model.updateMediaPlayerVideoSourcesAndMics
 import com.moblin.android.various.settings.SettingsMediaPlayer
 import com.moblin.android.various.settings.SettingsMediaPlayers
 import com.moblin.android.various.utils.makeUniqueName
@@ -58,6 +59,7 @@ fun MediaPlayersSettingsView(
                 )
                 mediaPlayers.players = mediaPlayers.players + mediaPlayer
                 model.addMediaPlayer(mediaPlayer)
+                model.updateMediaPlayerVideoSourcesAndMics()
             }
         }
     }
@@ -69,10 +71,10 @@ private fun deletePlayer(
     offsets: IndexSet,
 ) {
     val players = mediaPlayers.players
-    for (index in offsets) {
-        if (index in players.indices) {
-            model.deleteMediaPlayer(players[index].id)
-        }
-    }
+    val playerIds = offsets.filter { it in players.indices }.map { players[it].id }
     mediaPlayers.players = players.removing(atOffsets = offsets)
+    for (playerId in playerIds) {
+        model.deleteMediaPlayer(playerId)
+    }
+    model.updateMediaPlayerVideoSourcesAndMics()
 }

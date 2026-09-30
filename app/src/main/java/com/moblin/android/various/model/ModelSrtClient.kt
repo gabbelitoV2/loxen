@@ -14,10 +14,15 @@ import kotlinx.coroutines.launch
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
-fun Model.srtClientCameras(): List<Camera> {
-    return database.srtClient.streams.map { stream ->
+fun Model.updateSrtClientVideoSources() {
+    videoSources.srtClient.value = database.srtClient.streams.map { stream ->
         Camera(id = stream.id.toString(), name = stream.camera())
     }
+}
+
+fun Model.updateSrtClientVideoSourcesAndMics() {
+    updateSrtClientVideoSources()
+    updateSrtClientMics()
 }
 
 fun Model.getSrtClientStream(id: UUID): SettingsSrtClientStream? {
@@ -30,10 +35,6 @@ fun Model.getSrtClientStream(idString: String): SettingsSrtClientStream? {
     return database.srtClient.streams.firstOrNull { stream ->
         stream.id.toString() == idString
     }
-}
-
-fun Model.isSrtClientStreamConnected(id: UUID): Boolean {
-    return true
 }
 
 fun Model.reloadSrtClient() {

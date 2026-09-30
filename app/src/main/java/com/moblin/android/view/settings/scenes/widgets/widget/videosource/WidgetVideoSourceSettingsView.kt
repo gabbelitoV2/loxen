@@ -24,6 +24,7 @@ import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.VideoSources
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetVideoSource
 import com.moblin.android.view.settings.scenes.scene.startScreenCatptureHelp
@@ -38,7 +39,6 @@ import com.moblin.android.various.model.getCameraId
 import com.moblin.android.various.model.getCameraPositionName
 import com.moblin.android.various.model.getVideoSourceEffect
 import com.moblin.android.various.model.isScreenCaptureCamera
-import com.moblin.android.various.model.listCameras
 import com.moblin.android.various.model.sceneUpdated
 
 enum class AnchorPoint {
@@ -202,6 +202,7 @@ fun WidgetVideoSourceSettingsView(
     model: Model = LocalModel.current,
     widget: SettingsWidget,
     videoSource: SettingsWidgetVideoSource,
+    videoSources: VideoSources,
 ) {
     var presentingScreenCaptureAlert by remember { mutableStateOf(false) }
 
@@ -227,7 +228,7 @@ fun WidgetVideoSourceSettingsView(
                     InlinePickerView(
                         title = "Video source",
                         onChange = { cameraId -> onCameraChange(cameraId) },
-                        items = model.listCameras(excludeBuiltin = false).map {
+                        items = videoSources.all().map {
                             InlinePickerItem(id = it.id, text = it.name)
                         },
                         initialSelectedId = model.getCameraId(videoSourceWidget = videoSource),

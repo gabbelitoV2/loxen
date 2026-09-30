@@ -271,6 +271,7 @@ fun WidgetWizardSettingsView(
                             database = database,
                             createWidgetWizard = createWidgetWizard,
                             videoSource = createWidgetWizard.widget.videoSource,
+                            videoSources = model.videoSources,
                             presentingCreateWizard = presentingCreateWizard,
                             onPresentingCreateWizardChange = onPresentingCreateWizardChange,
                         )

@@ -83,6 +83,7 @@ class VideoEncoder(
             isRunning = true
             invalidateSession = true
             currentBitrate = 0
+            oldBitrateVideoSize = Size(0, 0)
             this@VideoEncoder.formatDescription = formatDescription
             numberOfFailedEncodings = 0
             Log.i(TAG, "video-encoder: Starting with codec ${settings.value.format}")

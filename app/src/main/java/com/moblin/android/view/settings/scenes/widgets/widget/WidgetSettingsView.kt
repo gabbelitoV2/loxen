@@ -1,35 +1,30 @@
 package com.moblin.android.view.settings.scenes.widgets.widget
 
 import android.util.Size
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Button
+import com.moblin.android.platform.swiftui.Divider
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
-import com.moblin.android.platform.swiftui.binding
-import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.sceneUpdated
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAlignment
 import com.moblin.android.various.settings.SettingsWidget
@@ -54,124 +49,118 @@ import com.moblin.android.view.settings.scenes.widgets.widget.text.WidgetTextSet
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.WidgetVideoSourceSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.vtuber.WidgetVTuberSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck.WidgetWheelOfLuckSettingsView
+import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.PositionEditView
 import com.moblin.android.view.utils.SizeEditView
-import com.moblin.android.various.model.sceneUpdated
 
 @Composable
-fun AlignmentOptionView(
-    layout: MutableState<SettingsWidgetLayout>,
-    alignment: SettingsAlignment
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    SystemImage(
-        name = if (layout.value.alignment == alignment) "square.fill" else "square",
-        fontSize = 28.sp,
-        modifier = Modifier.clickable(
-            interactionSource = interactionSource,
-            indication = null
-        ) {
+fun AlignmentOptionView(layout: MutableState<SettingsWidgetLayout>, alignment: SettingsAlignment) {
+    Button(
+        action = {
             layout.value = layout.value.copy(alignment = alignment)
-        }
-    )
+        },
+    ) {
+        SystemImage(
+            name = if (layout.value.alignment == alignment) "square.fill" else "square",
+            fontSize = 28.sp,
+        )
+    }
 }
 
 @Composable
 fun SaveLoadLayoutView(
     model: Model = LocalModel.current,
-    layout: MutableState<SettingsWidgetLayout>
+    layout: MutableState<SettingsWidgetLayout>,
 ) {
-    Column(
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        FormButton(title = "Save layout", centered = true) {
-            model.layout.value = layout.value
-        }
-        FormButton(
-            title = "Load layout",
-            centered = true,
-            enabled = model.layout.value != null
+    Column(horizontalAlignment = Alignment.Start) {
+        Spacer(Modifier.weight(1f))
+        Button(
+            action = {
+                model.layout.value = layout.value
+            },
         ) {
-            layout.value = model.layout.value ?: layout.value
-            model.sceneUpdated()
+            HCenter {
+                Text("Save layout")
+            }
         }
+        Spacer(Modifier.weight(1f))
+        Button(
+            action = {
+                layout.value = model.layout.value ?: layout.value
+                model.sceneUpdated()
+            },
+            enabled = model.layout.value != null,
+        ) {
+            Row {
+                Text("")
+                Spacer(Modifier.weight(1f))
+                Text("Load layout")
+                Spacer(Modifier.weight(1f))
+                Text("")
+            }
+        }
+        Spacer(Modifier.weight(1f))
     }
 }
 
-private fun dimensions(model: Model): Size {
-    return model.stream.value.resolution.dimensions(portrait = model.stream.value.portrait)
-}
+private fun dimensions(model: Model): Size =
+    model.stream.value.resolution.dimensions(portrait = model.stream.value.portrait)
 
-private fun horizontalIncrement(model: Model): Double {
-    return 100.0 / dimensions(model).width.toDouble()
-}
+private fun horizontalIncrement(model: Model): Double = 100 / dimensions(model).width.toDouble()
 
-private fun verticalIncrement(model: Model): Double {
-    return 100.0 / dimensions(model).height.toDouble()
-}
+private fun verticalIncrement(model: Model): Double = 100 / dimensions(model).height.toDouble()
 
-private fun setXBasedOnYIfLocked(layout: MutableState<SettingsWidgetLayout>, model: Model) {
+private fun setXBasedOnYIfLocked(model: Model, layout: MutableState<SettingsWidgetLayout>) {
     if (!layout.value.positioningLock) {
         return
     }
-    val x = layout.value.y * horizontalIncrement(model) / verticalIncrement(model)
-    layout.value = layout.value.copy(x = x, xString = x.toString())
+    layout.value = layout.value.copy(
+        x = layout.value.y * horizontalIncrement(model) / verticalIncrement(model),
+    ).updatingXString()
 }
 
-private fun setYBasedOnXIfLocked(layout: MutableState<SettingsWidgetLayout>, model: Model) {
+private fun setYBasedOnXIfLocked(model: Model, layout: MutableState<SettingsWidgetLayout>) {
     if (!layout.value.positioningLock) {
         return
     }
-    val y = layout.value.x * verticalIncrement(model) / horizontalIncrement(model)
-    layout.value = layout.value.copy(y = y, yString = y.toString())
+    layout.value = layout.value.copy(
+        y = layout.value.x * verticalIncrement(model) / horizontalIncrement(model),
+    ).updatingYString()
 }
 
 @Composable
 private fun generalAndAlignmentPicker(
     model: Model = LocalModel.current,
+    widget: SettingsWidget,
     layout: MutableState<SettingsWidgetLayout>,
-    widget: SettingsWidget
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    Row {
+        Row {
             SaveLoadLayoutView(model = model, layout = layout)
             Spacer(Modifier.weight(1f))
         }
         if (widget.hasAlignment()) {
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(112.dp)
-                    .background(formPalette().separator)
-            )
+            Divider()
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    AlignmentOptionView(layout, SettingsAlignment.topLeft)
-                    AlignmentOptionView(layout, SettingsAlignment.topCenter)
-                    AlignmentOptionView(layout, SettingsAlignment.topRight)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topLeft)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topCenter)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topRight)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    AlignmentOptionView(layout, SettingsAlignment.leftCenter)
-                    AlignmentOptionView(layout, SettingsAlignment.center)
-                    AlignmentOptionView(layout, SettingsAlignment.rightCenter)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.leftCenter)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.center)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.rightCenter)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    AlignmentOptionView(layout, SettingsAlignment.bottomLeft)
-                    AlignmentOptionView(layout, SettingsAlignment.bottomCenter)
-                    AlignmentOptionView(layout, SettingsAlignment.bottomRight)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomLeft)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomCenter)
+                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomRight)
                 }
             }
-            val previousAlignment = remember { mutableStateOf(layout.value.alignment) }
             LaunchedEffect(layout.value.alignment) {
-                if (previousAlignment.value != layout.value.alignment) {
-                    previousAlignment.value = layout.value.alignment
-                    model.sceneUpdated()
-                }
+                model.sceneUpdated()
             }
         }
     }
@@ -181,34 +170,35 @@ private fun generalAndAlignmentPicker(
 private fun horizontalAndVerticalPositioning(
     model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>,
-    numericInput: MutableState<Boolean>
+    numericInput: MutableState<Boolean>,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            PositionEditView(
-                number = layout.value.x,
-                value = layout.value.xString,
-                onNumberChange = { layout.value = layout.value.copy(x = it) },
-                onValueChange = { layout.value = layout.value.copy(xString = it) },
-                onSubmit = {
-                    setYBasedOnXIfLocked(layout, model)
-                    model.sceneUpdated()
-                },
-                numericInput = numericInput.value,
-                onNumericInputChange = { numericInput.value = it },
-                incrementImageName = "arrow.forward.circle",
-                decrementImageName = "arrow.backward.circle",
-                mirror = layout.value.alignment.mirrorPositionHorizontally(),
-                increment = horizontalIncrement(model)
-            )
-            Spacer(Modifier.height(10.dp))
+        Column {
+            Box(modifier = Modifier.padding(bottom = 10.dp)) {
+                PositionEditView(
+                    number = layout.value.x,
+                    onNumberChange = { layout.value = layout.value.copy(x = it) },
+                    value = layout.value.xString,
+                    onValueChange = { layout.value = layout.value.copy(xString = it) },
+                    onSubmit = {
+                        setYBasedOnXIfLocked(model, layout)
+                        model.sceneUpdated()
+                    },
+                    numericInput = numericInput.value,
+                    onNumericInputChange = { numericInput.value = it },
+                    incrementImageName = "arrow.forward.circle",
+                    decrementImageName = "arrow.backward.circle",
+                    mirror = layout.value.alignment.mirrorPositionHorizontally(),
+                    increment = horizontalIncrement(model),
+                )
+            }
             PositionEditView(
                 number = layout.value.y,
-                value = layout.value.yString,
                 onNumberChange = { layout.value = layout.value.copy(y = it) },
+                value = layout.value.yString,
                 onValueChange = { layout.value = layout.value.copy(yString = it) },
                 onSubmit = {
-                    setXBasedOnYIfLocked(layout, model)
+                    setXBasedOnYIfLocked(model, layout)
                     model.sceneUpdated()
                 },
                 numericInput = numericInput.value,
@@ -216,25 +206,19 @@ private fun horizontalAndVerticalPositioning(
                 incrementImageName = "arrow.down.circle",
                 decrementImageName = "arrow.up.circle",
                 mirror = layout.value.alignment.mirrorPositionVertically(),
-                increment = verticalIncrement(model)
+                increment = verticalIncrement(model),
             )
         }
-        val interactionSource = remember { MutableInteractionSource() }
-        Box(
-            modifier = Modifier
-                .width(35.dp)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null
-                ) {
-                    layout.value = layout.value.copy(positioningLock = !layout.value.positioningLock)
-                    setYBasedOnXIfLocked(layout, model)
-                },
-            contentAlignment = Alignment.Center
+        Button(
+            action = {
+                layout.value = layout.value.copy(positioningLock = !layout.value.positioningLock)
+                setYBasedOnXIfLocked(model, layout)
+            },
         ) {
             SystemImage(
                 name = if (layout.value.positioningLock) "lock" else "lock.open",
-                fontSize = 28.sp
+                fontSize = 28.sp,
+                modifier = Modifier.width(35.dp),
             )
         }
     }
@@ -244,12 +228,12 @@ private fun horizontalAndVerticalPositioning(
 private fun horizontalPositioning(
     model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>,
-    numericInput: MutableState<Boolean>
+    numericInput: MutableState<Boolean>,
 ) {
     PositionEditView(
         number = layout.value.x,
-        value = layout.value.xString,
         onNumberChange = { layout.value = layout.value.copy(x = it) },
+        value = layout.value.xString,
         onValueChange = { layout.value = layout.value.copy(xString = it) },
         onSubmit = {
             model.sceneUpdated()
@@ -259,7 +243,7 @@ private fun horizontalPositioning(
         incrementImageName = "arrow.forward.circle",
         decrementImageName = "arrow.backward.circle",
         mirror = layout.value.alignment.mirrorPositionHorizontally(),
-        increment = horizontalIncrement(model)
+        increment = horizontalIncrement(model),
     )
 }
 
@@ -267,12 +251,12 @@ private fun horizontalPositioning(
 private fun verticalPositioning(
     model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>,
-    numericInput: MutableState<Boolean>
+    numericInput: MutableState<Boolean>,
 ) {
     PositionEditView(
         number = layout.value.y,
-        value = layout.value.yString,
         onNumberChange = { layout.value = layout.value.copy(y = it) },
+        value = layout.value.yString,
         onValueChange = { layout.value = layout.value.copy(yString = it) },
         onSubmit = {
             model.sceneUpdated()
@@ -282,7 +266,7 @@ private fun verticalPositioning(
         incrementImageName = "arrow.down.circle",
         decrementImageName = "arrow.up.circle",
         mirror = layout.value.alignment.mirrorPositionVertically(),
-        increment = verticalIncrement(model)
+        increment = verticalIncrement(model),
     )
 }
 
@@ -292,57 +276,48 @@ fun WidgetLayoutView(
     database: Database,
     layout: MutableState<SettingsWidgetLayout>,
     widget: SettingsWidget,
-    numericInput: MutableState<Boolean>
+    numericInput: MutableState<Boolean>,
 ) {
     if (widget.hasAlignment() || widget.hasPosition() || widget.hasSize()) {
         Section(
-            header = "Layout",
-            footer = "Use save/load layout to position a widget in the same place in " +
-                "multiple scenes. Alternatively, use a Scene widget to easily show the " +
-                "same widgets in multiple scenes."
+            headerContent = {
+                Text("Layout")
+            },
+            footerContent = {
+                Text(
+                    "Use save/load layout to position a widget in the same place in multiple " +
+                        "scenes. Alternatively, use a Scene widget to easily show the same widgets " +
+                        "in multiple scenes.",
+                )
+            },
         ) {
-            generalAndAlignmentPicker(model = model, layout = layout, widget = widget)
+            generalAndAlignmentPicker(model, widget, layout)
             if (widget.hasPosition()) {
-                if (!layout.value.alignment.isHorizontalCenter() &&
-                    !layout.value.alignment.isVerticalCenter()
-                ) {
-                    horizontalAndVerticalPositioning(
-                        model = model,
-                        layout = layout,
-                        numericInput = numericInput
-                    )
+                if (!layout.value.alignment.isHorizontalCenter() && !layout.value.alignment.isVerticalCenter()) {
+                    horizontalAndVerticalPositioning(model, layout, numericInput)
                 } else if (!layout.value.alignment.isHorizontalCenter()) {
-                    horizontalPositioning(
-                        model = model,
-                        layout = layout,
-                        numericInput = numericInput
-                    )
+                    horizontalPositioning(model, layout, numericInput)
                 } else if (!layout.value.alignment.isVerticalCenter()) {
-                    verticalPositioning(
-                        model = model,
-                        layout = layout,
-                        numericInput = numericInput
-                    )
+                    verticalPositioning(model, layout, numericInput)
                 }
             }
             if (widget.hasSize()) {
                 SizeEditView(
                     number = layout.value.size,
-                    value = layout.value.sizeString,
                     onNumberChange = { layout.value = layout.value.copy(size = it) },
+                    value = layout.value.sizeString,
                     onValueChange = { layout.value = layout.value.copy(sizeString = it) },
                     onSubmit = {
                         model.sceneUpdated()
                     },
                     numericInput = numericInput.value,
-                    onNumericInputChange = { numericInput.value = it }
+                    onNumericInputChange = { numericInput.value = it },
                 )
             }
             Toggle(
-                "Numeric input",
-                isOn = binding({ database.sceneNumericInput }) {
-                    database.sceneNumericInput = it
-                }
+                title = "Numeric input",
+                isOn = database.sceneNumericInput,
+                onChange = { database.sceneNumericInput = it },
             )
         }
     }
@@ -350,11 +325,8 @@ fun WidgetLayoutView(
 
 @Composable
 fun WidgetNameView(widget: SettingsWidget) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        SystemImage(name = widget.image(), fontSize = 28.sp)
+    Row {
+        SystemImage(name = widget.image(), fontSize = 17.sp)
         Text(widget.name)
     }
 }
@@ -363,83 +335,82 @@ fun WidgetNameView(widget: SettingsWidget) {
 fun WidgetSettingsView(
     model: Model = LocalModel.current,
     database: Database,
-    widget: SettingsWidget
+    widget: SettingsWidget,
 ) {
     Form(title = "${widget.type} widget") {
         Section {
             NameEditView(
                 name = widget.name,
+                onNameChange = { widget.name = it },
                 existingNames = database.widgets,
-                onNameChange = { widget.name = it }
             )
         }
         when (widget.type) {
-            SettingsWidgetType.image -> WidgetImageSettingsView(model = model, widget = widget)
-            SettingsWidgetType.browser -> WidgetBrowserSettingsView(widget = widget, browser = widget.browser)
-            SettingsWidgetType.text -> WidgetTextSettingsView(widget = widget, text = widget.text)
-            SettingsWidgetType.crop -> WidgetCropSettingsView(widget = widget)
-            SettingsWidgetType.map -> WidgetMapSettingsView(
-                widget = widget,
-                initialDelay = widget.map.delay,
-                initialSize = widget.map.size
-            )
-            SettingsWidgetType.scene -> WidgetSceneSettingsView(
-                widget = widget,
-                selectedSceneId = widget.scene.sceneId
-            )
-            SettingsWidgetType.slideshow -> WidgetSlideshowSettingsView(widget = widget)
-            SettingsWidgetType.qrCode -> WidgetQrCodeSettingsView(model = model, widget = widget)
-            SettingsWidgetType.alerts -> WidgetAlertsSettingsView(model = model, widget = widget)
-            SettingsWidgetType.videoSource -> WidgetVideoSourceSettingsView(
-                widget = widget,
-                videoSource = widget.videoSource
-            )
-            SettingsWidgetType.scoreboard -> WidgetScoreboardSettingsView(
-                model = model,
-                widget = widget,
-                scoreboard = widget.scoreboard,
-                web = database.remoteControl.web
-            )
-            SettingsWidgetType.vTuber -> WidgetVTuberSettingsView(
-                model = model,
-                widget = widget,
-                vTuber = widget.vTuber
-            )
-            SettingsWidgetType.pngTuber -> WidgetPngTuberSettingsView(
-                model = model,
-                widget = widget,
-                pngTuber = widget.pngTuber
-            )
-            SettingsWidgetType.snapshot -> WidgetSnapshotSettingsView(
-                model = model,
-                widget = widget,
-                snapshot = widget.snapshot
-            )
-            SettingsWidgetType.chat -> WidgetChatSettingsView(
-                model = model,
-                database = database,
-                widget = widget,
-                chat = widget.chat
-            )
-            SettingsWidgetType.chatEmoteCombo -> WidgetChatEmoteComboSettingsView(
-                model = model,
-                widget = widget,
-                chatEmoteCombo = widget.chatEmoteCombo
-            )
-            SettingsWidgetType.wheelOfLuck -> WidgetWheelOfLuckSettingsView(
-                model = model,
-                widget = widget,
-                wheelOfLuck = widget.wheelOfLuck
-            )
-            SettingsWidgetType.bingoCard -> WidgetBingoCardSettingsView(
-                model = model,
-                widget = widget,
-                bingoCard = widget.bingoCard
-            )
-            SettingsWidgetType.pomodoroTimer -> WidgetPomodoroTimerSettingsView(
-                model = model,
-                pomodoroTimer = widget.pomodoroTimer
-            )
+            SettingsWidgetType.image ->
+                WidgetImageSettingsView(model = model, widget = widget)
+            SettingsWidgetType.browser ->
+                WidgetBrowserSettingsView(model = model, widget = widget, browser = widget.browser)
+            SettingsWidgetType.text ->
+                WidgetTextSettingsView(widget = widget, text = widget.text)
+            SettingsWidgetType.crop ->
+                WidgetCropSettingsView(widget = widget)
+            SettingsWidgetType.map ->
+                WidgetMapSettingsView(
+                    widget = widget,
+                    initialDelay = widget.map.delay,
+                    initialSize = widget.map.size,
+                )
+            SettingsWidgetType.scene ->
+                WidgetSceneSettingsView(widget = widget, selectedSceneId = widget.scene.sceneId)
+            SettingsWidgetType.slideshow ->
+                WidgetSlideshowSettingsView(widget = widget)
+            SettingsWidgetType.qrCode ->
+                WidgetQrCodeSettingsView(model = model, widget = widget)
+            SettingsWidgetType.alerts ->
+                WidgetAlertsSettingsView(model = model, widget = widget)
+            SettingsWidgetType.videoSource ->
+                WidgetVideoSourceSettingsView(
+                    widget = widget,
+                    videoSource = widget.videoSource,
+                    videoSources = model.videoSources,
+                )
+            SettingsWidgetType.scoreboard ->
+                WidgetScoreboardSettingsView(
+                    model = model,
+                    widget = widget,
+                    scoreboard = widget.scoreboard,
+                    web = database.remoteControl.web,
+                )
+            SettingsWidgetType.vTuber ->
+                WidgetVTuberSettingsView(
+                    model = model,
+                    widget = widget,
+                    vTuber = widget.vTuber,
+                    videoSources = model.videoSources,
+                )
+            SettingsWidgetType.pngTuber ->
+                WidgetPngTuberSettingsView(
+                    model = model,
+                    widget = widget,
+                    pngTuber = widget.pngTuber,
+                    videoSources = model.videoSources,
+                )
+            SettingsWidgetType.snapshot ->
+                WidgetSnapshotSettingsView(model = model, widget = widget, snapshot = widget.snapshot)
+            SettingsWidgetType.chat ->
+                WidgetChatSettingsView(model = model, database = database, widget = widget, chat = widget.chat)
+            SettingsWidgetType.chatEmoteCombo ->
+                WidgetChatEmoteComboSettingsView(
+                    model = model,
+                    widget = widget,
+                    chatEmoteCombo = widget.chatEmoteCombo,
+                )
+            SettingsWidgetType.wheelOfLuck ->
+                WidgetWheelOfLuckSettingsView(model = model, widget = widget, wheelOfLuck = widget.wheelOfLuck)
+            SettingsWidgetType.bingoCard ->
+                WidgetBingoCardSettingsView(model = model, widget = widget, bingoCard = widget.bingoCard)
+            SettingsWidgetType.pomodoroTimer ->
+                WidgetPomodoroTimerSettingsView(model = model, pomodoroTimer = widget.pomodoroTimer)
         }
     }
 }

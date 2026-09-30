@@ -286,7 +286,7 @@ class SettingsRistServerStream : Named {
             val stream = SettingsRistServerStream()
             stream.id = container.decode("id", UUID.randomUUID())
             stream.name = container.decode("name", baseName)
-            stream.virtualDestinationPort = container.decode<UShort>("virtualDestinationPort", 1u).toInt()
+            stream.virtualDestinationPort = container.decode<UShort>("virtualDestinationPort", 2u).toInt()
             stream.latency = container.decode("latency", 2000)
             return stream
         }
@@ -294,7 +294,7 @@ class SettingsRistServerStream : Named {
 
     var id: UUID = UUID.randomUUID()
     override var name: String by Published(baseName)
-    var virtualDestinationPort: Int by Published(1)
+    var virtualDestinationPort: Int by Published(2)
     var latency: Int by Published(2000)
     var connected: Boolean = false
 
@@ -342,9 +342,9 @@ class SettingsRistServer {
     }
 
     fun makeUniqueVirtualDestinationPort(): Int {
-        var port: Int = 1
+        var port: Int = 2
         while (streams.any { it.virtualDestinationPort == port }) {
-            port += 1
+            port += 2
         }
         return port
     }

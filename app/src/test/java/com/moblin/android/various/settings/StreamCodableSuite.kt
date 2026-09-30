@@ -791,7 +791,7 @@ class StreamCodableSuite {
         assertEquals(7000, rist.port)
         assertEquals(3, rist.streams[0].virtualDestinationPort)
         assertEquals(100, rist.streams[0].latency)
-        assertEquals(1, rist.makeUniqueVirtualDestinationPort())
+        assertEquals(2, rist.makeUniqueVirtualDestinationPort())
         val rtsp = decodeJson(
             SettingsRtspClient.serializer(),
             "{\"streams\":[{\"url\":\"rtsp://x\",\"enabled\":true,\"transport\":\"rtpUdp\"}]}",
@@ -832,7 +832,7 @@ class StreamCodableSuite {
             SettingsRistServerStream.serializer(),
             "{\"virtualDestinationPort\":-3,\"latency\":\"slow\",\"name\":7}",
         )
-        assertEquals(1, rist.virtualDestinationPort)
+        assertEquals(2, rist.virtualDestinationPort)
         assertEquals(2000, rist.latency)
         assertEquals(SettingsRistServerStream.baseName, rist.name)
         val srt = decodeJson(
@@ -1247,7 +1247,7 @@ class StreamCodableSuite {
             decodeJson(SettingsRistServer.serializer(), "{\"port\":65536}").port,
         )
         val rist = decodeJson(SettingsRistServerStream.serializer(), "{\"virtualDestinationPort\":65536}")
-        assertEquals(1, rist.virtualDestinationPort)
+        assertEquals(2, rist.virtualDestinationPort)
         val srt = decodeJson(SettingsStreamSrt.serializer(), "{\"latency\":2147483648,\"overheadBandwidth\":-2147483648}")
         assertEquals(defaultSrtLatency, srt.latency)
         assertEquals(Int.MIN_VALUE, srt.overheadBandwidth)

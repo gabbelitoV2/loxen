@@ -95,15 +95,15 @@ fun Model.setupInputGainObserver() {
 }
 
 fun Model.setupAudio() {
-    updateMicsList()
+    updateMics()
     if (database.mics.defaultMic.isEmpty()) {
         database.mics.defaultMic = database.mics.mics.value
             .firstOrNull { it.builtInOrientation == database.mic }
             ?.id ?: ""
     }
-    val mic = getMicById(id = database.mics.defaultMic)
-    if (mic != null && mic.connected.value) {
-        defaultMic = mic
+    val connectedMic = getConnectedMicById(id = database.mics.defaultMic)
+    if (connectedMic != null) {
+        defaultMic = connectedMic
     } else {
         defaultMic = getHighestPriorityConnectedMic() ?: noMic
     }
@@ -196,7 +196,7 @@ fun Model.teardownAudioSession() {
 }
 
 fun Model.switchMicIfNeededAfterSceneSwitch() {
-    updateMicsList()
+    updateMics()
     if (database.mics.autoSwitch.value) {
         val scene = getSelectedScene()
         if (scene != null && scene.overrideMic) {
@@ -219,7 +219,7 @@ fun Model.switchMicIfNeededAfterSceneSwitch() {
 
 fun Model.switchMicIfNeededAfterNetworkCameraChange() {
     if (database.mics.autoSwitch.value) {
-        updateMicsList()
+        updateMics()
         val scene = getSelectedScene()
         if (scene != null && scene.overrideMic) {
             val sceneMic = getConnectedMicById(id = scene.micId)
@@ -241,58 +241,93 @@ fun Model.switchMicIfNeededAfterNetworkCameraChange() {
 }
 
 fun Model.markMicAsConnected(id: String) {
-    database.mics.mics.value.firstOrNull { it.id == id }?.let { it._connected.value = true }
+    getMicById(id = id)?.let { it._connected.value = true }
 }
 
 fun Model.markMicAsDisconnected(id: String) {
-    database.mics.mics.value.firstOrNull { it.id == id }?.let { it._connected.value = false }
+    getMicById(id = id)?.let { it._connected.value = false }
 }
 
-fun Model.updateMicsList() {
-    updateMicsListDatabase(foundMics = listMics())
+fun Model.updateMics() {
+    updateMics(audioSession = listAudioSessionMics())
 }
 
-fun Model.updateMicsListAsync(onCompleted: (() -> Unit)? = null) {
-    listMicsAsync { mics ->
-        updateMicsListDatabase(foundMics = mics)
-        onCompleted?.invoke()
+private fun Model.updateMics(audioSession: List<SettingsMicsMic>) {
+    updateMediaPlayerMics()
+    updateRistMics()
+    updateSrtlaMics()
+    updateSrtClientMics()
+    updateRtmpMics()
+    updateWhipMics()
+    updateWhepMics()
+    syncMics(found = audioSession, isKind = { it.isAudioSession() }, removeMissing = false)
+}
+
+fun Model.updateRtmpMics() {
+    syncMics(found = listRtmpMics(), isKind = { it.isRtmp() }, removeMissing = true)
+}
+
+fun Model.updateSrtlaMics() {
+    syncMics(found = listSrtlaMics(), isKind = { it.isSrtla() }, removeMissing = true)
+}
+
+fun Model.updateSrtClientMics() {
+    syncMics(found = listSrtClientMics(), isKind = { it.isSrtClient() }, removeMissing = true)
+}
+
+fun Model.updateRistMics() {
+    syncMics(found = listRistMics(), isKind = { it.isRist() }, removeMissing = true)
+}
+
+fun Model.updateWhipMics() {
+    syncMics(found = listWhipMics(), isKind = { it.isWhip() }, removeMissing = true)
+}
+
+fun Model.updateWhepMics() {
+    syncMics(found = listWhepMics(), isKind = { it.isWhep() }, removeMissing = true)
+}
+
+fun Model.updateMediaPlayerMics() {
+    syncMics(found = listMediaPlayerMics(), isKind = { it.isMediaPlayer() }, removeMissing = true)
+}
+
+fun Model.updateAudioSessionMicsAsync(onCompleted: (() -> Unit)? = null) {
+    processorControlQueue.launch {
+        val audioSessionMics = listAudioSessionMics()
+        mainScope.launch {
+            syncMics(found = audioSessionMics, isKind = { it.isAudioSession() }, removeMissing = false)
+            onCompleted?.invoke()
+        }
     }
 }
 
-private fun Model.updateMicsListDatabase(foundMics: List<SettingsMicsMic>) {
-    val databaseMics = mutableListOf<SettingsMicsMic>()
-    for (mic in database.mics.mics.value) {
-        if ((mic.isRtmp()
-                || mic.isSrtla()
-                || mic.isSrtClient()
-                || mic.isRist()
-                || mic.isRtsp()
-                || mic.isWhip()
-                || mic.isWhep()
-                || mic.isMediaPlayer()) && !foundMics.contains(mic)
-        ) {
+private fun Model.syncMics(
+    found: List<SettingsMicsMic>,
+    isKind: (SettingsMicsMic) -> Boolean,
+    removeMissing: Boolean,
+) {
+    val mics = database.mics.mics.value.toMutableList()
+    if (removeMissing) {
+        mics.removeAll { isKind(it) && !found.contains(it) }
+    }
+    for (mic in mics) {
+        if (!isKind(mic)) {
             continue
         }
-        if (mic.isExternal()) {
-            mic._connected.value = foundMics.contains(mic)
-            databaseMics.add(mic)
+        val foundMic = found.firstOrNull { it == mic }
+        if (foundMic != null) {
+            mic.name = foundMic.name
+            mic._connected.value = foundMic.connected.value
         } else {
-            val foundMic = foundMics.firstOrNull { it == mic }
-            if (foundMic != null) {
-                mic._connected.value = foundMic.connected.value
-                databaseMics.add(mic)
-            } else {
-                databaseMics.add(mic)
-            }
-        }
-        foundMics.firstOrNull { it == mic }?.let { mic.name = it.name }
-    }
-    for (mic in foundMics) {
-        if (!databaseMics.contains(mic)) {
-            databaseMics.add(0, mic)
+            mic._connected.value = false
         }
     }
-    database.mics._mics.value = databaseMics
+    for (mic in found) {
+        if (!mics.contains(mic)) {
+            mics.add(0, mic)
+        }
+    }
+    database.mics._mics.value = mics
 }
 
 fun Model.getMicById(id: String): SettingsMicsMic? {
@@ -388,6 +423,7 @@ private fun Model.handleAudioRouteChange() {
     updateIsBluetoothAudioOutput()
     stopTextToSpeechIfOutputNotAllowed()
     if (isMac()) {
+        updateAudioSessionMicsAsync()
         return
     }
     switchMicIfNeededAfterRouteChange()
@@ -447,7 +483,7 @@ private fun Model.setSystemVolume(volume: Float) {
 }
 
 private fun Model.switchMicIfNeededAfterRouteChange() {
-    updateMicsListAsync {
+    updateAudioSessionMicsAsync {
         if (database.mics.autoSwitch.value) {
             autoSwitchMicIfNeededAfterRouteChange()
         } else {
@@ -458,28 +494,7 @@ private fun Model.switchMicIfNeededAfterRouteChange() {
 
 private fun Model.getActiveAudioSessionMic(): SettingsMicsMic? {
     val inputPort = AVAudioSession.sharedInstance().currentRoute.inputs.firstOrNull() ?: return null
-    val newMic: SettingsMicsMic
-    val dataSource = inputPort.preferredDataSource
-    if (dataSource != null) {
-        val name: String
-        var builtInMicOrientation: SettingsMic? = null
-        if (inputPort.portType == AVAudioSession.Port.builtInMic) {
-            name = dataSource.dataSourceName
-            builtInMicOrientation = getBuiltInMicOrientation(orientation = dataSource.orientation)
-        } else {
-            name = "${inputPort.portName}: ${dataSource.dataSourceName}"
-        }
-        newMic = SettingsMicsMic()
-        newMic.name = name
-        newMic.inputUid = inputPort.uid
-        newMic.dataSourceId = dataSource.dataSourceID
-        newMic.builtInOrientation = builtInMicOrientation
-    } else {
-        newMic = SettingsMicsMic()
-        newMic.name = inputPort.portName
-        newMic.inputUid = inputPort.uid
-    }
-    return newMic
+    return makeAudioSessionMic(inputPort = inputPort, dataSource = inputPort.preferredDataSource)
 }
 
 private fun Model.autoSwitchMicIfNeededAfterRouteChange() {
@@ -536,109 +551,74 @@ private fun Model.makeMicChangeToast(name: String) {
     makeToast(title = localized("Switched mic to '$name'"))
 }
 
-private fun Model.listMics(): List<SettingsMicsMic> {
-    val mics = mutableListOf<SettingsMicsMic>()
-    listMediaPlayerMics(mics)
-    listRistMics(mics)
-    listSrtlaMics(mics)
-    listSrtClientMics(mics)
-    listRtmpMics(mics)
-    listWhipMics(mics)
-    listWhepMics(mics)
-    listAudioSessionMics(mics)
-    return mics
-}
-
-private fun Model.listMicsAsync(onCompleted: (List<SettingsMicsMic>) -> Unit) {
-    val mics = mutableListOf<SettingsMicsMic>()
-    listMediaPlayerMics(mics)
-    listRistMics(mics)
-    listSrtlaMics(mics)
-    listSrtClientMics(mics)
-    listRtmpMics(mics)
-    listWhipMics(mics)
-    listWhepMics(mics)
-    processorControlQueue.launch {
-        val audioSessionMics = mics.toMutableList()
-        listAudioSessionMics(audioSessionMics)
-        mainScope.launch {
-            onCompleted(audioSessionMics)
-        }
+private fun Model.listRtmpMics(): List<SettingsMicsMic> {
+    return database.rtmpServer.streams.map {
+        SettingsMicsMic(
+            name = it.camera(),
+            inputUid = it.id.toString(),
+            connected = activeBufferedVideoIds.contains(it.id),
+        )
     }
 }
 
-private fun Model.listRtmpMics(mics: MutableList<SettingsMicsMic>) {
-    for (stream in database.rtmpServer.streams) {
-        val mic = SettingsMicsMic()
-        mic.name = stream.camera()
-        mic.inputUid = stream.id.toString()
-        mic._connected.value = isRtmpStreamConnected(streamKey = stream.streamKey)
-        mics.add(mic)
+private fun Model.listSrtlaMics(): List<SettingsMicsMic> {
+    return database.srtlaServer.streams.map {
+        SettingsMicsMic(
+            name = it.camera(),
+            inputUid = it.id.toString(),
+            connected = activeBufferedVideoIds.contains(it.id),
+        )
     }
 }
 
-private fun Model.listSrtlaMics(mics: MutableList<SettingsMicsMic>) {
-    for (stream in database.srtlaServer.streams) {
-        val mic = SettingsMicsMic()
-        mic.name = stream.camera()
-        mic.inputUid = stream.id.toString()
-        mic._connected.value = isSrtlaStreamConnected(streamId = stream.streamId)
-        mics.add(mic)
+private fun Model.listSrtClientMics(): List<SettingsMicsMic> {
+    return database.srtClient.streams.map {
+        SettingsMicsMic(
+            name = it.camera(),
+            inputUid = it.id.toString(),
+            connected = activeBufferedVideoIds.contains(it.id),
+        )
     }
 }
 
-private fun Model.listSrtClientMics(mics: MutableList<SettingsMicsMic>) {
-    for (stream in database.srtClient.streams) {
-        val mic = SettingsMicsMic()
-        mic.name = stream.camera()
-        mic.inputUid = stream.id.toString()
-        mic._connected.value = isSrtClientStreamConnected(id = stream.id)
-        mics.add(mic)
+private fun Model.listRistMics(): List<SettingsMicsMic> {
+    return database.ristServer.streams.map {
+        SettingsMicsMic(
+            name = it.camera(),
+            inputUid = it.id.toString(),
+            connected = activeBufferedVideoIds.contains(it.id),
+        )
     }
 }
 
-private fun Model.listRistMics(mics: MutableList<SettingsMicsMic>) {
-    for (stream in database.ristServer.streams) {
-        val mic = SettingsMicsMic()
-        mic.name = stream.camera()
-        mic.inputUid = stream.id.toString()
-        mic._connected.value = isRistStreamConnected(port = stream.virtualDestinationPort.toInt())
-        mics.add(mic)
+private fun Model.listWhipMics(): List<SettingsMicsMic> {
+    return database.whipServer.streams.map {
+        SettingsMicsMic(
+            name = it.camera(),
+            inputUid = it.id.toString(),
+            connected = activeBufferedVideoIds.contains(it.id),
+        )
     }
 }
 
-private fun Model.listWhipMics(mics: MutableList<SettingsMicsMic>) {
-    for (stream in database.whipServer.streams) {
-        val mic = SettingsMicsMic()
-        mic.name = stream.camera()
-        mic.inputUid = stream.id.toString()
-        mic._connected.value = isWhipStreamConnected(streamId = stream.id)
-        mics.add(mic)
+private fun Model.listWhepMics(): List<SettingsMicsMic> {
+    return database.whepClient.streams.map {
+        SettingsMicsMic(
+            name = it.camera(),
+            inputUid = it.id.toString(),
+            connected = activeBufferedVideoIds.contains(it.id),
+        )
     }
 }
 
-private fun Model.listWhepMics(mics: MutableList<SettingsMicsMic>) {
-    for (stream in database.whepClient.streams) {
-        val mic = SettingsMicsMic()
-        mic.name = stream.camera()
-        mic.inputUid = stream.id.toString()
-        mic._connected.value = isWhepStreamConnected(streamId = stream.id)
-        mics.add(mic)
-    }
-}
-
-private fun Model.listMediaPlayerMics(mics: MutableList<SettingsMicsMic>) {
-    for (mediaPlayer in database.mediaPlayers.players) {
-        val mic = SettingsMicsMic()
-        mic.name = mediaPlayer.camera()
-        mic.inputUid = mediaPlayer.id.toString()
-        mic._connected.value = true
-        mics.add(mic)
+private fun Model.listMediaPlayerMics(): List<SettingsMicsMic> {
+    return database.mediaPlayers.players.map {
+        SettingsMicsMic(name = it.camera(), inputUid = it.id.toString(), connected = true)
     }
 }
 
 private fun Model.getConnectedMicById(id: String): SettingsMicsMic? {
-    val mic = database.mics.mics.value.firstOrNull { it.id == id }
+    val mic = getMicById(id = id)
     if (mic == null || !mic.connected.value) {
         return null
     }
@@ -817,55 +797,46 @@ private fun setBuiltInMicAudioMode(
     }
 }
 
-private fun listAudioSessionMics(mics: MutableList<SettingsMicsMic>) {
+private fun listAudioSessionMics(): List<SettingsMicsMic> {
+    val mics = mutableListOf<SettingsMicsMic>()
     for (inputPort in AVAudioSession.sharedInstance().availableInputs ?: emptyList()) {
         val dataSources = inputPort.dataSources
         if (dataSources != null && dataSources.isNotEmpty()) {
-            addAudioSessionBuiltinMics(mics, inputPort, dataSources)
+            val builtInMics = mutableListOf<SettingsMicsMic>()
+            for (dataSource in dataSources) {
+                val mic = makeAudioSessionMic(inputPort = inputPort, dataSource = dataSource)
+                when (mic.builtInOrientation) {
+                    SettingsMic.bottom, SettingsMic.top -> builtInMics.add(mic)
+                    else -> builtInMics.add(0, mic)
+                }
+            }
+            mics.addAll(builtInMics)
         } else {
-            addAudioSessionExternalMics(mics, inputPort)
+            mics.add(makeAudioSessionMic(inputPort = inputPort, dataSource = null))
         }
     }
+    return mics
 }
 
-private fun addAudioSessionBuiltinMics(
-    mics: MutableList<SettingsMicsMic>,
+private fun makeAudioSessionMic(
     inputPort: AVAudioSessionPortDescription,
-    dataSources: List<AVAudioSessionDataSourceDescription>
-) {
-    val builtInMics = mutableListOf<SettingsMicsMic>()
-    for (dataSource in dataSources) {
-        val name: String
-        var builtInOrientation: SettingsMic? = null
-        if (inputPort.portType == AVAudioSession.Port.builtInMic) {
-            name = dataSource.dataSourceName
-            builtInOrientation = getBuiltInMicOrientation(orientation = dataSource.orientation)
-        } else {
-            name = "${inputPort.portName}: ${dataSource.dataSourceName}"
-        }
-        val mic = SettingsMicsMic()
-        mic.name = name
-        mic.inputUid = inputPort.uid
-        mic.dataSourceId = dataSource.dataSourceID
-        mic.builtInOrientation = builtInOrientation
-        mic._connected.value = true
-        when (mic.builtInOrientation) {
-            SettingsMic.bottom, SettingsMic.top -> builtInMics.add(mic)
-            else -> builtInMics.add(0, mic)
-        }
-    }
-    mics.addAll(builtInMics)
-}
-
-private fun addAudioSessionExternalMics(
-    mics: MutableList<SettingsMicsMic>,
-    inputPort: AVAudioSessionPortDescription
-) {
+    dataSource: AVAudioSessionDataSourceDescription?,
+): SettingsMicsMic {
     val mic = SettingsMicsMic()
-    mic.name = inputPort.portName
     mic.inputUid = inputPort.uid
     mic._connected.value = true
-    mics.add(mic)
+    if (dataSource != null) {
+        if (inputPort.portType == AVAudioSession.Port.builtInMic) {
+            mic.name = dataSource.dataSourceName
+            mic.builtInOrientation = getBuiltInMicOrientation(orientation = dataSource.orientation)
+        } else {
+            mic.name = "${inputPort.portName}: ${dataSource.dataSourceName}"
+        }
+        mic.dataSourceId = dataSource.dataSourceID
+    } else {
+        mic.name = inputPort.portName
+    }
+    return mic
 }
 
 private fun getBuiltInMicOrientation(orientation: String?): SettingsMic? {

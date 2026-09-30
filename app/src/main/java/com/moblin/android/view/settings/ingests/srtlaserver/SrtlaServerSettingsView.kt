@@ -30,7 +30,7 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.various.model.getSrtlaStream
 import com.moblin.android.various.model.reloadSrtlaServer
 import com.moblin.android.various.model.srtlaServerEnabled
-import com.moblin.android.various.model.updateMicsListAsync
+import com.moblin.android.various.model.updateSrtlaVideoSourcesAndMics
 
 private fun submitSrtPort(srtlaServer: SettingsSrtlaServer, model: Model, value: String) {
     val port = value.toIntOrNull() ?: return
@@ -65,7 +65,7 @@ private fun deleteStream(srtlaServer: SettingsSrtlaServer, model: Model, indexes
         }
     }
     model.reloadSrtlaServer()
-    model.updateMicsListAsync()
+    model.updateSrtlaVideoSourcesAndMics()
 }
 
 @Composable
@@ -172,7 +172,7 @@ fun SrtlaServerSettingsForm(
                     }
                 }
                 srtlaServer.streams.add(stream)
-                model.updateMicsListAsync()
+                model.updateSrtlaVideoSourcesAndMics()
             }
         }
     }

@@ -944,11 +944,17 @@ private fun Model.handleBufferedVideoReady(cameraId: UUID) {
         isNetwork = true
     } else if (getSrtlaStream(id = cameraId) != null) {
         isNetwork = true
+    } else if (getSrtClientStream(id = cameraId) != null) {
+        isNetwork = true
     } else {
         val ristStream = getRistStream(id = cameraId)
         if (ristStream != null) {
             isNetwork = true
             ristStream.connected = true
+        } else if (getWhipStream(id = cameraId) != null) {
+            isNetwork = true
+        } else if (getWhepStream(id = cameraId) != null) {
+            isNetwork = true
         }
     }
     if (isNetwork) {
@@ -966,19 +972,25 @@ private fun Model.handleBufferedVideoRemoved(cameraId: UUID) {
         isNetwork = true
     } else if (getSrtlaStream(id = cameraId) != null) {
         isNetwork = true
+    } else if (getSrtClientStream(id = cameraId) != null) {
+        isNetwork = true
     } else {
         val ristStream = getRistStream(id = cameraId)
         if (ristStream != null) {
             isNetwork = true
             ristStream.connected = false
+        } else if (getWhipStream(id = cameraId) != null) {
+            isNetwork = true
+        } else if (getWhepStream(id = cameraId) != null) {
+            isNetwork = true
         }
     }
     if (isNetwork) {
         markMicAsDisconnected(id = "$cameraId 0")
         switchMicIfNeededAfterNetworkCameraChange()
-        if (isCurrentScenesVideoSourceNetwork(cameraId = cameraId)) {
-            updateAutoSceneSwitcherVideoSourceDisconnected()
-        }
+    }
+    if (isCurrentScenesVideoSourceNetwork(cameraId = cameraId)) {
+        updateAutoSceneSwitcherVideoSourceDisconnected()
     }
     updateDisconnectProtectionVideoSourceDisconnected()
     updateVideoPreviews()

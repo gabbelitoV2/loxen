@@ -16,10 +16,15 @@ fun Model.whipServerEnabled(): Boolean {
     return database.whipServer.enabled
 }
 
-fun Model.whipCameras(): List<Camera> {
-    return database.whipServer.streams.map { stream ->
+fun Model.updateWhipVideoSources() {
+    videoSources.whip.value = database.whipServer.streams.map { stream ->
         Camera(id = stream.id.toString(), name = stream.camera())
     }
+}
+
+fun Model.updateWhipVideoSourcesAndMics() {
+    updateWhipVideoSources()
+    updateWhipMics()
 }
 
 fun Model.getWhipStream(id: UUID): SettingsWhipServerStream? {

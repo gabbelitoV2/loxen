@@ -14,10 +14,15 @@ import kotlinx.coroutines.launch
 
 private val whepMainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-fun Model.whepCameras(): List<Camera> {
-    return database.whepClient.streams.map { stream ->
+fun Model.updateWhepVideoSources() {
+    videoSources.whep.value = database.whepClient.streams.map { stream ->
         Camera(id = stream.id.toString(), name = stream.camera())
     }
+}
+
+fun Model.updateWhepVideoSourcesAndMics() {
+    updateWhepVideoSources()
+    updateWhepMics()
 }
 
 fun Model.getWhepStream(id: UUID): SettingsWhepClientStream? {
@@ -30,10 +35,6 @@ fun Model.getWhepStream(idString: String): SettingsWhepClientStream? {
     return database.whepClient.streams.firstOrNull { stream ->
         idString == stream.id.toString()
     }
-}
-
-fun Model.isWhepStreamConnected(streamId: UUID): Boolean {
-    return ingests.whep.firstOrNull { it.streamId == streamId }?.isConnected() ?: false
 }
 
 fun Model.reloadWhepClient() {

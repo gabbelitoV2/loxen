@@ -61,6 +61,32 @@ class MessageQueue<Message> {
     }
 }
 
+fun waitUntil(timeout: Duration, condition: () -> Boolean): Boolean {
+    val startTime = System.nanoTime()
+    while (!condition()) {
+        if (Duration.ofNanos(System.nanoTime() - startTime) > timeout) {
+            return false
+        }
+        Thread.sleep(20)
+    }
+    return true
+}
+
+class TemporaryDirectory : AutoCloseable {
+    val url: java.io.File
+
+    init {
+        url = java.io.File(AppDelegate.context.cacheDir, java.util.UUID.randomUUID().toString())
+        if (!url.mkdirs() && !url.isDirectory) {
+            throw IOException("Could not create temporary directory: $url")
+        }
+    }
+
+    override fun close() {
+        url.deleteRecursively()
+    }
+}
+
 @Throws(IOException::class)
 fun readMainFile(name: String, suffix: String): ByteArray {
     val path = "/$name.$suffix"

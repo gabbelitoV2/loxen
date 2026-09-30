@@ -325,7 +325,7 @@ private fun ReplayHistoryItem(
         }
     }
     LaunchedEffect(Unit) {
-        createThumbnail(video.url().path, video.thumbnailOffset()) { thumbnail ->
+        createThumbnail(model.replaysStorage.url(video).path, video.thumbnailOffset()) { thumbnail ->
             image = thumbnail
         }
     }

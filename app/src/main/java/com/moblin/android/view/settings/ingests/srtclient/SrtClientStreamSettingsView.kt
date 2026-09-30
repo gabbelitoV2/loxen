@@ -12,6 +12,7 @@ import com.moblin.android.view.settings.ingests.rtspclient.UrlSettingsView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.various.model.reloadSrtClient
+import com.moblin.android.various.model.updateSrtClientVideoSourcesAndMics
 
 @Composable
 fun SrtClientStreamSettingsView(
@@ -61,7 +62,10 @@ fun SrtClientStreamSettingsForm(
             NameEditView(
                 name = stream.name,
                 existingNames = srtClient.streams,
-                onNameChange = onNameChange,
+                onNameChange = { value ->
+                    onNameChange(value)
+                    model.updateSrtClientVideoSourcesAndMics()
+                },
             )
         }
         Section {

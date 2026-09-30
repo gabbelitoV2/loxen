@@ -24,9 +24,9 @@ private fun setup(): File {
     }
 }
 
-private val directory: File by lazy { setup() }
+private val defaultDirectory: File by lazy { setup() }
 
-class SimpleStringStorage(key: String) {
+class SimpleStringStorage(key: String, directory: File = defaultDirectory) {
     private val file: File = File(directory, key)
 
     init {
@@ -49,7 +49,7 @@ class SimpleStringStorage(key: String) {
     }
 }
 
-class SimpleIntStorage(key: String) {
+class SimpleIntStorage(key: String, directory: File = defaultDirectory) {
     private val file: File = File(directory, key)
 
     init {

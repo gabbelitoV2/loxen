@@ -64,6 +64,7 @@ class SettingsMicsMic {
     val delay: StateFlow<Double> get() = _delay
     internal val _connected = MutableStateFlow(false)
     val connected: StateFlow<Boolean> get() = _connected
+    constructor()
 
     fun isAudioSession(): Boolean {
         return isBuiltin() || isExternal()
@@ -160,6 +161,12 @@ class SettingsMicsMic {
         encode("dataSourceID", dataSourceId)
         encode("builtInOrientation", builtInOrientation)
         encode("delay", delay.value)
+    }
+
+    constructor(name: String, inputUid: String, connected: Boolean) {
+        this.name = name
+        this.inputUid = inputUid
+        this._connected.value = connected
     }
 
     companion object {

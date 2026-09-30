@@ -676,6 +676,9 @@ class RtspClient(
         reconnectTimer.stop()
         transport?.stop()
         transport = null
+        requests.clear()
+        rtpVideo.processor = null
+        rtpVideo = Rtp()
         setState(State.DISCONNECTED)
     }
 

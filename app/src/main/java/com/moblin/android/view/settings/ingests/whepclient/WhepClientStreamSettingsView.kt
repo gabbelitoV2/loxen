@@ -20,6 +20,7 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.various.model.reloadWhepClient
+import com.moblin.android.various.model.updateWhepVideoSourcesAndMics
 
 @Composable
 fun WhepClientStreamSettingsView(
@@ -61,7 +62,10 @@ fun WhepClientStreamSettingsViewInner(
         Section {
             NameEditView(
                 name = stream.name,
-                onNameChange = { stream.name = it },
+                onNameChange = {
+                    stream.name = it
+                    model.updateWhepVideoSourcesAndMics()
+                },
                 existingNames = whepClient.streams,
             )
         }

@@ -13,8 +13,14 @@ import kotlinx.coroutines.launch
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
-fun Model.rtmpCameras(): List<Camera> {
-    return database.rtmpServer.streams.map { Camera(id = it.id.toString(), name = it.camera()) }
+fun Model.updateRtmpVideoSources() {
+    videoSources.rtmp.value = database.rtmpServer.streams
+        .map { Camera(id = it.id.toString(), name = it.camera()) }
+}
+
+fun Model.updateRtmpVideoSourcesAndMics() {
+    updateRtmpVideoSources()
+    updateRtmpMics()
 }
 
 fun Model.getRtmpStream(id: UUID): SettingsRtmpServerStream? {

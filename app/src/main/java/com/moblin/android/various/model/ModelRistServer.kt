@@ -39,8 +39,14 @@ fun Model.ristServerEnabled(): Boolean {
     return database.ristServer.enabled
 }
 
-fun Model.ristCameras(): List<Camera> {
-    return database.ristServer.streams.map { Camera(id = it.id.toString(), name = it.camera()) }
+fun Model.updateRistVideoSources() {
+    videoSources.rist.value = database.ristServer.streams
+        .map { Camera(id = it.id.toString(), name = it.camera()) }
+}
+
+fun Model.updateRistVideoSourcesAndMics() {
+    updateRistVideoSources()
+    updateRistMics()
 }
 
 fun Model.getRistStream(id: UUID): SettingsRistServerStream? {
@@ -51,21 +57,17 @@ fun Model.getRistStream(idString: String): SettingsRistServerStream? {
     return database.ristServer.streams.firstOrNull { it.id.toString() == idString }
 }
 
-fun Model.getRistStream(virtualDestinationPort: Int): SettingsRistServerStream? {
-    return database.ristServer.streams.firstOrNull { it.virtualDestinationPort == virtualDestinationPort }
-}
-
 fun Model.isRistStreamConnected(port: Int): Boolean {
     return database.ristServer.streams.firstOrNull { it.virtualDestinationPort == port }?.connected == true
 }
 
 class ModelRistServerDelegate(private val model: Model) : RistServerDelegate {
-    override fun ristServerOnConnected(port: Int) {
-        model.ristServerOnConnected(port)
+    override fun ristServerOnConnected(cameraId: UUID, name: String, latency: Double) {
+        model.ristServerOnConnected(cameraId, name, latency)
     }
 
-    override fun ristServerOnDisconnected(port: Int, reason: String) {
-        model.ristServerOnDisconnected(port, reason)
+    override fun ristServerOnDisconnected(cameraId: UUID, name: String) {
+        model.ristServerOnDisconnected(cameraId, name)
     }
 
     override fun ristServerOnAudioBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
@@ -77,15 +79,19 @@ class ModelRistServerDelegate(private val model: Model) : RistServerDelegate {
     }
 }
 
-fun Model.ristServerOnConnected(port: Int) {
+fun Model.ristServerOnConnected(cameraId: UUID, name: String, latency: Double) {
     mainScope.launch {
-        this@ristServerOnConnected.ristServerOnConnectedInternal(virtualDestinationPort = port)
+        this@ristServerOnConnected.makeToast(title = localized("$name connected"))
+        this@ristServerOnConnected.media.addBufferedVideo(cameraId = cameraId, name = name, latency = latency)
+        this@ristServerOnConnected.media.addBufferedAudio(cameraId = cameraId, name = name, latency = latency)
     }
 }
 
-fun Model.ristServerOnDisconnected(port: Int, reason: String) {
+fun Model.ristServerOnDisconnected(cameraId: UUID, name: String) {
     mainScope.launch {
-        this@ristServerOnDisconnected.ristServerOnDisconnectedInternal(virtualDestinationPort = port, reason = reason)
+        this@ristServerOnDisconnected.makeToast(title = localized("$name disconnected"))
+        this@ristServerOnDisconnected.media.removeBufferedVideo(cameraId = cameraId)
+        this@ristServerOnDisconnected.media.removeBufferedAudio(cameraId = cameraId)
     }
 }
 
@@ -95,20 +101,4 @@ fun Model.ristServerOnAudioBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
 
 fun Model.ristServerOnVideoBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
     media.appendBufferedVideoSampleBuffer(cameraId = cameraId, sampleBuffer = sampleBuffer)
-}
-
-private fun Model.ristServerOnConnectedInternal(virtualDestinationPort: Int) {
-    val stream = getRistStream(virtualDestinationPort = virtualDestinationPort) ?: return
-    val camera = stream.camera()
-    makeToast(title = localized("$camera connected"))
-    val latency = stream.latencySeconds()
-    media.addBufferedVideo(cameraId = stream.id, name = camera, latency = latency)
-    media.addBufferedAudio(cameraId = stream.id, name = camera, latency = latency)
-}
-
-private fun Model.ristServerOnDisconnectedInternal(virtualDestinationPort: Int, reason: String) {
-    val stream = getRistStream(virtualDestinationPort = virtualDestinationPort) ?: return
-    makeToast(title = localized("${stream.camera()} disconnected"))
-    media.removeBufferedVideo(cameraId = stream.id)
-    media.removeBufferedAudio(cameraId = stream.id)
 }

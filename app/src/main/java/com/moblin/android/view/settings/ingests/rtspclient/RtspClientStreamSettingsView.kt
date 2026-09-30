@@ -36,6 +36,7 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.UrlCopyView
 import com.moblin.android.various.model.reloadRtspClient
+import com.moblin.android.various.model.updateRtspVideoSources
 
 @Composable
 fun UrlSettingsView(
@@ -170,7 +171,10 @@ fun RtspClientStreamSettingsViewDestination(
         Section {
             NameEditView(
                 name = stream.name,
-                onNameChange = { stream.name = it },
+                onNameChange = {
+                    stream.name = it
+                    model.updateRtspVideoSources()
+                },
                 existingNames = rtspClient.streams
             )
         }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,7 +33,6 @@ import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.manualSelectMicById
-import com.moblin.android.various.model.updateMicsListAsync
 import com.moblin.android.various.settings.SettingsMics
 import com.moblin.android.various.settings.SettingsMicsMic
 import com.moblin.android.view.utils.ContextMenuDeleteButton
@@ -58,10 +56,8 @@ private fun QuickButtonMicMicView(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = {
-                        model.updateMicsListAsync {
-                            if (micConnected) {
-                                model.manualSelectMicById(mic.id)
-                            }
+                        if (micConnected) {
+                            model.manualSelectMicById(mic.id)
                         }
                     },
                 ),
@@ -97,10 +93,6 @@ fun QuickButtonMicView(
     val micsList by mics.mics.collectAsState()
     val autoSwitch by mics.autoSwitch.collectAsState()
     val currentMic by modelMic.current.collectAsState()
-
-    LaunchedEffect(Unit) {
-        model.updateMicsListAsync()
-    }
 
     Form(title = "Mic") {
         Section(

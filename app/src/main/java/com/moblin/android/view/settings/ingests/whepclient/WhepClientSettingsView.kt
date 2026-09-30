@@ -25,6 +25,7 @@ import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.various.model.reloadWhepClient
+import com.moblin.android.various.model.updateWhepVideoSourcesAndMics
 
 private fun status(numberOfEnabledStreams: Int): String {
     return numberOfEnabledStreams.toString()
@@ -40,6 +41,7 @@ private fun deleteStream(model: Model, whepClient: SettingsWhepClient, indexes: 
     whepClient.streams.clear()
     whepClient.streams.addAll(streams)
     model.reloadWhepClient()
+    model.updateWhepVideoSourcesAndMics()
 }
 
 @Composable
@@ -121,6 +123,7 @@ fun WhepClientSettingsDestinationView(
                     existingNames = whepClient.streams,
                 )
                 whepClient.streams.add(stream)
+                model.updateWhepVideoSourcesAndMics()
             }
         }
     }

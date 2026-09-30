@@ -253,7 +253,9 @@ class BackupRulesSuite {
 
     private fun simpleStorageDirectory(): File {
         val storages = Class.forName("com.moblin.android.various.storages.SimpleStorageKt")
-        val directory = storages.getMethod("access\$getDirectory").invoke(null) as File
+        val field = storages.getDeclaredField("defaultDirectory\$delegate")
+        field.isAccessible = true
+        val directory = (field.get(null) as Lazy<*>).value as File
         directory.mkdirs()
         return directory.canonicalFile
     }

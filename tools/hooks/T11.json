@@ -76,7 +76,7 @@
     {
       "id": "H11.9",
       "file": "various/model/ModelCamera.kt",
-      "scope": "fun listCameras",
+      "scope": "fun listBuiltinCameras",
       "op": "replace",
       "old": "    return emptyList()",
       "new": "    return AVCaptureDevice.DiscoverySession(deviceTypes = AVCaptureDevice.DeviceType.entries.toList(), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = position).devices.map { device -> Camera(id = device.uniqueID, name = device.name()) }",

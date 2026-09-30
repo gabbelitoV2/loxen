@@ -68,6 +68,47 @@ class CameraShow {
     }
 }
 
+class VideoSources {
+    val back = MutableStateFlow<List<Camera>>(emptyList())
+    val front = MutableStateFlow<List<Camera>>(emptyList())
+    val external = MutableStateFlow<List<Camera>>(emptyList())
+    val rtmp = MutableStateFlow<List<Camera>>(emptyList())
+    val srtla = MutableStateFlow<List<Camera>>(emptyList())
+    val srtClient = MutableStateFlow<List<Camera>>(emptyList())
+    val rist = MutableStateFlow<List<Camera>>(emptyList())
+    val rtsp = MutableStateFlow<List<Camera>>(emptyList())
+    val whip = MutableStateFlow<List<Camera>>(emptyList())
+    val whep = MutableStateFlow<List<Camera>>(emptyList())
+    val mediaPlayer = MutableStateFlow<List<Camera>>(emptyList())
+
+    fun all(): List<Camera> {
+        val cameras = mutableListOf<Camera>()
+        if (hasTripleBackCamera) {
+            cameras.add(backTripleLowEnergyCamera)
+        }
+        if (hasDualBackCamera) {
+            cameras.add(backDualLowEnergyCamera)
+        }
+        if (hasWideDualBackCamera) {
+            cameras.add(backWideDualLowEnergyCamera)
+        }
+        cameras.addAll(back.value)
+        cameras.addAll(front.value)
+        cameras.addAll(external.value)
+        cameras.addAll(rtmp.value)
+        cameras.addAll(srtla.value)
+        cameras.addAll(srtClient.value)
+        cameras.addAll(rist.value)
+        cameras.addAll(rtsp.value)
+        cameras.addAll(whip.value)
+        cameras.addAll(whep.value)
+        cameras.addAll(mediaPlayer.value)
+        cameras.add(Camera(id = screenCaptureCameraId.toString(), name = screenCaptureCameraName))
+        cameras.add(Camera(id = noneCameraId.toString(), name = noneCameraName))
+        return cameras
+    }
+}
+
 class CameraState {
     val show = CameraShow()
     val isFocusesLocked: MutableMap<CaptureDevice, Boolean> = mutableMapOf()
@@ -449,10 +490,6 @@ fun Model.stopObservingWhiteBalance() {
     camera.whiteBalanceObservation = null
 }
 
-fun Model.listCameras(position: AVCaptureDevice.Position): List<Camera> {
-    return AVCaptureDevice.DiscoverySession(deviceTypes = AVCaptureDevice.DeviceType.entries.toList(), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = position).devices.map { device -> Camera(id = device.uniqueID, name = device.name()) }
-}
-
 fun Model.colorSpaceUpdated() {
     setColorSpace()
     resetSelectedScene(changeScene = false)
@@ -555,57 +592,42 @@ private fun Model.shouldShowCameraPreview(): Boolean {
     return cameraDevice != null
 }
 
-fun Model.updateCameraLists() {
+fun Model.updateVideoSources() {
+    updateDeviceVideoSources()
+    updateRtmpVideoSources()
+    updateSrtlaVideoSources()
+    updateSrtClientVideoSources()
+    updateRistVideoSources()
+    updateRtspVideoSources()
+    updateWhipVideoSources()
+    updateWhepVideoSources()
+    updateMediaPlayerVideoSources()
+}
+
+fun Model.updateDeviceVideoSources() {
+    videoSources.back.value = listBuiltinCameras(position = AVCaptureDevice.Position.BACK)
+    videoSources.front.value = listBuiltinCameras(position = AVCaptureDevice.Position.FRONT)
     if (isMac()) {
-        externalCameras = mutableListOf()
-        backCameras = listCameras(position = AVCaptureDevice.Position.BACK).toMutableList()
-        frontCameras = listCameras(position = AVCaptureDevice.Position.FRONT).toMutableList()
+        videoSources.external.value = emptyList()
     } else {
-        externalCameras = listExternalCameras().toMutableList()
-        backCameras = listCameras(position = AVCaptureDevice.Position.BACK).toMutableList()
-        frontCameras = listCameras(position = AVCaptureDevice.Position.FRONT).toMutableList()
+        videoSources.external.value = listExternalCameras()
     }
+}
+
+private fun Model.listBuiltinCameras(position: AVCaptureDevice.Position): List<Camera> {
+    return AVCaptureDevice.DiscoverySession(deviceTypes = AVCaptureDevice.DeviceType.entries.toList(), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = position).devices.map { device -> Camera(id = device.uniqueID, name = device.name()) }
 }
 
 private fun Model.listExternalCameras(): List<Camera> {
     return AVCaptureDevice.DiscoverySession(deviceTypes = listOf(AVCaptureDevice.DeviceType.external), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = AVCaptureDevice.Position.unspecified).devices.map { Camera(id = it.uniqueID, name = it.name()) }
 }
 
-fun Model.listCameras(excludeBuiltin: Boolean = false): List<Camera> {
-    val cameras = mutableListOf<Camera>()
-    if (!excludeBuiltin) {
-        if (hasTripleBackCamera) {
-            cameras.add(backTripleLowEnergyCamera)
-        }
-        if (hasDualBackCamera) {
-            cameras.add(backDualLowEnergyCamera)
-        }
-        if (hasWideDualBackCamera) {
-            cameras.add(backWideDualLowEnergyCamera)
-        }
-        cameras.addAll(backCameras)
-        cameras.addAll(frontCameras)
-        cameras.addAll(externalCameras)
-    }
-    cameras.addAll(rtmpCameras())
-    cameras.addAll(srtlaCameras())
-    cameras.addAll(srtClientCameras())
-    cameras.addAll(ristCameras())
-    cameras.addAll(rtspCameras())
-    cameras.addAll(whipCameras())
-    cameras.addAll(whepCameras())
-    cameras.addAll(playerCameras())
-    cameras.add(Camera(id = screenCaptureCameraId.toString(), name = screenCaptureCameraName))
-    cameras.add(Camera(id = noneCameraId.toString(), name = noneCameraName))
-    return cameras
-}
-
 private fun Model.isBackCamera(cameraId: CameraId): Boolean {
-    return backCameras.any { it.id == cameraId }
+    return videoSources.back.value.any { it.id == cameraId }
 }
 
 private fun Model.isFrontCamera(cameraId: CameraId): Boolean {
-    return frontCameras.any { it.id == cameraId }
+    return videoSources.front.value.any { it.id == cameraId }
 }
 
 private fun Model.isBackTripleLowEnergyAutoCamera(cameraId: CameraId): Boolean {
@@ -802,10 +824,10 @@ private fun Model.getCameraPositionName(settingsCameraId: SettingsCameraId?): St
             unknownSad
         }
 
-        is SettingsCameraId.Back -> backCameras.firstOrNull { it.id == settingsCameraId.id }?.name
+        is SettingsCameraId.Back -> videoSources.back.value.firstOrNull { it.id == settingsCameraId.id }?.name
             ?: unknownSad
 
-        is SettingsCameraId.Front -> frontCameras.firstOrNull { it.id == settingsCameraId.id }?.name
+        is SettingsCameraId.Front -> videoSources.front.value.firstOrNull { it.id == settingsCameraId.id }?.name
             ?: unknownSad
 
         SettingsCameraId.ScreenCapture -> screenCaptureCameraName
@@ -817,11 +839,11 @@ private fun Model.getCameraPositionName(settingsCameraId: SettingsCameraId?): St
 }
 
 fun Model.getExternalCameraName(cameraId: CameraId): String {
-    return externalCameras.firstOrNull { it.id == cameraId }?.name ?: unknownSad
+    return videoSources.external.value.firstOrNull { it.id == cameraId }?.name ?: unknownSad
 }
 
 fun Model.isExternalCameraConnected(cameraId: String): Boolean {
-    return externalCameras.firstOrNull { it.id == cameraId } != null
+    return videoSources.external.value.firstOrNull { it.id == cameraId } != null
 }
 
 fun Model.setColorSpace() {

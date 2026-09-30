@@ -205,12 +205,12 @@ private class Ingest : RistServerDelegate {
     val stream = SettingsRistServerStream().also { it.virtualDestinationPort = virtualDestinationPort }
     val server = RistServer(5556, listOf(stream), false, SettingsStreamColorRange.full, this)
 
-    override fun ristServerOnConnected(port: Int) {
-        connected.add(port)
+    override fun ristServerOnConnected(cameraId: UUID, name: String, latency: Double) {
+        connected.add(virtualDestinationPort)
     }
 
-    override fun ristServerOnDisconnected(port: Int, reason: String) {
-        disconnected.add(port)
+    override fun ristServerOnDisconnected(cameraId: UUID, name: String) {
+        disconnected.add(virtualDestinationPort)
     }
 
     override fun ristServerOnVideoBuffer(cameraId: UUID, sampleBuffer: MediaSample) {

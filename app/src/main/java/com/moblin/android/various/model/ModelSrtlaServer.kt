@@ -34,8 +34,14 @@ fun Model.srtlaServerEnabled(): Boolean {
     return database.srtlaServer.enabled
 }
 
-fun Model.srtlaCameras(): List<Camera> {
-    return database.srtlaServer.streams.map { Camera(id = it.id.toString(), name = it.camera()) }
+fun Model.updateSrtlaVideoSources() {
+    videoSources.srtla.value = database.srtlaServer.streams
+        .map { Camera(id = it.id.toString(), name = it.camera()) }
+}
+
+fun Model.updateSrtlaVideoSourcesAndMics() {
+    updateSrtlaVideoSources()
+    updateSrtlaMics()
 }
 
 fun Model.getSrtlaStream(id: UUID): SettingsSrtlaServerStream? {

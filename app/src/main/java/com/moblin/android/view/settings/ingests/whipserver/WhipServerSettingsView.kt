@@ -29,7 +29,7 @@ import com.moblin.android.various.utils.randomHumanString
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.various.model.getWhipStream
 import com.moblin.android.various.model.reloadWhipServer
-import com.moblin.android.various.model.updateMicsListAsync
+import com.moblin.android.various.model.updateWhipVideoSourcesAndMics
 
 @Composable
 fun WhipServerSettingsView(
@@ -121,7 +121,7 @@ fun WhipServerSettingsView(
                             }
                         }
                         whipServer.streams.add(stream)
-                        model.updateMicsListAsync()
+                        model.updateWhipVideoSourcesAndMics()
                     }
                 }
             }
@@ -158,5 +158,5 @@ private fun submitPort(model: Model, whipServer: SettingsWhipServer, value: Stri
 private fun deleteStream(model: Model, whipServer: SettingsWhipServer, indexes: IndexSet) {
     whipServer.streams.remove(atOffsets = indexes)
     model.reloadWhipServer()
-    model.updateMicsListAsync()
+    model.updateWhipVideoSourcesAndMics()
 }

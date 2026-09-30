@@ -1,0 +1,42 @@
+{
+  "task": "FSU",
+  "hooks": [
+    {
+      "id": "HFSU.1",
+      "file": "various/utils/FileSystemUtils.kt",
+      "scope": "fun createAndGetDirectory",
+      "op": "replace",
+      "old": "fun createAndGetDirectory(root: File = documentsDirectory, vararg name: String): File {",
+      "new": "fun createAndGetDirectory(vararg name: String, root: File = documentsDirectory): File {",
+      "occurrence": 1,
+      "note": "Swift callers pass name: first and root: only in ReplaysStorage; the vararg goes first so callers can leave the root out"
+    },
+    {
+      "id": "HFSU.4",
+      "file": "various/settings/SettingsAudio.kt",
+      "scope": "class SettingsMicsMic",
+      "op": "insert_after",
+      "anchor": "    val connected: StateFlow<Boolean> get() = _connected",
+      "new": "    constructor()",
+      "note": "Swift init() {} next to init(name:inputUid:connected:)"
+    },
+    {
+      "id": "HFSU.2",
+      "file": "various/storages/ReplaysStorage.kt",
+      "scope": "class ReplaysStorage",
+      "op": "replace",
+      "old": "                createAndGetDirectory(directory, \"Database\"),",
+      "new": "                createAndGetDirectory(\"Database\", root = directory),",
+      "occurrence": 1
+    },
+    {
+      "id": "HFSU.3",
+      "file": "various/storages/ReplaysStorage.kt",
+      "scope": "class ReplaysStorage",
+      "op": "replace",
+      "old": "            this.directory = createAndGetDirectory(directory, \"Replays\")",
+      "new": "            this.directory = createAndGetDirectory(\"Replays\", root = directory)",
+      "occurrence": 1
+    }
+  ]
+}

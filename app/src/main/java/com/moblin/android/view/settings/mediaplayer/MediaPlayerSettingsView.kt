@@ -27,6 +27,7 @@ import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.NameEditView
 import java.io.File
 import com.moblin.android.various.model.updateMediaPlayerSettings
+import com.moblin.android.various.model.updateMediaPlayerVideoSourcesAndMics
 
 private fun appendMedia(model: Model, player: SettingsMediaPlayer, url: String) {
     val file = SettingsMediaPlayerFile()
@@ -89,6 +90,7 @@ fun MediaPlayerSettingsView(
                                 playerId = player.id,
                                 settings = player,
                             )
+                            model.updateMediaPlayerVideoSourcesAndMics()
                         },
                     )
                 }
@@ -111,6 +113,7 @@ fun MediaPlayerSettingsView(
                         onMove = { froms, to ->
                             player.playlist.move(fromOffsets = froms, toOffset = to)
                             model.updateMediaPlayerSettings(playerId = player.id, settings = player)
+                            model.updateMediaPlayerVideoSourcesAndMics()
                         },
                     ) { file ->
                         ContextMenuDeleteButton(action = {

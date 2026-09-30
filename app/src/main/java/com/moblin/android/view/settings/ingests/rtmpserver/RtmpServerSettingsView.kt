@@ -28,7 +28,7 @@ import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.various.model.reloadRtmpServer
-import com.moblin.android.various.model.updateMicsListAsync
+import com.moblin.android.various.model.updateRtmpVideoSourcesAndMics
 
 @Composable
 fun RtmpServerSettingsView(
@@ -134,7 +134,7 @@ fun RtmpServerSettingsForm(
                     }
                 }
                 rtmpServer.streams.add(stream)
-                model.updateMicsListAsync()
+                model.updateRtmpVideoSourcesAndMics()
             }
         }
     }
@@ -164,5 +164,5 @@ private fun deleteStream(model: Model, rtmpServer: SettingsRtmpServer, indexes: 
         }
     }
     model.reloadRtmpServer()
-    model.updateMicsListAsync()
+    model.updateRtmpVideoSourcesAndMics()
 }

@@ -8,9 +8,13 @@ import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.settings.SettingsReplay
 import com.moblin.android.various.utils.createAndGetDirectory
+import com.moblin.android.various.utils.remove
 import java.io.File
 import java.util.UUID
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -19,10 +23,6 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonObject
 
 private const val tag = "ReplaysStorage"
-
-private fun getReplaysDirectory(): File {
-    return createAndGetDirectory("Replays")
-}
 
 private fun <T> JsonObject.decodeRequired(key: String, serializer: KSerializer<T>): T {
     val element = this[key] ?: throw SerializationException("Missing key '$key'")
@@ -38,10 +38,6 @@ class ReplaySettings(
 ) {
     fun name(): String {
         return "$id.mp4"
-    }
-
-    fun url(): File {
-        return File(getReplaysDirectory(), name())
     }
 
     fun thumbnailOffset(): Double {
@@ -124,13 +120,28 @@ class ReplaysDatabase {
     )
 }
 
-private val storage = SimpleStringStorage("replays")
+private val defaultStorage = SimpleStringStorage("replays")
 
-class ReplaysStorage {
+class ReplaysStorage(directory: File? = null) {
+    private val storage: SimpleStringStorage
+    private val directory: File
     private var realDatabase = ReplaysDatabase()
 
     val database: ReplaysDatabase
         get() = realDatabase
+
+    init {
+        if (directory != null) {
+            storage = SimpleStringStorage(
+                "replays",
+                createAndGetDirectory("Database", root = directory),
+            )
+            this.directory = createAndGetDirectory("Replays", root = directory)
+        } else {
+            storage = defaultStorage
+            this.directory = createAndGetDirectory("Replays")
+        }
+    }
 
     fun load() {
         try {
@@ -146,23 +157,6 @@ class ReplaysStorage {
         database.setReplays(database.replays.value.filterNot { it.id == id })
     }
 
-    private fun cleanup() {
-        database.setReplays(database.replays.value.filter { it.url().exists() })
-        val files = getReplaysDirectory().walkTopDown().filter { it.isFile }.toList()
-        for (file in files) {
-            val isUsed = database.replays.value.any { it.url().canonicalFile == file.canonicalFile }
-            if (!isUsed) {
-                Log.d(tag, "replays-storage: Removing unused file $file")
-                file.delete()
-            }
-        }
-    }
-
-    private fun tryLoadAndMigrate(settings: String) {
-        realDatabase = ReplaysDatabase.fromString(settings)
-        migrateFromOlderVersions()
-    }
-
     fun store() {
         try {
             storage.set(realDatabase.toString())
@@ -170,8 +164,6 @@ class ReplaysStorage {
             Log.i(tag, "replays-storage: Failed to store.")
         }
     }
-
-    private fun migrateFromOlderVersions() {}
 
     fun createReplay(): ReplaySettings {
         return ReplaySettings()
@@ -181,7 +173,7 @@ class ReplaysStorage {
         while (isFull()) {
             val last = database.replays.value.lastOrNull() ?: break
             database.setReplays(database.replays.value.dropLast(1))
-            last.url().delete()
+            url(last).remove()
         }
         database.setReplays(listOf(replay) + database.replays.value)
     }
@@ -191,6 +183,32 @@ class ReplaysStorage {
     }
 
     fun defaultStorageDirectory(): File {
-        return getReplaysDirectory()
+        return directory
     }
+
+    fun url(replay: ReplaySettings): File {
+        return File(directory, replay.name())
+    }
+
+    private fun cleanup() {
+        database.setReplays(database.replays.value.filter { url(it).exists() })
+        val knownNames = database.replays.value.map { it.name() }.toSet()
+        val directory = directory
+        CoroutineScope(Dispatchers.IO).launch {
+            val files = directory.walkTopDown().filter { it.isFile }.toList()
+            for (file in files) {
+                if (!knownNames.contains(file.name)) {
+                    Log.d(tag, "replays-storage: Removing unused file $file")
+                    file.remove()
+                }
+            }
+        }
+    }
+
+    private fun tryLoadAndMigrate(settings: String) {
+        realDatabase = ReplaysDatabase.fromString(settings)
+        migrateFromOlderVersions()
+    }
+
+    private fun migrateFromOlderVersions() {}
 }

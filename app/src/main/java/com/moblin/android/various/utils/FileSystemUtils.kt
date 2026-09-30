@@ -71,8 +71,8 @@ fun deleteTrash() {
     }
 }
 
-fun createAndGetDirectory(vararg name: String): File {
-    var directory = documentsDirectory
+fun createAndGetDirectory(vararg name: String, root: File = documentsDirectory): File {
+    var directory = root
     for (component in name) {
         directory = File(directory, component)
     }

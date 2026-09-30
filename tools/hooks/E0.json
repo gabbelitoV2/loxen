@@ -342,16 +342,6 @@
       "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
     },
     {
-      "id": "HE0.38",
-      "file": "view/settings/scenes/widgets/widget/WidgetSettingsView.kt",
-      "scope": "fun dimensions",
-      "op": "replace",
-      "old": "    return TODO(\"model.stream.resolution has no Android counterpart\")",
-      "new": "    return model.stream.value.resolution.dimensions(portrait = model.stream.value.portrait)",
-      "occurrence": 1,
-      "note": "The layout editor. Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
-    },
-    {
       "id": "HE0.39",
       "file": "various/model/ModelVariables.kt",
       "scope": "fun Model.createVariables",

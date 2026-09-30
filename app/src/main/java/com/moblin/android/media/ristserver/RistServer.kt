@@ -17,9 +17,9 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 
 interface RistServerDelegate {
-    fun ristServerOnConnected(port: Int)
+    fun ristServerOnConnected(cameraId: UUID, name: String, latency: Double)
 
-    fun ristServerOnDisconnected(port: Int, reason: String)
+    fun ristServerOnDisconnected(cameraId: UUID, name: String)
 
     fun ristServerOnVideoBuffer(cameraId: UUID, sampleBuffer: MediaSample)
 
@@ -70,7 +70,7 @@ class RistServer(
         context?.stop()
         context = null
         for (virtualDestinationPort in clientsByVirtualDestinationPort.keys.toList()) {
-            delegate.ristServerOnDisconnected(virtualDestinationPort, "")
+            notifyDisconnected(virtualDestinationPort)
         }
         clientsByVirtualDestinationPort.onEach { it.value.stop() }.clear()
         clientsChanged()
@@ -98,7 +98,11 @@ class RistServer(
         client.server = this
         clientsByVirtualDestinationPort.put(virtualDestinationPort, client)?.stop()
         clientsChanged()
-        delegate.ristServerOnConnected(virtualDestinationPort)
+        delegate.ristServerOnConnected(
+            cameraId = stream.id,
+            name = stream.camera(),
+            latency = stream.latencySeconds(),
+        )
     }
 
     private fun peerDisconnected(virtualDestinationPort: Int) {
@@ -108,8 +112,14 @@ class RistServer(
         )
         if (clientsByVirtualDestinationPort.remove(virtualDestinationPort)?.also { it.stop() } != null) {
             clientsChanged()
-            delegate.ristServerOnDisconnected(virtualDestinationPort, "")
+            notifyDisconnected(virtualDestinationPort)
         }
+    }
+
+    private fun notifyDisconnected(virtualDestinationPort: Int) {
+        val stream = streams.firstOrNull { it.virtualDestinationPort == virtualDestinationPort }
+            ?: return
+        delegate.ristServerOnDisconnected(cameraId = stream.id, name = stream.camera())
     }
 
     private fun clientsChanged() {
