@@ -18538,5 +18538,30 @@
     "tokens_out": 19621,
     "seconds": 76.9,
     "ported_at": "2026-09-29T23:49:19+00:00"
+  },
+  "MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift": {
+    "status": "ok",
+    "sha256": "d56b83926a8409a6548647a3a5fafd3cbbf89a866b6a42ca041717642566567b",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/model/chat/ChatProviderSuite.kt",
+    "notes": [
+      "The @MainActor Swift suite becomes a JUnit 4 class; every test body runs inside runMainTest { } from com.moblin.android (TestUtils.kt).",
+      "posts, pausedPostsCount and paused are MutableStateFlow in the Kotlin ChatProvider, so they are read with .value; Swift's chat.posts.map(\\.id) becomes chat.posts.value.map { it.id }.",
+      "RgbColor is imported from com.moblin.android.platform.swiftui because it is not listed in the glossary; move the import if the platform layer declares it in another package.",
+      "ChatPost.userId has no Swift default in the call site, so it is passed explicitly as userId = null.",
+      "Swift timestampTime .now becomes Instant.now() (java.time.Instant).",
+      "maximumNumberOfChatMessages is imported from com.moblin.android.various.model.",
+      "makePost is kept as a private method of the suite class, called inside runMainTest.",
+      "No ByteArray comparisons occur, so assertEquals on the mapped id lists is correct."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 31483,
+    "tokens_out": 4756,
+    "seconds": 18.2,
+    "ported_at": "2026-09-30T23:29:03+00:00"
   }
 }

@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-30T23:22:41+00:00
+Generated 2026-09-30T23:32:13+00:00
 
 ## Summary
 
@@ -8,7 +8,7 @@ Generated 2026-09-30T23:22:41+00:00
 |---|---|---|---|---|---|
 | logic | 151 | 0 | 0 | 0 | 0 |
 | platform | 55 | 0 | 0 | 0 | 0 |
-| test | 65 | 0 | 0 | 1 | 0 |
+| test | 66 | 0 | 0 | 0 | 0 |
 | media | 161 | 0 | 0 | 0 | 0 |
 | ui | 361 | 0 | 0 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
@@ -865,6 +865,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchRaidHistorySuite.swift | app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchRaidHistorySuite.kt | deepseek-flash | 5.8 |
 | MoblinTests/Moblin/Various/ChatBotCommandSuite.swift | app/src/test/java/com/moblin/android/various/ChatBotCommandSuite.kt | deepseek-flash | 45.2 |
 | MoblinTests/Moblin/Various/ChatPostUrlSuite.swift | app/src/test/java/com/moblin/android/various/ChatPostUrlSuite.kt | deepseek-flash | 2.9 |
+| MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift | app/src/test/java/com/moblin/android/various/model/chat/ChatProviderSuite.kt | deepseek-flash | 18.2 |
 | MoblinTests/Moblin/Various/Network/HttpClientSuite.swift | app/src/test/java/com/moblin/android/various/network/HttpClientSuite.kt | deepseek-flash | 22.8 |
 | MoblinTests/Moblin/Various/Network/HttpProxyServerSuite.swift | app/src/test/java/com/moblin/android/various/network/HttpProxyServerSuite.kt | deepseek-flash | 17.9 |
 | MoblinTests/Moblin/Various/Network/NetworkUtilsSuite.swift | app/src/test/java/com/moblin/android/various/network/NetworkUtilsSuite.kt | deepseek-flash | 31.4 |

@@ -13,4 +13,5 @@ This file is a Swift Testing suite. Translate it to a JUnit 4 test class with ko
 - The Swift suites run with the en_SE locale and the Europe/Stockholm time zone. A suite whose results depend on locale or time zone gets @Config(qualifiers = "en-rSE") and sets TimeZone.setDefault(TimeZone.getTimeZone("Europe/Stockholm")) in @Before.
 - A Swift sealed/associated-value enum that the Kotlin code encodes with hand-written toJsonElement()/fromJsonElement() is encoded the same way in the test, not with kotlinx encodeToJsonElement.
 - Test helpers from MoblinTests/TestUtils.swift live in com.moblin.android (TestUtils.kt); MessageQueue.get() times out after 10 s, so a missing callback fails the test instead of hanging the run.
+- `RgbColor` is `com.moblin.android.common.various.RgbColor`, never a class in `platform.swiftui`.
 
