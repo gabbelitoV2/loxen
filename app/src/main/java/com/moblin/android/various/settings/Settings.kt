@@ -2852,6 +2852,7 @@ class Settings {
         realDatabase = Database.fromString(settings)
         addSensitiveData(realDatabase)
         migrateFromOlderVersions()
+        com.moblin.android.platform.core.upperCaseMicIds(realDatabase)
     }
 
     fun store() {

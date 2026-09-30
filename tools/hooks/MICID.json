@@ -1,0 +1,84 @@
+{
+  "task": "MICID",
+  "hooks": [
+    {
+      "id": "HMICID.1",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.listRtmpMics",
+      "op": "replace",
+      "old": "            inputUid = it.id.toString(),",
+      "new": "            inputUid = it.id.uuidString,",
+      "note": "Swift inputUid: $0.id.uuidString, upper case. With Kotlin's lower case UUID.toString() the ingest mics of iOS settings and of Moblin's system tests were never found, so scenes kept the built-in mic."
+    },
+    {
+      "id": "HMICID.2",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.listSrtlaMics",
+      "op": "replace",
+      "old": "            inputUid = it.id.toString(),",
+      "new": "            inputUid = it.id.uuidString,",
+      "note": "As HMICID.1."
+    },
+    {
+      "id": "HMICID.3",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.listSrtClientMics",
+      "op": "replace",
+      "old": "            inputUid = it.id.toString(),",
+      "new": "            inputUid = it.id.uuidString,",
+      "note": "As HMICID.1."
+    },
+    {
+      "id": "HMICID.4",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.listRistMics",
+      "op": "replace",
+      "old": "            inputUid = it.id.toString(),",
+      "new": "            inputUid = it.id.uuidString,",
+      "note": "As HMICID.1."
+    },
+    {
+      "id": "HMICID.5",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.listWhipMics",
+      "op": "replace",
+      "old": "            inputUid = it.id.toString(),",
+      "new": "            inputUid = it.id.uuidString,",
+      "note": "As HMICID.1."
+    },
+    {
+      "id": "HMICID.6",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.listWhepMics",
+      "op": "replace",
+      "old": "            inputUid = it.id.toString(),",
+      "new": "            inputUid = it.id.uuidString,",
+      "note": "As HMICID.1."
+    },
+    {
+      "id": "HMICID.7",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.listMediaPlayerMics",
+      "op": "replace",
+      "old": "        SettingsMicsMic(name = it.camera(), inputUid = it.id.toString(), connected = true)",
+      "new": "        SettingsMicsMic(name = it.camera(), inputUid = it.id.uuidString, connected = true)",
+      "note": "As HMICID.1, Swift inputUid: $0.id.uuidString for media players."
+    },
+    {
+      "id": "HMICID.8",
+      "file": "various/model/ModelAudio.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.core.uuidString",
+      "note": "UUID.uuidString as in Swift, used by HMICID.1-7."
+    },
+    {
+      "id": "HMICID.9",
+      "file": "various/settings/Settings.kt",
+      "scope": "fun tryLoadAndMigrate",
+      "op": "insert_after",
+      "anchor": "        migrateFromOlderVersions()",
+      "new": "        com.moblin.android.platform.core.upperCaseMicIds(realDatabase)",
+      "note": "Settings saved by Loxen before HMICID.1 hold ingest mic ids in lower case; they are turned into Swift's upper case when settings are loaded or imported."
+    }
+  ]
+}

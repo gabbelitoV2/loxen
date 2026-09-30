@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.ContinuationInterceptor
+import com.moblin.android.platform.core.uuidString
 
 private const val TAG = "Model"
 
@@ -555,7 +556,7 @@ private fun Model.listRtmpMics(): List<SettingsMicsMic> {
     return database.rtmpServer.streams.map {
         SettingsMicsMic(
             name = it.camera(),
-            inputUid = it.id.toString(),
+            inputUid = it.id.uuidString,
             connected = activeBufferedVideoIds.contains(it.id),
         )
     }
@@ -565,7 +566,7 @@ private fun Model.listSrtlaMics(): List<SettingsMicsMic> {
     return database.srtlaServer.streams.map {
         SettingsMicsMic(
             name = it.camera(),
-            inputUid = it.id.toString(),
+            inputUid = it.id.uuidString,
             connected = activeBufferedVideoIds.contains(it.id),
         )
     }
@@ -575,7 +576,7 @@ private fun Model.listSrtClientMics(): List<SettingsMicsMic> {
     return database.srtClient.streams.map {
         SettingsMicsMic(
             name = it.camera(),
-            inputUid = it.id.toString(),
+            inputUid = it.id.uuidString,
             connected = activeBufferedVideoIds.contains(it.id),
         )
     }
@@ -585,7 +586,7 @@ private fun Model.listRistMics(): List<SettingsMicsMic> {
     return database.ristServer.streams.map {
         SettingsMicsMic(
             name = it.camera(),
-            inputUid = it.id.toString(),
+            inputUid = it.id.uuidString,
             connected = activeBufferedVideoIds.contains(it.id),
         )
     }
@@ -595,7 +596,7 @@ private fun Model.listWhipMics(): List<SettingsMicsMic> {
     return database.whipServer.streams.map {
         SettingsMicsMic(
             name = it.camera(),
-            inputUid = it.id.toString(),
+            inputUid = it.id.uuidString,
             connected = activeBufferedVideoIds.contains(it.id),
         )
     }
@@ -605,7 +606,7 @@ private fun Model.listWhepMics(): List<SettingsMicsMic> {
     return database.whepClient.streams.map {
         SettingsMicsMic(
             name = it.camera(),
-            inputUid = it.id.toString(),
+            inputUid = it.id.uuidString,
             connected = activeBufferedVideoIds.contains(it.id),
         )
     }
@@ -613,7 +614,7 @@ private fun Model.listWhepMics(): List<SettingsMicsMic> {
 
 private fun Model.listMediaPlayerMics(): List<SettingsMicsMic> {
     return database.mediaPlayers.players.map {
-        SettingsMicsMic(name = it.camera(), inputUid = it.id.toString(), connected = true)
+        SettingsMicsMic(name = it.camera(), inputUid = it.id.uuidString, connected = true)
     }
 }
 

@@ -16,3 +16,10 @@ fun uuidFile(directory: File, id: UUID, suffix: String = ""): File {
     }
     return file
 }
+
+private val leadingUuid = Regex("^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
+
+fun upperCaseLeadingUuid(value: String): String {
+    val match = leadingUuid.find(value) ?: return value
+    return match.value.uppercase() + value.substring(match.range.last + 1)
+}
