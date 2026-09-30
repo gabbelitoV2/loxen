@@ -11,7 +11,7 @@ class FileStorage(directory: String) {
     private var directory: File = createAndGetDirectory(directory)
 
     fun makePath(id: UUID): File {
-        return File(directory, id.toString())
+        return com.moblin.android.platform.core.uuidFile(directory, id)
     }
 
     fun ids(): List<UUID> {

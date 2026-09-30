@@ -1,0 +1,23 @@
+{
+  "task": "UUIDFILE",
+  "hooks": [
+    {
+      "id": "HUUIDFILE.1",
+      "file": "various/storages/FileStorage.kt",
+      "scope": "fun makePath",
+      "op": "replace",
+      "old": "        return File(directory, id.toString())",
+      "new": "        return com.moblin.android.platform.core.uuidFile(directory, id)",
+      "note": "Swift names the file id.uuidString, upper case; Kotlin's UUID.toString() is lower case, so images, PNGTuber and VTuber models in settings imported from iOS (or Moblin's system tests) were not found. uuidFile() renames files Loxen wrote in lower case."
+    },
+    {
+      "id": "HUUIDFILE.2",
+      "file": "various/storages/MediaPlayerStorage.kt",
+      "scope": "fun makePath",
+      "op": "replace",
+      "old": "        return File(mediasUrl, \"$id.mp4\")",
+      "new": "        return com.moblin.android.platform.core.uuidFile(mediasUrl, id, \".mp4\")",
+      "note": "Swift \"\\(id).mp4\" writes the UUID in upper case, as HUUIDFILE.1."
+    }
+  ]
+}

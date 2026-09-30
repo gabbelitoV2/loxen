@@ -12,7 +12,7 @@ class MediaPlayerStorage {
     private val mediasUrl: File = createAndGetDirectory(mediaPlayerStorageDirectory)
 
     fun makePath(id: UUID): File {
-        return File(mediasUrl, "$id.mp4")
+        return com.moblin.android.platform.core.uuidFile(mediasUrl, id, ".mp4")
     }
 
     fun ids(): List<UUID> {
