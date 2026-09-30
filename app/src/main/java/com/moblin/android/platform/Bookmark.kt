@@ -13,6 +13,7 @@ import com.moblin.android.AppDelegate
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 class BookmarkedDirectory internal constructor(
     internal val treeUri: Uri,
@@ -125,6 +126,12 @@ object Bookmark {
     fun openOutput(url: String, file: File): FileOutputStream? {
         val key = writtenKey(file)
         return try {
+            val released = AtomicBoolean(false)
+            val release = {
+                if (released.compareAndSet(false, true)) {
+                    writers.computeIfPresent(key) { _, count -> if (count > 1) count - 1 else null }
+                }
+            }
             if (url.startsWith("content:")) {
                 AppDelegate.context.contentResolver.openFileDescriptor(Uri.parse(url), "wt")?.let {
                     object : ParcelFileDescriptor.AutoCloseOutputStream(it) {
@@ -132,7 +139,7 @@ object Bookmark {
                             try {
                                 super.close()
                             } finally {
-                                filesBeingWritten.remove(key)
+                                release()
                             }
                         }
                     }
@@ -143,11 +150,11 @@ object Bookmark {
                         try {
                             super.close()
                         } finally {
-                            filesBeingWritten.remove(key)
+                            release()
                         }
                     }
                 }
-            }?.also { filesBeingWritten.add(key) }
+            }?.also { writers.merge(key, 1, Int::plus) }
         } catch (error: Exception) {
             Log.i(TAG, "bookmark: Failed to open $url: $error")
             null
@@ -157,12 +164,12 @@ object Bookmark {
     fun awaitWritten(file: File, timeoutMs: Long = 3_000) {
         val key = writtenKey(file)
         val deadline = System.nanoTime() + timeoutMs * 1_000_000
-        while (key in filesBeingWritten && System.nanoTime() < deadline) {
+        while (writers.containsKey(key) && System.nanoTime() < deadline) {
             Thread.sleep(20)
         }
     }
 
-    private val filesBeingWritten: MutableSet<String> = ConcurrentHashMap.newKeySet()
+    private val writers = ConcurrentHashMap<String, Int>()
 
     private fun writtenKey(file: File): String = runCatching { file.canonicalPath }.getOrDefault(file.absolutePath)
 

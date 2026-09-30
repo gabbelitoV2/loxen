@@ -37,6 +37,23 @@ class BookmarkWrittenSuite {
     }
 
     @Test
+    fun aSecondWriterOfTheSameFileKeepsItOpenWhenTheFirstIsClosedTwice() {
+        val file = File(directory, "reopened.mp4")
+        val first = Bookmark.openOutput(file.path, file)!!
+        val second = Bookmark.openOutput(file.path, file)!!
+        first.close()
+        first.close()
+        thread {
+            Thread.sleep(300)
+            second.close()
+        }
+        val started = System.nanoTime()
+        Bookmark.awaitWritten(file)
+        val waitedMs = (System.nanoTime() - started) / 1_000_000
+        assertTrue(waitedMs in 250..2_000, "Waited $waitedMs ms")
+    }
+
+    @Test
     fun aFileThatIsNeverClosedIsWaitedForOnlyUntilTheTimeout() {
         val file = File(directory, "live.mp4")
         val output = Bookmark.openOutput(file.path, file)!!
