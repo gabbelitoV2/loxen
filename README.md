@@ -15,9 +15,15 @@ Loxen is based on Moblin by Erik Moqvist (MIT). Not affiliated with or endorsed 
 
 ## Test the app
 
-The app is in internal testing on Google Play:
-[join the test](LOXEN_INTERNAL_TEST_LINK). Only Google accounts that have been added to the testers list can join;
-others see that the app is not available.
+Loxen is in closed testing on Google Play. To join:
+
+1. Join the [Loxen Testers](https://groups.google.com/g/loxen-testers) Google Group (*Join group*).
+2. Open the [opt-in page](https://play.google.com/apps/testing/com.loxen.app) with the same Google account and tap
+   *Become a tester*.
+3. Install Loxen from Google Play.
+
+Please stay in the group and keep Loxen installed for at least 14 days: Google requires 12 testers for 14 days before
+the app can be released publicly. Report bugs and ideas in [issues](https://github.com/gabbelitoV2/loxen/issues).
 
 ## Import settings using loxen:// or moblin:// (custom URL)
 
@@ -293,7 +299,8 @@ tab: `repair` with `force` to try right away, or `verify-only` to run the checks
 
 ## Google Play
 
-The app is distributed as `com.loxen.app` on the internal testing track of Google Play, with Play App Signing:
+The app is distributed as `com.loxen.app` on the internal and closed testing tracks of Google Play, with Play App
+Signing:
 Google keeps the app signing key and the builds here are signed with an upload key.
 
 ### Versions
