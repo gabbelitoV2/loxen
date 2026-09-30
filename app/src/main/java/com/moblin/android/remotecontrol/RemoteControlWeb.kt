@@ -333,7 +333,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                         value = "attachment; filename=\"$filename\"",
                     ),
                 )
-                response.sendFile(url = File(fileUrl), contentType = "video/mp4", headers = headers)
+                ioScope.launch { com.moblin.android.platform.Bookmark.awaitWritten(File(fileUrl)); response.sendFile(url = File(fileUrl), contentType = "video/mp4", headers = headers) }
             }
             "DELETE" -> {
                 delegate?.remoteControlWebDeleteRecording(filename = filename)

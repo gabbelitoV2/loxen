@@ -153,6 +153,7 @@ class Recorder : AVAssetWriterDelegate {
     }
 
     fun setUrl(url: String?) {
+        if (url == null && Thread.currentThread().name != "com.eerimoq.recorder") { queue.launch { setUrl(url) }; return }
         fileWriterQueue.launch {
             if (url != null) {
                 val file = if (url.startsWith("file:")) {

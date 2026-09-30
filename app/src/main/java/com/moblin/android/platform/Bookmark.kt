@@ -12,6 +12,7 @@ import android.webkit.MimeTypeMap
 import com.moblin.android.AppDelegate
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.ConcurrentHashMap
 
 class BookmarkedDirectory internal constructor(
     internal val treeUri: Uri,
@@ -122,19 +123,48 @@ object Bookmark {
     }
 
     fun openOutput(url: String, file: File): FileOutputStream? {
+        val key = writtenKey(file)
         return try {
             if (url.startsWith("content:")) {
                 AppDelegate.context.contentResolver.openFileDescriptor(Uri.parse(url), "wt")?.let {
-                    ParcelFileDescriptor.AutoCloseOutputStream(it)
+                    object : ParcelFileDescriptor.AutoCloseOutputStream(it) {
+                        override fun close() {
+                            try {
+                                super.close()
+                            } finally {
+                                filesBeingWritten.remove(key)
+                            }
+                        }
+                    }
                 }
             } else {
-                FileOutputStream(file)
-            }
+                object : FileOutputStream(file) {
+                    override fun close() {
+                        try {
+                            super.close()
+                        } finally {
+                            filesBeingWritten.remove(key)
+                        }
+                    }
+                }
+            }?.also { filesBeingWritten.add(key) }
         } catch (error: Exception) {
             Log.i(TAG, "bookmark: Failed to open $url: $error")
             null
         }
     }
+
+    fun awaitWritten(file: File, timeoutMs: Long = 3_000) {
+        val key = writtenKey(file)
+        val deadline = System.nanoTime() + timeoutMs * 1_000_000
+        while (key in filesBeingWritten && System.nanoTime() < deadline) {
+            Thread.sleep(20)
+        }
+    }
+
+    private val filesBeingWritten: MutableSet<String> = ConcurrentHashMap.newKeySet()
+
+    private fun writtenKey(file: File): String = runCatching { file.canonicalPath }.getOrDefault(file.absolutePath)
 
     internal fun mimeType(name: String): String {
         val extension = name.substringAfterLast('.', "").lowercase()

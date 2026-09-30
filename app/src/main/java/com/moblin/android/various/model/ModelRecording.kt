@@ -53,8 +53,7 @@ fun Model.stopRecording(toastTitle: String? = null, toastSubTitle: String? = nul
     toastTitle?.let { title ->
         makeToast(title = title, subTitle = toastSubTitle)
     }
-    media.setRecordUrl(url = null)
-    suspendRecording()
+    suspendRecording().also { media.setRecordUrl(url = null) }
 }
 
 fun Model.resumeRecording(): Boolean {

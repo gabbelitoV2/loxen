@@ -83,6 +83,7 @@ class AVAssetWriterLastSegmentSuite : RecorderDelegate {
             }
         }
         recorder.stopRunning()
+        recorder.setUrl(null)
         assertTrue(finished.await(10, TimeUnit.SECONDS))
         assertTrue(waitForStableFile())
         val track = AVURLAsset(url = url).loadTracks(withMediaType = AVMediaType.video).first()

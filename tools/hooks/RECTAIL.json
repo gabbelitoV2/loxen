@@ -1,0 +1,40 @@
+{
+  "task": "RECTAIL",
+  "hooks": [
+    {
+      "id": "HRECTAIL.1",
+      "file": "various/model/ModelRecording.kt",
+      "scope": "fun Model.stopRecording",
+      "op": "replace",
+      "old": "    media.setRecordUrl(url = null)",
+      "new": "    suspendRecording().also { media.setRecordUrl(url = null) }",
+      "note": "Swift clears the record URL before it stops the recorder, so the file is closed before the writer outputs the last, partial segment and every recording loses up to its last two seconds (on iOS too). Stop first, then clear the URL; HRECTAIL.3 makes the recorder close the file after the last segment."
+    },
+    {
+      "id": "HRECTAIL.2",
+      "file": "various/model/ModelRecording.kt",
+      "scope": "fun Model.stopRecording",
+      "op": "delete",
+      "old": "    suspendRecording()",
+      "note": "HRECTAIL.1 moved this call before media.setRecordUrl(url = null)."
+    },
+    {
+      "id": "HRECTAIL.3",
+      "file": "media/haishinkit/media/Recorder.kt",
+      "scope": "fun setUrl",
+      "op": "insert_after",
+      "anchor": "    fun setUrl(url: String?) {",
+      "new": "        if (url == null && Thread.currentThread().name != \"com.eerimoq.recorder\") { queue.launch { setUrl(url) }; return }",
+      "note": "Clearing the URL waits for a stop that was requested before it on the recorder queue, whose finishWriting outputs the last segment before the file is closed."
+    },
+    {
+      "id": "HRECTAIL.4",
+      "file": "remotecontrol/RemoteControlWeb.kt",
+      "scope": "fun handleRecordingsFile",
+      "op": "replace",
+      "old": "                response.sendFile(url = File(fileUrl), contentType = \"video/mp4\", headers = headers)",
+      "new": "                ioScope.launch { com.moblin.android.platform.Bookmark.awaitWritten(File(fileUrl)); response.sendFile(url = File(fileUrl), contentType = \"video/mp4\", headers = headers) }",
+      "note": "The last segment reaches the file about half a second after recording stops, so a download right after the stop waits (at most three seconds) until the recorder has closed the file, and the file is read on an IO thread instead of the main thread."
+    }
+  ]
+}
