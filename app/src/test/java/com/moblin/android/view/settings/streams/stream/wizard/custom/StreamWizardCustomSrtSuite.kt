@@ -65,7 +65,7 @@ class StreamWizardCustomSrtSuite {
     @Test
     fun typingAnSrtUrlKeepsEveryCharacter() {
         val model = srtContent()
-        val url = "srt://192.168.1.6:8891"
+        val url = "srt://192.0.2.10:8891"
         type(0, url)
         textField(0).assert(hasEditableText(url))
         assertEquals(url, model.createStreamWizard.customSrtUrl)
@@ -88,9 +88,9 @@ class StreamWizardCustomSrtSuite {
     @Test
     fun pastingAUrlKeepsItAndFillsInTheStreamId() {
         val model = srtContent()
-        textField(0).performTextInput("srt://192.168.1.6:8891?streamid=publish:cam")
+        textField(0).performTextInput("srt://192.0.2.10:8891?streamid=publish:cam")
         rule.waitForIdle()
-        textField(0).assert(hasEditableText("srt://192.168.1.6:8891?streamid=publish:cam"))
+        textField(0).assert(hasEditableText("srt://192.0.2.10:8891?streamid=publish:cam"))
         assertEquals("publish:cam", model.createStreamWizard.customSrtStreamId)
         textField(1).assert(hasEditableText("publish:cam"))
         rule.onNodeWithText("Next").assertIsEnabled()
@@ -99,7 +99,7 @@ class StreamWizardCustomSrtSuite {
     @Test
     fun typingAStreamIdEnablesNext() {
         val model = srtContent()
-        type(0, "srt://192.168.1.6:8891")
+        type(0, "srt://192.0.2.10:8891")
         rule.onNodeWithText("Next").assertIsNotEnabled()
         type(1, "publish:cam")
         textField(1).assert(hasEditableText("publish:cam"))
