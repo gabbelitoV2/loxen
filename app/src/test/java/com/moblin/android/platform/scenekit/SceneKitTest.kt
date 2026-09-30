@@ -315,6 +315,69 @@ class SceneKitTest {
     }
 
     @Test
+    fun filamentModelKeepsOnlyMorphTargetAttributesCgltfCanParse() {
+        val json = vrmJson
+            .replace(
+                "\"targets\": [{\"POSITION\": 0}, {\"POSITION\": 0}]",
+                "\"targets\": [{\"POSITION\": 0, \"extra\": {\"name\": \"a\"}, \"TEXCOORD_0\": -1}, " +
+                    "{\"NORMAL\": 0, \"JOINTS_0\": -1}]"
+            )
+            .replace("{\"attributes\": {\"POSITION\": 0}, \"material\": 1}",
+                     "{\"attributes\": {\"POSITION\": 0}, \"material\": 1, \"targets\": []}")
+        val loader = VRMSceneLoader(withData = glb(json))
+        loader.loadScene(withFilament = false)
+        val model = loader.filamentModel()
+        assertEquals(listOf(2), model.meshTargetCounts.toList())
+        val primitives = parseGlbJson(model.glb)["meshes"]!!.jsonArray[0].jsonObject["primitives"]!!.jsonArray
+        assertEquals(
+            listOf(mapOf("POSITION" to "0"), mapOf("NORMAL" to "0")),
+            primitives[0].jsonObject["targets"]!!.jsonArray.map { target ->
+                target.jsonObject.mapValues { it.value.jsonPrimitive.content }
+            },
+        )
+        assertNull(primitives[1].jsonObject["targets"])
+    }
+
+    @Test
+    fun filamentModelGivesSisterPrimitivesZeroMorphTargets() {
+        val json = vrmJson.replace(
+            "\"materials\": [",
+            "\"accessors\": [{\"bufferView\": 0, \"componentType\": 5126, \"count\": 3, \"type\": \"VEC3\"}], " +
+                "\"bufferViews\": [{\"buffer\": 0, \"byteLength\": 6}], \"buffers\": [{\"byteLength\": 6}], " +
+                "\"materials\": ["
+        )
+        val loader = VRMSceneLoader(withData = glb(json, ByteArray(6)))
+        loader.loadScene(withFilament = false)
+        val model = loader.filamentModel()
+        val gltf = parseGlbJson(model.glb)
+        val primitives = gltf["meshes"]!!.jsonArray[0].jsonObject["primitives"]!!.jsonArray
+        for (index in 1..2) {
+            assertEquals(
+                listOf("1", "1"),
+                primitives[index].jsonObject["targets"]!!.jsonArray.map { it.jsonObject["POSITION"]!!.jsonPrimitive.content },
+            )
+        }
+        val zero = gltf["accessors"]!!.jsonArray[1].jsonObject
+        assertEquals("3", zero["count"]!!.jsonPrimitive.content)
+        assertEquals("1", zero["bufferView"]!!.jsonPrimitive.content)
+        val view = gltf["bufferViews"]!!.jsonArray[1].jsonObject
+        assertEquals("8", view["byteOffset"]!!.jsonPrimitive.content)
+        assertEquals("36", view["byteLength"]!!.jsonPrimitive.content)
+        assertEquals("44", gltf["buffers"]!!.jsonArray[0].jsonObject["byteLength"]!!.jsonPrimitive.content)
+        val buffer = ByteBuffer.wrap(model.glb).order(ByteOrder.LITTLE_ENDIAN)
+        assertEquals(44, buffer.getInt(20 + buffer.getInt(12)))
+    }
+
+    @Test
+    fun filamentModelDeclaresTheWholeBinaryChunk() {
+        val json = vrmJson.replace("\"materials\": [", "\"buffers\": [{\"byteLength\": 4}], \"materials\": [")
+        val loader = VRMSceneLoader(withData = glb(json, ByteArray(16)))
+        loader.loadScene(withFilament = false)
+        val buffers = parseGlbJson(loader.filamentModel().glb)["buffers"]!!.jsonArray
+        assertEquals("16", buffers[0].jsonObject["byteLength"]!!.jsonPrimitive.content)
+    }
+
+    @Test
     fun filamentModelDropsNodeExtensionsAndRejectsSkinsFilamentCannotRender() {
         fun model(jointCount: Int): VrmFilamentModel {
             val joints = List(jointCount) { 1 + it % 5 }.joinToString(", ")

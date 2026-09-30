@@ -741,9 +741,9 @@ class VRMSceneLoader private constructor(private val vrm: VrmDocument, val rootD
             val joints = (skins.getOrNull(skin) as? JsonObject)?.optionalElement("joints") as? JsonArray ?: continue
             largestSkin = maxOf(largestSkin, joints.size)
         }
-        val (json, blendPrimitives) = filamentJson()
+        val (json, blendPrimitives, binary) = filamentJson()
         return VrmFilamentModel(
-            glb = writeGlb(json, vrm.binary),
+            glb = writeGlb(json, binary),
             nodeCount = gltfNodes.size,
             meshCount = meshCount,
             nodeMeshes = nodeMeshes,
@@ -754,7 +754,7 @@ class VRMSceneLoader private constructor(private val vrm: VrmDocument, val rootD
         )
     }
 
-    private fun filamentJson(): Pair<JsonObject, Array<BooleanArray>> {
+    private fun filamentJson(): Triple<JsonObject, Array<BooleanArray>, ByteArray?> {
         val root = LinkedHashMap<String, JsonElement>(gltf)
         root.remove("extensions")
         root.remove("extensionsRequired")
@@ -765,6 +765,8 @@ class VRMSceneLoader private constructor(private val vrm: VrmDocument, val rootD
             used.add("KHR_materials_unlit")
         }
         root["extensionsUsed"] = JsonArray(used.map { JsonPrimitive(it) })
+        val bufferViews = (gltf["bufferViews"] as? JsonArray)?.toMutableList() ?: mutableListOf()
+        val zeroTargets = ZeroMorphTargets(gltf["accessors"] as? JsonArray, bufferViews.size)
         root["nodes"] = JsonArray(
             gltfNodes.mapIndexed { index, element ->
                 val node = LinkedHashMap<String, JsonElement>(element.objectValue("node"))
@@ -800,6 +802,9 @@ class VRMSceneLoader private constructor(private val vrm: VrmDocument, val rootD
                 val mesh = LinkedHashMap<String, JsonElement>(meshElement.objectValue("mesh"))
                 val primitives = mesh.getValue("primitives").arrayValue("primitives")
                 val blends = BooleanArray(primitives.size)
+                val meshTargetCount = primitives.maxOfOrNull {
+                    ((it as? JsonObject)?.get("targets") as? JsonArray)?.size ?: 0
+                } ?: 0
                 mesh["primitives"] = JsonArray(
                     primitives.mapIndexed { primitiveIndex, primitiveElement ->
                         val primitive = LinkedHashMap<String, JsonElement>(primitiveElement.objectValue("primitive"))
@@ -808,6 +813,18 @@ class VRMSceneLoader private constructor(private val vrm: VrmDocument, val rootD
                         )
                         attributes.remove("COLOR_0")
                         primitive["attributes"] = JsonObject(attributes)
+                        val targets = (primitive["targets"] as? JsonArray)?.map(::filamentTarget).orEmpty()
+                            .toMutableList()
+                        val vertexCount = zeroTargets.vertexCount(attributes["POSITION"])
+                        if (targets.size < meshTargetCount && vertexCount != null && vrm.binary != null) {
+                            val zero = JsonObject(mapOf("POSITION" to JsonPrimitive(zeroTargets.accessor(vertexCount))))
+                            repeat(meshTargetCount - targets.size) { targets.add(zero) }
+                        }
+                        if (targets.isEmpty()) {
+                            primitive.remove("targets")
+                        } else {
+                            primitive["targets"] = JsonArray(targets)
+                        }
                         val material = (primitive["material"] as? JsonPrimitive)?.content?.toIntOrNull()
                         val materialIndex = if (material == null || material !in gltfMaterials.indices) {
                             defaultMaterial
@@ -823,7 +840,34 @@ class VRMSceneLoader private constructor(private val vrm: VrmDocument, val rootD
                 JsonObject(mesh)
             }
         )
-        return Pair(JsonObject(root), blendPrimitives.toTypedArray())
+        var binary = vrm.binary
+        if (binary != null && zeroTargets.largestVertexCount > 0) {
+            val offset = (binary.size + 3) / 4 * 4
+            val length = zeroTargets.largestVertexCount * 12
+            bufferViews.add(
+                JsonObject(
+                    mapOf(
+                        "buffer" to JsonPrimitive(0),
+                        "byteOffset" to JsonPrimitive(offset),
+                        "byteLength" to JsonPrimitive(length),
+                    )
+                )
+            )
+            root["bufferViews"] = JsonArray(bufferViews)
+            root["accessors"] = JsonArray(zeroTargets.accessors)
+            binary = binary.copyOf(offset + length)
+        }
+        val buffers = gltf["buffers"] as? JsonArray
+        val firstBuffer = buffers?.firstOrNull() as? JsonObject
+        if (binary != null && firstBuffer != null && firstBuffer["uri"] == null) {
+            val declared = (firstBuffer["byteLength"] as? JsonPrimitive)?.content?.toLongOrNull() ?: 0
+            if (declared < binary.size) {
+                val buffer = LinkedHashMap<String, JsonElement>(firstBuffer)
+                buffer["byteLength"] = JsonPrimitive(binary.size)
+                root["buffers"] = JsonArray(listOf(JsonObject(buffer)) + buffers.drop(1))
+            }
+        }
+        return Triple(JsonObject(root), blendPrimitives.toTypedArray(), binary)
     }
 
     private fun filamentMaterial(index: Int, material: JsonObject): Pair<JsonObject, String> {
@@ -869,6 +913,51 @@ class VRMSceneLoader private constructor(private val vrm: VrmDocument, val rootD
         result["extensions"] = JsonObject(mapOf("KHR_materials_unlit" to JsonObject(emptyMap())))
         return Pair(JsonObject(result), mode)
     }
+}
+
+private val morphTargetAttributes = setOf("POSITION", "NORMAL", "TANGENT")
+
+private class ZeroMorphTargets(accessors: JsonArray?, private val bufferView: Int) {
+    val accessors: MutableList<JsonElement> = accessors?.toMutableList() ?: mutableListOf()
+    private val originalAccessorCount = this.accessors.size
+    private val byVertexCount = HashMap<Int, Int>()
+    var largestVertexCount = 0
+        private set
+
+    fun vertexCount(position: JsonElement?): Int? {
+        val index = (position as? JsonPrimitive)?.content?.toIntOrNull() ?: return null
+        if (index !in 0 until originalAccessorCount) {
+            return null
+        }
+        return ((accessors[index] as? JsonObject)?.get("count") as? JsonPrimitive)?.content?.toIntOrNull()
+    }
+
+    fun accessor(vertexCount: Int): Int = byVertexCount.getOrPut(vertexCount) {
+        largestVertexCount = maxOf(largestVertexCount, vertexCount)
+        val zero = JsonArray(List(3) { JsonPrimitive(0) })
+        accessors.add(
+            JsonObject(
+                mapOf(
+                    "bufferView" to JsonPrimitive(bufferView),
+                    "componentType" to JsonPrimitive(5126),
+                    "count" to JsonPrimitive(vertexCount),
+                    "type" to JsonPrimitive("VEC3"),
+                    "min" to zero,
+                    "max" to zero,
+                )
+            )
+        )
+        accessors.size - 1
+    }
+}
+
+private fun filamentTarget(element: JsonElement): JsonObject {
+    val target = element as? JsonObject ?: return JsonObject(emptyMap())
+    return JsonObject(
+        target.filter { (name, value) ->
+            name in morphTargetAttributes && ((value as? JsonPrimitive)?.content?.toIntOrNull() ?: -1) >= 0
+        }
+    )
 }
 
 internal fun filamentNodeName(index: Int): String {
