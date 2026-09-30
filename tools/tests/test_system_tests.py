@@ -227,6 +227,19 @@ class RunnerSuite(unittest.TestCase):
         self.assertEqual(usb.name, "R00000000AB.settings")
         self.assertEqual(system_tests.settings_backup("192.0.2.8:5555").name, "192.0.2.8_5555.settings")
 
+    def test_media_volume_is_turned_up_and_read_back(self):
+        calls = []
+
+        class Device(system_tests.ui_crawl.Device):
+            def run(self, *args, timeout=30):
+                calls.append(args)
+                return "[V] will get volume\n[V] volume is 6 in range [0..15]\n" if "--get" in args else ""
+
+        device = Device("adb", "serial")
+        self.assertEqual(system_tests.media_volume(device), (6, 15))
+        system_tests.set_media_volume(device, 15)
+        self.assertEqual(calls[-1], ("shell", "cmd", "media_session", "volume", "--stream", "3", "--set", "15"))
+
     def test_the_last_exit_reason_is_read_from_exit_info(self):
         class Device(system_tests.ui_crawl.Device):
             def run(self, *args, timeout=30):

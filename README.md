@@ -247,9 +247,13 @@ python tools/system_tests.py stability --duration 0.5
 
 `test` finds the device with adb (`--serial` picks one), writes `tests/config.toml` with the addresses of the device
 and of this computer (edit the capabilities there; later runs only update the addresses), keeps the screen on while
-the device is plugged in, and points Loxen's remote control at this computer with a `moblin://` link, tapping
-*Import settings* itself. Loxen must be installed and neither live nor recording. The tablet streams for minutes at a
-time, so keep it on a charger (wireless debugging works).
+the device is plugged in and turns the media volume up (the talkback tests listen to the speaker with the microphone);
+both are put back afterwards. The first run copies Loxen's settings to `.system-tests/device-settings/` (debug builds
+only), because the tests replace them; `python tools/system_tests.py restore-settings` puts them back. Then it waits
+for Loxen to connect to the test assistant, and if it does not, points Loxen's remote control at this computer with a
+`moblin://` link, tapping *Import settings* itself. Loxen must be installed. A watchdog starts Loxen again when
+Android kills it and prints why. The tablet streams for minutes at a time, so keep it on a charger (wireless
+debugging works). The map tests need location services on.
 
 On Windows, `setup` downloads the full ffmpeg build (the tests need its `qrencode` filter), mediamtx and qrtool into
 `.system-tests/`, and installs `tools/system_tests_shims/` into `.venv`: `ltcgen` and `ltcdump` (SMPTE linear

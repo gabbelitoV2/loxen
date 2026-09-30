@@ -39,6 +39,8 @@ WINDOWS_TOOLS = [
 ]
 WINDOWS_FONT = Path(os.environ.get("WINDIR", r"C:\Windows")) / "Fonts" / "arial.ttf"
 INET = re.compile(r"\binet (\d+\.\d+\.\d+\.\d+)/")
+MEDIA_VOLUME = re.compile(r"volume is (\d+) in range \[(\d+)\.\.(\d+)\]")
+MUSIC_STREAM = 3
 DEVICE_SETTINGS = "files/SimpleStorage/settings"
 BACKUPS = CACHE / "device-settings"
 NOT_CONNECTED = 2
@@ -421,6 +423,9 @@ def run_tests(module, args, extra):
     device, tester_ip = prepare_device(args)
     stay_on = device.run("shell", "settings", "get", "global", "stay_on_while_plugged_in").strip()
     device.run("shell", "svc", "power", "stayon", "true")
+    volume = media_volume(device)
+    if volume is not None:
+        set_media_volume(device, volume[1])
     try:
         if not args.no_connect:
             backup = backup_settings(device)
@@ -445,6 +450,18 @@ def run_tests(module, args, extra):
     finally:
         if stay_on.isdigit():
             device.run("shell", "settings", "put", "global", "stay_on_while_plugged_in", stay_on)
+        if volume is not None:
+            set_media_volume(device, volume[0])
+
+
+def media_volume(device):
+    output = device.run("shell", "cmd", "media_session", "volume", "--stream", str(MUSIC_STREAM), "--get")
+    match = MEDIA_VOLUME.search(output)
+    return (int(match.group(1)), int(match.group(3))) if match else None
+
+
+def set_media_volume(device, volume):
+    device.run("shell", "cmd", "media_session", "volume", "--stream", str(MUSIC_STREAM), "--set", str(volume))
 
 
 def firewall_script():
