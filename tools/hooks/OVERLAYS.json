@@ -1,0 +1,14 @@
+{
+  "task": "OVERLAYS",
+  "hooks": [
+    {
+      "id": "HOVERLAYS.1",
+      "file": "view/MainView.kt",
+      "scope": "fun MainView",
+      "op": "insert_after",
+      "anchor": "    val focusRequester = remember { FocusRequester() }",
+      "new": "    com.moblin.android.platform.swiftui.PersistentSystemOverlays(Visibility.hidden)",
+      "note": "Swift MainView .persistentSystemOverlays(.hidden): the main screen hides the system bars, which come back briefly on a swipe from the edge. The translation dropped the modifier, so the navigation bar and the Samsung taskbar covered the bottom of the stream view."
+    }
+  ]
+}

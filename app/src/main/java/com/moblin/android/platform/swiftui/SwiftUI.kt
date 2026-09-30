@@ -1,10 +1,14 @@
 package com.moblin.android.platform.swiftui
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import android.os.SystemClock
 import android.view.HapticFeedbackConstants
 import android.view.View
+import android.view.Window
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -1347,6 +1351,45 @@ enum class Visibility {
     automatic,
     visible,
     hidden,
+}
+
+@Composable
+fun PersistentSystemOverlays(visibility: Visibility) {
+    val view = LocalView.current
+    DisposableEffect(view, visibility) {
+        val window = generateSequence(view.context) { (it as? ContextWrapper)?.baseContext }
+            .filterIsInstance<Activity>()
+            .firstOrNull()
+            ?.window
+        if (window == null || visibility != Visibility.hidden) {
+            onDispose {}
+        } else {
+            setSystemBarsHidden(window, hidden = true)
+            onDispose {
+                setSystemBarsHidden(window, hidden = false)
+            }
+        }
+    }
+}
+
+@Suppress("DEPRECATION")
+internal fun setSystemBarsHidden(window: Window, hidden: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        val controller = window.insetsController ?: return
+        if (hidden) {
+            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.hide(android.view.WindowInsets.Type.systemBars())
+        } else {
+            controller.show(android.view.WindowInsets.Type.systemBars())
+        }
+    } else {
+        window.decorView.systemUiVisibility = if (hidden) {
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or View.SYSTEM_UI_FLAG_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        } else {
+            View.SYSTEM_UI_FLAG_VISIBLE
+        }
+    }
 }
 
 internal class DialogButton(

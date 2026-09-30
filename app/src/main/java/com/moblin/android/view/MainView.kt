@@ -658,6 +658,7 @@ fun MainView(
     val presentingStreamImportCollisionConfirmation by model.presentingStreamImportCollisionConfirmation
         .collectAsState()
     val focusRequester = remember { FocusRequester() }
+    com.moblin.android.platform.swiftui.PersistentSystemOverlays(Visibility.hidden)
     var focused by remember { mutableStateOf(false) }
     var appeared by remember { mutableStateOf(false) }
     val safeAreaSides = edgesToIgnore(isPortrait = isPortrait, bigButtons = bigButtons, twoColumns = twoColumns)
