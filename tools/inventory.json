@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-09-30T23:28:17+00:00",
+  "generated": "2026-10-01T23:28:23+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4816,10 +4816,10 @@
     },
     {
       "path": "Moblin/Various/Model/ModelKeyboard.swift",
-      "lines": 50,
-      "sha256": "e2688bc4ae5c71e9c34e795fe8738c86103bc58a5ec709a66005ebe6a1d73c5e",
+      "lines": 27,
+      "sha256": "99cb6eb18368ede61f08109e2bd46d63909e24e84af7d07d392fa2799438711c",
       "imports": [
-        "SwiftUI"
+        "UIKit"
       ],
       "tier": "ui",
       "declared_types": [],
@@ -9470,25 +9470,26 @@
       "wave": 13
     },
     {
-      "path": "Moblin/View/Main/MacKeyPressView.swift",
-      "lines": 51,
-      "sha256": "d59eed245eb08aec3c95d9af6588dff116d1123951b9919a3e5f3642f7bc6aa8",
+      "path": "Moblin/View/Main/KeyPressView.swift",
+      "lines": 87,
+      "sha256": "7dfe116d5433da646cab9a224b260ead6f94fa161d95f39e8e5c742ab0663cd3",
       "imports": [
         "SwiftUI",
         "UIKit"
       ],
       "tier": "ui",
       "declared_types": [
-        "MacKeyPressUIView",
-        "MacKeyPressView"
+        "KeyPressUIView",
+        "KeyPressView"
       ],
       "private_types": [],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.view.main",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/main/MacKeyPressView.kt",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/main/KeyPressView.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin/Various/MainTimer.swift",
         "Moblin/Various/Model/Model.swift"
       ],
       "wave": 13
@@ -11538,8 +11539,8 @@
     },
     {
       "path": "Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift",
-      "lines": 507,
-      "sha256": "9cdf0dc343d04041b4fed8811a320b0aad5a5a09a9f12d2f6709e7765017a52b",
+      "lines": 618,
+      "sha256": "ae0a1bb9d00edb25ae4ced66cb143edcecd44e3b4c7a55bcae0aa536b992c9ce",
       "imports": [
         "AVFoundation",
         "Collections",
@@ -11572,6 +11573,7 @@
         "Moblin/Media/HaishinKit/Codec/Audio/AudioEncoderSettings.swift",
         "Moblin/Media/HaishinKit/Media/Audio/BufferedAudio.swift",
         "Moblin/Media/HaishinKit/Media/Processor.swift",
+        "Moblin/Various/SimpleTimer.swift",
         "Moblin/Various/Utils/Utils.swift"
       ],
       "wave": 17
@@ -14502,8 +14504,8 @@
     },
     {
       "path": "Moblin/VideoEffects/Browser/BrowserEffect.swift",
-      "lines": 362,
-      "sha256": "81745177950f598f66c4b3921f515f47386c82c7babe7a104f5a96e6201ea6de",
+      "lines": 381,
+      "sha256": "13dd00303a8dcf67ce966e21eb16e54f273915f731d285cc03e3de8fb98e3c7c",
       "imports": [
         "Collections",
         "MetalPetal",
@@ -18604,8 +18606,8 @@
     },
     {
       "path": "Moblin/View/Settings/Keyboard/KeyboardKeySettingsView.swift",
-      "lines": 99,
-      "sha256": "4dfde6693dd6d9a5b542afcfa2e4388065bc1c452904976ede4841d25c9699fe",
+      "lines": 93,
+      "sha256": "e3f73e2071a18269134d5e0bfceb2679e1dcda0bb8656af869718b08133616d5",
       "imports": [
         "SwiftUI"
       ],
@@ -23998,8 +24000,8 @@
     },
     {
       "path": "Moblin/View/MainView.swift",
-      "lines": 752,
-      "sha256": "65c81a783a554b3a68c26fe19bdf408698b35abbd6e6ca50ba2ff620374d350c",
+      "lines": 718,
+      "sha256": "510dfa5ec2a1a5a83a3c457fd0939a99b20416e8f10ef0462021994fea5c9d4e",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -24067,8 +24069,8 @@
         "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift",
         "Moblin/View/ControlBar/QuickButton/QuickButtonStreamSwitcherView.swift",
         "Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift",
+        "Moblin/View/Main/KeyPressView.swift",
         "Moblin/View/Main/LockScreenView.swift",
-        "Moblin/View/Main/MacKeyPressView.swift",
         "Moblin/View/Main/SnapshotCountdownView.swift",
         "Moblin/View/Main/StealthModeView.swift",
         "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift",

@@ -99,7 +99,6 @@ import com.moblin.android.various.model.AudioProvider
 import com.moblin.android.various.model.Browser
 import com.moblin.android.various.model.CameraState
 import com.moblin.android.various.model.CreateStreamWizard
-import com.moblin.android.various.model.KeyPress
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.ReplayProvider
@@ -107,8 +106,6 @@ import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.model.Toast
 import com.moblin.android.various.model.changeZoomX
 import com.moblin.android.various.model.commitZoomX
-import com.moblin.android.various.model.handleKeyPress
-import com.moblin.android.various.model.isKeyboardActive
 import com.moblin.android.various.model.navigation
 import com.moblin.android.various.model.setAutoFocus
 import com.moblin.android.various.model.setFocusPointOfInterest
@@ -137,6 +134,7 @@ import com.moblin.android.view.controlbar.quickbutton.chat.PredefinedMessagesVie
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatModerationView
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatView
 import com.moblin.android.view.controlbar.remotecontrolassistant.ControlBarRemoteControlAssistantView
+import com.moblin.android.view.main.KeyPressView
 import com.moblin.android.view.main.LockScreenView
 import com.moblin.android.view.main.SnapshotCountdownView
 import com.moblin.android.view.main.StealthModeView
@@ -649,44 +647,21 @@ fun MainView(
     val twoColumns by quickButtons.twoColumns.collectAsState()
     val showStealthMode by model.showStealthMode.collectAsState()
     val lockScreen by model.lockScreen.collectAsState()
-    val showingPanel by model.showingPanel.collectAsState()
-    val showBrowser by model.showBrowser.collectAsState()
     val showTwitchAuth by model.showTwitchAuth.collectAsState()
     val presentingModeration by model.presentingModeration.collectAsState()
     val presentingPredefinedMessages by model.presentingPredefinedMessages.collectAsState()
     val presentingSettingsImportConfirmation by model.presentingSettingsImportConfirmation.collectAsState()
     val presentingStreamImportCollisionConfirmation by model.presentingStreamImportCollisionConfirmation
         .collectAsState()
-    val focusRequester = remember { FocusRequester() }
     com.moblin.android.platform.swiftui.PersistentSystemOverlays(Visibility.hidden)
-    var focused by remember { mutableStateOf(false) }
-    var appeared by remember { mutableStateOf(false) }
     val safeAreaSides = edgesToIgnore(isPortrait = isPortrait, bigButtons = bigButtons, twoColumns = twoColumns)
     val streamSafeAreaInsets = streamViewSafeAreaInsets(sides = safeAreaSides, isPortrait = isPortrait)
 
-    LaunchedEffect(
-        showingPanel,
-        showBrowser,
-        showTwitchAuth,
-        createStreamWizard.presenting,
-        createStreamWizard.presentingSetup,
-        createStreamWizard.showTwitchAuth
-    ) {
-        if (appeared) {
-            focused = model.isKeyboardActive()
-        }
-    }
     LaunchedEffect(Unit) {
         model.setup()
-        focused = true
-        appeared = true
-    }
-    LaunchedEffect(focused) {
-        if (focused) {
-            focusRequester.requestFocus()
-        }
     }
 
+    KeyPressView(model = model)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -696,20 +671,7 @@ fun MainView(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .background(Color.Black)
-                .onKeyEvent { event ->
-                    if (event.type != KeyEventType.KeyDown) {
-                        return@onKeyEvent false
-                    }
-                    val codePoint = event.utf16CodePoint
-                    if (codePoint == 0) {
-                        return@onKeyEvent false
-                    }
-                    val press = KeyPress(characters = String(Character.toChars(codePoint)))
-                    model.handleKeyPress(press = press) == KeyPress.Result.handled
-                }
-                .focusRequester(focusRequester)
-                .focusable(),
+                .background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
             if (isPortrait) {

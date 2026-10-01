@@ -7,6 +7,7 @@ import android.media.MediaFormat
 import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.*
 import com.moblin.android.media.MediaSample
+import com.moblin.android.media.kCMTimeInvalidUs
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoder
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderSettings
@@ -20,11 +21,21 @@ import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.platform.avfoundation.AVCaptureDeviceInput
 import com.moblin.android.platform.avfoundation.AVCaptureOutput
 import com.moblin.android.platform.avfoundation.AVCaptureSession
+import com.moblin.android.platform.avfoundation.AVAudioPCMBuffer
+import com.moblin.android.platform.avfoundation.AVCaptureSessionInterruptionEnded
+import com.moblin.android.platform.avfoundation.AVCaptureSessionInterruptionReasonKey
+import com.moblin.android.platform.avfoundation.AVCaptureSessionWasInterrupted
+import com.moblin.android.platform.avfoundation.frameLength
+import com.moblin.android.platform.core.Notification
+import com.moblin.android.platform.core.NotificationCenter
+import com.moblin.android.various.SimpleTimer
+import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.util.UUID
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.max
+import kotlin.math.roundToLong
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 
@@ -211,6 +222,20 @@ class AudioUnit : BufferedAudioSampleBufferDelegate, AVCaptureAudioDataOutputSam
     private var latestSampleBufferAppendTime: Long = 0L
     private var numberOfDiscardedSampleBuffers = 0
     private var measurement = AudioMeasurement()
+    private val silenceTimer = SimpleTimer(processorPipelineDispatcher)
+    private var latestBuiltinSampleBuffer: MediaSample? = null
+    private var latestBuiltinPresentationTimeStamp: Long = kCMTimeInvalidUs
+    private var nextBuiltinPresentationTimeStamp: Long = kCMTimeInvalidUs
+    private var isOutputtingSilence = false
+
+    init {
+        NotificationCenter.default.addObserver(this, AVCaptureSessionWasInterrupted, session) {
+            sessionWasInterrupted(it)
+        }
+        NotificationCenter.default.addObserver(this, AVCaptureSessionInterruptionEnded, session) {
+            sessionInterruptionEnded(it)
+        }
+    }
 
     private var inputSourceFormat: MediaFormat? = null
         set(value) {
@@ -224,10 +249,88 @@ class AudioUnit : BufferedAudioSampleBufferDelegate, AVCaptureAudioDataOutputSam
 
     fun startRunning() {
         session.startRunning()
+        processorPipelineQueue.launch {
+            isOutputtingSilence = false
+        }
     }
 
     fun stopRunning() {
         session.stopRunning()
+        processorPipelineQueue.launch {
+            silenceTimer.stop()
+            latestBuiltinSampleBuffer = null
+        }
+    }
+
+    private fun sessionWasInterrupted(notification: Notification) {
+        val reason = notification.userInfo[AVCaptureSessionInterruptionReasonKey] as? Int
+        Log.i(TAG, "audio-unit: Capture session interrupted with reason ${reason ?: -1}")
+        processorPipelineQueue.launch {
+            silenceTimer.startPeriodic(interval = 0.1, initial = 0.0) {
+                outputSilenceWhileInterrupted()
+            }
+        }
+    }
+
+    private fun sessionInterruptionEnded(notification: Notification) {
+        Log.i(TAG, "audio-unit: Capture session interruption ended")
+        processorPipelineQueue.launch {
+            silenceTimer.stop()
+        }
+    }
+
+    private fun outputSilenceWhileInterrupted() {
+        if (!isOutputtingSilence) {
+            val sampleBuffer = latestBuiltinSampleBuffer
+            val format = sampleBuffer?.format
+            if (sampleBuffer == null || format == null || !format.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+                return
+            }
+            val sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE).toDouble()
+            nextBuiltinPresentationTimeStamp = latestBuiltinPresentationTimeStamp +
+                (sampleBuffer.numSamples * 1_000_000L / sampleRate.toLong())
+        }
+        val end = currentPresentationTimeStamp() - 100_000L
+        if (end <= nextBuiltinPresentationTimeStamp) {
+            return
+        }
+        isOutputtingSilence = true
+        outputBuiltinSilence(end)
+    }
+
+    private fun outputBuiltinSilence(end: Long) {
+        val processor = processor
+        val format = latestBuiltinSampleBuffer?.format
+        if (selectedBufferedAudioId != null || processor == null || format == null) {
+            return
+        }
+        val sampleRate = if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+            format.getInteger(MediaFormat.KEY_SAMPLE_RATE).toDouble()
+        } else {
+            0.0
+        }
+        val frames = ((end - nextBuiltinPresentationTimeStamp) / 1_000_000.0 * sampleRate).roundToLong()
+        if (frames <= 0 || frames >= 10 * sampleRate) {
+            return
+        }
+        val numberOfFrames = frames.toInt()
+        val buffer = AVAudioPCMBuffer(pcmFormat = format, frameCapacity = numberOfFrames) ?: return
+        buffer.frameLength = numberOfFrames
+        val presentationTimeStamp = nextBuiltinPresentationTimeStamp
+        nextBuiltinPresentationTimeStamp = presentationTimeStamp +
+            (numberOfFrames * 1_000_000L / sampleRate.toLong())
+        val sampleBuffer = buffer.replacePresentationTimeStamp(presentationTimeStamp)
+        appendNewSampleBuffer(processor, sampleBuffer, presentationTimeStamp)
+    }
+
+    private fun updateBuiltinAudio(sampleBuffer: MediaSample, presentationTimeStamp: Long) {
+        if (isOutputtingSilence) {
+            Log.i(TAG, "audio-unit: Microphone audio resumed.")
+            isOutputtingSilence = false
+            outputBuiltinSilence(presentationTimeStamp)
+        }
+        latestBuiltinSampleBuffer = sampleBuffer
+        latestBuiltinPresentationTimeStamp = presentationTimeStamp
     }
 
     fun attach(params: AudioUnitAttachParams) {
@@ -462,6 +565,7 @@ class AudioUnit : BufferedAudioSampleBufferDelegate, AVCaptureAudioDataOutputSam
     override fun captureOutput(output: AVCaptureOutput, didOutput: MediaSample, from: AVCaptureConnection?) {
         val processor = processor ?: return
         val presentationTimeStamp = syncTimeToHost(processor, didOutput)
+        updateBuiltinAudio(didOutput, presentationTimeStamp)
         var sampleBuffer = didOutput
         val bufferedAudio = appendBufferedBuiltinAudio(sampleBuffer, presentationTimeStamp)
         if (bufferedAudio != null) {

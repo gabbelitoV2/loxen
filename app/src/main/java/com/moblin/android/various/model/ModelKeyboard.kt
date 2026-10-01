@@ -1,59 +1,40 @@
 package com.moblin.android.various.model
 
+import android.view.KeyEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
-class KeyPress(val characters: String) {
-    enum class Result {
-        handled,
-        ignored,
+fun Model.handleKeyPresses(presses: Set<KeyEvent>, pressed: Boolean): Boolean {
+    fun characters(event: KeyEvent): String {
+        val codePoint = event.unicodeChar
+        return if (codePoint == 0) {
+            ""
+        } else {
+            String(Character.toChars(codePoint))
+        }
     }
-}
-
-fun Model.isKeyboardActive(): Boolean {
-    if (showingPanel.value != ShowingPanel.none) {
-        return false
+    var handled = false
+    for (press in presses) {
+        val pressCharacters = characters(press)
+        if (pressCharacters.isEmpty()) {
+            continue
+        }
+        if (press.isCtrlPressed || press.isMetaPressed) {
+            continue
+        }
+        val keyboardKey = database.keyboard.keys.firstOrNull { it.key == pressCharacters } ?: continue
+        mainScope.launch {
+            handleControllerFunction(
+                buttonId = "kb:${keyboardKey.key}",
+                function = keyboardKey.function,
+                functionData = keyboardKey.functionData,
+                pressed = pressed,
+            )
+        }
+        handled = true
     }
-    if (showBrowser.value) {
-        return false
-    }
-    if (showTwitchAuth.value) {
-        return false
-    }
-    if (showModerationAuth.value) {
-        return false
-    }
-    if (createStreamWizard.presenting) {
-        return false
-    }
-    if (createStreamWizard.presentingSetup) {
-        return false
-    }
-    if (createStreamWizard.showTwitchAuth) {
-        return false
-    }
-    return true
-}
-
-fun Model.handleKeyPressCharacters(characters: String): Boolean {
-    if (!isKeyboardActive()) {
-        return false
-    }
-    val key = database.keyboard.keys.firstOrNull { it.key == characters } ?: return false
-    mainScope.launch {
-        handleControllerFunction(
-            buttonId = "kb:${key.key}",
-            function = key.function,
-            functionData = key.functionData,
-            pressed = false,
-        )
-    }
-    return true
-}
-
-fun Model.handleKeyPress(press: KeyPress): KeyPress.Result {
-    return if (handleKeyPressCharacters(press.characters)) KeyPress.Result.handled else KeyPress.Result.ignored
+    return handled
 }

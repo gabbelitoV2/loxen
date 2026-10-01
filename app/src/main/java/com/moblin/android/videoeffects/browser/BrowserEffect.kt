@@ -48,10 +48,23 @@ private fun createStyleSheetSource(styleSheet: String): String? {
     }
     val styleSheetData = styleSheet.toByteArray(Charsets.UTF_8)
     return """
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        style.innerHTML = window.atob('${Base64.getEncoder().encodeToString(styleSheetData)}');
-        document.head.appendChild(style);
+        (() => {
+            const style = document.createElement('style');
+            style.type = 'text/css';
+            style.innerHTML = window.atob('${Base64.getEncoder().encodeToString(styleSheetData)}');
+            document.head.appendChild(style);
+        })();
+        """.trimIndent()
+}
+
+private fun viewportScript(width: Int): String {
+    return """
+        (() => {
+            const meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=$width, initial-scale=1';
+            (document.head ?? document.documentElement).appendChild(meta);
+        })();
         """.trimIndent()
 }
 
@@ -125,6 +138,13 @@ class BrowserEffect(
         if (source != null) {
             addScript(configuration, source, WKUserScriptInjectionTime.atDocumentEnd)
         }
+        configuration.userContentController.addUserScript(
+            WKUserScript(
+                source = viewportScript(widget.width),
+                injectionTime = WKUserScriptInjectionTime.atDocumentStart,
+                forMainFrameOnly = true,
+            )
+        )
         addScript(configuration, videoScript(), WKUserScriptInjectionTime.atDocumentStart)
         configuration.setHttpProxy(endpoint = proxyServer?.let {
             NWEndpoint.hostPort(NWEndpoint.Host(it.hostString), NWEndpoint.Port(it.port))
@@ -138,6 +158,7 @@ class BrowserEffect(
         webView.isOpaque = false
         webView.backgroundColor = android.graphics.Color.TRANSPARENT
         webView.scrollView.backgroundColor = android.graphics.Color.TRANSPARENT
+        Unit
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.scrollView.showsHorizontalScrollIndicator = false
         server.webView = webView

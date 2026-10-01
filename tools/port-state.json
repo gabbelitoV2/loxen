@@ -7472,27 +7472,27 @@
   },
   "Moblin/Various/Model/ModelKeyboard.swift": {
     "status": "ok",
-    "sha256": "e2688bc4ae5c71e9c34e795fe8738c86103bc58a5ec709a66005ebe6a1d73c5e",
+    "sha256": "99cb6eb18368ede61f08109e2bd46d63909e24e84af7d07d392fa2799438711c",
+    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelKeyboard.kt",
     "notes": [
-      "The Swift extension on Model becomes top-level Kotlin extension functions on Model in the same package.",
-      "isKeyboardActive() is a plain predicate; the createStreamWizard sub-flags are read directly off the model.",
-      "DispatchQueue.main.async is replaced by a private file-scoped mainScope CoroutineScope(Dispatchers.Main).",
-      "handleKeyPressCharacters uses firstOrNull + early return instead of guard let.",
-      "SwiftUI's KeyPress / KeyPress.Result has no Android counterpart, so a minimal placeholder class KeyPress with a nested Result enum keeps the original signature; real key events must be bridged from Compose key events.",
-      "The @available(iOS 17.0, *) attribute is dropped; Kotlin has no visibility into OS version here.",
-      "No imports are needed for Model, ShowingPanel or the other peer types because they live in this same package.",
-      "handleControllerFunction is called with named arguments to mirror the Swift parameter labels."
+      "UIKit's UIPress/UIKey have no shim in com.moblin.android.platform, so handleKeyPresses takes Android android.view.KeyEvent values: the Activity or a Modifier.onKeyEvent must forward them.",
+      "key.characters maps to KeyEvent.unicodeChar; 0 means the event has no character mapping and is skipped like an empty string.",
+      "The `.isDisjoint(with: [.command, .control])` guard maps to KeyEvent.isMetaPressed/isCtrlPressed (command is the meta modifier on Android).",
+      "DispatchQueue.main.async keeps the existing file-level mainScope.launch helper.",
+      "isKeyboardActive(), handleKeyPressCharacters, handleKeyPress and the local KeyPress type were removed together with the Swift code that used them.",
+      "handleControllerFunction is called with the same named arguments as before (buttonId/function/functionData/pressed).",
+      "The hardware-keyboard bridge that feeds handleKeyPresses is hand-written Android code and is not part of this file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2982,
-    "tokens_out": 3369,
-    "seconds": 14.1,
-    "ported_at": "2026-09-22T13:19:14+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41155,
+    "tokens_out": 9651,
+    "seconds": 42.3,
+    "ported_at": "2026-10-01T23:29:15+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAbortMessge.swift": {
     "status": "ok",
@@ -10027,30 +10027,6 @@
     "ported_at": "2026-09-22T13:28:34+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
-  "Moblin/View/Main/MacKeyPressView.swift": {
-    "status": "ok",
-    "sha256": "d59eed245eb08aec3c95d9af6588dff116d1123951b9919a3e5f3642f7bc6aa8",
-    "tier": "ui",
-    "kotlin_path": "app/src/main/java/com/moblin/android/view/main/MacKeyPressView.kt",
-    "notes": [
-      "UIViewRepresentable is replaced by the @Composable fun MacKeyPressView; its invisible host is a Box, so callers must pass a size modifier (for example Modifier.fillMaxSize()) to give it room to take focus.",
-      "MacKeyPressUIView keeps the model/canBecomeFirstResponder/claimFocus API but is backed by a Compose FocusRequester instead of the UIKit first-responder chain.",
-      "pressesBegan now takes a List<KeyEvent> from androidx.compose.ui.input.key and returns whether the event was handled, which replaces the super.pressesBegan fallback used by UIKit.",
-      "Key characters come from KeyEvent.utf16CodePoint rather than UIPress.key?.characters.",
-      "shouldClaimFocus is applied inside updateUIView, which is a suspend function called from a LaunchedEffect instead of DispatchQueue.main.async in updateUIView(_:context:).",
-      "isFirstResponder is kept in sync with the Compose focus state through Modifier.onFocusChanged.",
-      "The UIKit background colour assignment (clear) and the updateUIView context parameter have no Compose equivalent and were dropped.",
-      "MacKeyPressUIView.pressesBegan expects Model.handleKeyPressCharacters(characters: String): Boolean on com.moblin.android.various.model.Model."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 4216,
-    "tokens_out": 5245,
-    "seconds": 20.2,
-    "ported_at": "2026-09-22T13:28:34+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/View/Settings/Camera/MirrorFrontCamera/MirrorFrontCameraView.swift": {
     "status": "ok",
     "sha256": "8a83269b5d292d75413cfd2b10e5ddf353ce52a43984e906f06e8e8c602d44da",
@@ -11599,27 +11575,27 @@
   },
   "Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift": {
     "status": "ok",
-    "sha256": "9cdf0dc343d04041b4fed8811a320b0aad5a5a09a9f12d2f6709e7765017a52b",
+    "sha256": "ae0a1bb9d00edb25ae4ced66cb143edcecd44e3b4c7a55bcae0aa536b992c9ce",
+    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/audio/AudioUnit.kt",
     "notes": [
-      "AVAudioEngine plus AVAudioPlayerNode collapse into a single android.media.AudioTrack inside TalkbackPlayer; start/stop/appendSampleBuffer keep their names.",
-      "AVAudioFormat maps to android.media.AudioFormat built from MediaFormat KEY_SAMPLE_RATE/KEY_CHANNEL_COUNT; AVAudioPCMBuffer maps to ShortArray of 16-bit PCM.",
-      "DispatchQueue.async on processorPipelineQueue becomes CoroutineScope.launch; processorPipelineQueue is assumed to expose CoroutineScope.",
-      "MediaSample helpers used here (muted, withGain, deepCopyAudioSampleBuffer, replacePresentationTimeStamp, numberOfAudioChannels, sampleRate) are not in the glossary, so they are implemented in this file as private 16-bit PCM extensions.",
-      "AVCaptureSession/AVCaptureDeviceInput/AVCaptureAudioDataOutput have no audio counterpart: session stays a nullable AudioRecord and attachDevice is TODO.",
-      "sampleBuffer.foreachAudioSample(float32:int16:) is replaced by direct little-endian PCM16 parsing; the float32 branch is unreachable on Android.",
-      "CMSampleBuffer -> MediaSample and CMTime -> Long microseconds; NSNumber channel maps become List<Int>.",
-      "captureOutput keeps its AVCaptureAudioDataOutputSampleBufferDelegate signature but is not wired to any capture loop in this port."
+      "Added the interruption-driven silence generator fields (silenceTimer, latestBuiltinSampleBuffer, latestBuiltinPresentationTimeStamp, nextBuiltinPresentationTimeStamp, isOutputtingSilence) to AudioUnit.",
+      "Swift's override init() with NotificationCenter observers became a Kotlin init block registering AVCaptureSessionWasInterrupted / AVCaptureSessionInterruptionEnded on the shim NotificationCenter.",
+      "CMTime.invalid -> kCMTimeInvalidUs; CMTime(value:timescale:) arithmetic uses microseconds (v * 1_000_000L / t) and CMTime(seconds: 0.1) -> 100_000 microseconds.",
+      "processorPipelineQueue.async {} -> processorPipelineQueue.launch {}; SimpleTimer is constructed with processorPipelineDispatcher since its constructor takes a CoroutineDispatcher.",
+      "AVAudioFormat/AudioStreamBasicDescription sample rate reads go through MediaFormat.getInteger(KEY_SAMPLE_RATE) as elsewhere in the file.",
+      "Silence PCM is produced with the AVAudioPCMBuffer(pcmFormat, frameCapacity) shim and buffer.replacePresentationTimeStamp(pts) (Swift makeSampleBuffer).",
+      "updateBuiltinAudio(...) is now called in captureOutput right after syncTimeToHost, matching the Swift change."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7924,
-    "tokens_out": 45288,
-    "seconds": 164.4,
-    "ported_at": "2026-09-22T13:34:58+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 56996,
+    "tokens_out": 16689,
+    "seconds": 51.4,
+    "ported_at": "2026-10-01T23:29:25+00:00"
   },
   "Moblin/Various/Model/ModelWhepClient.swift": {
     "status": "ok",
@@ -12514,26 +12490,27 @@
   },
   "Moblin/VideoEffects/Browser/BrowserEffect.swift": {
     "status": "ok",
-    "sha256": "81745177950f598f66c4b3921f515f47386c82c7babe7a104f5a96e6201ea6de",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "13dd00303a8dcf67ce966e21eb16e54f273915f731d285cc03e3de8fb98e3c7c",
+    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt",
     "notes": [
-      "Swift's Collections Deque<EffectImageCgImage> becomes kotlin.collections.ArrayDeque: popFirst() -> removeFirstOrNull(), append() -> addLast(), count -> size, removeAll() -> clear().",
-      "suspended keeps its Kotlin initializer (= false) and is now assigned in init from the resolved mode, because Kotlin has no uninitialized non-lateinit primitive property.",
-      "nextSnapshot() returns the stored snapshot property when the queue is empty, exactly as Swift does, so the last snapshot stays on screen instead of the effect becoming disabled.",
-      "Duration.seconds(1 / fps), nextSnapshotTime.advanced(by = interval) and now.advanced(by = -interval) use the ContinuousClock.Instant / kotlin.time.Duration shims; duration.seconds -> toDouble(DurationUnit.SECONDS).",
-      "The @MainActor snapshot timer and WKWebView.takeSnapshot callbacks deliver on main; the single-shot timer closure captures this directly as in the rest of this file, no WeakReference needed for a one-shot callback.",
-      "Added import kotlin.time.Duration for Duration.seconds; ArrayDeque comes from kotlin.collections and needs no import."
+      "createStyleSheetSource now emits an IIFE wrapper, matching the new Swift output byte for byte.",
+      "New private viewportScript(width: Int) helper added next to the other script builders.",
+      "The init block adds a viewport WKUserScript at .atDocumentStart with forMainFrameOnly = true, before the video script.",
+      "webView.scrollView.contentInsetAdjustmentBehavior has no counterpart on the WebKit shim's UIScrollViewFlags, so it becomes a TODO.",
+      "Everything else in the file is unchanged, including the hand-written java.net.URI / java.net.InetSocketAddress signatures and NWEndpoint conversions."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "UIScrollViewFlags.contentInsetAdjustmentBehavior"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 68508,
-    "tokens_out": 11467,
-    "seconds": 41.3,
-    "ported_at": "2026-09-30T23:15:31+00:00"
+    "tokens_in": 67768,
+    "tokens_out": 4676,
+    "seconds": 14.6,
+    "ported_at": "2026-10-01T23:28:48+00:00"
   },
   "Moblin/VideoEffects/DrawOnStreamEffect.swift": {
     "status": "ok",
@@ -15085,27 +15062,22 @@
   },
   "Moblin/View/Settings/Keyboard/KeyboardKeySettingsView.swift": {
     "status": "ok",
-    "sha256": "4dfde6693dd6d9a5b542afcfa2e4388065bc1c452904976ede4841d25c9699fe",
+    "sha256": "e3f73e2071a18269134d5e0bfceb2679e1dcda0bb8656af869718b08133616d5",
+    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/keyboard/KeyboardKeySettingsView.kt",
     "notes": [
-      "SettingsKeyboardKey properties (key, function, functionData) are treated as MutableStateFlow fields: read with collectAsState() and written through .value; the setter names must match the model from the settings package.",
-      "SwiftUI NavigationLink destinations are inline in this file, so two extra destination composables are declared: KeyboardKeySettingsForm (reached with onNavigate(\"keyboardKey\")) and KeyboardKeyPickerView (reached with onNavigate(\"key\")).",
-      "The Swift private helper functions() became a file-private top-level function returning SettingsControllerFunction.entries without .zoomIn/.zoomOut.",
-      "ControllerButtonView is called with the project binding convention: function/functionData values plus onFunctionChange/onFunctionDataChange lambdas.",
-      "@FocusState became a FocusRequester plus Modifier.onFocusChanged; @Environment(\\.dismiss) became an onDismiss: () -> Unit parameter.",
-      "onAppear/onChange(of:) became LaunchedEffect(Unit), LaunchedEffect(keyValue) and LaunchedEffect(editingText); clearing the key when editing begins is preserved.",
-      "The Swift Form/Section structures became Scaffold + TopAppBar + Column(verticalScroll) with plain rows, since no Section headers exist in the source.",
-      "model.getSceneName/getWidgetName receive UUID.randomUUID() where Swift used the default UUID initializer for missing ids."
+      "The private helper functions() was removed and the ControllerButtonView call now passes SettingsControllerFunction.entries directly, which equals Swift's SettingsControllerFunction.allCases.",
+      "Everything else in the file, including the hand-written KeyboardKeySettingsForm/KeyboardKeyPickerView split and the Navigator pop-based dismiss, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3425,
-    "tokens_out": 10766,
-    "seconds": 40.9,
-    "ported_at": "2026-09-22T13:55:59+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40777,
+    "tokens_out": 1501,
+    "seconds": 5.9,
+    "ported_at": "2026-10-01T23:28:39+00:00"
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
@@ -18347,24 +18319,26 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "65c81a783a554b3a68c26fe19bdf408698b35abbd6e6ca50ba2ff620374d350c",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "510dfa5ec2a1a5a83a3c457fd0939a99b20416e8f10ef0462021994fea5c9d4e",
+    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "The diff adds `.id(button.id)` to QuickButtonsButtonSettingsView; in Kotlin this is modelled with `key(button.id) { ... }`, matching the existing `key(sceneSettingsPanelSceneId)` pattern for sceneSettings.",
-      "Only the ShowingPanel.quickButtonSettings branch of MenuView changed; every other line is byte-identical to the previous Kotlin file.",
-      "`key` is already imported from androidx.compose.runtime, so no import changes were needed.",
-      "The added `key(...)` wraps only the QuickButtonsButtonSettingsView call so the composable is recreated when the edited quick button changes."
+      "Key handling now matches the new Swift: the iOS 17 focus approach (@FocusState, .focusable/.focused/.onKeyPress/.onChange, the onAppear focus flip) is gone and KeyPressView(model = model) is always emitted.",
+      "The macCatalyst-only #if guard around the key press background is removed in Swift, so KeyPressView is no longer conditional; it is emitted on every platform.",
+      "KeyPressView(model = model) is placed before the content Column, standing in for Swift's .background { KeyPressView(model: model) } on the outer VStack.",
+      "The removed onChange(of:) list fed the two COLLECTED states showingPanel and showBrowser, which are now dead and were dropped from MainView.",
+      "LaunchedEffect(Unit) keeps model.setup() (the Swift .onAppear) but no longer flips any focus state.",
+      "The old focus/key Compose imports are left byte-identical, so some are now unused; no new unsupported Apple API appears in this change."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41962,
-    "tokens_out": 10924,
-    "seconds": 27.8,
-    "ported_at": "2026-09-23T11:20:06+00:00"
+    "tokens_in": 77214,
+    "tokens_out": 38984,
+    "seconds": 136.3,
+    "ported_at": "2026-10-01T23:30:50+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",
@@ -18563,5 +18537,28 @@
     "tokens_out": 4756,
     "seconds": 18.2,
     "ported_at": "2026-09-30T23:29:03+00:00"
+  },
+  "Moblin/View/Main/KeyPressView.swift": {
+    "status": "ok",
+    "sha256": "7dfe116d5433da646cab9a224b260ead6f94fa161d95f39e8e5c742ab0663cd3",
+    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/main/KeyPressView.kt",
+    "notes": [
+      "UIResponder's first-responder machinery (the private extension, noteFirstResponder and the weak static) has no Android counterpart: currentFirstResponder is a file-private helper returning Activity.currentFocus, canBecomeFirstResponder is init { isFocusable = true; isFocusableInTouchMode = true }, isFirstResponder is hasFocus(), becomeFirstResponder is requestFocus(), window != nil is isAttachedToWindow and resignFirstResponder is clearFocus().",
+      "pressesBegan/pressesEnded/pressesCancelled are folded into one dispatchKeyEvent override: ACTION_DOWN is pressed = true, ACTION_UP and ACTION_MULTIPLE are pressed = false; KeyEvent has no cancelled action.",
+      "The model call stays model?.handleKeyPresses(event, pressed = ...) with a KeyEvent instead of Set<UIPress>; if the port declares it as an extension function in com.moblin.android.various.model, add import com.moblin.android.various.model.handleKeyPresses.",
+      "didMoveToWindow -> onAttachedToWindow and onDetachedFromWindow, both calling claimFocus(), which stops the reclaim timer when the view is detached just like the Swift window == nil guard.",
+      "reclaimFocusTimer uses MainTimer.startPeriodic(interval = 1.0) { claimFocus() } and reclaimFocusTimer.stop(), as declared in com.moblin.android.various.MainTimer.",
+      "KeyPressView becomes a @Composable wrapping AndroidView(factory, modifier, update); makeUIView's view.backgroundColor = .clear is backgroundColor = Color.Transparent on the platform UIView."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 39702,
+    "tokens_out": 12014,
+    "seconds": 48.7,
+    "ported_at": "2026-10-01T23:29:22+00:00"
   }
 }

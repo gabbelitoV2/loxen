@@ -79,12 +79,6 @@ private fun KeyPickerView(key: SettingsKeyboardKey, onDismiss: () -> Unit) {
     )
 }
 
-private fun functions(): List<SettingsControllerFunction> {
-    return SettingsControllerFunction.entries.filter {
-        it != SettingsControllerFunction.ZOOM_IN && it != SettingsControllerFunction.ZOOM_OUT
-    }
-}
-
 @Composable
 fun KeyboardKeySettingsView(
     model: Model = LocalModel.current,
@@ -128,7 +122,7 @@ fun KeyboardKeySettingsForm(
         Section {
             ControllerButtonView(
                 model = model,
-                functions = functions(),
+                functions = SettingsControllerFunction.entries,
                 function = key.function,
                 onFunctionChange = { key.function = it },
                 functionData = key.functionData,
