@@ -102,6 +102,13 @@ jobs:
           path: app/build/outputs/loxen/
           if-no-files-found: error
           retention-days: 14
+      - name: Write the release notes
+        if: steps.decide.outputs.upload == 'true'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PREVIOUS: ${{ steps.decide.outputs.previous }}
+        run: python tools/play.py notes --previous-version-code "$PREVIOUS" --directory app/build/outputs/whatsnew
       - name: Upload to the internal testing track
         if: steps.decide.outputs.upload == 'true'
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
@@ -112,3 +119,4 @@ jobs:
           releaseName: ${{ steps.version.outputs.name }} (${{ steps.version.outputs.code }})
           tracks: internal
           status: completed
+          whatsNewDirectory: app/build/outputs/whatsnew

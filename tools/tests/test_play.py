@@ -80,11 +80,11 @@ class DecideSuite(unittest.TestCase):
         return play.decide(PACKAGE, version_code, event, key, session_factory=lambda key: session)
 
     def test_uploads_a_new_version_code(self):
-        build, upload, _ = self.decide("workflow_run", Session(tracks(("1111",))))
-        self.assertEqual((build, upload), (True, True))
+        build, upload, _, previous = self.decide("workflow_run", Session(tracks(("1111",))))
+        self.assertEqual((build, upload, previous), (True, True, 1111))
 
     def test_skips_when_main_did_not_change(self):
-        build, upload, reason = self.decide("workflow_run", Session(tracks(("1112",))))
+        build, upload, reason, _ = self.decide("workflow_run", Session(tracks(("1112",))))
         self.assertEqual((build, upload), (False, False))
         self.assertIn("not higher than 1112", reason)
 
@@ -93,12 +93,12 @@ class DecideSuite(unittest.TestCase):
 
     def test_without_the_service_account_only_a_manual_run_builds(self):
         self.assertEqual(self.decide("workflow_run", None, key="")[:2], (False, False))
-        build, upload, reason = self.decide("workflow_dispatch", None, key="")
+        build, upload, reason, _ = self.decide("workflow_dispatch", None, key="")
         self.assertEqual((build, upload), (True, False))
         self.assertIn("attached to this run", reason)
 
     def test_a_missing_app_is_skipped(self):
-        build, upload, reason = self.decide("workflow_run", Session(insert_status=404))
+        build, upload, reason, _ = self.decide("workflow_run", Session(insert_status=404))
         self.assertEqual((build, upload), (False, False))
         self.assertIn("upload the first app bundle by hand", reason)
 
@@ -114,7 +114,7 @@ class MainSuite(unittest.TestCase):
                 code = play.main(["decide", "--package", PACKAGE, "--version-code", "1112", "--event",
                                   "workflow_dispatch"])
             self.assertEqual(code, 0)
-            self.assertEqual(output.read_text(encoding="utf-8"), "build=true\nupload=false\n")
+            self.assertEqual(output.read_text(encoding="utf-8"), "build=true\nupload=false\nprevious=0\n")
             self.assertIn("PLAY_SERVICE_ACCOUNT_JSON is not set", summary.read_text(encoding="utf-8"))
 
     def test_a_play_error_fails_the_step(self):
@@ -127,6 +127,140 @@ class MainSuite(unittest.TestCase):
             code = play.main(["decide", "--package", PACKAGE, "--version-code", "1112", "--event", "workflow_run"])
         self.assertEqual(code, 1)
         self.assertIn("::error::", printed.call_args[0][0])
+
+
+class RetrySuite(unittest.TestCase):
+    def test_a_server_error_is_retried(self):
+        class Flaky(Session):
+            def __init__(self):
+                super().__init__(tracks(("1111",)))
+                self.failures = 2
+
+            def get(self, url, timeout=None):
+                if url.endswith("/tracks") and self.failures:
+                    self.failures -= 1
+                    return Response(503, {"error": {"message": "The service is currently unavailable."}})
+                return super().get(url, timeout)
+
+        self.assertEqual(play.highest_version_code(Flaky(), PACKAGE, delay=0), 1111)
+
+    def test_a_lasting_server_error_fails(self):
+        class Down(Session):
+            def get(self, url, timeout=None):
+                return Response(503, {"error": {"message": "The service is currently unavailable."}})
+
+        with self.assertRaisesRegex(play.PlayError, "HTTP 503"):
+            play.highest_version_code(Down(), PACKAGE, delay=0)
+
+
+class NotesRepository:
+    def __init__(self, directory, subjects):
+        self.path = Path(directory)
+        subprocess.run(["git", "init", "-q", str(self.path)], check=True)
+        for subject in subjects:
+            self.commit(subject)
+
+    def commit(self, subject):
+        subprocess.run(["git", "-C", str(self.path), "-c", "user.name=Test", "-c", "user.email=test@example.com",
+                        "commit", "-q", "--allow-empty", "-m", subject], check=True)
+
+    def head(self, back=0):
+        return play.git("rev-parse", f"HEAD~{back}", cwd=self.path).strip()
+
+
+class Post:
+    def __init__(self, text, status_code=200):
+        self.text = text
+        self.status_code = status_code
+        self.requests = []
+
+    def __call__(self, url, headers=None, json=None, timeout=None):
+        self.requests.append(json)
+        return Response(self.status_code, {"content": [{"type": "thinking", "thinking": "..."},
+                                                       {"type": "text", "text": self.text}]})
+
+
+def compare(subjects):
+    def get(url, headers=None, timeout=None):
+        get.url = url
+        return Response(200, {"commits": [{"commit": {"message": f"{subject}\n\nBody."}} for subject in subjects]})
+
+    return get
+
+
+class ReleaseNotesSuite(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.repository = NotesRepository(self.directory.name, [
+            "First commit.",
+            "Sync with eerimoq/moblin aaaaaaa111.",
+            "Uploaded commit.",
+        ])
+
+    def test_the_uploaded_commit_is_found_by_its_version_code(self):
+        self.assertEqual(play.uploaded_commit(1003, cwd=self.repository.path), self.repository.head())
+        self.repository.commit("Later commit.")
+        self.assertEqual(play.uploaded_commit(1003, cwd=self.repository.path), self.repository.head(1))
+        self.assertEqual(play.uploaded_commit(1001, cwd=self.repository.path), self.repository.head(3))
+        self.assertIsNone(play.uploaded_commit(1009, cwd=self.repository.path))
+        self.assertIsNone(play.uploaded_commit(0, cwd=self.repository.path))
+
+    def test_the_model_gets_loxen_changes_and_the_moblin_commits_since_the_last_upload(self):
+        self.repository.commit("The main screen hides the system bars; they come back on a swipe.")
+        self.repository.commit("Sync with eerimoq/moblin bbbbbbb222, 2 items need repair (tools/sync-report.json).")
+        self.repository.commit("Repair the Android port after the sync with eerimoq/moblin bbbbbbb222.")
+        get = compare(["Add a scoreboard widget.", "Version 35.6.0."])
+        post = Post("• Full screen main view.\n• New scoreboard widget.")
+        notes = play.release_notes(1003, "key", cwd=self.repository.path, get=get, post=post)
+        self.assertEqual(notes, "• Full screen main view.\n• New scoreboard widget.")
+        self.assertTrue(get.url.endswith("/compare/aaaaaaa111...bbbbbbb222"))
+        self.assertEqual(post.requests[0]["thinking"], {"type": "disabled"})
+        content = post.requests[0]["messages"][0]["content"]
+        self.assertIn("The main screen hides the system bars", content)
+        self.assertIn("Add a scoreboard widget.", content)
+        self.assertNotIn("Repair the Android port", content)
+        self.assertNotIn("Uploaded commit.", content)
+
+    def test_without_the_model_the_notes_list_shortened_subjects(self):
+        self.repository.commit("Recordings end where recording stopped: the recorder is stopped first, and so on.")
+        self.repository.commit("Sync with eerimoq/moblin bbbbbbb222.")
+        notes = play.release_notes(1003, "", cwd=self.repository.path, get=compare(["One.", "Two."]))
+        self.assertEqual(notes, "• Recordings end where recording stopped.\n• 2 changes from Moblin.")
+
+    def test_a_failing_model_falls_back_to_the_subjects(self):
+        self.repository.commit("Fix the chat.")
+        with mock.patch("builtins.print"):
+            notes = play.release_notes(1003, "key", cwd=self.repository.path, post=Post("", status_code=500))
+        self.assertEqual(notes, "• Fix the chat.")
+
+    def test_an_empty_answer_falls_back_to_the_subjects(self):
+        self.repository.commit("Fix the chat.")
+        with mock.patch("builtins.print"):
+            notes = play.release_notes(1003, "key", cwd=self.repository.path, post=Post(""))
+        self.assertEqual(notes, "• Fix the chat.")
+
+    def test_nothing_new_gives_the_default_text(self):
+        self.repository.commit("Repair the Android port after the sync with eerimoq/moblin aaaaaaa111.")
+        self.assertEqual(play.release_notes(1003, "key", cwd=self.repository.path), play.DEFAULT_NOTES)
+
+    def test_notes_fit_in_googles_limit(self):
+        text = "\n".join(f"• Change number {index} " + "x" * 60 for index in range(20))
+        fitted = play.fitted(text)
+        self.assertLessEqual(len(fitted), play.NOTES_LIMIT)
+        self.assertTrue(fitted.endswith("x"))
+        self.assertEqual(len(play.fitted("y" * 900)), play.NOTES_LIMIT)
+
+    def test_the_command_writes_the_whatsnew_file_even_when_everything_fails(self):
+        output = Path(self.directory.name) / "whatsnew"
+        with (
+            mock.patch.object(play, "release_notes", side_effect=RuntimeError("no git")),
+            mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": ""}),
+            mock.patch("builtins.print"),
+        ):
+            code = play.main(["notes", "--previous-version-code", "1143", "--directory", str(output)])
+        self.assertEqual(code, 0)
+        self.assertEqual((output / "whatsnew-en-US").read_text(encoding="utf-8"), play.DEFAULT_NOTES + "\n")
 
 
 class KeyMaterialSuite(unittest.TestCase):
