@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-10-01T23:30:51+00:00
+Generated 2026-10-02T23:50:28+00:00
 
 ## Summary
 
@@ -8,9 +8,9 @@ Generated 2026-10-01T23:30:51+00:00
 |---|---|---|---|---|---|
 | logic | 151 | 0 | 0 | 0 | 0 |
 | platform | 55 | 0 | 0 | 0 | 0 |
-| test | 66 | 0 | 0 | 0 | 0 |
-| media | 161 | 0 | 0 | 0 | 0 |
-| ui | 361 | 0 | 0 | 0 | 0 |
+| test | 64 | 0 | 2 | 0 | 0 |
+| media | 146 | 0 | 15 | 0 | 0 |
+| ui | 354 | 0 | 7 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -166,7 +166,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Media/HaishinKit/Extension/VTCompressionSession+Extension.swift | app/src/main/java/com/moblin/android/media/haishinkit/extension/VTCompressionSession+Extension.kt | deepseek-flash | 23.6 |
 | Moblin/Media/HaishinKit/Extension/VTDecompressionSession+Extension.swift | app/src/main/java/com/moblin/android/media/haishinkit/extension/VTDecompressionSession+Extension.kt | deepseek-flash | 34.3 |
 | Moblin/Media/HaishinKit/Flv/Flv.swift | app/src/main/java/com/moblin/android/media/haishinkit/flv/Flv.kt | deepseek-flash | 7.2 |
-| Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/audio/AudioUnit.kt | deepseek-flash | 51.4 |
+| Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/audio/AudioUnit.kt | deepseek-flash | 20.4 |
 | Moblin/Media/HaishinKit/Media/Audio/BufferedAudio.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/audio/BufferedAudio.kt | deepseek-flash | 74.3 |
 | Moblin/Media/HaishinKit/Media/BufferedStats.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/BufferedStats.kt | deepseek-flash | 3.8 |
 | Moblin/Media/HaishinKit/Media/DriftTracker.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/DriftTracker.kt | deepseek-flash | 26.9 |
@@ -178,7 +178,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Media/HaishinKit/Media/Video/PreviewView.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/PreviewView.kt | deepseek-flash | 44.4 |
 | Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt | deepseek-flash | 20.8 |
 | Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt | deepseek-flash | 11.7 |
-| Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt | deepseek-flash | 142.5 |
+| Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt | deepseek-flash | 32.4 |
 | Moblin/Media/HaishinKit/Media/Video/VideoFpsEstimator.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoFpsEstimator.kt | deepseek-flash | 5.9 |
 | Moblin/Media/HaishinKit/Media/Video/VideoLowFpsImage.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoLowFpsImage.kt | deepseek-flash | 29.5 |
 | Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoSnapshots.kt | deepseek-flash | 63.7 |
@@ -505,7 +505,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/VideoEffects/VTuber/VTuberEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt | deepseek-flash | 49.3 |
 | Moblin/VideoEffects/VTuber/VTuberLive2DEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt | deepseek-flash | 50.0 |
 | Moblin/VideoEffects/VTuber/VTuberVrmEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberVrmEffect.kt | deepseek-flash | 38.7 |
-| Moblin/VideoEffects/VideoSourceEffect.swift | app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt | deepseek-flash | 119.8 |
+| Moblin/VideoEffects/VideoSourceEffect.swift | app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt | deepseek-flash | 16.4 |
 | Moblin/VideoEffects/WheelOfLuckEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt | deepseek-flash | 67.4 |
 | Moblin/VideoEffects/WhirlpoolEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WhirlpoolEffect.kt | deepseek-flash | 12.5 |
 | Moblin/View/ControlBar/BatteryView.swift | app/src/main/java/com/moblin/android/view/controlbar/BatteryView.kt | deepseek-flash | 20.0 |

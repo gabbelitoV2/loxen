@@ -11575,27 +11575,25 @@
   },
   "Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift": {
     "status": "ok",
-    "sha256": "ae0a1bb9d00edb25ae4ced66cb143edcecd44e3b4c7a55bcae0aa536b992c9ce",
-    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
+    "sha256": "3166b3cf3250aa2ffef1316343df5345b7b3571af8306efbb784f65b23d8a8b5",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/audio/AudioUnit.kt",
     "notes": [
-      "Added the interruption-driven silence generator fields (silenceTimer, latestBuiltinSampleBuffer, latestBuiltinPresentationTimeStamp, nextBuiltinPresentationTimeStamp, isOutputtingSilence) to AudioUnit.",
-      "Swift's override init() with NotificationCenter observers became a Kotlin init block registering AVCaptureSessionWasInterrupted / AVCaptureSessionInterruptionEnded on the shim NotificationCenter.",
-      "CMTime.invalid -> kCMTimeInvalidUs; CMTime(value:timescale:) arithmetic uses microseconds (v * 1_000_000L / t) and CMTime(seconds: 0.1) -> 100_000 microseconds.",
-      "processorPipelineQueue.async {} -> processorPipelineQueue.launch {}; SimpleTimer is constructed with processorPipelineDispatcher since its constructor takes a CoroutineDispatcher.",
-      "AVAudioFormat/AudioStreamBasicDescription sample rate reads go through MediaFormat.getInteger(KEY_SAMPLE_RATE) as elsewhere in the file.",
-      "Silence PCM is produced with the AVAudioPCMBuffer(pcmFormat, frameCapacity) shim and buffer.replacePresentationTimeStamp(pts) (Swift makeSampleBuffer).",
-      "updateBuiltinAudio(...) is now called in captureOutput right after syncTimeToHost, matching the Swift change."
+      "The Swift diff only weakens the outer capture in sessionWasInterrupted; Kotlin lambdas have no weak capture and the timer already lives on the long-lived AudioUnit, so the translation of this hunk is byte-identical to the current Kotlin code.",
+      "No other Kotlin line changed: imports, declaration order and formatting are preserved.",
+      "The nested launch still calls silenceTimer.startPeriodic(interval = 0.1, initial = 0.0) on processorPipelineQueue and returns to outputSilenceWhileInterrupted through the SimpleTimer handler, matching the new Swift nesting.",
+      "silenceTimer is a property of AudioUnit, so it can never be nulled by the weak capture; there is no Android equivalent of the Swift optional chaining introduced here.",
+      "TalkbackPlayer, AudioMeasurement and the silence timer remain private/Android implementations with no behavioural change from the diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 56996,
-    "tokens_out": 16689,
-    "seconds": 51.4,
-    "ported_at": "2026-10-01T23:29:25+00:00"
+    "tokens_in": 56954,
+    "tokens_out": 6845,
+    "seconds": 20.4,
+    "ported_at": "2026-10-02T23:19:27+00:00"
   },
   "Moblin/Various/Model/ModelWhepClient.swift": {
     "status": "ok",
@@ -12830,28 +12828,25 @@
   },
   "Moblin/VideoEffects/VideoSourceEffect.swift": {
     "status": "ok",
-    "sha256": "bc1ae357138093d796bf57d89e45bdfdc4ebac1c46041e441b3777e86b08aa7f",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "538a4f33f8319e6f24b94e7160efe3e7b280a30d1e43c2695b898b8293dcd39a",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt",
     "notes": [
-      "VideoSourceEffectSettings is a plain data class with var fields; PositionInterpolator stays a non-final class so current, target and update are open (current keeps Swift's private(set) via a private Kotlin setter).",
-      "DispatchQueue.async on processorPipelineQueue becomes processorPipelineQueue.launch { } with this@VideoSourceEffect for the captured self.",
-      "stableBoundingBox(imageSize:) is the VNFaceObservation extension of the hand-written Vision shim in com.moblin.android.platform.vision and is called unchanged.",
-      "Swift's CIImage helper translated(x:y:) has no counterpart in the declared Core Image shim, so it is written as transformed(by = CGAffineTransform(translationX = -cropRegion.minX, y = -cropY)), which is what the helper does.",
-      "VideoEffectInfo.presentationTimeStamp is microseconds, so every .seconds usage becomes presentationTimeStamp / 1_000_000.0.",
-      "guard let becomes ?: return / ?: continue, and .rounded(.down) becomes kotlin.math.floor.",
-      "The rotation switch stays a when over 90.0 / 180.0 / 270.0 using CIImage.oriented(CGImagePropertyOrientation...).",
-      "@unchecked Sendable is dropped; Kotlin has no sendability annotation."
+      "Only the one Swift line touched by the diff changed: the widget shape is now built as WidgetShape instead of MetalPetalWidgetShape.",
+      "WidgetShape lives in the same package com.moblin.android.videoeffects, so no new import is needed.",
+      "Everything else, including the hand-written .transformed(by:) call in cropFace, the presentationTimeStamp microsecond conversion and the stableBoundingBox helper, is kept byte-identical.",
+      "PositionInterpolator.current keeps its private setter and open members from the earlier port.",
+      "VideoSourceEffect stays a plain class overriding VideoEffect hooks."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 42406,
-    "tokens_out": 30479,
-    "seconds": 119.8,
-    "ported_at": "2026-09-23T19:57:54+00:00"
+    "tokens_in": 54834,
+    "tokens_out": 4669,
+    "seconds": 16.4,
+    "ported_at": "2026-10-02T23:19:50+00:00"
   },
   "Moblin/View/Settings/BitratePresets/BitratePresetsSettingsView.swift": {
     "status": "ok",
@@ -13438,28 +13433,23 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift": {
     "status": "ok",
-    "sha256": "8882bbc9be8c14699f185bbf7fd054b7b07756e01960806ace4abc0141d80576",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
-    "mode": "full",
+    "sha256": "a281cc7d31ad8fe6ca749d60bf1a83e241b5567ed42cd693ccc2d09826f0d86c",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt",
     "notes": [
-      "colorRange is a primary-constructor property and the Swift init body is folded into property initializers, so no init block is emitted.",
-      "The iOS 17.2 #available check around the Apple Log branch is always taken.",
-      "NSNull() is passed as the 'no color space' marker in the CIImage options map, exactly as the Core Image shim expects.",
-      "CVPixelBuffer.size is an android.util.Size, so the canvas comparison uses the CVPixelBuffer.cgSize extension to keep the CGSize semantics.",
-      "CMVideoFormatDescriptionCreateForImageBuffer never fails and CMSampleBuffer.create comes from com.moblin.android.common.various, so the Swift guard-let chains collapse.",
-      "MTIImage(cvPixelBuffer:alphaType:) is non-null in Kotlin, so the Swift 'guard var image' disappears.",
-      "pendingAfterAttachEffects and setPendingAfterAttachEffects copy the incoming list, because Swift arrays are value types.",
-      "logger.info becomes android.util.Log.i with the class name as tag."
+      "Swift renamed the shape type to `WidgetShape` in `scaleImageMetalPetal`; the Kotlin port keeps `MetalPetalWidgetShape`, the declared Kotlin type of that shape in com.moblin.android.videoeffects, which is already imported and exposes the same members (rotation, rotated, mirrorFlipOptions, rotationRadians).",
+      "`rotation: Float(shape.rotationRadians())`: Kotlin's `rotationRadians()` already returns `Float`, so no conversion is written and `MTILayer.rotation` stays `Float`.",
+      "No other Kotlin line changed; the Android hooks (swapPool pool release, buffer pool naming, Log.i error logging) stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 60432,
-    "tokens_out": 41195,
-    "seconds": 142.5,
-    "ported_at": "2026-09-29T00:57:00+00:00"
+    "tokens_in": 71671,
+    "tokens_out": 10554,
+    "seconds": 32.4,
+    "ported_at": "2026-10-02T23:20:07+00:00"
   },
   "Moblin/VideoEffects/Replay/ReplayEffectReplayReader.swift": {
     "status": "ok",

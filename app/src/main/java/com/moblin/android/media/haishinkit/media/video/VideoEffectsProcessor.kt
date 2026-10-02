@@ -544,7 +544,7 @@ class VideoEffectsProcessor(private val colorRange: SettingsStreamColorRange) {
                 contentFlipOptions = if (mirror) shape.mirrorFlipOptions() else MTILayer.FlipOptions.donotFlip,
                 position = position,
                 size = size,
-                rotation = shape.rotationRadians(),
+                rotation = shape.rotationRadians().toFloat(),
             ),
         )
         return filter.outputImage ?: image

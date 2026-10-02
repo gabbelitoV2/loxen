@@ -28,6 +28,7 @@ from ..utils.config import RTMP_CLIENT_STABILITY_SERVER_PORT
 from ..utils.config import RTMP_SERVER_PORT
 from ..utils.config import SRT_CLIENT_STABILITY_RELAYED_SERVER_PORT
 from ..utils.config import SRT_CLIENT_STABILITY_SERVER_PORT
+from ..utils.config import SRT_HIGH_LATENCY
 from ..utils.config import SRT_SERVER_PORT
 from ..utils.config import TESTER_RIST_PORT
 from ..utils.config import TESTER_RIST_RELAYED_PORT
@@ -61,6 +62,7 @@ from ..utils.utils import FILES_DIR
 from ..utils.utils import Range
 from ..utils.utils import manual_requirement
 from ..utils.utils import manual_volume_requirement
+from ..utils.utils import sleep_unless_quit
 
 LOGGER = logging.getLogger(__name__)
 
@@ -433,7 +435,7 @@ class StabilityIngestsOneStream(TestCase):
                 )
             case Ingest.SRT:
                 return FfmpegTestStream(
-                    url=self._ingest_url(ingest, self.moblin.ingest_srt_url()),
+                    url=self._ingest_url(ingest, self.moblin.ingest_srt_url(latency=SRT_HIGH_LATENCY)),
                     files_dir=FILES_DIR,
                     video_bitrate=INGEST_BITRATE,
                     loop_audio=True,
@@ -544,10 +546,13 @@ class StabilityIngestsOneStream(TestCase):
     ):
         end_time = time.monotonic() + self._duration
         alert_time = time.monotonic() + FIRST_ALERT_DELAY
+        LOGGER.info("Type q and press ENTER to end the test early.")
         while time.monotonic() < end_time:
-            time.sleep(5)
+            if sleep_unless_quit(LOGGER, 5):
+                break
             self.moblin.set_scene(SceneName.BACK)
-            time.sleep(5)
+            if sleep_unless_quit(LOGGER, 5):
+                break
             self.moblin.set_scene(SceneName.FRONT)
             if time.monotonic() >= alert_time:
                 self._trigger_alert()
