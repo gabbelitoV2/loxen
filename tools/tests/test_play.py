@@ -25,9 +25,10 @@ class Response:
 
 
 class Session:
-    def __init__(self, tracks=None, bundles=None, insert_status=200, list_status=200):
+    def __init__(self, tracks=None, bundles=None, insert_status=200, list_status=200, listings=None):
         self.tracks = tracks or {}
         self.bundles = bundles or {}
+        self.listings = listings or {}
         self.insert_status = insert_status
         self.list_status = list_status
         self.calls = []
@@ -42,6 +43,8 @@ class Session:
         self.calls.append(("GET", url))
         if self.list_status != 200:
             return Response(self.list_status, {"error": {"message": "The caller does not have permission"}})
+        if url.endswith("/listings"):
+            return Response(200, self.listings)
         return Response(200, self.tracks if url.endswith("/tracks") else self.bundles)
 
     def delete(self, url, timeout=None):
@@ -251,16 +254,62 @@ class ReleaseNotesSuite(unittest.TestCase):
         self.assertTrue(fitted.endswith("x"))
         self.assertEqual(len(play.fitted("y" * 900)), play.NOTES_LIMIT)
 
-    def test_the_command_writes_the_whatsnew_file_even_when_everything_fails(self):
+    def test_the_command_writes_the_whatsnew_files_even_when_everything_fails(self):
         output = Path(self.directory.name) / "whatsnew"
+        environment = {"GITHUB_STEP_SUMMARY": "", "DEEPSEEK_API_KEY": "", "PLAY_SERVICE_ACCOUNT_JSON": ""}
         with (
             mock.patch.object(play, "release_notes", side_effect=RuntimeError("no git")),
-            mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": ""}),
+            mock.patch.dict(os.environ, environment),
             mock.patch("builtins.print"),
         ):
             code = play.main(["notes", "--previous-version-code", "1143", "--directory", str(output)])
         self.assertEqual(code, 0)
-        self.assertEqual((output / "whatsnew-en-US").read_text(encoding="utf-8"), play.DEFAULT_NOTES + "\n")
+        self.assertEqual((output / "whatsnew-en-US").read_text(encoding="utf-8"), play.DEFAULT_NOTES)
+        self.assertEqual((output / "whatsnew-sv-SE").read_text(encoding="utf-8"), "• Buggfixar och förbättringar.")
+
+
+ENGLISH = "• Full screen main view.\n• New scoreboard widget."
+SWEDISH = "• Huvudvyn visas i helskärm.\n• Ny resultattavla-widget."
+
+
+class TranslationSuite(unittest.TestCase):
+    def translated(self, post, text=ENGLISH, languages=("en-US", "sv-SE"), key="key"):
+        with mock.patch("builtins.print"):
+            return play.translated_notes(text, languages, key, post=post)
+
+    def test_the_notes_are_translated_to_swedish(self):
+        post = Post(SWEDISH)
+        self.assertEqual(self.translated(post), {"sv-SE": SWEDISH})
+        request = post.requests[0]
+        self.assertEqual(request["messages"][0]["content"], ENGLISH)
+        self.assertIn("into Swedish", request["system"])
+        self.assertEqual((request["thinking"], request["temperature"]), ({"type": "disabled"}, 0))
+
+    def test_only_the_translated_lines_are_kept(self):
+        self.assertEqual(self.translated(Post(f"Här är översättningen:\n\n{SWEDISH}\n")), {"sv-SE": SWEDISH})
+
+    def test_the_default_text_needs_no_model(self):
+        self.assertEqual(self.translated(None, text=play.DEFAULT_NOTES, key=""),
+                         {"sv-SE": play.DEFAULT_TRANSLATIONS["sv-SE"]})
+
+    def test_without_a_translation_google_play_shows_the_english_notes(self):
+        self.assertEqual(self.translated(Post(SWEDISH, status_code=500)), {})
+        self.assertEqual(self.translated(Post("")), {})
+        self.assertEqual(self.translated(Post("Huvudvyn visas i helskärm.")), {})
+        self.assertEqual(self.translated(None, key=""), {})
+        self.assertEqual(self.translated(Post(SWEDISH), languages=("en-US",)), {})
+
+    def test_only_languages_of_the_store_listing_get_notes(self):
+        def languages(session, key='{"type": "service_account"}'):
+            with mock.patch("builtins.print"):
+                return play.notes_languages(PACKAGE, key, session_factory=lambda key: session)
+
+        both = Session(listings={"listings": [{"language": "en-US"}, {"language": "sv-SE"}]})
+        self.assertEqual(languages(both), ["en-US", "sv-SE"])
+        self.assertEqual(both.calls[-1], ("DELETE", f"{EDITS}/edit1"))
+        self.assertEqual(languages(Session(listings={"listings": [{"language": "en-US"}]})), ["en-US"])
+        self.assertEqual(languages(Session(list_status=403)), ["en-US"])
+        self.assertEqual(languages(None, key=""), ["en-US", "sv-SE"])
 
 
 class KeyMaterialSuite(unittest.TestCase):

@@ -182,8 +182,12 @@ class PlayWorkflowSuite(unittest.TestCase):
         with_secrets = [name for name, step in job_steps.items() if "secrets." in str(step)]
         self.assertEqual(sorted(with_secrets), sorted([
             "Build the signed app bundle and APK", "Decide whether main changed since the last upload",
-            "Upload to the internal testing track",
+            "Upload to the internal testing track", "Write the release notes",
         ]))
+        notes = job_steps["Write the release notes"]
+        self.assertEqual(sorted(name for name, value in notes["env"].items() if "secrets." in value),
+                         ["DEEPSEEK_API_KEY", "PLAY_SERVICE_ACCOUNT_JSON"])
+        self.assertEqual(notes["if"], "steps.decide.outputs.upload == 'true'")
         gate = self.play["jobs"]["gate"]["steps"][0]
         self.assertNotIn("secrets.", gate["run"])
         self.assertEqual(list(gate["env"]), ["SIGNING"])

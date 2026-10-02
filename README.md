@@ -359,11 +359,13 @@ hand, not by a push) and by hand from the Actions tab. It always builds `main`:
 3. It builds the signed app bundle and APK, attaches both to the run for 14 days as the artifact
    `loxen-<versionCode>-<versionName>` (`loxen-<versionCode>-<versionName>.aab` and `.apk`), and uploads the bundle
    to the internal track as a completed release with `r0adkll/upload-google-play` v1.1.5, pinned by commit.
-4. The release gets English release notes (What's new, at most 500 characters) from `tools/play.py notes`: the
+4. The release gets release notes (What's new, at most 500 characters per language) from `tools/play.py notes`: the
    previous version code on Google Play is 1000 plus a commit count, so it names the commit of the last upload; the
-   notes cover Loxen's commits since then and the Moblin commits that the syncs in between brought in, written for
-   users by DeepSeek (`DEEPSEEK_API_KEY`). Without the key, or when DeepSeek fails, they list the commit subjects. The
-   notes stay with the release when it is promoted to closed testing.
+   notes cover Loxen's commits since then and the Moblin commits that the syncs in between brought in, written in
+   English for users by DeepSeek (`DEEPSEEK_API_KEY`) and translated by it into Swedish, as long as the store listing
+   has Swedish (sv-SE). Without the key, or when DeepSeek fails, they list the commit subjects in English only, and
+   Google Play shows the English notes in every language. The notes stay with the release when it is promoted to
+   closed testing.
 
 Without `PLAY_SERVICE_ACCOUNT_JSON`, or while the app does not exist in Play Console, nightly runs stop after step 2 and
 runs started by hand only attach the signed bundle and APK. A service account that has no access to the app fails the run.

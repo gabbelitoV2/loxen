@@ -19,7 +19,9 @@ NOTES_URL = "https://api.deepseek.com/anthropic/v1/messages"
 NOTES_MODEL = "deepseek-flash"
 NOTES_LIMIT = 500
 NOTES_LANGUAGE = "en-US"
+TRANSLATIONS = {"sv-SE": "Swedish"}
 DEFAULT_NOTES = "• Bug fixes and improvements."
+DEFAULT_TRANSLATIONS = {"sv-SE": "• Buggfixar och förbättringar."}
 SYNC = re.compile(r"^Sync with eerimoq/moblin ([0-9a-f]{7,40})")
 REPAIR = re.compile(r"^Repair the Android port after the sync")
 NOTES_SYSTEM = """You write the "What's new" text of a Google Play release of Loxen, an Android app for IRL live
@@ -33,6 +35,11 @@ Watch, widgets, Live Activities).
 The change lines are written for developers; most of them still describe something users notice, so explain
 those in plain words. Do not invent anything that is not in the changes. Keep the whole text under 450
 characters. Only if really none of the changes is visible to users, write exactly: • Bug fixes and improvements."""
+TRANSLATE_SYSTEM = """You translate the "What's new" text of a Google Play release of Loxen, an Android app for IRL live
+streaming, into {language}. Keep every line, its order and its leading "• ". Write natural everyday {language} for
+streamers, at most 80 characters per line and under 480 characters in all; shorten the wording rather than dropping a
+line. Keep names as they are (Loxen, Moblin, Samsung, VRM, PNGTuber, RTMP, SRT, RIST, WHIP, OBS, Twitch, YouTube,
+Kick). Answer with the translated lines only."""
 
 
 class PlayError(Exception):
@@ -164,28 +171,76 @@ def moblin_subjects(old, new, get=None):
     return [commit["commit"]["message"].splitlines()[0] for commit in response.json().get("commits", [])]
 
 
-def summarized(own, moblin, api_key, post=None):
+def completed(system, user, api_key, post=None):
     if post is None:
         import requests
 
         post = requests.post
-    user = ("Loxen changes:\n" + ("\n".join(own) or "(none)") + "\n\nChanges from Moblin:\n"
-            + ("\n".join(moblin) or "(none)"))
     response = post(
         NOTES_URL,
         headers={"x-api-key": api_key, "anthropic-version": "2023-06-01", "content-type": "application/json"},
         json={"model": NOTES_MODEL, "max_tokens": 2000, "temperature": 0, "thinking": {"type": "disabled"},
-              "system": NOTES_SYSTEM,
-              "messages": [{"role": "user", "content": user}]},
+              "system": system, "messages": [{"role": "user", "content": user}]},
         timeout=TIMEOUT,
     )
     if response.status_code >= 400:
-        raise PlayError(f"summarize the release notes: HTTP {response.status_code}")
+        raise PlayError(f"ask DeepSeek: HTTP {response.status_code}")
     blocks = response.json().get("content", [])
     text = "".join(block.get("text", "") for block in blocks if block.get("type") == "text").strip()
     if not text:
         raise PlayError("the model returned no text")
     return text
+
+
+def summarized(own, moblin, api_key, post=None):
+    user = ("Loxen changes:\n" + ("\n".join(own) or "(none)") + "\n\nChanges from Moblin:\n"
+            + ("\n".join(moblin) or "(none)"))
+    return completed(NOTES_SYSTEM, user, api_key, post=post)
+
+
+def translated_notes(text, languages, api_key, post=None):
+    translations = {}
+    for language in languages:
+        if language not in TRANSLATIONS:
+            continue
+        if text == DEFAULT_NOTES:
+            translations[language] = DEFAULT_TRANSLATIONS[language]
+            continue
+        if not api_key:
+            continue
+        try:
+            system = TRANSLATE_SYSTEM.format(language=TRANSLATIONS[language])
+            answer = completed(system, text, api_key, post=post)
+            lines = [line.strip() for line in answer.splitlines() if line.strip().startswith("• ")]
+            if not lines:
+                raise PlayError(f"the translation has no lines starting with •: {answer[:100]}")
+            translations[language] = fitted("\n".join(lines))
+        except Exception as error:
+            print(f"::warning::Release notes in {language}: {error}, Google Play shows the English ones")
+    return translations
+
+
+def listing_languages(session, package):
+    edit = checked(retried(lambda: session.post(f"{API}/{package}/edits", json={}, timeout=TIMEOUT)),
+                   "create an edit")["id"]
+    try:
+        listings = checked(retried(lambda: session.get(f"{API}/{package}/edits/{edit}/listings", timeout=TIMEOUT)),
+                           "list the store listings")
+    finally:
+        session.delete(f"{API}/{package}/edits/{edit}", timeout=TIMEOUT)
+    return {listing["language"] for listing in listings.get("listings", []) if "language" in listing}
+
+
+def notes_languages(package, service_account_json, session_factory=None):
+    wanted = [NOTES_LANGUAGE, *TRANSLATIONS]
+    if not service_account_json or not package:
+        return wanted
+    try:
+        listed = listing_languages((session_factory or session_for)(service_account_json), package)
+    except Exception as error:
+        print(f"::warning::Release notes: {error}, writing only {NOTES_LANGUAGE}")
+        return [NOTES_LANGUAGE]
+    return [language for language in wanted if language == NOTES_LANGUAGE or language in listed]
 
 
 def short(subject, limit=110):
@@ -232,10 +287,11 @@ def release_notes(previous_version_code, api_key, cwd=None, get=None, post=None)
     return fitted(plain_notes(own, moblin))
 
 
-def write_notes(directory, text):
+def write_notes(directory, notes):
     path = Path(directory)
     path.mkdir(parents=True, exist_ok=True)
-    (path / f"whatsnew-{NOTES_LANGUAGE}").write_text(text + "\n", encoding="utf-8")
+    for language, text in notes.items():
+        (path / f"whatsnew-{language}").write_text(text, encoding="utf-8")
 
 
 def append(variable, text):
@@ -256,21 +312,27 @@ def main(argv=None):
     decide_parser.add_argument("--version-code", type=int, required=True)
     decide_parser.add_argument("--event", required=True, help="github.event_name")
     notes_parser = subparsers.add_parser("notes", help="write the release notes (What's new) to "
-                                                       f"DIRECTORY/whatsnew-{NOTES_LANGUAGE}; DEEPSEEK_API_KEY "
-                                                       "summarizes them, without it they list the commit subjects")
+                                                       "DIRECTORY/whatsnew-<language>, in English and translated to "
+                                                       "the store listing's other languages; DEEPSEEK_API_KEY writes "
+                                                       "them, without it they list the commit subjects in English")
     notes_parser.add_argument("--previous-version-code", type=int, default=0,
                               help="the highest versionCode on Google Play before this upload")
+    notes_parser.add_argument("--package", default="", help="limit the languages to the store listing's")
     notes_parser.add_argument("--directory", required=True)
     args = parser.parse_args(argv)
     if args.command == "notes":
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
         try:
-            text = release_notes(args.previous_version_code, os.environ.get("DEEPSEEK_API_KEY", "").strip())
+            text = release_notes(args.previous_version_code, api_key)
         except Exception as error:
             print(f"::warning::Release notes: {error}")
             text = DEFAULT_NOTES
-        write_notes(args.directory, text)
-        print(text)
-        append("GITHUB_STEP_SUMMARY", f"## What's new\n\n{text}\n")
+        languages = notes_languages(args.package, os.environ.get("PLAY_SERVICE_ACCOUNT_JSON", "").strip())
+        notes = {NOTES_LANGUAGE: text, **translated_notes(text, languages, api_key)}
+        write_notes(args.directory, notes)
+        summary = "\n\n".join(f"{language}:\n\n{notes[language]}" for language in notes)
+        print(summary)
+        append("GITHUB_STEP_SUMMARY", f"## What's new\n\n{summary}\n")
         return 0
     try:
         build, upload, reason, previous = decide(args.package, args.version_code, args.event,

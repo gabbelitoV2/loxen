@@ -106,9 +106,12 @@ jobs:
         if: steps.decide.outputs.upload == 'true'
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           GITHUB_TOKEN: ${{ github.token }}
           PREVIOUS: ${{ steps.decide.outputs.previous }}
-        run: python tools/play.py notes --previous-version-code "$PREVIOUS" --directory app/build/outputs/whatsnew
+        run: |
+          python tools/play.py notes --previous-version-code "$PREVIOUS" --package "$PACKAGE_NAME" \
+            --directory app/build/outputs/whatsnew
       - name: Upload to the internal testing track
         if: steps.decide.outputs.upload == 'true'
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
