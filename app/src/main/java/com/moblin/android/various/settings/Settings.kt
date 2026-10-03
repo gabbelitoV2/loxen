@@ -41,6 +41,7 @@ import com.moblin.android.various.utils.formatFilenameDateAndTime
 import com.moblin.android.various.utils.hasUltraWideBackCamera
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
+import com.moblin.android.various.utils.widestBackCameraId
 import com.moblin.android.videoeffects.FaceEffectPrivacyMode
 import com.moblin.android.videoeffects.FaceEffectSettings
 import java.io.BufferedOutputStream
@@ -2112,6 +2113,20 @@ private fun addDefaultScenes(database: Database) {
             cameraPosition = SettingsSceneCameraPosition.front,
             frontCameraId = bestFrontCameraId,
         )
+        database.scenes.add(scene)
+        val widget = SettingsWidget(name = localized("Front"))
+        widget.type = SettingsWidgetType.videoSource
+        widget.videoSource.videoSource = widget.videoSource.videoSource.copy(
+            cameraPosition = SettingsSceneCameraPosition.front,
+            frontCameraId = bestFrontCameraId,
+        )
+        database.widgets.add(widget)
+        scene = SettingsScene(name = localized("PiP"))
+        scene.videoSource = scene.videoSource.copy(
+            cameraPosition = SettingsSceneCameraPosition.back,
+            backCameraId = widestBackCameraId,
+        )
+        scene.widgets.add(SettingsSceneWidget(widget = widget))
         database.scenes.add(scene)
     }
 }

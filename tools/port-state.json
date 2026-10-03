@@ -11716,22 +11716,24 @@
   },
   "Moblin/Various/Utils/CameraUtils.swift": {
     "status": "ok",
-    "sha256": "5edf780a7e28a27fb1c70a024115bb18548104ecb1721d7d1cde35bea639cf63",
-    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "sha256": "2e32bb0e16cf08913ddf8c634d7712551c7e86a7cf0c77833cd4139df064790f",
+    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/CameraUtils.kt",
     "notes": [
-      "Added hasHlg() right after hasAppleLog(), matching the Swift diff position.",
-      "AVCaptureColorSpace.HLG_BT2020 already exists in the avfoundation shim and is imported, so no new import is needed."
+      "Added findWidestBackCameraDevice() and the widestBackCameraId lazy global right after bestBackCameraDevice, mirroring the Swift insertion point.",
+      "Followed the file's Kotlin naming convention (findBestBackCameraDevice/findBestFrontCameraDevice) for the new private helper.",
+      "widestBackCameraId is a String, matching the untyped Swift global; CameraId is a String typealias so both are interchangeable.",
+      "No other declarations changed; the rest of the file is byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 48076,
-    "tokens_out": 3738,
-    "seconds": 10.7,
-    "ported_at": "2026-09-27T22:38:53+00:00"
+    "tokens_in": 49846,
+    "tokens_out": 4055,
+    "seconds": 12.2,
+    "ported_at": "2026-10-03T22:28:32+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffectPadelView.swift": {
     "status": "ok",
@@ -14081,27 +14083,25 @@
   },
   "Moblin/View/Utils/BannersView.swift": {
     "status": "ok",
-    "sha256": "e7035bde5cf7b2d365cfe2fc349a0cf8a485d1e766a017bb2514bbab11c0b4c7",
+    "sha256": "5768b07c3a4609ff0a298e47d5264c940664c705e2cb00fc20684c479a0286ff",
+    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/BannersView.kt",
     "notes": [
-      "LinearProgressIndicator is used with the lambda progress form (Material 3 1.3+) and the Swift scaleEffect(x:1,y:4) is expressed as an explicit height on the bar.",
-      "ObservedObject models are read with collectAsState(); writes to @Published properties (raid.message/state, banners.minimized) use `property.value = ...`, assuming the ported models expose MutableStateFlow-backed published properties.",
-      "Swift private helper members (percentage(), fraction(votes:), fraction(channelPoints:), color(outcome:), icons(), close()) became local functions inside their composables so the names stay identical.",
-      "Image(systemName:) is resolved through the new top-level private helper bannerIcon(name), which maps the SF Symbol names used here to the closest Material icons.",
-      "The iOS 18 symbolEffect(.wiggle) animation on the hype train icons has no Compose counterpart and is simply rendered statically.",
-      "Link(destination:) became a clickable, underlined Text that calls LocalUriHandler.current.openUri(url).",
-      "GeometryReader -> BoxWithConstraints, onGeometryChange -> Modifier.onSizeChanged; the measured content height is kept in pixels and converted to Dp with LocalDensity for the scroll area height.",
-      "BannerView's @ViewBuilder content is a trailing @Composable lambda; Swift's two trailing closures map to onClose (unlabelled) and content (labelled). .buttonStyle(.bordered) -> TextButton and .font(.footnote) -> MaterialTheme.typography.labelSmall."
+      "Added the file-private formatPercentage helper, placed exactly where the Swift function sits, just before TwitchPollView.",
+      "It uses java.text.NumberFormat.getPercentInstance() with maximumFractionDigits 0 and RoundingMode.DOWN, matching Swift's .percent.precision(.fractionLength(0)).rounded(rule: .towardZero): the returned string already contains the '%' sign.",
+      "TwitchPollView and TwitchPredictionView now hold percentage as a String instead of an Int and drop the manual '%' from the localized detail string.",
+      "HypeTrainProgressView keeps its own Int(100 * progress / goal) calculation because the Swift diff does not touch it.",
+      "The two new imports (java.math.RoundingMode, java.text.NumberFormat) were appended to the existing import block; all other lines are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7277,
-    "tokens_out": 30734,
-    "seconds": 112.4,
-    "ported_at": "2026-09-22T13:49:45+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48529,
+    "tokens_out": 6261,
+    "seconds": 20.5,
+    "ported_at": "2026-10-03T22:28:41+00:00"
   },
   "Moblin/View/Settings/Ingests/RtmpServer/RtmpServerSettingsView.swift": {
     "status": "ok",
@@ -16228,28 +16228,23 @@
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
-    "sha256": "dc275bb347e6cac9246484bd72a9247d32722a952820d2c7fa9e8bc5bdec0c33",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "b8c3a32566d49e4006ab1cde0989a2b00b8c5d650529aa5c58f8d60f6e3a7d44",
+    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
     "notes": [
-      "Adds getCameraPreviewWidgets, getCameraPreviewWidgetDeviceIds and updateCameraPreviewWidgets, plus the updateCameraPreviewWidgets() call in sceneUpdatedOn's non-attach branch.",
-      "CaptureDevice is built exactly like the existing hand-written getBuiltinCameraDevices: AVCaptureDevice.withUniqueID(cameraId) is wrapped in a CaptureDevice with a fresh UUID before makeCaptureDevice(device = ...), because this port's makeCaptureDevice takes a CaptureDevice.",
-      "media.getCanvasSize() returns android.util.Size here, so it is converted with toCGSize() for the CameraPreviewWidget shape and for cameraPreviewView.setWidgets.",
-      "WidgetShape is a class in com.moblin.android.videoeffects, so no copy of previewWidget is needed before previewWidget.shape.apply(effect.shape.toSettings()).",
-      "Widget type filtering uses SettingsVideoEffectType.shape and SettingsWidgetType.videoSource enums, never raw strings.",
-      "getCameraPreviewWidgetDeviceIds returns Map<UUID, UUID> and its loop variable shadows the scene parameter exactly as in Swift.",
-      "cameraPreviewView.setWidgets(widgets = ..., canvasSize = ...) is called as declared in com.moblin.android.view.stream, with no local stand-in.",
-      "Imports added: CameraPreviewWidget, WidgetShape, SettingsVideoEffectType, CGPoint, CGRect."
+      "`appendWidgetToScene` now calls the `SettingsSceneWidget(widget = widget)` constructor instead of the removed private helper.",
+      "The private `Model.createSceneWidget` helper is deleted; `defaultScoreboardSize` stays as a top-level const because the Swift file keeps it.",
+      "All other lines, imports and declaration order are unchanged from the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 98738,
-    "tokens_out": 26067,
-    "seconds": 75.7,
-    "ported_at": "2026-10-03T00:00:59+00:00"
+    "tokens_in": 98934,
+    "tokens_out": 18121,
+    "seconds": 46.3,
+    "ported_at": "2026-10-03T22:29:07+00:00"
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",
@@ -16344,28 +16339,27 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "e302769310ebde0ea2b23dcbc1423faea86a00a5a240f16003158141e481d6c8",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "026c5a9dfe4bcf2a9b10ec64c525c4c71235d99e233002e8dac46c2d2bf72fad",
+    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Added top-level Android ports of removeExportFiles, recreateExportDirectories and extractArchive (uses java.util.zip.ZipFile instead of ZipArchiveReader) and placed them at the same position as in Swift.",
-      "extractArchive returns ByteArray? (nil when settings.json is missing) and deletes the extracted settings.json from the documents directory after extraction, mirroring Swift.",
-      "importFromFile now runs extractArchive on ioScope, wraps it in runCatching and unwraps with getOrThrow() so a failure reports the IOException message while a missing entry reports 'Settings file not found in archive'.",
-      "reset() and importFromClipboard() now call removeExportFiles() and the old private member removeFilesAndFolders() was deleted, as in Swift.",
-      "exportToFile now stores files by lastPathComponent and directory entries as \"directory/<relativePath>\" computed with Path.relativize; the prefix-count arithmetic was dropped.",
-      "The new ZipArchiveWriter .noCompression configuration is mapped to ZipOutputStream.setLevel(0), the closest java.util.zip equivalent.",
-      "recreateExportDirectories deletes each export directory recursively and recreates it via createAndGetDirectory, then calls createAlertVideosDirectory().",
-      "createAlertVideosDirectory is now imported from com.moblin.android.various.storages."
+      "Applied the Swift diff only: addDefaultScenes now also creates a 'Front' video source widget and a 'PiP' scene that shows it (non-macCatalyst branch).",
+      "Existing Android behaviour (isMac() check instead of #if targetEnvironment(macCatalyst), direct in-place mutation of widget.videoSource like the cropX/cropY migration) is kept.",
+      "scene.videoSource is a settings value data class, so the two Swift writes become one copy(cameraPosition =, backCameraId =) as elsewhere in this file.",
+      "The widget's nested videoSource fields are mutated in place, matching the existing migrateFromOlderVersions code for the same type.",
+      "Added import com.moblin.android.various.utils.widestBackCameraId, which the new PiP scene needs.",
+      "localized(\"Front\") / localized(\"PiP\") replace String(localized:) as in the rest of the file.",
+      "No other member, import or line was touched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 109843,
-    "tokens_out": 35946,
-    "seconds": 98.2,
-    "ported_at": "2026-09-24T15:42:34+00:00"
+    "tokens_in": 116394,
+    "tokens_out": 30023,
+    "seconds": 76.2,
+    "ported_at": "2026-10-03T22:29:37+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -16533,26 +16527,26 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "0eeec0956adeb95e82796f8ec0a13b4474a49b566578a59f2f5aad916d829232",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "f7379fef88705873db10c1b12337454ff3d000fbd02298224bcf55e189506ffa",
+    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "Added SettingsFont as an immutable data class (settings value) with name(), familyString() and styleString().",
-      "SettingsWidgetText now stores a single @Published font: SettingsFont instead of fontFamily/fontStyle; JSON keys fontFamily/fontStyle are unchanged.",
-      "The two consecutive font field writes in decode become one SettingsFont.copy(family = ..., style = ...).",
-      "Removed SettingsWidgetText.fontFamilyString()/fontStyleString(); the same logic now lives on SettingsFont.",
-      "SettingsWidgetChat gained @Published font: SettingsFont with the same fontFamily/fontStyle JSON keys, plus font in update(other).",
-      "SettingsWidgetText.encode keeps the exact keys 'fontFamily' and 'fontStyle' for wire compatibility."
+      "Only SettingsSceneWidget gained a secondary constructor translating Swift's convenience init(widget:); everything else is unchanged.",
+      "Swift's mutating layout.updateXString/YString/SizeString become the existing SettingsWidgetLayout.updatingXString()/updatingYString()/updatingSizeString() copy-returning calls, assigned back to the layout property.",
+      "All layout field writes in one switch branch are folded into a single SettingsWidgetLayout.copy(...) so Compose observes one state change, per the struct-copy rule.",
+      "The constructor assigns the layout through the Published delegate once, after building the value in a local variable.",
+      "defaultScoreboardSize is imported from com.moblin.android.various.model.",
+      "The constructor was placed after the delegate properties and before equals/hashCode, matching the Swift position of the convenience init relative to the stored properties and CodingKeys."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 133777,
-    "tokens_out": 46997,
-    "seconds": 119.2,
-    "ported_at": "2026-09-24T15:42:59+00:00"
+    "tokens_in": 140283,
+    "tokens_out": 48371,
+    "seconds": 122.9,
+    "ported_at": "2026-10-03T22:30:24+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",

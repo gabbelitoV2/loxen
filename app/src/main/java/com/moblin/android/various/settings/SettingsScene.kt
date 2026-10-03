@@ -21,6 +21,7 @@ import com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.model.CameraId
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.defaultScoreboardSize
 import com.moblin.android.various.utils.Named
 import com.moblin.android.various.utils.bestBackCameraId
 import com.moblin.android.various.utils.bestFrontCameraId
@@ -3253,6 +3254,57 @@ class SettingsSceneWidget(
     var layout: SettingsWidgetLayout by Published(layout)
     var width2: Double by Published(width2)
     var height2: Double by Published(height2)
+
+    constructor(widget: SettingsWidget) : this(widgetId = widget.id) {
+        var newLayout = layout
+        when (widget.type) {
+            SettingsWidgetType.image, SettingsWidgetType.slideshow ->
+                newLayout = newLayout.copy(size = 30.0)
+            SettingsWidgetType.map, SettingsWidgetType.qrCode ->
+                newLayout = newLayout.copy(size = 23.0)
+            SettingsWidgetType.videoSource, SettingsWidgetType.vTuber, SettingsWidgetType.pngTuber ->
+                newLayout = newLayout.copy(size = 28.0, alignment = SettingsAlignment.bottomRight)
+            SettingsWidgetType.snapshot ->
+                newLayout = newLayout.copy(size = 40.0, alignment = SettingsAlignment.topRight)
+            SettingsWidgetType.chat ->
+                newLayout = newLayout.copy(alignment = SettingsAlignment.bottomLeft)
+            SettingsWidgetType.chatEmoteCombo ->
+                newLayout = newLayout.copy(x = 2.0, y = 25.0, size = 10.0)
+            SettingsWidgetType.alerts ->
+                newLayout = newLayout.copy(x = 20.0, y = 5.0)
+            SettingsWidgetType.scoreboard -> {
+                newLayout = newLayout.copy(size = defaultScoreboardSize, x = 0.78, y = 1.388)
+                when (widget.scoreboard.sport) {
+                    SettingsWidgetScoreboardSport.golfFullScorecard ->
+                        newLayout = newLayout.copy(alignment = SettingsAlignment.bottomRight)
+                    else -> {}
+                }
+            }
+            SettingsWidgetType.wheelOfLuck ->
+                newLayout = newLayout.copy(
+                    size = newLayout.size,
+                    alignment = SettingsAlignment.topRight,
+                    x = 1.3,
+                    y = 31.0
+                )
+            SettingsWidgetType.bingoCard ->
+                newLayout = newLayout.copy(
+                    size = 33.0,
+                    alignment = SettingsAlignment.topRight,
+                    x = 1.3,
+                    y = 33.0
+                )
+            SettingsWidgetType.pomodoroTimer ->
+                newLayout = newLayout.copy(
+                    size = 20.0,
+                    alignment = SettingsAlignment.topRight,
+                    x = 0.78,
+                    y = 1.388
+                )
+            else -> {}
+        }
+        layout = newLayout.updatingXString().updatingYString().updatingSizeString()
+    }
 
     override fun equals(other: Any?): Boolean = other is SettingsSceneWidget && id == other.id
 

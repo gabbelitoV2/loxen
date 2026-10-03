@@ -57,6 +57,8 @@ import com.moblin.android.various.model.TwitchPredictionOutcome
 import com.moblin.android.various.model.TwitchPredictionState
 import com.moblin.android.view.controlbar.quickbutton.chat.ChannelImageView
 import com.moblin.android.various.model.cancelRaidTwitchChannel
+import java.math.RoundingMode
+import java.text.NumberFormat
 
 private val bannerBackgroundColor = Color(red = 0x64, green = 0x41, blue = 0xA5)
 private val predictionPinkColor = Color(red = 0xF5, green = 0x00, blue = 0x9B)
@@ -343,6 +345,14 @@ private fun BannerView(
     }
 }
 
+private fun formatPercentage(fraction: Double): String {
+    val format = NumberFormat.getPercentInstance()
+    format.maximumFractionDigits = 0
+    format.minimumFractionDigits = 0
+    format.roundingMode = RoundingMode.DOWN
+    return format.format(fraction)
+}
+
 @Composable
 private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) {
     val state by poll.state.collectAsState()
@@ -373,10 +383,10 @@ private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) 
         ) {
             choices.forEach { choice ->
                 val choiceFraction = fraction(choice.votes)
-                val percentage = (100.0 * choiceFraction).toInt()
+                val percentage = formatPercentage(choiceFraction)
                 OptionBarView(
                     title = choice.title,
-                    detail = localized("$percentage% (${choice.votes} votes)"),
+                    detail = localized("$percentage (${choice.votes} votes)"),
                     fraction = choiceFraction,
                     color = Color.White,
                     bold = false,
@@ -424,11 +434,11 @@ private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: 
         ) {
             outcomes.forEach { outcome ->
                 val outcomeFraction = fraction(outcome.channelPoints)
-                val percentage = (100.0 * outcomeFraction).toInt()
+                val percentage = formatPercentage(outcomeFraction)
                 OptionBarView(
                     title = outcome.title,
                     detail = localized(
-                        "$percentage% (${outcome.channelPoints} points, ${outcome.users} users)",
+                        "$percentage (${outcome.channelPoints} points, ${outcome.users} users)",
                     ),
                     fraction = outcomeFraction,
                     color = color(outcome),

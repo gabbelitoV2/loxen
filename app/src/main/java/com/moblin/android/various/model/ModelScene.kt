@@ -498,7 +498,7 @@ fun Model.switchToNextSceneRoundRobin() {
 }
 
 fun Model.appendWidgetToScene(scene: SettingsScene, widget: SettingsWidget) {
-    scene.widgets.add(createSceneWidget(widget = widget))
+    scene.widgets.add(SettingsSceneWidget(widget = widget))
     var attachCamera = false
     if (scene.id == getSelectedScene()?.id) {
         attachCamera = isCaptureDeviceWidget(widget = widget)
@@ -1842,70 +1842,6 @@ private fun Model.getBuiltinCameraDevicesForSceneWidget(
 ) {
     val found = database.scenes.firstOrNull { it.id == scene.sceneId } ?: return
     getBuiltinCameraDevicesInScene(scene = found, devices = devices, addedSceneIds = addedSceneIds)
-}
-
-private fun Model.createSceneWidget(widget: SettingsWidget): SettingsSceneWidget {
-    val sceneWidget = SettingsSceneWidget(widgetId = widget.id)
-    when (widget.type) {
-        SettingsWidgetType.image, SettingsWidgetType.slideshow -> {
-            sceneWidget.layout = sceneWidget.layout.copy(size = 30.0)
-        }
-        SettingsWidgetType.map, SettingsWidgetType.qrCode -> {
-            sceneWidget.layout = sceneWidget.layout.copy(size = 23.0)
-        }
-        SettingsWidgetType.videoSource, SettingsWidgetType.vTuber, SettingsWidgetType.pngTuber -> {
-            sceneWidget.layout = sceneWidget.layout.copy(
-                size = 28.0,
-                alignment = SettingsAlignment.bottomRight,
-            )
-        }
-        SettingsWidgetType.snapshot -> {
-            sceneWidget.layout = sceneWidget.layout.copy(size = 40.0, alignment = SettingsAlignment.topRight)
-        }
-        SettingsWidgetType.chat -> {
-            sceneWidget.layout = sceneWidget.layout.copy(alignment = SettingsAlignment.bottomLeft)
-        }
-        SettingsWidgetType.chatEmoteCombo -> {
-            sceneWidget.layout = sceneWidget.layout.copy(x = 2.0, y = 25.0, size = 10.0)
-        }
-        SettingsWidgetType.alerts -> {
-            sceneWidget.layout = sceneWidget.layout.copy(x = 20.0, y = 5.0)
-        }
-        SettingsWidgetType.scoreboard -> {
-            sceneWidget.layout = sceneWidget.layout.copy(size = defaultScoreboardSize, x = 0.78, y = 1.388)
-            when (widget.scoreboard.sport) {
-                SettingsWidgetScoreboardSport.golfFullScorecard ->
-                    sceneWidget.layout = sceneWidget.layout.copy(alignment = SettingsAlignment.bottomRight)
-                else -> {}
-            }
-        }
-        SettingsWidgetType.wheelOfLuck -> {
-            sceneWidget.layout = sceneWidget.layout.copy(
-                alignment = SettingsAlignment.topRight,
-                x = 1.3,
-                y = 31.0,
-            )
-        }
-        SettingsWidgetType.bingoCard -> {
-            sceneWidget.layout = sceneWidget.layout.copy(
-                alignment = SettingsAlignment.topRight,
-                x = 1.3,
-                y = 33.0,
-                size = 33.0,
-            )
-        }
-        SettingsWidgetType.pomodoroTimer -> {
-            sceneWidget.layout = sceneWidget.layout.copy(
-                alignment = SettingsAlignment.topRight,
-                x = 0.78,
-                y = 1.388,
-                size = 20.0,
-            )
-        }
-        else -> {}
-    }
-    sceneWidget.layout = sceneWidget.layout.updatingXString().updatingYString().updatingSizeString()
-    return sceneWidget
 }
 
 private fun Model.updateTimers(

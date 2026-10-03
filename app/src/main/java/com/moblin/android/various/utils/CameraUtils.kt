@@ -172,6 +172,24 @@ private fun findBestBackCameraDevice(): AVCaptureDevice? {
 
 val bestBackCameraDevice: AVCaptureDevice? by lazy { findBestBackCameraDevice() }
 
+private fun findWidestBackCameraDevice(): AVCaptureDevice? {
+    var device = AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInUltraWideCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.back,
+    )
+    if (device == null) {
+        device = AVCaptureDevice.default(
+            AVCaptureDevice.DeviceType.builtInWideAngleCamera,
+            AVMediaType.video,
+            AVCaptureDevice.Position.back,
+        )
+    }
+    return device
+}
+
+val widestBackCameraId: String by lazy { findWidestBackCameraDevice()?.uniqueID ?: "" }
+
 private fun findBestFrontCameraDevice(): AVCaptureDevice? {
     var device = AVCaptureDevice.default(
         AVCaptureDevice.DeviceType.builtInUltraWideCamera,
