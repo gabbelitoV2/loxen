@@ -2974,13 +2974,14 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val devices = getBuiltinCameraDevices(scene = scene, sceneDevice = cameraDevice)
         val showCameraPreview = updateShowCameraPreview()
         val attachCameraPreview = showCameraPreview || database.alwaysAttachCameraPreview
-        cameraPreviewView.setDevices(
-            ids = if (attachCameraPreview) {
-                getCameraPreviewDeviceIds(scene = scene, sceneDevice = cameraDevice)
-            } else {
-                emptyList()
-            },
-        )
+        if (attachCameraPreview) {
+            cameraPreviewView.setDevices(
+                ids = getCameraPreviewDeviceIds(scene = scene, sceneDevice = cameraDevice),
+                widgets = getCameraPreviewWidgetDeviceIds(scene = scene),
+            )
+        } else {
+            cameraPreviewView.setDevices(ids = emptyList(), widgets = emptyMap())
+        }
         val params = VideoUnitAttachParams(
             devices = devices,
             builtinDelay = database.debug.builtinAudioAndVideoDelay.value,
@@ -3015,7 +3016,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 lastAttachCompletedTime = Instant.now()
                 relaxedBitrateStartTime = lastAttachCompletedTime
                 relaxedBitrate = database.debug.relaxedBitrate.value
-                cameraPreviewView.select(id = devices.getSceneDevice()?.id)
+                cameraPreviewView.select(id = devices.getSceneDevice()?.id, isMirrored = isMirrored)
+                updateCameraPreviewWidgets()
                 updateCameraPreviewRotation()
                 updateVideoPreviews()
             },
@@ -3042,7 +3044,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         streamPreviewView.isMirrored = false
         externalDisplayStreamPreviewView.isMirrored = false
         zoom.hasZoom.value = false
-        cameraPreviewView.setDevices(ids = emptyList<UUID>())
+        cameraPreviewView.setDevices(ids = emptyList<UUID>(), widgets = emptyMap())
         media.attachBufferedCamera(
             devices = getBuiltinCameraDevices(scene = scene, sceneDevice = null),
             builtinDelay = database.debug.builtinAudioAndVideoDelay.value,

@@ -88,6 +88,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coregraphics.toCGSize
 import com.moblin.android.platform.swiftui.ButtonRole
 import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Sheet
@@ -112,11 +114,11 @@ import com.moblin.android.various.model.setFocusPointOfInterest
 import com.moblin.android.various.model.updateAutoSceneSwitcherButtonState
 import com.moblin.android.various.model.updateLutsButtonState
 import com.moblin.android.various.settings.SettingsQuickButtons
-import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
 import com.moblin.android.videoeffects.browser.BrowserEffect
-import com.moblin.android.videoeffects.toPixels
+import com.moblin.android.videoeffects.layoutCenter
+import com.moblin.android.videoeffects.layoutScale
 import com.moblin.android.view.controlbar.ControlBarLandscapeView
 import com.moblin.android.view.controlbar.ControlBarPortraitView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonAutoSceneSwitcherView
@@ -506,38 +508,6 @@ private fun StreamOverlayTapGridView(model: Model = LocalModel.current, camera: 
     }
 }
 
-private fun browserWidgetScale(
-    layout: SettingsWidgetLayout,
-    browserSize: Size,
-    streamSize: Size,
-): Float {
-    val scaleX = toPixels(layout.size.toDouble(), streamSize.width.toDouble()).toFloat() / browserSize.width
-    val scaleY = toPixels(layout.size.toDouble(), streamSize.height.toDouble()).toFloat() / browserSize.height
-    return minOf(scaleX, scaleY)
-}
-
-private fun browserWidgetOffset(
-    layout: SettingsWidgetLayout,
-    displaySize: Size,
-    streamSize: Size,
-): Offset {
-    val x: Float = if (layout.alignment.isHorizontalCenter()) {
-        (streamSize.width - displaySize.width) / 2
-    } else if (layout.alignment.isLeft()) {
-        toPixels(layout.x.toDouble(), streamSize.width.toDouble()).toFloat()
-    } else {
-        streamSize.width - toPixels(layout.x.toDouble(), streamSize.width.toDouble()).toFloat() - displaySize.width
-    }
-    val y: Float = if (layout.alignment.isVerticalCenter()) {
-        (streamSize.height - displaySize.height) / 2
-    } else if (layout.alignment.isTop()) {
-        toPixels(layout.y.toDouble(), streamSize.height.toDouble()).toFloat()
-    } else {
-        streamSize.height - toPixels(layout.y.toDouble(), streamSize.height.toDouble()).toFloat() - displaySize.height
-    }
-    return Offset(x, y)
-}
-
 @Composable
 private fun InteractiveBrowserView(
     browser: Browser,
@@ -547,24 +517,19 @@ private fun InteractiveBrowserView(
 ) {
     val browserLayout by browserEffect.layout.collectAsState()
     val layout = browserLayout ?: return
-    val browserSize = Size(browserEffect.width.toFloat(), browserEffect.height.toFloat())
-    val scale = browserWidgetScale(
-        layout = layout,
-        browserSize = browserSize,
-        streamSize = streamSize
-    )
-    val displaySize = Size(
+    val browserSize = CGSize(browserEffect.width, browserEffect.height)
+    val scale = layoutScale(layout = layout, size = browserSize, streamSize = streamSize.toCGSize())
+    val displaySize = CGSize(
         width = scale * browserSize.width,
         height = scale * browserSize.height
     )
-    val offset = browserWidgetOffset(
-        layout = layout,
-        displaySize = displaySize,
-        streamSize = streamSize
-    )
+    val center = layoutCenter(layout = layout, size = displaySize, streamSize = streamSize.toCGSize())
     Box(
         modifier = Modifier
-            .offset(offset.x.dp, offset.y.dp)
+            .offset(
+                x = (center.x - displaySize.width / 2).dp,
+                y = (center.y - displaySize.height / 2).dp
+            )
             .size(displaySize.width.dp, displaySize.height.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -572,7 +537,7 @@ private fun InteractiveBrowserView(
             browser = browser,
             modifier = Modifier
                 .requiredSize(browserSize.width.dp, browserSize.height.dp)
-                .scale(scale),
+                .scale(scale.toFloat()),
             allowsHitTesting = allowsHitTesting
         )
     }

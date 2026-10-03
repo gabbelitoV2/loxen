@@ -154,7 +154,7 @@ class WheelOfLuckEffect(canvasSize: androidx.compose.ui.geometry.Size) : VideoEf
         val size = wheel.extent.width
         val arrowSize = arrow.extent.size
         val contentSize = CGSize(width = size + 0.3 * arrowSize.width, height = size)
-        val position = metalPetalLayerPosition(
+        val position = layoutCenter(
             layout = sceneWidget.layout,
             size = contentSize,
             streamSize = image.extent.size,

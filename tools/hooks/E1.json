@@ -6,8 +6,8 @@
    "file": "media/haishinkit/media/video/VideoEffect.kt",
    "scope": "fun applyEffectsResizeMirrorMoveMetalPetal",
    "op": "replace",
-   "old": "        val shape = widgetShape ?: MetalPetalWidgetShape(contentRegion = image.extent)",
-   "new": "        val shape = widgetShape?.copy() ?: MetalPetalWidgetShape(contentRegion = image.extent)",
+   "old": "        val shape = widgetShape ?: WidgetShape(contentRegion = image.extent)",
+   "new": "        val shape = widgetShape?.copy() ?: WidgetShape(contentRegion = image.extent)",
    "occurrence": 1,
    "note": "ME1 acceptance: Swift's `var shape = widgetShape ?? ...` copies the struct, so modifyMetalPetalWidgetShape must not change the caller's shape (VideoEffect.swift:112)."
   }

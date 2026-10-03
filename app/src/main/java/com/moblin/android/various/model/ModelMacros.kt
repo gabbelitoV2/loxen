@@ -3,6 +3,10 @@ package com.moblin.android.various.model
 import com.moblin.android.platform.log.Log
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlMacro
+import com.moblin.android.various.ChatHighlight
+import com.moblin.android.various.ChatPost
+import com.moblin.android.various.ChatPostState
+import com.moblin.android.various.makeChatPostTextSegments
 import com.moblin.android.various.settings.MacroEvent
 import com.moblin.android.various.settings.MacroVariable
 import com.moblin.android.various.settings.MacroVariables
@@ -13,6 +17,7 @@ import com.moblin.android.various.settings.SettingsMacrosMacroRepeatMode
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.videoeffects.text.TextFormatPart
 import com.moblin.android.videoeffects.text.loadTextFormat
+import java.time.Instant
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -172,8 +177,12 @@ fun Model.macrosTextFormatChanged() {
 private fun Model.macrosTextFormatActions(): List<SettingsMacrosAction> {
     return database.macros.macros.flatMap { macro ->
         macro.actions.filter {
-            it.function == SettingsMacrosActionFunction.SEND_CHAT_MESSAGE ||
-                it.function == SettingsMacrosActionFunction.IF_CONDITION
+            when (it.function) {
+                SettingsMacrosActionFunction.SEND_CHAT_MESSAGE,
+                SettingsMacrosActionFunction.NOTIFICATION,
+                SettingsMacrosActionFunction.IF_CONDITION -> true
+                else -> false
+            }
         }
     }
 }
@@ -181,6 +190,7 @@ private fun Model.macrosTextFormatActions(): List<SettingsMacrosAction> {
 private fun Model.macrosActionTextFormat(action: SettingsMacrosAction): String {
     return when (action.function) {
         SettingsMacrosActionFunction.IF_CONDITION -> "${action.ifValue} ${action.ifOtherValue}"
+        SettingsMacrosActionFunction.NOTIFICATION -> action.notificationMessage
         else -> action.chatMessage
     }
 }
@@ -248,6 +258,10 @@ private fun Model.executeNextAction(macro: SettingsMacrosMacro) {
             executeGimbalPreset(action = action)
         SettingsMacrosActionFunction.SEND_CHAT_MESSAGE ->
             executeSendChatMessage(action = action, variables = macro.variables)
+        SettingsMacrosActionFunction.NOTIFICATION ->
+            executeNotification(currentMacro = currentMacro,
+                                action = action,
+                                variables = macro.variables)
         SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT ->
             executeSendTwitchShoutout(variables = macro.variables)
         SettingsMacrosActionFunction.DELAY ->
@@ -317,6 +331,36 @@ private fun Model.executeSendChatMessage(action: SettingsMacrosAction,
                                          variables: MacroVariables): Boolean
 {
     sendChatMessage(message = formatPlainText(formatString = variables.substitute(action.chatMessage)))
+    return true
+}
+
+private fun Model.executeNotification(currentMacro: SettingsMacrosMacro,
+                                      action: SettingsMacrosAction,
+                                      variables: MacroVariables): Boolean
+{
+    val text = formatPlainText(formatString = variables.substitute(action.notificationMessage))
+    val post = ChatPost(id = chatPostId,
+                        messageId = null,
+                        displayName = currentMacro.name,
+                        user = currentMacro.name,
+                        userId = null,
+                        userColor = database.chat.usernameColor,
+                        userBadges = emptyList(),
+                        segments = makeChatPostTextSegments(text = text),
+                        timestamp = statusOther.digitalClock.value,
+                        timestampTime = Instant.now(),
+                        isAction = false,
+                        isSubscriber = false,
+                        bits = null,
+                        highlight = ChatHighlight.makeMacroNotification(),
+                        live = true,
+                        filter = null,
+                        platform = null,
+                        sourceChannelIcon = null,
+                        state = ChatPostState())
+    chatPostId += 1
+    chatActivityFeed.appendMessage(post = post)
+    quickButtonChatAlerts.appendMessage(post = post)
     return true
 }
 

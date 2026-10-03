@@ -333,6 +333,10 @@ private fun ActionView(
                         Spacer(modifier = Modifier.weight(1f))
                         GrayTextView(text = action.chatMessage)
                     }
+                    SettingsMacrosActionFunction.NOTIFICATION -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(text = action.notificationMessage)
+                    }
                     SettingsMacrosActionFunction.DELAY -> {
                         Spacer(modifier = Modifier.weight(1f))
                         GrayTextView(text = "${action.delay.toInt()}s")
@@ -563,6 +567,25 @@ fun ActionDestinationView(
                         TextItemLocalizedView(
                             name = "Message",
                             value = action.chatMessage,
+                        )
+                    }
+                }
+                SettingsMacrosActionFunction.NOTIFICATION -> {
+                    NavigationLink(
+                        destination = {
+                            TextFormatView(
+                                model = model,
+                                title = localized("Message"),
+                                suggestions = true,
+                                text = action.notificationMessage,
+                                onTextChange = { action.notificationMessage = it },
+                                value = action.notificationMessage,
+                            )
+                        },
+                    ) {
+                        TextItemLocalizedView(
+                            name = "Message",
+                            value = action.notificationMessage,
                         )
                     }
                 }

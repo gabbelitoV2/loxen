@@ -3,14 +3,14 @@ package com.moblin.android.videoeffects
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coreimage.CIColor
 import com.moblin.android.platform.coreimage.CIFilter
 import com.moblin.android.platform.coreimage.CIImage
-import com.moblin.android.platform.metalpetal.MTIColor
-import com.moblin.android.platform.metalpetal.MTICornerRadius
 import com.moblin.android.platform.metalpetal.MTILayer
+import com.moblin.android.various.settings.SettingsWidgetLayout
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 
@@ -45,21 +45,62 @@ data class ShapeEffectSettings(
         val scaleY = (image.height + 2 * borderWidth) / image.height
         return Triple(borderWidth, scaleX, scaleY)
     }
+
+    fun cropRegion(region: CGRect): CGRect {
+        return CGRect(
+            x = region.minX + cropX * region.width,
+            y = region.minY + cropY * region.height,
+            width = cropWidth * region.width,
+            height = cropHeight * region.height,
+        )
+    }
 }
 
-data class MetalPetalWidgetShape(
+data class WidgetShapePlacement(
+    val scale: Double,
+    val size: CGSize,
+    val borderWidth: Double,
+    val borderSize: CGSize,
+    val center: CGPoint,
+)
+
+data class WidgetShape(
     var contentRegion: CGRect,
     var cornerRadius: Float = 0f,
     var borderWidth: Double = 0.0,
-    var borderColor: MTIColor = MTIColor.black,
+    var borderColor: CIColor = CIColor.black,
     var rotation: Double = 0.0,
 ) {
-    fun borderWidthPixels(size: CGSize): Double {
-        return shapeBorderWidthPixels(borderWidth, size)
+    fun apply(settings: ShapeEffectSettings) {
+        if (settings.cropEnabled) {
+            contentRegion = settings.cropRegion(contentRegion)
+        }
+        cornerRadius = settings.cornerRadius
+        borderWidth = settings.borderWidth
+        borderColor = settings.borderColor
     }
 
-    fun cornerRadius(size: CGSize): MTICornerRadius {
-        return MTICornerRadius(shapeCornerRadiusPixels(cornerRadius, size))
+    fun placement(layout: SettingsWidgetLayout, streamSize: CGSize, resize: Boolean = true): WidgetShapePlacement {
+        val scale =
+            if (resize) {
+                layoutScale(layout = layout, size = rotated(contentRegion.size), streamSize = streamSize)
+            } else {
+                1.0
+            }
+        val size = CGSize(width = contentRegion.width * scale, height = contentRegion.height * scale)
+        val borderWidth = shapeBorderWidthPixels(this.borderWidth, size)
+        val borderSize = CGSize(width = size.width + 2 * borderWidth, height = size.height + 2 * borderWidth)
+        return WidgetShapePlacement(
+            scale = scale,
+            size = size,
+            borderWidth = borderWidth,
+            borderSize = borderSize,
+            center = layoutCenter(layout = layout, size = rotated(borderSize), streamSize = streamSize),
+        )
+    }
+
+    fun cornerRadiusPixels(size: CGSize): Float {
+        return shapeCornerRadiusPixels(cornerRadius, size)
     }
 
     fun rotated(size: CGSize): CGSize {
@@ -70,8 +111,8 @@ data class MetalPetalWidgetShape(
         }
     }
 
-    fun rotationRadians(): Float {
-        return (rotation * PI / 180.0).toFloat()
+    fun rotationRadians(): Double {
+        return rotation * PI / 180.0
     }
 
     fun mirrorFlipOptions(): MTILayer.FlipOptions {
@@ -136,10 +177,7 @@ class ShapeEffect : VideoEffect() {
             height = extent.size.height - 2,
         )
         roundedRectangleGenerator.extent = maskExtent
-        var radiusPixels = minOf(extent.height, extent.width).toFloat()
-        radiusPixels /= 2
-        radiusPixels *= settings.cornerRadius
-        roundedRectangleGenerator.radius = radiusPixels
+        roundedRectangleGenerator.radius = shapeCornerRadiusPixels(settings.cornerRadius, extent.size)
         cache.set(extent = extent, settings = settings, image = roundedRectangleGenerator.outputImage)
         return cache.get(extent = extent, settings = settings)
     }
@@ -182,20 +220,11 @@ class ShapeEffect : VideoEffect() {
     }
 
     private fun crop(image: CIImage): CIImage {
-        val cropX = toPixels(100 * settings.cropX, image.extent.width)
-        val cropY = toPixels(100 * settings.cropY, image.extent.height)
-        val cropWidth = toPixels(100 * settings.cropWidth, image.extent.width)
-        val cropHeight = toPixels(100 * settings.cropHeight, image.extent.height)
+        val region = settings.cropRegion(CGRect(origin = CGPoint.zero, size = image.extent.size))
+        val cropY = image.extent.height - region.maxY
         return image
-            .cropped(
-                to = CGRect(
-                    x = cropX,
-                    y = image.extent.height - cropY - cropHeight,
-                    width = cropWidth,
-                    height = cropHeight,
-                )
-            )
-            .translated(x = -cropX, y = -(image.extent.height - cropY - cropHeight))
+            .cropped(to = CGRect(x = region.minX, y = cropY, width = region.width, height = region.height))
+            .translated(x = -region.minX, y = -cropY)
     }
 
     override fun executeEarly(image: CIImage, info: VideoEffectInfo): CIImage {
@@ -214,23 +243,7 @@ class ShapeEffect : VideoEffect() {
         }
     }
 
-    override fun modifyMetalPetalWidgetShape(shape: MetalPetalWidgetShape) {
-        if (settings.cropEnabled) {
-            val region = shape.contentRegion
-            shape.contentRegion = CGRect(
-                x = region.minX + settings.cropX * region.width,
-                y = region.minY + settings.cropY * region.height,
-                width = settings.cropWidth * region.width,
-                height = settings.cropHeight * region.height,
-            )
-        }
-        shape.cornerRadius = settings.cornerRadius
-        shape.borderWidth = settings.borderWidth
-        shape.borderColor = MTIColor(
-            red = settings.borderColor.red.toFloat(),
-            green = settings.borderColor.green.toFloat(),
-            blue = settings.borderColor.blue.toFloat(),
-            alpha = settings.borderColor.alpha.toFloat(),
-        )
+    override fun modifyWidgetShape(shape: WidgetShape) {
+        shape.apply(settings)
     }
 }

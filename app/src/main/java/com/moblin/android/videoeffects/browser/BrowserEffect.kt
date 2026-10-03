@@ -26,7 +26,7 @@ import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.various.utils.loadStringResource
 import com.moblin.android.various.utils.screenScale
 import com.moblin.android.videoeffects.EffectImageCgImage
-import com.moblin.android.videoeffects.MetalPetalWidgetShape
+import com.moblin.android.videoeffects.WidgetShape
 import com.moblin.android.videoeffects.move
 import com.moblin.android.videoeffects.resizeMirror
 import com.moblin.android.videoeffects.resizeMirrorMoveComposited
@@ -270,7 +270,7 @@ class BrowserEffect(
                 crop.sceneWidget.layout,
                 false,
                 image,
-                MetalPetalWidgetShape(contentRegion = contentRegion),
+                WidgetShape(contentRegion = contentRegion),
             )
         }
         return image

@@ -56,7 +56,7 @@ import com.moblin.android.platform.video.swapPool
 import com.moblin.android.platform.videotoolbox.CMFormatDescriptionGetExtensions
 import com.moblin.android.various.settings.SettingsGraphicsImplementation
 import com.moblin.android.various.settings.SettingsStreamColorRange
-import com.moblin.android.videoeffects.MetalPetalWidgetShape
+import com.moblin.android.videoeffects.WidgetShape
 import com.moblin.android.videoeffects.VideoSourceEffect
 import com.moblin.android.videoeffects.scaled
 import com.moblin.android.videoeffects.translated
@@ -531,7 +531,7 @@ class VideoEffectsProcessor(private val colorRange: SettingsStreamColorRange) {
     }
 
     private fun scaleImageMetalPetal(image: MTIImage, rotation: Double): MTIImage {
-        val shape = MetalPetalWidgetShape(contentRegion = image.extent)
+        val shape = WidgetShape(contentRegion = image.extent)
         shape.rotation = rotation
         val scaleFactor = calcScaleFactor(shape.rotated(image.size))
         val size = CGSize(width = image.size.width * scaleFactor, height = image.size.height * scaleFactor)

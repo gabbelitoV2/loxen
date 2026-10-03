@@ -273,15 +273,6 @@
       "occurrence": 1
     },
     {
-      "id": "H11.32",
-      "file": "various/Media.kt",
-      "scope": "fun attachBufferedCamera",
-      "op": "replace",
-      "old": "        cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,",
-      "new": "        cameraPreviewLayers: Map<UUID, Any>,",
-      "occurrence": 1
-    },
-    {
       "id": "H11.33",
       "file": "view/stream/StreamView.kt",
       "op": "replace",
@@ -728,6 +719,15 @@
       "old": "    sampleBufferReceiver.setPixelFormatType(stream.value.colorRange)",
       "occurrence": 1,
       "note": "SampleBufferReceiver belongs to the iOS screen recording extension; sampleBufferReceiver is a stub"
+    },
+    {
+      "id": "H11.51",
+      "file": "various/model/ModelMacros.kt",
+      "scope": "fun Model.executeNotification",
+      "op": "replace",
+      "old": "                        timestamp = statusOther.digitalClock,",
+      "new": "                        timestamp = statusOther.digitalClock.value,",
+      "occurrence": 1
     }
   ]
 }

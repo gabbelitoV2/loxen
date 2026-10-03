@@ -92,6 +92,9 @@ enum class ChatHighlightKind {
 
     @SerialName("gigantifiedEmote")
     GigantifiedEmote,
+
+    @SerialName("macroNotification")
+    MacroNotification,
 }
 
 data class ChatHighlight(
@@ -110,6 +113,7 @@ data class ChatHighlight(
             ChatHighlightKind.Moderator -> WatchProtocolChatHighlightKind.moderator
             ChatHighlightKind.RemoteControlAssistant -> WatchProtocolChatHighlightKind.other
             ChatHighlightKind.GigantifiedEmote -> WatchProtocolChatHighlightKind.other
+            ChatHighlightKind.MacroNotification -> WatchProtocolChatHighlightKind.other
         }
         val barColor = barColor.toRgb() ?: RgbColor(red = 0, green = 255, blue = 0)
         return WatchProtocolChatHighlight(
@@ -266,6 +270,15 @@ data class ChatHighlight(
                 barColor = Color(0xFF34C759),
                 image = "person.wave.2",
                 titleSegments = makeChatPostTextSegments(localized("Remote control assistant")),
+            )
+        }
+
+        fun makeMacroNotification(): ChatHighlight {
+            return ChatHighlight(
+                kind = ChatHighlightKind.MacroNotification,
+                barColor = Color(0xFF32ADE6),
+                image = "increase.indent",
+                titleSegments = makeChatPostTextSegments(localized("Notification")),
             )
         }
     }

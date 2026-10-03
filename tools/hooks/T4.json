@@ -111,15 +111,6 @@
    "occurrence": 1
   },
   {
-   "id": "H4.13",
-   "file": "media/haishinkit/media/video/VideoUnit.kt",
-   "scope": "class VideoUnitAttachParams",
-   "op": "replace",
-   "old": "    val cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,",
-   "new": "    val cameraPreviewLayers: Map<UUID, Any>,",
-   "occurrence": 1
-  },
-  {
    "id": "H4.14",
    "file": "media/haishinkit/media/video/PreviewView.kt",
    "scope": "fun setup",

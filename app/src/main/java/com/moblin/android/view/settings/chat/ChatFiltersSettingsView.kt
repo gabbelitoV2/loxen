@@ -67,9 +67,14 @@ private fun ChatFilterActionsSettingsView(
         footer = localized("The actions to perform when the condition is true."),
     ) {
         Toggle(
-            title = localized("Show on screen"),
-            isOn = filter.showOnScreen,
-            onChange = { filter.showOnScreen = it },
+            title = localized("Show in chat"),
+            isOn = filter.showInChat,
+            onChange = { filter.showInChat = it },
+        )
+        Toggle(
+            title = localized("Show in activity feed"),
+            isOn = filter.showInActivityFeed,
+            onChange = { filter.showInActivityFeed = it },
         )
         Toggle(
             title = localized("Text to speech"),

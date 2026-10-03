@@ -106,6 +106,7 @@ enum class SettingsMacrosActionFunction(val rawValue: String) {
     DJI_DEVICES("DJI devices"),
     GIMBAL_PRESET("Move to gimbal preset"),
     SEND_CHAT_MESSAGE("Send chat message"),
+    NOTIFICATION("Notification"),
     SEND_TWITCH_SHOUTOUT("Send Twitch shoutout"),
     DELAY("Delay"),
     WAIT_FOR_EVENT("Wait for event"),
@@ -127,6 +128,7 @@ enum class SettingsMacrosActionFunction(val rawValue: String) {
             DJI_DEVICES -> localized("DJI devices")
             GIMBAL_PRESET -> localized("Move to gimbal preset")
             SEND_CHAT_MESSAGE -> localized("Send chat message")
+            NOTIFICATION -> localized("Notification")
             SEND_TWITCH_SHOUTOUT -> localized("Send Twitch shoutout")
             DELAY -> localized("Delay")
             WAIT_FOR_EVENT -> localized("Wait for event")
@@ -380,6 +382,7 @@ class SettingsMacrosAction {
     var zoomX: Float by Published(1f)
     var gimbalPresetId: UUID? by Published(null)
     var chatMessage: String by Published("")
+    var notificationMessage: String by Published("")
     var delay: Double by Published(3.0)
     var macroId: UUID? by Published(null)
     var djiDevices: Set<UUID> by Published(emptySet())
@@ -422,6 +425,7 @@ class SettingsMacrosAction {
         encode("zoomX", zoomX)
         encode("gimbalPresetId", gimbalPresetId)
         encode("chatMessage", chatMessage)
+        encode("notificationMessage", notificationMessage)
         encode("delay", delay)
         encode("macroId", macroId)
         encode("djiDevices", djiDevices)
@@ -451,6 +455,7 @@ class SettingsMacrosAction {
             action.zoomX = container.decode("zoomX", 1f)
             action.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
             action.chatMessage = container.decode("chatMessage", "")
+            action.notificationMessage = container.decode("notificationMessage", "")
             action.delay = container.decode("delay", 3.0)
             action.macroId = container.decode<UUID?>("macroId", null)
             action.djiDevices = container.decode("djiDevices", emptySet<UUID>())

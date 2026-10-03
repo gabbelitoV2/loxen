@@ -12,7 +12,7 @@ import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsSensitivity
 import com.moblin.android.various.utils.TimeStampRebaser
 import com.moblin.android.videoeffects.EffectImage
-import com.moblin.android.videoeffects.MetalPetalWidgetShape
+import com.moblin.android.videoeffects.WidgetShape
 import com.moblin.android.videoeffects.move
 import com.moblin.android.videoeffects.resizeMirror
 import com.moblin.android.videoeffects.resizeMirrorMoveComposited
@@ -112,7 +112,7 @@ open class VTuberEffect : VideoEffect() {
             layout = sceneWidget.layout,
             mirror = mirror,
             backgroundImage = image,
-            shape = MetalPetalWidgetShape(contentRegion = renderedImage.extent),
+            shape = WidgetShape(contentRegion = renderedImage.extent),
         )
     }
 

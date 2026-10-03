@@ -185,12 +185,9 @@ class PngTuberEffect(model: String, costume: Int) : VideoEffect() {
                 height = maxOf(size.height, layerImage.extent.height),
             )
         }
-        val scale = minOf(
-            toPixels(sceneWidget.layout.size, backgroundSize.width) / contentSize.width,
-            toPixels(sceneWidget.layout.size, backgroundSize.height) / contentSize.height,
-        )
+        val scale = layoutScale(sceneWidget.layout, contentSize, backgroundSize)
         val size = CGSize(width = contentSize.width * scale, height = contentSize.height * scale)
-        val position = metalPetalLayerPosition(sceneWidget.layout, size, backgroundSize)
+        val position = layoutCenter(sceneWidget.layout, size, backgroundSize)
         val filter = MTIMultilayerCompositingFilter()
         filter.inputBackgroundImage = image
         filter.layers = layerImages.map { layerImage ->

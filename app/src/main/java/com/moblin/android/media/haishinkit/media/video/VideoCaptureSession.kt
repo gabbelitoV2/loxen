@@ -447,9 +447,8 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
     }
 
     private fun attachCameraPreviewLayers(params: VideoUnitAttachParams) {
-        for ((id, value) in params.cameraPreviewLayers) {
-            val previewLayer = value as? AVCaptureVideoPreviewLayer ?: continue
-            val device = devices.firstOrNull { it.device.id == id }
+        for ((previewLayer, deviceId) in params.cameraPreviewLayers) {
+            val device = devices.firstOrNull { it.device.id == deviceId }
             val port = device?.input?.ports?.firstOrNull { it.mediaType == AVMediaType.video }
             if (!params.attachCameraPreview || device == null || port == null) {
                 if (previewLayer.session != null) {
@@ -465,6 +464,10 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
                 continue
             }
             session.addConnection(connection)
+            if (connection.isVideoMirroringSupported) {
+                connection.automaticallyAdjustsVideoMirroring = false
+                connection.isVideoMirrored = device.device.isVideoMirrored
+            }
         }
     }
 

@@ -67,6 +67,22 @@ class SettingsMacrosSuite {
     }
 
     @Test
+    fun notificationActionSurvivesEncodeAndDecode() {
+        val action = SettingsMacrosAction()
+        action.function = SettingsMacrosActionFunction.NOTIFICATION
+        action.notificationMessage = "Thanks {twitchFollowUser}!"
+        val decoded = Json.decodeFromString<SettingsMacrosAction>(Json.encodeToString(action))
+        assertEquals(SettingsMacrosActionFunction.NOTIFICATION, decoded.function)
+        assertEquals("Thanks {twitchFollowUser}!", decoded.notificationMessage)
+    }
+
+    @Test
+    fun notificationActionDefaultsWhenMissingFromSettings() {
+        val action = Json.decodeFromString<SettingsMacrosAction>("{}")
+        assertEquals("", action.notificationMessage)
+    }
+
+    @Test
     fun waitForEventMatchesOnlyItsEvent() {
         val action = makeWaitForEventAction(SettingsMacrosEvent.TWITCH_FOLLOW)
         assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.TWITCH_FOLLOW)))

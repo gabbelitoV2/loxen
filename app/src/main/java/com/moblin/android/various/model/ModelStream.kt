@@ -625,7 +625,7 @@ fun Model.reloadStreamIfEnabled(stream: SettingsStream) {
 }
 
 private fun Model.setNetStream() {
-    cameraPreviewView.setDevices(ids = emptyList<UUID>())
+    cameraPreviewView.setDevices(ids = emptyList<UUID>(), widgets = emptyMap())
     media.setNetStream(
         proto = stream.value.getProtocol(),
         portrait = stream.value.portrait,

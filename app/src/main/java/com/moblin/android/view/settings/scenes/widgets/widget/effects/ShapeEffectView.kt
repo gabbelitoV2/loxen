@@ -42,6 +42,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.videosource.drawPo
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.various.model.getWidgetShapeEffect
 import com.moblin.android.various.model.takeVideoSourcePreviewImage
+import com.moblin.android.various.model.updateCameraPreviewWidgets
 
 @Composable
 private fun CornerRadiusView(
@@ -236,6 +237,7 @@ fun ShapeEffectView(
 
     fun updateWidget() {
         model.getWidgetShapeEffect(widget, effect)?.setSettings(shape.toSettings())
+        model.updateCameraPreviewWidgets()
     }
 
     LaunchedEffect(Unit) {

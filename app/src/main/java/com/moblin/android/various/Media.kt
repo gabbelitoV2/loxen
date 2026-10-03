@@ -1003,7 +1003,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
     fun attachBufferedCamera(
         devices: CaptureDevices,
         builtinDelay: Double,
-        cameraPreviewLayers: Map<UUID, Any>,
+        cameraPreviewLayers: Map<PreviewView, UUID>,
         attachCameraPreview: Boolean,
         showCameraPreview: Boolean,
         externalDisplayPreview: Boolean,

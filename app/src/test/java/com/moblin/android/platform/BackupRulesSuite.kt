@@ -24,6 +24,7 @@ import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.storages.VTuberStorage
 import com.moblin.android.various.storages.pngTuberStorageDirectory
 import com.moblin.android.various.utils.createAndGetDirectory
+import com.moblin.android.platform.core.uuidString
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -292,7 +293,7 @@ class BackupRulesSuite {
             write(stealthModeImagePath, "stealth"),
             write(controlBarBackgroundImagePath, "control bar"),
             ImageStorage().makePath(id),
-            File(createAndGetDirectory(pngTuberStorageDirectory), id.toString()),
+            File(createAndGetDirectory(pngTuberStorageDirectory), id.uuidString),
             VTuberStorage().path(id),
             AlertMediaStorage().makePath(id),
         )

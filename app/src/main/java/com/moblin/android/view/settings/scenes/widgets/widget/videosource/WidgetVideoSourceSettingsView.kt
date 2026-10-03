@@ -40,6 +40,7 @@ import com.moblin.android.various.model.getCameraPositionName
 import com.moblin.android.various.model.getVideoSourceEffect
 import com.moblin.android.various.model.isScreenCaptureCamera
 import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.updateCameraPreviewWidgets
 
 enum class AnchorPoint {
     topLeft,
@@ -219,6 +220,7 @@ fun WidgetVideoSourceSettingsView(
     fun setEffectSettings() {
         model.getVideoSourceEffect(id = widget.id)
             ?.setSettings(settings = videoSource.toEffectSettings())
+        model.updateCameraPreviewWidgets()
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {

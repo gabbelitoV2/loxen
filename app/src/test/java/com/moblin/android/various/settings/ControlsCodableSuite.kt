@@ -222,7 +222,7 @@ class ControlsCodableSuite {
         assertEquals(
             """{"id":"${upper(action.id)}","function":null,"sceneId":null,"sceneIds":[],""" +
                 """"autoSceneSwitcherId":null,"zoomX":1.0,"gimbalPresetId":null,"chatMessage":"",""" +
-                """"delay":3.0,"macroId":null,"djiDevices":[],"filters":[],"record":true,"mute":true,""" +
+                """"notificationMessage":"","delay":3.0,"macroId":null,"djiDevices":[],"filters":[],"record":true,"mute":true,""" +
                 """"torch":true,"reaction":{"fireworks":{}},"ifValue":"","ifComparison":"=",""" +
                 """"ifOtherValue":"","ifRunCount":1,"event":"Twitch follow","eventMinimumAmount":0,""" +
                 """"eventText":"","eventSceneId":null}""",

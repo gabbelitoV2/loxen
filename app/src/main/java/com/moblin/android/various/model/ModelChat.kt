@@ -315,12 +315,16 @@ fun Model.appendChatMessage(
     if (filter?.print != false && isAnyConnectedCatPrinterPrintingChat()) {
         printChatMessage(post = post)
     }
-    if (filter?.showOnScreen != false) {
-        val isAlert = highlight?.isAlert() == true
-        if (isAlert) {
+    if (filter?.showInActivityFeed == true) {
+        chatActivityFeed.appendMessage(post = post)
+        quickButtonChatAlerts.appendMessage(post = post)
+    } else if (highlight != null && highlight.isAlert()) {
+        if (highlight.kind != ChatHighlightKind.FirstMessage) {
             chatActivityFeed.appendMessage(post = post)
-            quickButtonChatAlerts.appendMessage(post = post)
         }
+        quickButtonChatAlerts.appendMessage(post = post)
+    }
+    if (filter?.showInChat != false) {
         chat.appendMessage(post = post)
         quickButtonChat.appendMessage(post = post)
         for (browserEffect in browserEffects.values) {

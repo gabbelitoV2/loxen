@@ -47,6 +47,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.pngtuber.WidgetPng
 import com.moblin.android.view.settings.scenes.widgets.widget.vtuber.WidgetVTuberPickerView
 import com.moblin.android.view.settings.streams.stream.recording.RecordingPathFormView
 import com.moblin.android.view.settings.streams.stream.replay.StreamReplaySettingsView
+import com.moblin.android.platform.core.uuidString
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.lang.reflect.Proxy
@@ -149,7 +150,7 @@ class DocumentPickersSuite {
         val media = SettingsAlertsMediaGalleryItem(name = "My image")
         show { CustomImageView(model = model, media = media, image = null) }
         pick(PickerDocuments.add("Party.gif", "GIF89a"), "Select image")
-        val stored = File(Documents.directory, "Alerts/${media.id}")
+        val stored = File(Documents.directory, "Alerts/${media.id.uuidString}")
         waitFor { stored.exists() }
         assertEquals(listOf<Any?>("image/gif"), contentTypes())
         assertEquals(1, results.inputs.size)
@@ -164,7 +165,7 @@ class DocumentPickersSuite {
         val media = SettingsAlertsMediaGalleryItem(name = "My sound")
         show { CustomSoundView(model = model, media = media) }
         pick(PickerDocuments.add("Horn.mp3", "ID3"), "Select sound")
-        val stored = File(Documents.directory, "Alerts/${media.id}")
+        val stored = File(Documents.directory, "Alerts/${media.id.uuidString}")
         waitFor { stored.exists() }
         assertEquals(listOf<Any?>("audio/*"), contentTypes())
         assertEquals("ID3", stored.readText())
@@ -178,7 +179,7 @@ class DocumentPickersSuite {
         show { CustomSoundView(model = model, media = media) }
         pick(null, "Select sound")
         assertEquals(1, results.inputs.size)
-        assertFalse(File(Documents.directory, "Alerts/${media.id}").exists())
+        assertFalse(File(Documents.directory, "Alerts/${media.id.uuidString}").exists())
         assertNoSheet()
     }
 
@@ -209,7 +210,7 @@ class DocumentPickersSuite {
         waitFor { color.diskLutsCube.size == before + 1 }
         assertEquals(listOf<Any?>("*/*"), contentTypes())
         val lut = color.diskLutsCube.last()
-        assertEquals("LUT_3D_SIZE 2", File(Documents.directory, "Images/${lut.id}").readText())
+        assertEquals("LUT_3D_SIZE 2", File(Documents.directory, "Images/${lut.id.uuidString}").readText())
         assertNoSheet()
     }
 
@@ -222,7 +223,7 @@ class DocumentPickersSuite {
         waitFor { selected == 1 }
         assertEquals(listOf<Any?>("*/*"), contentTypes())
         assertEquals("Avatar.save", pngTuber.modelName)
-        assertEquals("{\"layers\":[]}", File(Documents.directory, "PNGTuber/${pngTuber.id}").readText())
+        assertEquals("{\"layers\":[]}", File(Documents.directory, "PNGTuber/${pngTuber.id.uuidString}").readText())
         assertFalse(File(inbox, "Avatar.save").exists())
         assertNoSheet()
     }
@@ -239,7 +240,7 @@ class DocumentPickersSuite {
         )
         pick(PickerDocuments.add("Hiyori.zip", archive), "Select model")
         waitFor { selected == 1 }
-        val stored = File(Documents.directory, "VTuber/${vTuber.id}")
+        val stored = File(Documents.directory, "VTuber/${vTuber.id.uuidString}")
         assertEquals(SettingsWidgetVTuberType.live2D, vTuber.type)
         assertEquals("Hiyori.zip", vTuber.modelName)
         assertEquals("{}", File(stored, "Hiyori/Hiyori.model3.json").readText())
@@ -273,7 +274,7 @@ class DocumentPickersSuite {
         pick(PickerDocuments.add("Holiday.mp4", "mp4"), "Add")
         waitFor { player.playlist.size == 1 }
         assertIs<PickVisualMediaRequest>(results.inputs.single())
-        val stored = File(Documents.directory, "Medias/${player.playlist.single().id}.mp4")
+        val stored = File(Documents.directory, "Medias/${player.playlist.single().id.uuidString}.mp4")
         assertEquals("mp4", stored.readText())
         assertFalse(File(context.cacheDir, "Holiday.mp4").exists())
     }
@@ -287,7 +288,7 @@ class DocumentPickersSuite {
             }
         }
         pick(PickerDocuments.add("Logo.png", byteArrayOf(1, 2, 3)), "Select image")
-        val stored = File(Documents.directory, "Images/${widget.id}")
+        val stored = File(Documents.directory, "Images/${widget.id.uuidString}")
         waitFor { stored.exists() }
         assertIs<PickVisualMediaRequest>(results.inputs.single())
         assertContentEquals(byteArrayOf(1, 2, 3), stored.readBytes())

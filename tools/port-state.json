@@ -2774,27 +2774,27 @@
   },
   "MoblinTests/Moblin/Various/Settings/SettingsMacrosSuite.swift": {
     "status": "ok",
-    "sha256": "acf4916f3fc3ac81f61b0c7c2199112e884f1ee8ff2b23e71cfa7c11da487c72",
+    "sha256": "6faeada98dee185bbf35af3c883a037ff0d84eb4c9d23cb8d3743c04379d9dd9",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/settings/SettingsMacrosSuite.kt",
     "notes": [
-      "Swift Testing suite turned into a JUnit 4 class with kotlin.test assertions.",
-      "JSONEncoder/JSONDecoder replaced by kotlinx.serialization Json.encodeToString and Json.decodeFromString.",
-      "Data(\"{}\".utf8) becomes the raw JSON string \"{}\" passed straight to the decoder.",
-      "UUID() becomes UUID.randomUUID() from java.util.UUID.",
-      "makeWaitForEventAction stays a private member function of the suite class.",
-      "Enum cases such as .greaterEqual and .ifCondition are referenced with their Swift names, which the ported enums keep.",
-      "MacroEvent construction uses named arguments matching the Swift property labels.",
-      "settings JSON decoding relies on the Kotlin @Serializable defaults, mirroring the Swift decoder fallbacks."
+      "Added the two new tests notificationActionSurvivesEncodeAndDecode and notificationActionDefaultsWhenMissingFromSettings after ifActionDefaultsWhenMissingFromSettings, matching the Swift diff position.",
+      "The new tests refer to SettingsMacrosActionFunction.NOTIFICATION and SettingsMacrosAction.notificationMessage, which the Swift change introduces; the SettingsMacros port must expose those two members for these tests to compile.",
+      "Swift .notification maps to the Kotlin enum entry NOTIFICATION following the UpperCamelCase to UPPER_SNAKE convention used by every other case in this enum.",
+      "decode/encode still go through kotlinx Json.decodeFromString/encodeToString with the Swift property names, as in the unchanged tests.",
+      "Data(\"{}\".utf8) becomes the string literal \"{}\" passed to Json.decodeFromString, as in the existing default-value tests.",
+      "No other line of the file was touched; imports, formatting and declaration order are byte-identical to the previous Kotlin file.",
+      "No iOS API is used in the added code, so there is no TODO marker."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3226,
-    "tokens_out": 2868,
-    "seconds": 10.2,
-    "ported_at": "2026-09-22T12:44:33+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 34943,
+    "tokens_out": 3460,
+    "seconds": 12.5,
+    "ported_at": "2026-10-02T23:56:05+00:00"
   },
   "MoblinTests/Moblin/Various/Network/HttpClientSuite.swift": {
     "status": "ok",
@@ -4212,26 +4212,28 @@
   },
   "MoblinTests/Moblin/VideoEffects/EffectUtilsSuite.swift": {
     "status": "ok",
-    "sha256": "4a89b0c6aac0fc85eb10443d807bab1d97580326409f05187dca35020038934e",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "1d5c98f93fc12362f33f19dbede1ecfecb96bd761078304e9bb62a6d0a08d5bd",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/videoeffects/EffectUtilsSuite.kt",
     "notes": [
-      "Suite constants and the private layout()/position() helpers were kept as private members of the class; no @Before is needed because nothing is set up.",
-      "The platform CGPoint is declared as a plain class without structural equals, so every position check compares x and y through a private assertPosition() helper instead of asserting on the CGPoint instance.",
-      "SettingsAlignment.allCases became SettingsAlignment.entries (Kotlin 2.x enum entries).",
-      "metalPetalLayerPosition and the CIImage.move extension live in com.moblin.android.videoeffects, the same package as this suite, so they need no import.",
-      "#expect(abs(position.x - expected.x) <= 1) became assertTrue(abs(position.x - expected.x) <= 1.0).",
-      "Assertions use kotlin.test (assertEquals, assertTrue) inside a JUnit 4 class, per the test tier rules."
+      "The tested helper was renamed from metalPetalLayerPosition to layoutCenter, matching the current EffectUtils.kt declaration.",
+      "Test methods renamed to layoutCenterCorners, layoutCenterCenters and layoutCenterMatchesCoreImage.",
+      "SettingsWidgetLayout is a data class with val fields in this port, so the Swift `layout.size = 50` writes became `layout = layout.copy(size = 50.0)`.",
+      "The five new tests (layoutScaleFitsInsideLayoutSize, widgetShapePlacement, widgetShapePlacementNoResize, widgetShapePlacementRotatedWithBorder, widgetShapeApplySettings) were added at the end of the class in Swift order.",
+      "WidgetShape and ShapeEffectSettings are called with positional or named arguments exactly as the Kotlin signatures expose them; WidgetShape, ShapeEffectSettings, layoutScale and layoutCenter all live in com.moblin.android.videoeffects, so no new imports were needed.",
+      "The hand-written assertPosition(expected, actual) helper is reused for every CGPoint equality check, including the new placement.center assertions.",
+      "ShapeEffectSettings.cornerRadius is a Float, so the Swift 0.5 literal is written 0.5f.",
+      "The new tests mutate WidgetShape in place (borderWidth, apply), matching the data class with var fields used by the port's shape types."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 37184,
-    "tokens_out": 8761,
-    "seconds": 34.8,
-    "ported_at": "2026-09-23T20:11:07+00:00"
+    "tokens_in": 51931,
+    "tokens_out": 15194,
+    "seconds": 56.4,
+    "ported_at": "2026-10-02T23:58:05+00:00"
   },
   "MoblinTests/Moblin/Obs/ObsWebSocketServerMock.swift": {
     "status": "ok",
@@ -8326,27 +8328,28 @@
   },
   "Moblin/View/Stream/StreamView.swift": {
     "status": "ok",
-    "sha256": "2e7c50a63312a64d2e67390419e374c78871f8da9723733e1d8032c18d0eaeed",
+    "sha256": "7ef3b6bcfea7dae6f90d9b61b0265dbb885e90e01590592f51c673056dd04f21",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/StreamView.kt",
     "notes": [
-      "SwiftUI structs become classes exposing a @Composable body() so that StreamView can still hold streamPreviewView/cameraPreviewView as properties exactly like the Swift structs.",
-      "UIViewRepresentable -> AndroidView; SharedUiViewContainerView now extends FrameLayout and re-attaches the shared android.view.View in onAttachedToWindow/onLayout.",
-      "didMoveToWindow -> onAttachedToWindow, layoutSubviews -> onLayout, layer.addSublayer/removeFromSuperlayer -> addView/removeView.",
-      "CameraPreviewUiView stores androidx.camera.view.PreviewView per device id instead of AVCaptureVideoPreviewLayer; isHidden maps to View.INVISIBLE/View.VISIBLE.",
-      "AVCaptureVideoOrientation has no CameraX equivalent, so setVideoOrientation takes an Int rotation and is a TODO.",
-      "show.chatPhone and show.cameraPreview are read directly; make Show expose Compose-observable state (or collect it before calling body()) for recomposition.",
-      "CATransaction.setDisableActions(true) during layout has no Compose/Android counterpart and was dropped; addView already lays children out without animation.",
-      "AVFoundation import only supplied AVCaptureVideoPreviewLayer/AVCaptureVideoOrientation, both replaced by androidx.camera.view.PreviewView."
+      "CALayer, CATransaction and CATransform3D have no counterpart in the platform layer, so the widget layer hierarchy is translated to Android FrameLayout views using visibility, translationZ, rotation/scaleX and a rounded GradientDrawable, matching how the existing CameraPreviewUiView was hand-ported.",
+      "AVMakeRect(aspectRatio:insideRect:) is implemented as the private top-level helper avMakeRect in this file.",
+      "UIColor(red:green:blue:alpha:) is replaced with android.graphics.Color.argb built from the WidgetShape CIColor components.",
+      "previewLayer.videoGravity = .resizeAspectFill is dropped: PreviewView (the AVCaptureVideoPreviewLayer typealias) reads its own videoGravity.",
+      "AVCaptureVideoPreviewLayer maps to PreviewView; scene and widget preview layers are added as child views of the FrameLayouts instead of sublayers.",
+      "CATransaction.begin/setDisableActions/commit are dropped because Android views have no implicit animations.",
+      "previewLayers is now a computed Map<PreviewView, UUID> that covers both the scene layers and every widget layer's device id.",
+      "CameraPreviewWidget is a data class; its shape stays a var because WidgetShape is a mutable class."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3241,
-    "tokens_out": 7450,
-    "seconds": 29.0,
-    "ported_at": "2026-09-22T13:20:44+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 54027,
+    "tokens_out": 20152,
+    "seconds": 73.3,
+    "ported_at": "2026-10-02T23:59:29+00:00"
   },
   "Moblin/View/Utils/SwipeLeftToDuplicateOrDeleteHelpView.swift": {
     "status": "ok",
@@ -10096,28 +10099,28 @@
   },
   "Moblin/VideoEffects/EffectUtils.swift": {
     "status": "ok",
-    "sha256": "bb580267eaa43354b0fd45b21f5db074d97ed0722848f52ddcf0e3050b73d20e",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "94d6147b3b9f3b2b7409377d9e826c6b92dc1a390b9dfd9b70d8f7b3be2fabe4",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt",
     "notes": [
-      "The top-level mutable global highQualityDownsampling becomes a @Volatile Kotlin top-level var; CIImage.scaled passes it to transformed(by, highQualityDownsample).",
-      "Swift `CGImage` and `UIImage` are `android.graphics.Bitmap` here, so the three EffectImage wrappers store a Bitmap, a CIImage or a CVPixelBuffer respectively and keep their lazy caches.",
-      "`protocol EffectImage` becomes `interface EffectImage`; the three conformers are plain classes (Swift `final class`).",
-      "All Swift extensions on CIImage, CGImage and MTIImage become top-level extension functions in this package because CIImage, Bitmap and MTIImage are platform types that cannot host members.",
-      "CIImage/MTIImage are reference types in this port, so `if let image { return image }` style caches keep their identity semantics and no copy is needed.",
-      "`MTILayer` FlipOptions `[]` is written as `MTILayer.FlipOptions.donotFlip`; the border is still drawn as a white MTILayer behind the content, with no borderWidth parameter on MTILayer.",
-      "layoutPosition, metalPetalLayerPosition and the composited helpers read SettingsWidgetLayout, its SettingsAlignment predicates and layout.size/x/y exactly as on iOS, including the extra-pixel correction in CIImage.move.",
-      "toPixels keeps Swift's positional shape (percentage, total); it is called positionally from ShapeEffect.kt in the same package."
+      "layoutScale and the private layoutOffset helper are added; layoutPosition and move are rebuilt on top of layoutOffset.",
+      "metalPetalLayerPosition is renamed to layoutCenter (layoutPosition + half size) and its old body is dropped.",
+      "moveComposited, resizeMirrorMoveComposited and composited now take WidgetShape/WidgetShapePlacement from the same package instead of MetalPetalWidgetShape.",
+      "composited gained the resize parameter and reads placement.center/placement.size/placement.borderSize/placement.borderWidth; the border layer wraps cornerRadius/borderColor in MTICornerRadius/MTIColor.",
+      "shape.rotationRadians() is converted with .toFloat() and shape.borderColor components with .toFloat() for the Float MTIColor constructor, matching Swift's Float(...) casts.",
+      "move now uses alignment.mirrorPositionVertically() and alignment.mirrorPositionHorizontally() instead of the old isTop()/else branch logic.",
+      "resizeMirror computes a single layoutScale and scales by (mirror ? -scale : scale, scale).",
+      "Imports MTIColor and MTICornerRadius added; shape.placement and shape.cornerRadiusPixels are called positionally because WidgetShape lives in another file of this package."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 43387,
-    "tokens_out": 10481,
-    "seconds": 34.9,
-    "ported_at": "2026-09-23T19:37:44+00:00"
+    "tokens_in": 59577,
+    "tokens_out": 11720,
+    "seconds": 39.1,
+    "ported_at": "2026-10-02T23:56:32+00:00"
   },
   "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamsSettingsView.swift": {
     "status": "ok",
@@ -11335,28 +11338,28 @@
   },
   "Moblin/VideoEffects/ShapeEffect.swift": {
     "status": "ok",
-    "sha256": "4634cd072052b11a03c774dde9856be59b62254f1391b604455bc20e1c8c44e3",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "4eefb7e83b5aa409d9ec353a76ad418aaac8ca97db0aa7740bda1f3f00e8262d",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt",
     "notes": [
-      "MetalPetalWidgetShape and MaskImage are data classes with var properties, so the Swift inout mutation sites (modifyMetalPetalWidgetShape and the makeMaskImage cache) keep working in place.",
-      "CGRect is not a value type in the platform layer, so the mask cache compares extents component-wise in the file-private shapeSameExtent helper.",
-      "setSettings hops onto processorPipelineQueue with launch, matching Swift's async block (the block captures this strongly, as in Swift).",
-      "CIImage/CIFilter/CIColor and MTIColor/MTICornerRadius/MTILayer come from the hand-written Core Image and MetalPetal shims; toPixels, scaled and translated come from EffectUtils in this same package.",
-      "shapeBorderWidthPixels and shapeCornerRadiusPixels stay file-private top-level functions; shapeCornerRadiusPixels converts to Float and divides by the Int literal 2 exactly like Swift.",
-      "The consecutive writes to maskExtent.origin/size were folded into one CGRect.copy call.",
-      "ShapeEffectSettings keeps val fields as a settings value type and borderWidthAndScale returns a Triple destructured at the call sites.",
-      "executeEarly/execute keep the unnamed VideoEffectInfo parameter under the base class name info."
+      "MetalPetalWidgetShape is renamed to WidgetShape and its borderColor is now a Core Image CIColor, matching the new VideoEffect.modifyWidgetShape declaration.",
+      "WidgetShape.apply mutates the data class in place; the Swift inout parameter is the same object on Android, so modifyWidgetShape just calls shape.apply(settings).",
+      "ShapeEffectSettings.cropRegion is shared by WidgetShape.apply and ShapeEffect.crop, replacing the two duplicated crop computations.",
+      "WidgetShape.placement returns the new WidgetShapePlacement data class in place of the Swift labelled tuple.",
+      "rotationRadians() now returns a Double instead of a Float.",
+      "WidgetShape.borderWidthPixels and cornerRadius(size:) were removed; cornerRadiusPixels(size:) uses the shared shapeCornerRadiusPixels helper.",
+      "MTIColor and MTICornerRadius imports were dropped because the file no longer uses them; CGPoint and SettingsWidgetLayout were added.",
+      "MaskImage caching and the shapeSameExtent helper are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 43525,
-    "tokens_out": 16618,
-    "seconds": 58.2,
-    "ported_at": "2026-09-23T19:38:42+00:00"
+    "tokens_in": 62243,
+    "tokens_out": 9551,
+    "seconds": 32.8,
+    "ported_at": "2026-10-02T23:58:05+00:00"
   },
   "Moblin/Integrations/Emotes/Emotes.swift": {
     "status": "ok",
@@ -11384,28 +11387,24 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift": {
     "status": "ok",
-    "sha256": "557a765f928a05ac255258cf1d46a1830d6fc5278c58382f62a531a7bbdd2386",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "cea09a40366b53976641ef1203b5e9df1bea3ef21abe15acb8f43066fceaf6dd",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt",
     "notes": [
-      "Only the one line of the Swift diff changed: getCiImage now returns videoUnit.makeCiImage(imageBuffer) instead of building a CIImage from the pixel buffer directly.",
-      "The Kotlin replacement is the same call on the same object, so the type of VideoUnit.makeCiImage must be CIImage (or nullable, matching the declared return type CIImage?).",
-      "The dependency listing shown for VideoUnit.kt does not yet contain makeCiImage; it is expected from the companion VideoUnit translation. No fallback or stand-in was invented here.",
-      "Everything else in the file is untouched: imports (including the now unused CVPixelBuffer import), declaration order and formatting stay byte-identical.",
-      "getMetalPetalImage still builds MTIImage(cvPixelBuffer = imageBuffer, alphaType = MTIAlphaType.alphaIsOne) because the Swift diff does not touch it.",
-      "The result of videoUnit.makeCiImage is returned directly, so no non-null unwrap is needed, as in Swift.",
-      "detectionJobs.firstOrNull { ... }?.imageBuffer keeps the Swift guard-let shape with an elvis early return.",
-      "VideoEffectInfo stays a data class because it only holds stored properties, and VideoEffect stays an open class with open members."
+      "Swift renamed MetalPetalWidgetShape to WidgetShape in this file only; the Kotlin parameter type and import now use com.moblin.android.videoeffects.WidgetShape with the same ordering/position as before.",
+      "modifyMetalPetalWidgetShape was renamed to modifyWidgetShape; the inout parameter keeps the Android in-place mutable shape object (no copy), exactly as before.",
+      "widgetShape?.copy() ?? WidgetShape(contentRegion = image.extent) is kept, since a Swift var initialised from a parameter is a copy.",
+      "All other lines, formatting and imports are byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50952,
-    "tokens_out": 2918,
-    "seconds": 11.7,
-    "ported_at": "2026-09-29T00:38:52+00:00"
+    "tokens_in": 54284,
+    "tokens_out": 3024,
+    "seconds": 10.6,
+    "ported_at": "2026-10-02T23:57:20+00:00"
   },
   "Moblin/Media/MobcamStream/MobcamStream.swift": {
     "status": "ok",
@@ -11529,14 +11528,16 @@
   },
   "Moblin/Various/ChatPost.swift": {
     "status": "ok",
-    "sha256": "a124c1521252fe056348fea7e458802bf2a168719376af969897a1a210eefa99",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "6ef20b8c6ea81d965fd20674f85778d05d7d6930c6d492a5662b7c3e75a7802d",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatPost.kt",
     "notes": [
-      "Removed ChatPost.isRedLine() and the blank line that followed it, matching the Swift diff.",
-      "No other line changed: the file keeps every Kotlin port, import and helper as before."
+      "Added the MacroNotification enum entry with @SerialName(\"macroNotification\"), matching the Swift case order at the end of the enum.",
+      "Added ChatHighlight.makeMacroNotification() after makeRemoteControlAssistant() in the companion object, using the iOS cyan colour Color(0xFF32ADE6).",
+      "Added the ChatHighlightKind.MacroNotification -> WatchProtocolChatHighlightKind.other branch to toWatchProtocol().",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "apple_only": [
@@ -11544,10 +11545,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 48191,
-    "tokens_out": 3601,
-    "seconds": 11.6,
-    "ported_at": "2026-09-30T23:15:01+00:00"
+    "tokens_in": 48397,
+    "tokens_out": 3426,
+    "seconds": 9.5,
+    "ported_at": "2026-10-02T23:56:16+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift": {
     "status": "ok",
@@ -11878,23 +11879,24 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "fef1c21bc85e2386ee543dc102c8bc36830b1b045f7e5e6d90b6f96d7a0ab20d",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "b6e6e0cd6f6f287a645f287b33bdc1a8932a57aca11c8bc0c083bc526f5ea7fb",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "Applied only the SettingsChatBotPermissions change: added the `torch` permission command after `music` in the property list, the encode builder and the decode function.",
-      "Kotlin keeps the existing hand-written structure (companion decode first in some classes, encode before properties in SettingsChat); nothing else was touched.",
-      "`torch` uses the existing SettingsChatBotPermissionsCommand.serializer() call shape used by the neighbouring permissions."
+      "SettingsChatFilter.showOnScreen was renamed to showInChat and a new showInActivityFeed flag was added.",
+      "The JSON key 'showOnScreen' is kept for showInChat so stored filters still decode; showInActivityFeed uses its own key.",
+      "Both flags are Published-backed so Composable readers recompose, as on iOS.",
+      "Only SettingsChatFilter is affected; the other types in the file are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58721,
-    "tokens_out": 9289,
-    "seconds": 24.3,
-    "ported_at": "2026-09-30T23:15:14+00:00"
+    "tokens_in": 58975,
+    "tokens_out": 9562,
+    "seconds": 25.5,
+    "ported_at": "2026-10-02T23:56:42+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -12300,22 +12302,27 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
-    "sha256": "8b621b827789058ad4b891fe1dc625b954859fdc6b9fdd3d884f778247b29c15",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "f85dd788d893b424cde8ba5c0bb55ca8471ed840089316077d90c492921d2c19",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt",
     "notes": [
-      "The Swift diff only adds a comment line above `output.videoSettings`; comments are not emitted in Kotlin, so the file body is unchanged.",
-      "All Android hooks (Bundle/AVFoundation shims, pixel-buffer pool via swapPool, VideoRangeRelabeler's Android narrowing to format relabeling) are preserved byte-identical."
+      "Only the preview-layer loop changed: it now disables automatic video mirroring and copies the device's isVideoMirrored onto the preview connection, exactly as the new Swift hunk does.",
+      "VideoUnitAttachParams.cameraPreviewLayers is still Map<UUID, Any> in this port, so the Kotlin loop keeps UUID keys and the hand-written `value as? AVCaptureVideoPreviewLayer` cast; the local Swift rename id -> deviceId is mirrored by renaming the Kotlin local.",
+      "The Swift dictionary apparently re-keyed itself to [AVCaptureVideoPreviewLayer: UUID], but the declared dependency type Map<UUID, Any> is the truth and is left untouched.",
+      "connection.automaticallyAdjustsVideoMirroring and connection.isVideoMirrored already exist on the AVCaptureConnection shim, so no new platform call was needed.",
+      "The mirroring block runs after session.addConnection(connection) and after the canAddConnection guard, matching Swift's control flow.",
+      "Smart cast of `device` (userInput port guard with continue) makes device.device.isVideoMirrored compile without an extra null check, as it already did for `port`.",
+      "No other Swift line in the diff touches this file, so every other Kotlin line is unchanged byte for byte."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62998,
-    "tokens_out": 7755,
-    "seconds": 20.8,
-    "ported_at": "2026-09-29T23:16:32+00:00"
+    "tokens_in": 63569,
+    "tokens_out": 11410,
+    "seconds": 34.8,
+    "ported_at": "2026-10-02T23:57:08+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",
@@ -12413,28 +12420,25 @@
   },
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
-    "sha256": "30766972d156203ac666206b0b4fec13080176d4c3c2749e2f17d95011537fe4",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "08deb8f371744967682e68c10c0fbfc128ac3f3c1cc2d7e3de808edc85d7ea68",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
     "notes": [
-      "The Swift change moves the red-line and alert-queue logic out of ModelChat and into ChatProvider, so pauseQuickButtonChatAlerts/endOfQuickButtonChatAlertsReachedWhenPaused simply forward to the new Model.quickButtonChatAlerts ChatProvider.",
-      "maximumNumberOfInteractiveChatMessages was removed together with createRedLineChatPost(); both are gone from the Kotlin file, so any other file still referencing them must be updated in the same pass.",
-      "chat.pause() and quickButtonChat.pause() now call ChatProvider.pause() with no argument; the Kotlin ChatProvider must offer that no-argument overload (the previous redLine parameter is gone).",
-      "Model.quickButtonChatAlerts is used as a ChatProvider (update, pause, endReachedWhenPaused, moreThanOneStreamingPlatform, appendMessage, posts, deleteMessage, deleteUser); it has to exist on Model in Model.kt.",
-      "updateChat no longer drains newQuickButtonChatAlertsPosts into quickButtonChatState.chatAlertsPosts; ChatProvider.update() owns that now, so only the missing quickButtonChatAlerts.update() call was added.",
-      "quickButtonChatAlerts.appendMessage is called next to chatActivityFeed.appendMessage inside the isAlert branch, and the later isAlert enqueue block was deleted.",
-      "reloadChatMessages now renumbers quickButtonChatAlerts.posts instead of quickButtonChatState.chatAlertsPosts.",
-      "deleteChatMessage and deleteChatUser gained the quickButtonChatAlerts.deleteMessage / deleteUser calls in the same position as chatActivityFeed and quickButtonChat."
+      "Only the showOnScreen block changed: it split into a showInActivityFeed branch and a showInChat branch.",
+      "Swift `else if let highlight, highlight.isAlert()` became `else if (highlight != null && highlight.isAlert())`.",
+      "The new firstMessage check uses the Kotlin enum entry ChatHighlightKind.FirstMessage.",
+      "The chat / quickButtonChat appends and the browser, watch, external display, widget and emote-combo effects moved into the showInChat block unchanged.",
+      "SettingsChatFilter.showInActivityFeed and showInChat are the Published-backed properties read from the filter."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66782,
-    "tokens_out": 7711,
-    "seconds": 25.3,
-    "ported_at": "2026-09-30T23:15:15+00:00"
+    "tokens_in": 64839,
+    "tokens_out": 6182,
+    "seconds": 17.5,
+    "ported_at": "2026-10-02T23:57:01+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -12729,28 +12733,24 @@
   },
   "Moblin/VideoEffects/PngTuberEffect.swift": {
     "status": "ok",
-    "sha256": "09afd5c08d55fe0bb633d351ba7d018af45c4ecc52e228d60e5989fc1cff51e2",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "7d6d073e10839f45a2136c909d8092f5f8ea6ad512b7af9cb439aae4cb370458",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt",
     "notes": [
-      "The model file is decoded by hand with codableJson: the top-level JSON object maps numeric string keys to layers and is sorted by that numeric key, matching Swift's sorted(by: Int($0.key) ?? 0).",
-      "PngCoordinate parses the \"Vector2(x, y)\" string with a Kotlin Regex, standing in for Swift's firstMatch(of: /Vector2\\(([-\\d]+), ([-\\d]+)\\)/).",
-      "BlinkTalkState keeps its Int raw values and gets a companion fromRawValue, standing in for Swift's failable BlinkTalkState(rawValue:).",
-      "Base64 image data is decoded with java.util.Base64 inside runCatching (Swift's failable Data(base64Encoded:)) and turned into an EffectImageCgImage through the Bitmap.toEffectImage() extension.",
-      "DispatchQueue-style async calls become processorPipelineQueue.launch; the captured self is this@PngTuberEffect, exactly like Swift's strong self capture.",
-      "Face pose helpers (calcFaceAngle, isMouthOpen, isLeftEyeOpen) and VideoEffectInfo.faceDetections(videoSourceId) are called on the hand-written Vision and video shims.",
-      "MTILayer keeps MetalPetal's contentFlipOptions (donotFlip / flipHorizontally) and the default contentRegion; flipHorizontally replaces [.flipHorizontally].",
-      "The private Swift helper classes are plain Kotlin classes, and VideoEffect stays the open base class the effect overrides."
+      "Replaced the inline scale min() computation with the shared layoutScale(layout, size, streamSize) helper from EffectUtils.kt.",
+      "Replaced the metalPetalLayerPosition call with the shared layoutCenter(layout, size, streamSize) helper, which returns a CGPoint widget centre.",
+      "Both helpers already live in the same package com.moblin.android.videoeffects, so no new imports are required.",
+      "Everything else in the file, including the hand-written PngCoordinate regex decoding, base64 image decoding and the face-detection pose logic, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45730,
-    "tokens_out": 28318,
-    "seconds": 103.4,
-    "ported_at": "2026-09-23T19:55:28+00:00"
+    "tokens_in": 60757,
+    "tokens_out": 3250,
+    "seconds": 9.7,
+    "ported_at": "2026-10-02T23:57:31+00:00"
   },
   "Moblin/VideoEffects/LutEffect.swift": {
     "status": "ok",
@@ -13161,27 +13161,23 @@
   },
   "Moblin/View/Settings/Chat/ChatFiltersSettingsView.swift": {
     "status": "ok",
-    "sha256": "824b15156f788467135b3eeee2d0a64084a3c02085ed54a1215ba5cdbde4c05a",
+    "sha256": "12b24e031e0a2cee2977386b6c32f2339e4693e192624c89e5b458f6fc9f640d",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatFiltersSettingsView.kt",
     "notes": [
-      "NavigationLink rows become Modifier.clickable calls that invoke onNavigate(name); each destination screen is also kept as a private composable (ChatFilterFormView, ChatFiltersFormView, ChatFilterUsernameEditView, ChatFilterMessageStartEditView) so the Form / TextEditView content is translated in full.",
-      "SettingsChatFilter and SettingsChat are treated as ObservableObject models whose @Published properties are MutableStateFlow: values are read with collectAsState() and written through .value.",
-      "Section -> a header Text plus its items plus a footer Text; Form/List -> Column + LazyColumn; Toggle -> a Row of Text + Switch.",
-      "String(localized:) -> localized() imported from com.moblin.android.",
-      ".navigationTitle(\"Filter\" / \"Filters\") has no in-file equivalent and is left to the host TopAppBar.",
-      "The multiline footer string of ChatFilterFilterSettingsView is collapsed into one localized() string; the empty Text(\"\") spacer line is kept as Text(text = \"\").",
-      "Sub-views from com.moblin.android.view.utils (TextItemLocalizedView, DraggableItemPrefixView, SwipeLeftToRemoveHelpView, TextEditView, AddButtonView) and GrayTextView from the streams package are reused as-is.",
-      "contextMenuDeleteButton and List.onMove have no Compose counterpart and are left as TODO markers."
+      "The single 'Show on screen' toggle bound to filter.showOnScreen was replaced by two toggles bound to filter.showInChat and filter.showInActivityFeed, matching the new Swift body.",
+      "SettingsChatFilter already declares showInChat and showInActivityFeed as published Booleans, so no settings change is needed here.",
+      "Nothing else in the file changed: imports, declaration order and all other composables stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4568,
-    "tokens_out": 38322,
-    "seconds": 154.6,
-    "ported_at": "2026-09-22T13:44:47+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48571,
+    "tokens_out": 1994,
+    "seconds": 7.0,
+    "ported_at": "2026-10-02T23:57:09+00:00"
   },
   "Moblin/View/Settings/WiFiAware/WiFiAwareSettingsView.swift": {
     "status": "ok",
@@ -13409,27 +13405,23 @@
   },
   "Moblin/VideoEffects/WheelOfLuckEffect.swift": {
     "status": "ok",
-    "sha256": "b04a81268d734f0a68dea13319153b8be27bc7e5b3d8ed7d9e6ce2f94f5e44e9",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "011d3aebd4f65f26a40813e9d7deb98bda693821b11ec9a8d54dcb7bddaff664",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt",
     "notes": [
-      "SwiftUI Angle has no shim: WheelOfLuckEffectOption.textAngle is a Double of degrees and is applied with Modifier.rotate(degrees = ...).",
-      "WheelView and ArrowView become private @Composable functions; ZStack maps to Box with contentAlignment = Alignment.Center.",
-      "optionColors uses Compose colors; SwiftUI .pink maps to the iOS systemPink value #FF2D55.",
-      "DispatchQueue.main.async becomes CoroutineScope(Dispatchers.Main.immediate).launch; processorPipelineQueue is a CoroutineScope, so DispatchQueue.async becomes launch.",
-      "The '#available(iOS 17, *)' guard around ImageRenderer is dropped because the ImageRenderer shim always exists.",
-      "SwiftUI point sizes are written as dp and the system font size as sp; .minimumScaleFactor(0.1) shrinks the font inside onTextLayout while the layout still has visual overflow.",
-      "SettingsSceneWidget(widgetId: .init()) is built as SettingsSceneWidget(widgetId = UUID.randomUUID())."
+      "Only the position calculation in executeMetalPetal changed: metalPetalLayerPosition(...) is replaced by layoutCenter(...), which lives in the same package (EffectUtils.kt), so no import is added.",
+      "layoutCenter keeps the same named arguments (layout, size, streamSize) and returns a CGPoint, so the following MTILayer positions are unchanged.",
+      "Everything else, including the Compose Size constructor parameter, the SwiftUI layout DSL views and the ImageRenderer usage, stays byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47008,
-    "tokens_out": 18580,
-    "seconds": 67.4,
-    "ported_at": "2026-09-23T20:03:22+00:00"
+    "tokens_in": 61377,
+    "tokens_out": 2726,
+    "seconds": 8.4,
+    "ported_at": "2026-10-02T23:58:15+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift": {
     "status": "ok",
@@ -14840,27 +14832,23 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift": {
     "status": "ok",
-    "sha256": "0950458aa3e996d8090deeb4b29183c9691f2e0b34389643f41afb2d714613f0",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "20b25196f1ce34947fa9f38c294a6de8ff2b6b50c6eb9ae8b22194f4cf985da0",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoUnit.kt",
     "notes": [
-      "VideoUnit now takes colorRange: SettingsStreamColorRange as a constructor parameter and passes it to VideoCaptureSession, VideoEncoder and VideoEffectsProcessor.",
-      "The top-level pixelFormatType and allowVideoRangePixelFormat vars were deleted, as in the Swift diff; color range information now comes from SettingsStreamColorRange and the effects processor.",
-      "setColorSpace now also pushes the color space and the effects processor's output color attachments onto the pipeline encoder and preview encoder and resets the effects processor/black frame state on processorPipelineQueue.",
-      "getCiImage goes through VideoEffectsProcessor.makeCiImage and the new member makeCiImage exposes that conversion to other callers.",
-      "getBufferedBufferPool and makeBlackSampleBuffer keep their hand-written Android bodies (CVPixelBufferPool.matching and the makeBlackPixelBuffer platform hook); the Swift pixel format and propagated attachments are handled by that platform pool helper.",
-      "encoder.outputColorAttachments, previewEncoder.outputColorAttachments, effectsProcessor.outputColorAttachments, outputPixelFormatType, colorSpace and makeCiImage are assumed to exist on the sibling VideoEncoder / VideoEffectsProcessor files translated with the same Swift change.",
-      "Android lease handling (retainLeases/releaseLeases, swapLease/swapPool) and the PipelineStats hook were left untouched."
+      "cameraPreviewLayers changes from a UUID-keyed map to a layer-keyed map, matching Swift's [AVCaptureVideoPreviewLayer: UUID]; the Kotlin value type is Map<PreviewView, UUID> since AVCaptureVideoPreviewLayer is a typealias of PreviewView.",
+      "The new `cameraPreviewLayers != other.cameraPreviewLayers` check is translated with Kotlin Map equality, which compares PreviewView keys by identity exactly like Swift dictionary equality on class keys.",
+      "Only the VideoUnitAttachParams declaration and canQuickSwitchTo changed; every other line is byte-identical to the current Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 74878,
-    "tokens_out": 21465,
-    "seconds": 72.0,
-    "ported_at": "2026-09-29T00:40:19+00:00"
+    "tokens_in": 78016,
+    "tokens_out": 10202,
+    "seconds": 28.8,
+    "ported_at": "2026-10-02T23:58:46+00:00"
   },
   "Moblin/Various/Model/ModelTwitch.swift": {
     "status": "ok",
@@ -15442,27 +15430,23 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/ShapeEffectView.swift": {
     "status": "ok",
-    "sha256": "e26588627a103205af9b7e09358f6fea1218ae382d097c901431bb227e38ee2b",
+    "sha256": "7f3e133f79f70c3869b944cccb3eb503a237b1df4e462caef6315e96afbb4df5",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/effects/ShapeEffectView.kt",
     "notes": [
-      "Section headers are emitted as a Material3 Text above their content, since this file is not itself a Form/List.",
-      "SettingsVideoEffectShape published members are modelled as MutableStateFlow: read with collectAsState(), write with .value.",
-      "onChange(of:) became LaunchedEffect(value), which also fires once on first composition unlike SwiftUI.",
-      "CGPoint/CGSize/CGRect map to androidx.compose.ui.geometry.Offset/Size/Rect.",
-      "previewImage is treated as android.graphics.Bitmap rendered through asImageBitmap().",
-      "The 'GamlaLinkoping' placeholder asset is assumed to exist at R.drawable.gamla_linkoping.",
-      "GeometryReader + Canvas + DragGesture became a Canvas with pointerInput { detectDragGestures }.",
-      "External helpers are called with assumed shapes: calculatePositioningAnchorPoint returns a Pair, calculatePositioningRectangle returns a destructurable 4-field object, drawPositioningRectangle is a DrawScope extension."
+      "The only change is the added model.updateCameraPreviewWidgets() call after setSettings in ShapeEffectView.updateWidget.",
+      "An import for updateCameraPreviewWidgets was added next to the existing Model extension imports.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6061,
-    "tokens_out": 19112,
-    "seconds": 71.4,
-    "ported_at": "2026-09-22T13:58:34+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50228,
+    "tokens_out": 2641,
+    "seconds": 8.7,
+    "ported_at": "2026-10-02T23:58:15+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSpeechToTextSettingsView.swift": {
     "status": "ok",
@@ -16016,49 +16000,48 @@
   },
   "Moblin/Various/Media.swift": {
     "status": "ok",
-    "sha256": "5626f825379ca92a66f802e89c925211aadfbb8991b10ef185055b04fe1432a5",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "c9497cbff4c8d5a443a881950dea7807c18a6ae0e9e6fd51d5ebdcc93b50adcc",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/Media.kt",
     "notes": [
-      "Applied only the three Swift changes: the new colorRange parameter of setNetStream (passed to Processor), the new hdr parameter of startRecording, and the HEVC Main10 profile level written into the compression properties.",
-      "Kept all hand-written Android deviations untouched: MediaFormat keys in makeVideoCompressionSettings/makeAudioCompressionSettings, the literal compressionProperties key, the Uri-based makeLocalhostSrtUrl, and the AVCaptureDevice shim calls in setCameraZoomLevel/stopCameraZoomLevel.",
-      "AVVideoProfileLevelKey has no MediaFormat counterpart next to the hand-written MediaFormat keys, so the AVFoundation shim constant is imported from com.moblin.android.platform.avfoundation.",
-      "kVTProfileLevel_HEVC_Main10_AutoLevel is imported from com.moblin.android.platform.videotoolbox as the shim declares it there.",
-      "SettingsStreamColorRange is imported from com.moblin.android.various.settings and forwarded to the Processor constructor which takes colorRange as its second parameter.",
-      "Swift's `hdr` default remains absent in Kotlin: callers must pass it explicitly, exactly as the new Swift signature requires."
+      "Only attachBufferedCamera changed: the Swift dictionary key/value order was swapped, so the Kotlin parameter becomes Map<PreviewView, UUID> (was Map<UUID, Any>).",
+      "That type now matches VideoUnitAttachParams.cameraPreviewLayers exactly, so the call no longer needs a cast.",
+      "All other lines, imports and declaration order are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88652,
-    "tokens_out": 17822,
-    "seconds": 53.0,
-    "ported_at": "2026-09-29T00:43:56+00:00"
+    "tokens_in": 89835,
+    "tokens_out": 13666,
+    "seconds": 34.8,
+    "ported_at": "2026-10-02T23:59:23+00:00"
   },
   "Moblin/Various/Model/ModelMacros.swift": {
     "status": "ok",
-    "sha256": "365a15a8247f5c0b460eb8aa001ee701cf6d0a7b238d4235d5e8e7664a698967",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "7c6a8b6829926c7cd75177be508dab20cb37a663687fdd4f841e4abde863e502",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMacros.kt",
     "notes": [
-      "Swift's macro.variables is translated as the MacroVariables type from com.moblin.android.various.settings, called with removeAll(), set(...), get(...) and substitute(...) as in the Swift source.",
-      "The new sendTwitchShoutout action is dispatched through SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT (SCREAMING_SNAKE_CASE to match the other cases already used in this file).",
-      "MacroVariable.TWITCH_RAID_CHANNEL_ID is the translation of the Swift case .twitchRaidChannelId; it is now imported from com.moblin.android.various.settings.",
-      "MacroEvent is assumed to expose the variables that the queued event carries, matching the new Swift event.variables usage.",
-      "executeSendChatMessage and executeIfCondition now take the macro variables and substitute them before formatting the text, exactly as in the new Swift code.",
-      "Everything outside the Swift diff, including the deliberate absence of the #available(iOS 17) guard in executeReaction, is unchanged."
+      "Adds the new .notification macro action: the flatMap filter in macrosTextFormatActions, the when in macrosActionTextFormat, and a new NOTIFICATION branch in executeNextAction.",
+      "New private extension Model.executeNotification builds a macro ChatPost, appends it to chatActivityFeed and quickButtonChatAlerts, and bumps chatPostId, inserted right after executeSendChatMessage as in Swift.",
+      "This change requires SettingsMacrosActionFunction.NOTIFICATION and SettingsMacrosAction.notificationMessage, which are not present in the currently declared Kotlin dependencies; they must be added in SettingsMacros.kt.",
+      "Added imports for ChatPost, ChatPostState, ChatHighlight, makeChatPostTextSegments (com.moblin.android.various) and java.time.Instant; all other imports are untouched.",
+      "Swift's .now for timestampTime becomes Instant.now().",
+      "Swift's default empty userBadges array becomes emptyList().",
+      "The diff's added `return true` in executeSendChatMessage already existed in the Kotlin file, so that function is unchanged.",
+      "chatActivityFeed/quickButtonChatAlerts calls keep the Swift label post: as the named argument post = post."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 19710,
-    "tokens_out": 7003,
-    "seconds": 21.9,
-    "ported_at": "2026-09-23T11:19:47+00:00"
+    "tokens_in": 52925,
+    "tokens_out": 7491,
+    "seconds": 23.1,
+    "ported_at": "2026-10-02T23:59:53+00:00"
   },
   "Moblin/Various/Model/ModelMediaPlayer.swift": {
     "status": "ok",
@@ -16179,27 +16162,24 @@
   },
   "Moblin/Various/Settings/SettingsMacros.swift": {
     "status": "ok",
-    "sha256": "0fd679c3f6a4e4545f1d9e6d53815ed0a027d818939007d47ea0e791c93decab",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "c7f390966d3ed3849755652fe325a21442ac17a276cbb05a5c945c13f6a55420",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsMacros.kt",
     "notes": [
-      "Renamed the Kick host event to Kick raid: KICK_HOST -> KICK_RAID with rawValue \"Kick raid\", updated toString() and the TWITCH_RAID/KICK_RAID branch of minimumAmountTitle().",
-      "Removed SettingsMacrosEvent.variablesToString() exactly as the Swift diff removes it.",
-      "Added MacroVariable.description() with the nine localized strings from Swift, placed after toString() as in the source.",
-      "Enum names in Kotlin keep UPPER_SNAKE entries; raw values stay byte-identical because they are persisted.",
-      "MacroVariable.description() is exhaustive over all entries, so no else branch is needed.",
-      "No other members of the file were touched; formatting, imports and declaration order are unchanged.",
-      "Callers outside this file that used SettingsMacrosEvent.KICK_HOST must be renamed to KICK_RAID separately."
+      "Incremental update: added the `notification` case to `SettingsMacrosActionFunction` (raw value \"Notification\", placed between sendChatMessage and sendTwitchShoutout) with its toString branch.",
+      "Added the `notificationMessage` published property to `SettingsMacrosAction`, kept in the same position as the Swift CodingKeys/encode/decode order (right after chatMessage).",
+      "Everything else in the file is byte-identical to the previous Kotlin translation, including the hand-written container serialization pattern and the SettingsReaction.toSystem() Android stub.",
+      "The enum uses the existing private rawValueSerializer helper, so the new case serializes as the string \"Notification\" exactly like Swift's String raw value."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45036,
-    "tokens_out": 6403,
-    "seconds": 18.3,
-    "ported_at": "2026-09-24T15:40:57+00:00"
+    "tokens_in": 52151,
+    "tokens_out": 6518,
+    "seconds": 18.0,
+    "ported_at": "2026-10-02T23:59:42+00:00"
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
@@ -16227,44 +16207,49 @@
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "ce2476b9eec089608678aa9d024368a53bd2f3efd43ad6f4d8ea36fc8382a269",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "2df9f78896b904ff62141e316f568e3a3fbff4a1d180a02099471f926b15c142",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "Added the srtClient/whip/whep network-camera branches to handleBufferedVideoReady and handleBufferedVideoRemoved as new else-if arms of the existing chain.",
-      "In handleBufferedVideoRemoved the auto-scene-switcher disconnect check moved out of the isNetwork block, matching the new Swift dedent.",
-      "The rist branches keep the existing Kotlin else-block shape (local val + null check); the new whip/whep checks are attached as else-if arms of that inner if so the previously hand-written lines stay untouched.",
-      "getSrtClientStream/getWhipStream/getWhepStream are Model extensions in the same package, so no new imports are needed."
+      "Only one line changed: cameraPreviewView.setDevices in setNetStream now also passes widgets: [:].",
+      "widgets is translated as emptyMap(); the key/value types are inferred from the hand-written CameraPreviewView.setDevices signature.",
+      "ids keeps the existing emptyList<UUID>() from the current Kotlin file.",
+      "Every other line of the Kotlin file is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 87364,
-    "tokens_out": 13294,
-    "seconds": 35.8,
-    "ported_at": "2026-09-29T23:50:12+00:00"
+    "tokens_in": 88035,
+    "tokens_out": 11679,
+    "seconds": 30.4,
+    "ported_at": "2026-10-03T00:00:25+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
-    "sha256": "85a6e841146ba5cd6ba96b1028442d88fea5cfe9401bd8f9ddd7f337a9474cd7",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "dc275bb347e6cac9246484bd72a9247d32722a952820d2c7fa9e8bc5bdec0c33",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
     "notes": [
-      "Only createTextEffect changed: the separate fontFamily and fontStyle arguments are replaced by a single font argument from widget.text.font.",
-      "Everything else in the file is unchanged and kept byte-identical.",
-      "fontDesign and horizontalAlignment keep their existing Android shim conversions (toUiKit / raw value), untouched by this diff."
+      "Adds getCameraPreviewWidgets, getCameraPreviewWidgetDeviceIds and updateCameraPreviewWidgets, plus the updateCameraPreviewWidgets() call in sceneUpdatedOn's non-attach branch.",
+      "CaptureDevice is built exactly like the existing hand-written getBuiltinCameraDevices: AVCaptureDevice.withUniqueID(cameraId) is wrapped in a CaptureDevice with a fresh UUID before makeCaptureDevice(device = ...), because this port's makeCaptureDevice takes a CaptureDevice.",
+      "media.getCanvasSize() returns android.util.Size here, so it is converted with toCGSize() for the CameraPreviewWidget shape and for cameraPreviewView.setWidgets.",
+      "WidgetShape is a class in com.moblin.android.videoeffects, so no copy of previewWidget is needed before previewWidget.shape.apply(effect.shape.toSettings()).",
+      "Widget type filtering uses SettingsVideoEffectType.shape and SettingsWidgetType.videoSource enums, never raw strings.",
+      "getCameraPreviewWidgetDeviceIds returns Map<UUID, UUID> and its loop variable shadows the scene parameter exactly as in Swift.",
+      "cameraPreviewView.setWidgets(widgets = ..., canvasSize = ...) is called as declared in com.moblin.android.view.stream, with no local stand-in.",
+      "Imports added: CameraPreviewWidget, WidgetShape, SettingsVideoEffectType, CGPoint, CGRect."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 86996,
-    "tokens_out": 17750,
-    "seconds": 44.8,
-    "ported_at": "2026-09-24T15:41:36+00:00"
+    "tokens_in": 98738,
+    "tokens_out": 26067,
+    "seconds": 75.7,
+    "ported_at": "2026-10-03T00:00:59+00:00"
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",
@@ -16643,25 +16628,26 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "54618595cb6d2def822170bf5c5f0963bf3d193c1e65eb352ccc95131dd8e43c",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "6a357d7c9f4d9dcd5401b1354639f5af08dcd1a39bc8cdfa71dab288925a4554",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "QuickButtonChat lost its three chat-alert fields (chatAlertsPosts, pausedChatAlertsPostsCount, chatAlertsPaused) exactly as the Swift diff removes them.",
-      "The six chat providers now call ChatProvider() with no maximumNumberOfMessages argument, matching the new Swift initializers.",
-      "A new provider quickButtonChatAlerts = ChatProvider() was inserted right after quickButtonChat, keeping Swift declaration order.",
-      "Model's newQuickButtonChatAlertsPosts and pausedQuickButtonChatAlertsPosts ArrayDeque properties were removed.",
-      "Everything else in the file is byte-identical to the previous Kotlin port."
+      "Incremental update: only the camera preview device/widget wiring in attachCameraFinalize and attachBufferedCamera changed.",
+      "cameraPreviewView.setDevices now takes a second widgets argument; the branch on attachCameraPreview is kept instead of the previous inline if-expression.",
+      "cameraPreviewView.select now also receives isMirrored.",
+      "updateCameraPreviewWidgets() is called right after select in the attach success handler.",
+      "getCameraPreviewWidgetDeviceIds(scene = scene) is a Model extension in the same package, so no import is added.",
+      "Everything else in the file is byte-identical to the previous translation, including the Android-only hooks."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 145400,
-    "tokens_out": 33924,
-    "seconds": 86.9,
-    "ported_at": "2026-09-30T23:16:43+00:00"
+    "tokens_in": 145383,
+    "tokens_out": 35545,
+    "seconds": 93.3,
+    "ported_at": "2026-10-03T00:02:02+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -17149,28 +17135,23 @@
   },
   "Moblin/View/Settings/Macros/MacrosSettingsView.swift": {
     "status": "ok",
-    "sha256": "a3c04b3c4a98ef383f022eddc21624ae618018c646e469f8df88c41d6f371065",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "4f85f82edc054191ce1f6ae8dc38117e90f4cd3649ff024370f1cd919072021a",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/macros/MacrosSettingsView.kt",
     "notes": [
-      "Adds private MacroVariableView between TextFormatView and submitZoomX, matching the new Swift struct position.",
-      "Adds a second Section inside the Action Form that lists the event's variables, gated on function == WAIT_FOR_EVENT and a non-empty variable list.",
-      "UIPasteboard is replaced with the Android clipboard (ClipboardManager via AppDelegate.context), the only place in the file that needs a Context.",
-      "The removed Swift 'variablesToString()' footer text was never present in the Kotlin file, so nothing was deleted.",
-      "ForEach(action.event.variables(), id = { it }) mirrors ForEach(..., id: \\.self); MacroVariable is keyed by value.",
-      "Text(variable.toString()).font(.title3) uses SwiftUIFonts.system(size = 20f), the title3 size.",
-      "VStack(alignment: .leading) maps to Column with Alignment.Start and the default 8.dp spacing.",
-      "model.makeToast(title = ...) is the ported Model extension; the copied string is built with Kotlin interpolation."
+      "Added the .notification case to ActionDestinationView's when(action.function), mapping the new Swift TextFormatView navigation to a TextFormatView with action.notificationMessage, placed between SEND_CHAT_MESSAGE and SEND_TWITCH_SHOUTOUT.",
+      "Added the .notification case to ActionView's row-content when(action.function), showing action.notificationMessage in a GrayTextView after a weight Spacer, placed between SEND_CHAT_MESSAGE and DELAY.",
+      "Both cases reuse the already-collected action.notificationMessage published property, so no extra state or imports were needed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61333,
-    "tokens_out": 13895,
-    "seconds": 42.7,
-    "ported_at": "2026-09-24T15:42:20+00:00"
+    "tokens_in": 67675,
+    "tokens_out": 8377,
+    "seconds": 23.0,
+    "ported_at": "2026-10-03T00:01:24+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift": {
     "status": "ok",
@@ -17340,24 +17321,23 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VideoSource/WidgetVideoSourceSettingsView.swift": {
     "status": "ok",
-    "sha256": "7110e36051dc65431bd0b4730ee448b9babed23622ab852c30f27d9faa4a9196",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "0ac9729f2da0a4f6e658625f171e7b1a49c0386fce17558d6b9f7f3ba3ad4044",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/videosource/WidgetVideoSourceSettingsView.kt",
     "notes": [
-      "WidgetVideoSourceSettingsView now takes a videoSources: VideoSources parameter, added after videoSource in the same position as the Swift @ObservedObject.",
-      "The InlinePickerView items come from videoSources.all() instead of model.listCameras(excludeBuiltin = false); the unused listCameras import was dropped.",
-      "VideoSources is observed through its MutableStateFlow lists, but all() is read at call time as in Swift.",
-      "Everything else in the file, including the positioning helpers, is unchanged."
+      "Added the new model.updateCameraPreviewWidgets() call inside setEffectSettings(), right after getVideoSourceEffect(...)?.setSettings(...), matching the Swift diff.",
+      "Imported com.moblin.android.various.model.updateCameraPreviewWidgets next to the other Model extension imports.",
+      "Everything else in the file is unchanged, including the hand-written Alert/FormRow/FormSlider composition and the drawPositioningRectangle DrawScope port."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53386,
-    "tokens_out": 3567,
-    "seconds": 11.1,
-    "ported_at": "2026-09-29T23:53:58+00:00"
+    "tokens_in": 53619,
+    "tokens_out": 3049,
+    "seconds": 9.6,
+    "ported_at": "2026-10-03T00:01:34+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift": {
     "status": "ok",
@@ -18309,26 +18289,26 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "510dfa5ec2a1a5a83a3c457fd0939a99b20416e8f10ef0462021994fea5c9d4e",
-    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
+    "sha256": "5ba8b6c3843f2d0cdf64ddc9e983d6c2af36b295605906b555989338f76c8524",
+    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "Key handling now matches the new Swift: the iOS 17 focus approach (@FocusState, .focusable/.focused/.onKeyPress/.onChange, the onAppear focus flip) is gone and KeyPressView(model = model) is always emitted.",
-      "The macCatalyst-only #if guard around the key press background is removed in Swift, so KeyPressView is no longer conditional; it is emitted on every platform.",
-      "KeyPressView(model = model) is placed before the content Column, standing in for Swift's .background { KeyPressView(model: model) } on the outer VStack.",
-      "The removed onChange(of:) list fed the two COLLECTED states showingPanel and showBrowser, which are now dead and were dropped from MainView.",
-      "LaunchedEffect(Unit) keeps model.setup() (the Swift .onAppear) but no longer flips any focus state.",
-      "The old focus/key Compose imports are left byte-identical, so some are now unused; no new unsupported Apple API appears in this change."
+      "The private browserWidgetScale/browserWidgetOffset helpers were removed with their Swift counterparts; InteractiveBrowserView now calls the videoeffects shims layoutScale and layoutCenter.",
+      "layoutScale/layoutCenter take platform CGSize, so the Compose stream size is converted with Size.toCGSize() from com.moblin.android.platform.coregraphics.",
+      "SwiftUI .position(center) has no direct Compose equivalent; the existing Box keeps the top-left offset form, computed as center minus half the display size.",
+      "browserEffect.width/height and layoutScale are Double, so the Modifier.scale call converts to Float through scale.toFloat().",
+      "Imports updated: com.moblin.android.videoeffects.toPixels and com.moblin.android.various.settings.SettingsWidgetLayout are gone, layoutScale/layoutCenter and the coregraphics CGSize/toCGSize helpers are added.",
+      "Nothing else in the file changed; all Compose composition, sheets, dialogs and safe-area handling stay as before."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 77214,
-    "tokens_out": 38984,
-    "seconds": 136.3,
-    "ported_at": "2026-10-01T23:30:50+00:00"
+    "tokens_in": 73564,
+    "tokens_out": 17146,
+    "seconds": 52.6,
+    "ported_at": "2026-10-03T00:02:28+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",

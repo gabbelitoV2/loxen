@@ -6,6 +6,8 @@ import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coreimage.CIImage
 import com.moblin.android.platform.metalpetal.MTIAlphaType
+import com.moblin.android.platform.metalpetal.MTIColor
+import com.moblin.android.platform.metalpetal.MTICornerRadius
 import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.platform.metalpetal.MTILayer
 import com.moblin.android.platform.metalpetal.MTIMultilayerCompositingFilter
@@ -96,38 +98,49 @@ fun CIImage.toEffectImage(isOpaque: Boolean): EffectImageCiImage = EffectImageCi
 
 fun Bitmap.toEffectImage(): EffectImageCgImage = EffectImageCgImage(image = this)
 
-fun layoutPosition(layout: SettingsWidgetLayout, size: CGSize, streamSize: CGSize): CGPoint {
-    var x: Double
-    var y: Double
-    if (layout.alignment.isHorizontalCenter()) {
-        x = (streamSize.width - size.width) / 2
-    } else if (layout.alignment.isLeft()) {
-        x = toPixels(layout.x, streamSize.width)
+fun layoutScale(layout: SettingsWidgetLayout, size: CGSize, streamSize: CGSize): Double =
+    minOf(toPixels(layout.size, streamSize.width) / size.width,
+        toPixels(layout.size, streamSize.height) / size.height)
+
+private fun layoutOffset(offset: Double,
+                         size: Double,
+                         streamSize: Double,
+                         isCenter: Boolean,
+                         isNear: Boolean): Double {
+    return if (isCenter) {
+        (streamSize - size) / 2
+    } else if (isNear) {
+        toPixels(offset, streamSize)
     } else {
-        x = streamSize.width - toPixels(layout.x, streamSize.width) - size.width
+        streamSize - toPixels(offset, streamSize) - size
     }
-    if (layout.alignment.isVerticalCenter()) {
-        y = (streamSize.height - size.height) / 2
-    } else if (layout.alignment.isTop()) {
-        y = toPixels(layout.y, streamSize.height)
-    } else {
-        y = streamSize.height - toPixels(layout.y, streamSize.height) - size.height
-    }
-    return CGPoint(x = x, y = y)
 }
 
-fun metalPetalLayerPosition(layout: SettingsWidgetLayout, size: CGSize, streamSize: CGSize): CGPoint {
+fun layoutPosition(layout: SettingsWidgetLayout, size: CGSize, streamSize: CGSize): CGPoint {
+    val alignment = layout.alignment
+    return CGPoint(x = layoutOffset(layout.x,
+            size.width,
+            streamSize.width,
+            alignment.isHorizontalCenter(),
+            alignment.isLeft()),
+        y = layoutOffset(layout.y,
+            size.height,
+            streamSize.height,
+            alignment.isVerticalCenter(),
+            alignment.isTop()))
+}
+
+fun layoutCenter(layout: SettingsWidgetLayout, size: CGSize, streamSize: CGSize): CGPoint {
     val position = layoutPosition(layout = layout, size = size, streamSize = streamSize)
     return CGPoint(x = position.x + size.width / 2, y = position.y + size.height / 2)
 }
 
 fun MTIImage.moveComposited(layout: SettingsWidgetLayout, backgroundImage: MTIImage, contentRegion: CGRect? = null): MTIImage {
-    val region = contentRegion ?: extent
     return composited(layout = layout,
-        size = region.size,
         mirror = false,
         backgroundImage = backgroundImage,
-        shape = MetalPetalWidgetShape(contentRegion = region))
+        shape = WidgetShape(contentRegion = contentRegion ?: extent),
+        resize = false)
 }
 
 fun MTIImage.positionComposited(position: CGPoint, backgroundImage: MTIImage, size: CGSize? = null): MTIImage {
@@ -139,41 +152,36 @@ fun MTIImage.positionComposited(position: CGPoint, backgroundImage: MTIImage, si
     return filter.outputImage ?: backgroundImage
 }
 
-fun MTIImage.resizeMirrorMoveComposited(layout: SettingsWidgetLayout, mirror: Boolean, backgroundImage: MTIImage, shape: MetalPetalWidgetShape): MTIImage {
-    val backgroundImageSize = backgroundImage.extent.size
-    val rotatedSize = shape.rotated(size = shape.contentRegion.size)
-    val scaleX = toPixels(layout.size, backgroundImageSize.width) / rotatedSize.width
-    val scaleY = toPixels(layout.size, backgroundImageSize.height) / rotatedSize.height
-    val scale = minOf(scaleX, scaleY)
-    val size = CGSize(width = shape.contentRegion.width * scale,
-        height = shape.contentRegion.height * scale)
-    return composited(layout = layout, size = size, mirror = mirror, backgroundImage = backgroundImage, shape = shape)
+fun MTIImage.resizeMirrorMoveComposited(layout: SettingsWidgetLayout, mirror: Boolean, backgroundImage: MTIImage, shape: WidgetShape): MTIImage {
+    return composited(layout = layout, mirror = mirror, backgroundImage = backgroundImage, shape = shape, resize = true)
 }
 
-private fun MTIImage.composited(layout: SettingsWidgetLayout, size: CGSize, mirror: Boolean, backgroundImage: MTIImage, shape: MetalPetalWidgetShape): MTIImage {
-    val borderWidth = shape.borderWidthPixels(size)
-    val borderSize = CGSize(width = size.width + 2 * borderWidth,
-        height = size.height + 2 * borderWidth)
-    val position = metalPetalLayerPosition(layout = layout,
-        size = shape.rotated(size = borderSize),
-        streamSize = backgroundImage.extent.size)
-    val rotation = shape.rotationRadians()
+private fun MTIImage.composited(layout: SettingsWidgetLayout,
+                               mirror: Boolean,
+                               backgroundImage: MTIImage,
+                               shape: WidgetShape,
+                               resize: Boolean): MTIImage {
+    val placement = shape.placement(layout, backgroundImage.extent.size, resize)
+    val rotation = shape.rotationRadians().toFloat()
     val layers = mutableListOf<MTILayer>()
-    if (borderWidth > 0) {
+    if (placement.borderWidth > 0) {
         layers.add(MTILayer(content = MTIImage.white,
-            position = position,
-            size = borderSize,
+            position = placement.center,
+            size = placement.borderSize,
             rotation = rotation,
-            cornerRadius = shape.cornerRadius(borderSize),
-            tintColor = shape.borderColor))
+            cornerRadius = MTICornerRadius(shape.cornerRadiusPixels(placement.borderSize)),
+            tintColor = MTIColor(red = shape.borderColor.red.toFloat(),
+                green = shape.borderColor.green.toFloat(),
+                blue = shape.borderColor.blue.toFloat(),
+                alpha = shape.borderColor.alpha.toFloat())))
     }
     layers.add(MTILayer(content = this,
         contentRegion = shape.contentRegion,
         contentFlipOptions = if (mirror) shape.mirrorFlipOptions() else MTILayer.FlipOptions.donotFlip,
-        position = position,
-        size = size,
+        position = placement.center,
+        size = placement.size,
         rotation = rotation,
-        cornerRadius = shape.cornerRadius(size)))
+        cornerRadius = MTICornerRadius(shape.cornerRadiusPixels(placement.size))))
     val filter = MTIMultilayerCompositingFilter()
     filter.inputBackgroundImage = backgroundImage
     filter.layers = layers
@@ -184,16 +192,8 @@ fun CIImage.resizeMirror(layout: SettingsWidgetLayout, streamSize: CGSize, mirro
     if (!resize) {
         return this
     }
-    var scaleX = toPixels(layout.size, streamSize.width) / extent.size.width
-    var scaleY = toPixels(layout.size, streamSize.height) / extent.size.height
-    val scale = minOf(scaleX, scaleY)
-    if (mirror) {
-        scaleX = -scale
-    } else {
-        scaleX = scale
-    }
-    scaleY = scale
-    val scaledImage = scaled(x = scaleX, y = scaleY)
+    val scale = layoutScale(layout = layout, size = extent.size, streamSize = streamSize)
+    val scaledImage = scaled(x = if (mirror) -scale else scale, y = scale)
     if (mirror) {
         return scaledImage.translated(x = scaledImage.extent.width, y = 0.0)
     } else {
@@ -202,27 +202,22 @@ fun CIImage.resizeMirror(layout: SettingsWidgetLayout, streamSize: CGSize, mirro
 }
 
 fun CIImage.move(layout: SettingsWidgetLayout, streamSize: CGSize): CIImage {
-    var x: Double
-    var y: Double
-    if (layout.alignment.isHorizontalCenter()) {
-        x = (streamSize.width - extent.width) / 2 - extent.minX
-    } else if (layout.alignment.isLeft()) {
-        x = toPixels(layout.x, streamSize.width) - extent.minX
-    } else {
-        x = streamSize.width - toPixels(layout.x, streamSize.width) - extent.width - extent.minX
-        if (x != 0.0) {
-            x += 1
-        }
+    val alignment = layout.alignment
+    var x = layoutOffset(layout.x,
+        extent.width,
+        streamSize.width,
+        alignment.isHorizontalCenter(),
+        alignment.isLeft()) - extent.minX
+    var y = layoutOffset(layout.y,
+        extent.height,
+        streamSize.height,
+        alignment.isVerticalCenter(),
+        alignment.mirrorPositionVertically()) - extent.minY
+    if (alignment.mirrorPositionHorizontally() && x != 0.0) {
+        x += 1
     }
-    if (layout.alignment.isVerticalCenter()) {
-        y = (streamSize.height - extent.height) / 2 - extent.minY
-    } else if (layout.alignment.isTop()) {
-        y = streamSize.height - toPixels(layout.y, streamSize.height) - extent.height - extent.minY
-        if (y != 0.0) {
-            y += 1
-        }
-    } else {
-        y = toPixels(layout.y, streamSize.height) - extent.minY
+    if (alignment.isTop() && y != 0.0) {
+        y += 1
     }
     return translated(x = x, y = y)
 }

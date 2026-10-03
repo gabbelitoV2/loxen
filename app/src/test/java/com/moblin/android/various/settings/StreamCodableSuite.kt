@@ -997,7 +997,7 @@ class StreamCodableSuite {
         assertKeys(
             SettingsChatFilter.serializer(),
             SettingsChatFilter(),
-            "id enabled value messageWords showOnScreen textToSpeech chatBot poll print",
+            "id enabled value messageWords showOnScreen showInActivityFeed textToSpeech chatBot poll print",
         )
         assertKeys(
             SettingsChatBotPermissionsCommand.serializer(),
@@ -1008,7 +1008,7 @@ class StreamCodableSuite {
             SettingsChatBotPermissions.serializer(),
             SettingsChatBotPermissions(),
             "tts fix map alert fax snapshot filter zoom tesla audio reaction scene stream widget location ai " +
-                "twitch gimbal macro send music migrated",
+                "twitch gimbal macro send music torch migrated",
         )
         assertKeys(SettingsChatBotAlias.serializer(), SettingsChatBotAlias(), "alias replacement")
         assertKeys(
@@ -1467,7 +1467,7 @@ class StreamCodableSuite {
     fun swiftEncodedChatRoundTripsUnchanged() {
         val commandNames = listOf(
             "tts", "fix", "map", "alert", "fax", "snapshot", "filter", "zoom", "tesla", "audio", "reaction",
-            "scene", "stream", "widget", "location", "ai", "twitch", "gimbal", "macro", "send", "music",
+            "scene", "stream", "widget", "location", "ai", "twitch", "gimbal", "macro", "send", "music", "torch",
         )
         val permissions = commandNames.mapIndexed { index, name ->
             "\"$name\":{\"moderatorsEnabled\":${index % 2 == 0},\"subscribersEnabled\":${index % 2 == 1}," +
@@ -1508,6 +1508,7 @@ class StreamCodableSuite {
                   "value": "bot",
                   "messageWords": ["!a", "b"],
                   "showOnScreen": true,
+                  "showInActivityFeed": false,
                   "textToSpeech": true,
                   "chatBot": true,
                   "poll": true,

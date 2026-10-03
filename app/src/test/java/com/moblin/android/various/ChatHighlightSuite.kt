@@ -36,6 +36,7 @@ class ChatHighlightSuite {
             ChatHighlightKind.Moderator to WatchProtocolChatHighlightKind.moderator,
             ChatHighlightKind.RemoteControlAssistant to WatchProtocolChatHighlightKind.other,
             ChatHighlightKind.GigantifiedEmote to WatchProtocolChatHighlightKind.other,
+            ChatHighlightKind.MacroNotification to WatchProtocolChatHighlightKind.other,
         )
         assertEquals(ChatHighlightKind.entries.toSet(), expected.keys)
         for ((kind, watchKind) in expected) {

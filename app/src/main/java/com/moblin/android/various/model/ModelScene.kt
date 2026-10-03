@@ -19,6 +19,7 @@ import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsVideoEffect
+import com.moblin.android.various.settings.SettingsVideoEffectType
 import com.moblin.android.various.settings.SettingsVideoSource
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetAlertPositionType
@@ -70,6 +71,7 @@ import com.moblin.android.videoeffects.TripleEffect
 import com.moblin.android.videoeffects.TwinEffect
 import com.moblin.android.videoeffects.VideoSourceEffect
 import com.moblin.android.videoeffects.vtuber.VTuberEffect
+import com.moblin.android.videoeffects.WidgetShape
 import com.moblin.android.videoeffects.WheelOfLuckEffect
 import com.moblin.android.videoeffects.WhirlpoolEffect
 import com.moblin.android.videoeffects.alerts.AlertsEffect
@@ -81,6 +83,7 @@ import com.moblin.android.videoeffects.text.TextFormatPart
 import com.moblin.android.videoeffects.text.loadTextFormat
 import com.moblin.android.videoeffects.vtuber.VTuberLive2DEffect
 import com.moblin.android.videoeffects.vtuber.VTuberVrmEffect
+import com.moblin.android.view.stream.CameraPreviewWidget
 import java.io.File
 import java.net.URI
 import java.time.Duration
@@ -95,6 +98,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.moblin.android.AppDelegate
+import com.moblin.android.platform.coregraphics.CGPoint
+import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coregraphics.toCGSize
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
@@ -646,6 +651,64 @@ fun Model.getCameraPreviewDeviceIds(scene: SettingsScene, sceneDevice: CaptureDe
         }
     }
     return devices.map { it.id }
+}
+
+fun Model.getCameraPreviewWidgets(scene: SettingsScene): List<CameraPreviewWidget> {
+    val widgets = mutableListOf<CameraPreviewWidget>()
+    for (widget in removeDuplicatedWidgets(widgets = getSceneWidgets(scene = scene, onlyEnabled = true))) {
+        if (widget.widget.type != SettingsWidgetType.videoSource) {
+            continue
+        }
+        val videoSource = widget.widget.videoSource
+        val cameraId = videoSource.videoSource.getCaptureDeviceCameraId() ?: continue
+        val avDevice = com.moblin.android.platform.avfoundation.AVCaptureDevice.withUniqueID(cameraId)
+            ?: continue
+        val device = CaptureDevice(device = avDevice, id = UUID.randomUUID(), isVideoMirrored = false)
+        val previewWidget = CameraPreviewWidget(
+            id = widget.widget.id,
+            deviceId = makeCaptureDevice(device = device).id,
+            layout = widget.sceneWidget.layout,
+            mirror = videoSource.mirror,
+            shape = WidgetShape(
+                contentRegion = CGRect(
+                    origin = CGPoint.zero,
+                    size = media.getCanvasSize().toCGSize(),
+                ),
+                rotation = videoSource.rotation,
+            )
+        )
+        for (effect in widget.widget.effects) {
+            if (!effect.enabled || effect.type != SettingsVideoEffectType.shape) {
+                continue
+            }
+            previewWidget.shape.apply(effect.shape.toSettings())
+        }
+        widgets.add(previewWidget)
+    }
+    return widgets
+}
+
+fun Model.getCameraPreviewWidgetDeviceIds(scene: SettingsScene): Map<UUID, UUID> {
+    val scenes = mutableListOf(scene)
+    val quickSwitchGroup = scene.quickSwitchGroup
+    if (quickSwitchGroup != null) {
+        scenes.addAll(enabledScenes.filter { it.quickSwitchGroup == quickSwitchGroup })
+    }
+    val deviceIds = mutableMapOf<UUID, UUID>()
+    for (scene in scenes) {
+        for (widget in getCameraPreviewWidgets(scene = scene)) {
+            deviceIds[widget.id] = widget.deviceId
+        }
+    }
+    return deviceIds
+}
+
+fun Model.updateCameraPreviewWidgets() {
+    val scene = getSelectedScene() ?: return
+    cameraPreviewView.setWidgets(
+        widgets = getCameraPreviewWidgets(scene = scene),
+        canvasSize = media.getCanvasSize().toCGSize()
+    )
 }
 
 private fun Model.createGlobalVideoEffects() {
@@ -1216,6 +1279,7 @@ private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
         attachSingleLayout(scene = effectiveScene)
     } else {
         media.usePendingAfterAttachEffects()
+        updateCameraPreviewWidgets()
     }
     if (drawOnStream.lines.value.isNotEmpty()) {
         drawOnStreamEffect.updateOverlay(

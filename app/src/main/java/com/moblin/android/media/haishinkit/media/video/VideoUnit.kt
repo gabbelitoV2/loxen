@@ -52,7 +52,7 @@ data class DetectionJob(
 data class VideoUnitAttachParams(
     val devices: CaptureDevices,
     val builtinDelay: Double,
-    val cameraPreviewLayers: Map<UUID, Any>,
+    val cameraPreviewLayers: Map<PreviewView, UUID>,
     val attachCameraPreview: Boolean,
     val showCameraPreview: Boolean,
     val externalDisplayPreview: Boolean,
@@ -80,6 +80,9 @@ data class VideoUnitAttachParams(
             }
         }
         if (attachCameraPreview != other.attachCameraPreview) {
+            return false
+        }
+        if (cameraPreviewLayers != other.cameraPreviewLayers) {
             return false
         }
         if (builtinDelay != other.builtinDelay) {

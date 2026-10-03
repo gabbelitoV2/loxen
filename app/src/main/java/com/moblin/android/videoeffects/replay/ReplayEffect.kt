@@ -22,7 +22,7 @@ import kotlin.math.ceil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
-import com.moblin.android.videoeffects.MetalPetalWidgetShape
+import com.moblin.android.videoeffects.WidgetShape
 
 private const val fadeTransitionLength = 0.5
 
@@ -200,7 +200,7 @@ class ReplayEffect internal constructor(
             layout,
             false,
             image,
-            MetalPetalWidgetShape(contentRegion = replayMetalPetalImage.extent),
+            WidgetShape(contentRegion = replayMetalPetalImage.extent),
         )
     }
 
