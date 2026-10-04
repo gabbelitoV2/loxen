@@ -18454,28 +18454,22 @@
   },
   "MoblinTests/Moblin/Various/Storages/ReplaysStorageSuite.swift": {
     "status": "ok",
-    "sha256": "10a1e5aeb1bd6c347098b1f01b5e1371226a25a6c096489bd90cf1d4fe1e81fe",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
-    "mode": "full",
+    "sha256": "30decd876e1eb137f8d9b22d4e11baa4996454e7650902a4dc4395bd025ea909",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/storages/ReplaysStorageSuite.kt",
     "notes": [
-      "The suite is a plain JUnit 4 class annotated with @RunWith(RobolectricTestRunner::class), because TemporaryDirectory and ReplaysStorage resolve files through the Android host context.",
-      "ReplaysStorage is constructed with the named argument directory exactly as in Swift: ReplaysStorage(directory = directory.url).",
-      "storage.url(replay = kept) is kept as in the Swift source; ReplaySettings also exposes url() but the storage-scoped call is the one the tests rely on for the temporary directory.",
-      "waitUntil is called with only the trailing condition lambda; the timeout argument is dropped because the Kotlin helper's timeout parameter type is not the Swift Duration, and the helper already fails after 10 s.",
-      "try Data().write(to: url) becomes File.writeBytes(ByteArray(0)), which writes the same empty file the load path checks with exists().",
-      "directory.url.appending(components: \"Database\", \"replays\") becomes File(File(directory.url, \"Database\"), \"replays\") and its parent directory is created before writing.",
-      "Swift 'for _ in 0 ..< 499' becomes repeat(499) and each test creates its own TemporaryDirectory and ReplaysStorage, so no state is shared between tests.",
-      "database.replays is a MutableStateFlow, so its value is read with .value; the id comparisons use map { it.id } / any { it.id == ... } instead of key paths."
+      "Only the waitUntil timeout in cleanupKeepsFilesOfKnownReplays changed from Duration.ofSeconds(2) to Duration.ofSeconds(10); the identical call in orphanedFileIsRemovedAsynchronously keeps Duration.ofSeconds(2).",
+      "Everything else in the Kotlin file is unchanged, including the Robolectric runner, the MutableStateFlow `.value` reads and the java.io.File writes that replace the Swift Data().write(to:) calls."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 32853,
-    "tokens_out": 19621,
-    "seconds": 76.9,
-    "ported_at": "2026-09-29T23:49:19+00:00"
+    "tokens_in": 35307,
+    "tokens_out": 2459,
+    "seconds": 8.4,
+    "ported_at": "2026-10-04T22:34:15+00:00"
   },
   "MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift": {
     "status": "ok",

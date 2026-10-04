@@ -1,9 +1,98 @@
 {
-  "upstream": "57c76090bc92ebf698204478179d6e3bd5c54f07",
+  "upstream": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "Moblin/Integrations/Dji/DjiDevice/DjiDevice.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDevice.kt",
+      "reason": "compile",
+      "ported_from": "7947162bdce2e500a9fa26637f221b946fa35967",
+      "errors": [
+        "394: No value passed for parameter 'header'.",
+        "413: No value passed for parameter 'header'.",
+        "429: No value passed for parameter 'oa5'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Integrations/Dji/DjiDevice/DjiDeviceMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceMessage.kt",
+      "reason": "dependency",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Integrations/Dji/DjiDevice/DjiDeviceModel.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceModel.kt",
+      "reason": "dependency",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Settings/Settings.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
+      "reason": "dependency",
+      "ported_from": "57c76090bc92ebf698204478179d6e3bd5c54f07",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Settings/SettingsChat.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
+      "reason": "dependency",
+      "ported_from": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Settings/SettingsDebug.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/SettingsDebug.kt",
+      "reason": "dependency",
+      "ported_from": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Settings/SettingsDjiDevice.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/SettingsDjiDevice.kt",
+      "reason": "dependency",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Settings/SettingsScene.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
+      "reason": "dependency",
+      "ported_from": "57c76090bc92ebf698204478179d6e3bd5c54f07",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/DjiDevices/DjiDeviceSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/djidevices/DjiDeviceSettingsView.kt",
+      "reason": "compile",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [
+        "450: Unresolved reference 'hasFps'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Integrations/Dji/DjiDevice/DjiDeviceSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceSuite.kt",
+      "reason": "compile",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [
+        "106: No parameter with name 'oa5' found."
+      ],
+      "hooks": []
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

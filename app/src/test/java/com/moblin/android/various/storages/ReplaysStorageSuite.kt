@@ -179,7 +179,7 @@ class ReplaysStorageSuite {
         val reloaded = ReplaysStorage(directory = directory.url)
         reloaded.load()
         assertTrue(
-            waitUntil(timeout = Duration.ofSeconds(2)) {
+            waitUntil(timeout = Duration.ofSeconds(10)) {
                 !orphan.exists()
             },
         )

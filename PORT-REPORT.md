@@ -1,16 +1,16 @@
 # Port report
 
-Generated 2026-10-03T22:30:25+00:00
+Generated 2026-10-04T22:41:50+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
-| logic | 151 | 0 | 0 | 0 | 0 |
-| platform | 55 | 0 | 0 | 0 | 0 |
-| test | 66 | 0 | 0 | 0 | 0 |
-| media | 161 | 0 | 0 | 0 | 0 |
-| ui | 361 | 0 | 0 | 0 | 0 |
+| logic | 148 | 0 | 3 | 0 | 0 |
+| platform | 54 | 0 | 1 | 0 | 0 |
+| test | 65 | 0 | 1 | 0 | 0 |
+| media | 158 | 0 | 3 | 0 | 0 |
+| ui | 359 | 0 | 2 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -874,7 +874,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | MoblinTests/Moblin/Various/Settings/SettingsMacrosSuite.swift | app/src/test/java/com/moblin/android/various/settings/SettingsMacrosSuite.kt | deepseek-flash | 12.5 |
 | MoblinTests/Moblin/Various/Settings/SettingsMoblinkSuite.swift | app/src/test/java/com/moblin/android/various/settings/SettingsMoblinkSuite.kt | deepseek-flash | 5.0 |
 | MoblinTests/Moblin/Various/Settings/SettingsSuite.swift | app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt | deepseek-flash | 14.0 |
-| MoblinTests/Moblin/Various/Storages/ReplaysStorageSuite.swift | app/src/test/java/com/moblin/android/various/storages/ReplaysStorageSuite.kt | deepseek-flash | 76.9 |
+| MoblinTests/Moblin/Various/Storages/ReplaysStorageSuite.swift | app/src/test/java/com/moblin/android/various/storages/ReplaysStorageSuite.kt | deepseek-flash | 8.4 |
 | MoblinTests/Moblin/Various/Subtitles/SubtitlesSuite.swift | app/src/test/java/com/moblin/android/various/subtitles/SubtitlesSuite.kt | deepseek-flash | 24.2 |
 | MoblinTests/Moblin/Various/Subtitles/TextAlignerSuite.swift | app/src/test/java/com/moblin/android/various/subtitles/TextAlignerSuite.kt | deepseek-flash | 4.8 |
 | MoblinTests/Moblin/Various/Utils/CameraUtilsSuite.swift | app/src/test/java/com/moblin/android/various/utils/CameraUtilsSuite.kt | deepseek-flash | 25.1 |
