@@ -87,6 +87,7 @@ enum class SettingsDjiDeviceModel(val rawValue: String) {
     osmoAction6("osmoAction6"),
     osmoPocket3("osmoPocket3"),
     osmoPocket4("osmoPocket4"),
+    osmoPocket4Pro("osmoPocket4Pro"),
     osmo360("osmo360"),
     unknown("unknown");
 
@@ -99,6 +100,7 @@ enum class SettingsDjiDeviceModel(val rawValue: String) {
             osmoAction6 -> true
             osmoPocket3 -> false
             osmoPocket4 -> false
+            osmoPocket4Pro -> false
             osmo360 -> true
             unknown -> false
         }
@@ -113,6 +115,7 @@ enum class SettingsDjiDeviceModel(val rawValue: String) {
             osmoAction6 -> true
             osmoPocket3 -> false
             osmoPocket4 -> true
+            osmoPocket4Pro -> true
             osmo360 -> true
             unknown -> false
         }
@@ -127,6 +130,22 @@ enum class SettingsDjiDeviceModel(val rawValue: String) {
             osmoAction6 -> true
             osmoPocket3 -> false
             osmoPocket4 -> true
+            osmoPocket4Pro -> true
+            osmo360 -> false
+            unknown -> false
+        }
+    }
+
+    fun hasFps(): Boolean {
+        return when (this) {
+            osmoAction2 -> false
+            osmoAction3 -> false
+            osmoAction4 -> false
+            osmoAction5Pro -> false
+            osmoAction6 -> false
+            osmoPocket3 -> true
+            osmoPocket4 -> true
+            osmoPocket4Pro -> true
             osmo360 -> false
             unknown -> false
         }

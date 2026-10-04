@@ -43,12 +43,10 @@ class SettingsDebug {
     val bluetoothOutputOnly = MutableStateFlow(true)
 
     var maximumLogLines: Int = 500
-    var faceToBeRemoved: SettingsFace = SettingsFace()
 
     val nativeLowLightBoost = MutableStateFlow(false)
 
     var blurSceneSwitch: Boolean = true
-    var preferStereoMicToBeRemoved: Boolean = false
 
     val twitchRewards = MutableStateFlow(false)
 
@@ -96,10 +94,8 @@ class SettingsDebug {
         encode("cameraSwitchRemoveBlackish", cameraSwitchRemoveBlackish)
         encode("bluetoothOutputOnly", bluetoothOutputOnly)
         encode("maximumLogLines", maximumLogLines)
-        encode("beautyFilterSettings", faceToBeRemoved, SettingsFace.serializer())
         encode("nativeLowLightBoost", nativeLowLightBoost)
         encode("blurSceneSwitch", blurSceneSwitch)
-        encode("preferStereoMic", preferStereoMicToBeRemoved)
         encode("twitchRewards", twitchRewards)
         encode("tesla", tesla, SettingsTesla.serializer())
         encode("dnsLookupStrategy", dnsLookupStrategy)
@@ -140,10 +136,8 @@ class SettingsDebug {
             debug.cameraSwitchRemoveBlackish.value = container.decode("cameraSwitchRemoveBlackish", 0.3f)
             debug.bluetoothOutputOnly.value = container.decode("bluetoothOutputOnly", true)
             debug.maximumLogLines = container.decode("maximumLogLines", 500)
-            debug.faceToBeRemoved = container.decode("beautyFilterSettings", SettingsFace.serializer(), SettingsFace())
             debug.nativeLowLightBoost.value = container.decode("nativeLowLightBoost", false)
             debug.blurSceneSwitch = container.decode("blurSceneSwitch", true)
-            debug.preferStereoMicToBeRemoved = container.decode("preferStereoMic", false)
             debug.twitchRewards.value = container.decode("twitchRewards", false)
             debug.tesla = container.decode("tesla", SettingsTesla.serializer(), SettingsTesla())
             debug.dnsLookupStrategy = container.decode("dnsLookupStrategy", SettingsDnsLookupStrategy.system)

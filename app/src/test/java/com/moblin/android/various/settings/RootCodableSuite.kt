@@ -160,8 +160,7 @@ class RootCodableSuite {
         val keys = listOf(
             "logLevel", "logFilter", "debugLogging", "debugLoggingMigrated", "srtOverlay",
             "cameraSwitchRemoveBlackish", "bluetoothOutputOnly", "maximumLogLines",
-            "beautyFilterSettings", "nativeLowLightBoost", "blurSceneSwitch",
-            "preferStereoMic", "twitchRewards", "tesla", "dnsLookupStrategy", "dataRateLimitFactor",
+            "nativeLowLightBoost", "blurSceneSwitch", "twitchRewards", "tesla", "dnsLookupStrategy", "dataRateLimitFactor",
             "bitrateDropFix", "relaxedBitrate", "externalDisplayChat", "videoSourceWidgetTrackFace", "replay",
             "recordSegmentLength", "builtinAudioAndVideoDelay", "builtinAudioAndVideoDelay70msMigrated",
             "cameraManMoveVertically", "cameraManSpeed", "cameraManAlwaysMove", "enhancedMoblinSrt",
@@ -239,10 +238,7 @@ class RootCodableSuite {
         assertEquals(0.5f, debug.cameraSwitchRemoveBlackish.value)
         assertFalse(debug.bluetoothOutputOnly.value)
         assertEquals(1000, debug.maximumLogLines)
-        assertEquals(SettingsFacePrivacyMode.pixellate, debug.faceToBeRemoved.privacyMode)
-        assertEquals(0.25f, debug.faceToBeRemoved.blurStrength)
         assertTrue(debug.nativeLowLightBoost.value)
-        assertTrue(debug.preferStereoMicToBeRemoved)
         assertEquals("VIN", debug.tesla.vin)
         assertEquals(UUID.fromString(sampleId), debug.tesla.bluetoothPeripheralId)
         assertEquals(SettingsDnsLookupStrategy.ipv4AndIpv6, debug.dnsLookupStrategy)
@@ -274,7 +270,6 @@ class RootCodableSuite {
         assertEquals(500, debug.maximumLogLines)
         assertEquals("", debug.tesla.vin)
         assertEquals(SettingsDnsLookupStrategy.system, debug.dnsLookupStrategy)
-        assertEquals(SettingsFacePrivacyMode.blur, debug.faceToBeRemoved.privacyMode)
         assertEquals(1.0, debug.cameraManSpeed.value)
         assertFalse(debug.debugOverlay.value)
     }

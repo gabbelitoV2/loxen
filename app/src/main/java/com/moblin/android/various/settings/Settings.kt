@@ -1660,7 +1660,6 @@ class Database(
     var beauty: SettingsBeauty = SettingsBeauty(),
     var talkback: SettingsTalkback = SettingsTalkback(),
     var gimbal: SettingsGimbal = SettingsGimbal(),
-    var scoreboardSizeMigrated: Boolean = false,
     var streamDecks: SettingsStreamDecks = SettingsStreamDecks(),
     graphicsImplementation: SettingsGraphicsImplementation =
         SettingsGraphicsImplementation.coreImage,
@@ -1805,7 +1804,6 @@ class Database(
         encode("beauty", beauty, SettingsBeauty.serializer())
         encode("talkBack", talkback, SettingsTalkback.serializer())
         encode("gimbal", gimbal, SettingsGimbal.serializer())
-        encode("scoreboardSizeMigrated", scoreboardSizeMigrated)
         encode("savedWifiNetworks", savedWifiNetworks, ListSerializer(SettingsWiFi.serializer()))
         encode("streamDecks", streamDecks, SettingsStreamDecks.serializer())
         encode("graphicsImplementation", graphicsImplementation)
@@ -1878,10 +1876,6 @@ class Database(
             database.location = container.decode("location", SettingsLocation.serializer(), SettingsLocation())
             database.watch = normalizeWatchSettings(container.decode("watch", JsonObject(emptyMap())))
             database.audio = container.decode("audio", SettingsAudio.serializer(), SettingsAudio())
-            if (database.debug.preferStereoMicToBeRemoved) {
-                database.audio._preferStereoMic.value = true
-                database.debug.preferStereoMicToBeRemoved = false
-            }
             database.macros = container.decode("macros", SettingsMacros.serializer(), SettingsMacros())
             database.webBrowser = container.decode("webBrowser", WebBrowserSettings.serializer(), WebBrowserSettings())
             database.deepLinkCreator = container.decode(
@@ -2006,32 +2000,15 @@ class Database(
                 SettingsNavigation(),
             )
             database.wiFiAware = container.decode("wiFiAware", SettingsWiFiAware.serializer(), SettingsWiFiAware())
-            database.face = container.decodeIfPresent("face", SettingsFace.serializer())
-                ?: database.debug.faceToBeRemoved
+            database.face = container.decode("face", SettingsFace.serializer(), SettingsFace())
             database.beauty = container.decode("beauty", SettingsBeauty.serializer(), SettingsBeauty())
             database.talkback = container.decode("talkBack", SettingsTalkback.serializer(), SettingsTalkback())
             database.gimbal = container.decode("gimbal", SettingsGimbal.serializer(), SettingsGimbal())
-            database.scoreboardSizeMigrated = container.decode("scoreboardSizeMigrated", false)
             database.savedWifiNetworks = container.decode(
                 "savedWifiNetworks",
                 ListSerializer(SettingsWiFi.serializer()),
                 emptyList(),
             )
-            if (!database.scoreboardSizeMigrated) {
-                for (widget in database.widgets) {
-                    if (widget.type != SettingsWidgetType.scoreboard) {
-                        continue
-                    }
-                    for (scene in database.scenes) {
-                        for (sceneWidget in scene.widgets) {
-                            if (sceneWidget.widgetId == widget.id) {
-                                sceneWidget.layout = sceneWidget.layout.copy(size = defaultScoreboardSize)
-                            }
-                        }
-                    }
-                }
-                database.scoreboardSizeMigrated = true
-            }
             database.streamDecks = container.decode(
                 "streamDecks",
                 SettingsStreamDecks.serializer(),
@@ -3005,89 +2982,6 @@ class Settings {
         if (realDatabase.quickButtons.size != newButtons.size) {
             realDatabase.quickButtons = newButtons
             store()
-        }
-        for (widget in realDatabase.widgets) {
-            if (widget.videoSource.cropX > 1.0) {
-                widget.videoSource.cropX = 0.0
-                store()
-            }
-        }
-        for (widget in realDatabase.widgets) {
-            if (widget.videoSource.cropY > 1.0) {
-                widget.videoSource.cropY = 0.0
-                store()
-            }
-        }
-        for (widget in realDatabase.widgets) {
-            if (widget.videoSource.cropWidth > 1.0) {
-                widget.videoSource.cropWidth = 1.0
-                store()
-            }
-        }
-        for (widget in realDatabase.widgets) {
-            if (widget.videoSource.cropHeight > 1.0) {
-                widget.videoSource.cropHeight = 1.0
-                store()
-            }
-        }
-        for (scene in realDatabase.scenes) {
-            for (sceneWidget in scene.widgets) {
-                if (sceneWidget.migrated) {
-                    continue
-                }
-                sceneWidget.migrated = true
-                store()
-                val widget = realDatabase.widgets.firstOrNull { it.id == sceneWidget.widgetId }
-                    ?: continue
-                if (widget.type != SettingsWidgetType.text) {
-                    continue
-                }
-                if (widget.text.verticalAlignment == SettingsVerticalAlignment.bottom &&
-                    widget.text.horizontalAlignment == SettingsHorizontalAlignment.trailing
-                ) {
-                    sceneWidget.layout = sceneWidget.layout.copy(
-                        alignment = SettingsAlignment.bottomRight,
-                        x = 100 - sceneWidget.layout.x,
-                        y = 100 - sceneWidget.layout.y,
-                    ).updatingXString().updatingYString()
-                } else if (widget.text.verticalAlignment == SettingsVerticalAlignment.top &&
-                    widget.text.horizontalAlignment == SettingsHorizontalAlignment.trailing
-                ) {
-                    sceneWidget.layout = sceneWidget.layout.copy(
-                        alignment = SettingsAlignment.topRight,
-                        x = 100 - sceneWidget.layout.x,
-                    ).updatingXString()
-                } else if (widget.text.verticalAlignment == SettingsVerticalAlignment.bottom &&
-                    widget.text.horizontalAlignment == SettingsHorizontalAlignment.leading
-                ) {
-                    sceneWidget.layout = sceneWidget.layout.copy(
-                        alignment = SettingsAlignment.bottomLeft,
-                        y = 100 - sceneWidget.layout.y,
-                    ).updatingYString()
-                }
-            }
-        }
-        for (scene in realDatabase.scenes) {
-            for (sceneWidget in scene.widgets) {
-                if (sceneWidget.migrated2) {
-                    continue
-                }
-                sceneWidget.migrated2 = true
-                store()
-                val widget = realDatabase.widgets.firstOrNull { it.id == sceneWidget.widgetId }
-                    ?: continue
-                if (widget.type != SettingsWidgetType.browser) {
-                    continue
-                }
-                val stream = database.streams.firstOrNull { it.enabled }
-                    ?: continue
-                val resolution = stream.resolution.dimensions(portrait = stream.portrait)
-                val width = (100.0 * widget.browser.width / resolution.width)
-                    .coerceIn(1.0, 100.0)
-                val height = (100.0 * widget.browser.height / resolution.height)
-                    .coerceIn(1.0, 100.0)
-                sceneWidget.layout = sceneWidget.layout.copy(size = maxOf(width, height)).updatingSizeString()
-            }
         }
     }
 }

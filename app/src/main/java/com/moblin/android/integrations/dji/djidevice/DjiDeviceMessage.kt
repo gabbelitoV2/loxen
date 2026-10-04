@@ -49,33 +49,26 @@ data class DjiSetupWifiMessagePayload(
 data class DjiStartStreamingMessagePayload(
     var rtmpUrl: String,
     var resolution: SettingsDjiDeviceResolution,
-    var bitrateKbps: UShort,
     var fps: Int,
-    var oa5: Boolean,
+    var bitrateKbps: UShort,
 ) {
     companion object {
-        val payload1: ByteArray = byteArrayOf(0x00)
-        val payload2: ByteArray = byteArrayOf(0x00)
         val payload3: ByteArray = byteArrayOf(0x02, 0x00)
         val payload4: ByteArray = byteArrayOf(0x00, 0x00, 0x00)
     }
 
     fun encode(): ByteArray {
-        val oa5Byte: UByte = if (oa5) {
-            0x2A.toUByte()
-        } else {
-            0x2E.toUByte()
-        }
+        val body = ByteWriter()
+        body.writeUInt8(toDjiResolution(resolution))
+        body.writeUInt16Le(bitrateKbps)
+        body.writeBytes(payload3)
+        body.writeUInt8(toDjiFps(fps))
+        body.writeBytes(payload4)
+        body.writeBytes(djiPackUrl(rtmpUrl))
         val writer = ByteWriter()
-        writer.writeBytes(payload1)
-        writer.writeUInt8(oa5Byte)
-        writer.writeBytes(payload2)
-        writer.writeUInt8(toDjiResolution(resolution))
-        writer.writeUInt16Le(bitrateKbps)
-        writer.writeBytes(payload3)
-        writer.writeUInt8(toDjiFps(fps))
-        writer.writeBytes(payload4)
-        writer.writeBytes(djiPackUrl(rtmpUrl))
+        writer.writeUInt8(0x00.toUByte())
+        writer.writeUInt16Le(body.data.size.toUShort())
+        writer.writeBytes(body.data)
         return writer.data
     }
 }
@@ -103,13 +96,10 @@ data class DjiStartStreamingMessagePayload2(
     var fps: Int,
     var codec: String,
     var enhancedRtmp: Boolean,
-    val header: ByteArray,
     val middle: ByteArray,
 ) {
     companion object {
-        val osmoAction6Header: ByteArray = byteArrayOf(0x01, 0x9C.toByte(), 0x00)
         val osmoAction6Middle: ByteArray = byteArrayOf(0xFE.toByte(), 0x00)
-        val osmoPocket4Header: ByteArray = byteArrayOf(0x01, 0xB5.toByte(), 0x00)
         val osmoPocket4Middle: ByteArray = byteArrayOf(0x02, 0x01)
         private val padding: ByteArray = byteArrayOf(0x00, 0x00, 0x00)
     }
@@ -127,15 +117,18 @@ data class DjiStartStreamingMessagePayload2(
             .getOrNull()
             ?.encodeToByteArray()
             ?: ByteArray(0)
+        val body = ByteWriter()
+        body.writeUInt8(toDjiResolution(resolution))
+        body.writeUInt16Le(bitrateKbps)
+        body.writeBytes(middle)
+        body.writeUInt8(toDjiFps(fps))
+        body.writeBytes(padding)
+        body.writeUInt16Le(data.size.toUShort())
+        body.writeBytes(data)
         val writer = ByteWriter()
-        writer.writeBytes(header)
-        writer.writeUInt8(toDjiResolution(resolution))
-        writer.writeUInt16Le(bitrateKbps)
-        writer.writeBytes(middle)
-        writer.writeUInt8(toDjiFps(fps))
-        writer.writeBytes(padding)
-        writer.writeUInt16Le(data.size.toUShort())
-        writer.writeBytes(data)
+        writer.writeUInt8(0x01.toUByte())
+        writer.writeUInt16Le(body.data.size.toUShort())
+        writer.writeBytes(body.data)
         return writer.data
     }
 }

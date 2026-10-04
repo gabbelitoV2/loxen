@@ -3244,16 +3244,10 @@ data class SettingsWidgetLayout(
 class SettingsSceneWidget(
     widgetId: UUID = UUID.randomUUID(),
     var id: UUID = UUID.randomUUID(),
-    layout: SettingsWidgetLayout = SettingsWidgetLayout(),
-    width2: Double = 100.0,
-    height2: Double = 100.0,
-    var migrated: Boolean = true,
-    var migrated2: Boolean = true
+    layout: SettingsWidgetLayout = SettingsWidgetLayout()
 ) {
     var widgetId: UUID by Published(widgetId)
     var layout: SettingsWidgetLayout by Published(layout)
-    var width2: Double by Published(width2)
-    var height2: Double by Published(height2)
 
     constructor(widget: SettingsWidget) : this(widgetId = widget.id) {
         var newLayout = layout
@@ -3315,13 +3309,9 @@ class SettingsSceneWidget(
         encode("id", id)
         encode("x", layout.x)
         encode("y", layout.y)
-        encode("width", width2)
-        encode("height", height2)
         encode("size", layout.size)
         encode("alignment", layout.alignment)
         encode("positioningLock", layout.positioningLock)
-        encode("migrated", migrated)
-        encode("migrated2", migrated2)
     }
 
     companion object {
@@ -3331,10 +3321,7 @@ class SettingsSceneWidget(
             sceneWidget.id = container.decode("id", UUID.randomUUID())
             val x = container.decode("x", 0.0)
             val y = container.decode("y", 0.0)
-            sceneWidget.width2 = container.decode("width", 100.0)
-            sceneWidget.height2 = container.decode("height", 100.0)
-            val size = container.decode<Double?>("size", null)
-                ?: container.decode("size", minOf(sceneWidget.width2, sceneWidget.height2))
+            val size = container.decode("size", 100.0)
             sceneWidget.layout = SettingsWidgetLayout(
                 x = x,
                 xString = x.toString(),
@@ -3345,8 +3332,6 @@ class SettingsSceneWidget(
                 alignment = container.decode("alignment", SettingsAlignment.topLeft),
                 positioningLock = container.decode("positioningLock", false),
             )
-            sceneWidget.migrated = container.decode("migrated", false)
-            sceneWidget.migrated2 = container.decode("migrated2", false)
             return sceneWidget
         }
     }
@@ -3360,8 +3345,6 @@ class SettingsSceneWidget(
     fun clone(): SettingsSceneWidget {
         val new = SettingsSceneWidget(widgetId = widgetId)
         new.layout = layout.copy()
-        new.migrated = migrated
-        new.migrated2 = migrated2
         return new
     }
 }

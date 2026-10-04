@@ -41,7 +41,6 @@ import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsDjiDevice
 import com.moblin.android.various.settings.SettingsDjiDeviceImageStabilization
-import com.moblin.android.various.settings.SettingsDjiDeviceModel
 import com.moblin.android.various.settings.SettingsDjiDeviceResolution
 import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
 import com.moblin.android.various.settings.SettingsDjiDeviceVideoCodec
@@ -447,9 +446,7 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
                 onChange = { device.imageStabilization = it },
             )
         }
-        if (model == SettingsDjiDeviceModel.osmoPocket3 ||
-            model == SettingsDjiDeviceModel.osmoPocket4
-        ) {
+        if (model.hasFps()) {
             Picker(
                 title = "FPS",
                 selection = fps,

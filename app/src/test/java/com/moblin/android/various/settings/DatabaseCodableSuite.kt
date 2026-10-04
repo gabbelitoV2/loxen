@@ -1,7 +1,6 @@
 package com.moblin.android.various.settings
 
 import com.moblin.android.platform.codable.codableJson
-import com.moblin.android.various.model.defaultScoreboardSize
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -36,7 +35,7 @@ private val swiftTopLevelKeys = listOf(
     "autoSceneSwitchers", "fixedHorizon", "whirlpoolAngle", "pinchScale", "selfieStick", "bigButtons",
     "verticalButtons", "bigAudioLevelMeter", "ristServer", "disconnectProtection", "rtspClient", "srtClient",
     "whipServer", "whepClient", "navigation", "wiFiAware", "face", "beauty", "talkBack", "gimbal",
-    "scoreboardSizeMigrated", "savedWifiNetworks", "streamDecks", "graphicsImplementation",
+    "savedWifiNetworks", "streamDecks", "graphicsImplementation",
     "graphicsHighQualityDownsampling", "ingestsSoftwareVideoDecoding", "torchLevel", "appMode", "httpProxy",
 )
 
@@ -66,9 +65,7 @@ private fun JsonObject.without(path: List<String>): JsonObject {
 private val swiftDecodeMigrationFlags = listOf(
     listOf("debug", "debugLoggingMigrated"),
     listOf("debug", "builtinAudioAndVideoDelay70msMigrated"),
-    listOf("chat", "botCommandPermissions", "migrated"),
     listOf("cyclingPowerDevicesMigrated"),
-    listOf("scoreboardSizeMigrated"),
 )
 
 private val anyUuidPattern = Regex(
@@ -87,7 +84,6 @@ private fun JsonObject.withoutMigrationFlags(): JsonObject {
 
 private val emptyDecodeDifferencePaths = listOf(
     listOf("cyclingPowerDevicesMigrated"),
-    listOf("scoreboardSizeMigrated"),
     listOf("remoteControl", "password"),
     listOf("srtlaRelay", "client", "name"),
     listOf("moblink", "client", "name"),
@@ -194,22 +190,7 @@ class DatabaseCodableSuite {
             maskAllUuids(decoded.withoutEmptyDecodeDifferences()),
         )
         assertEquals(JsonPrimitive(true), decoded["cyclingPowerDevicesMigrated"])
-        assertEquals(JsonPrimitive(true), decoded["scoreboardSizeMigrated"])
         assertEquals(JsonPrimitive(false), decoded.valueAt(listOf("debug", "debugLoggingMigrated")))
-    }
-
-    @Test
-    fun scoreboardSizeMigration() {
-        val widgets = """
-            "widgets":[{"id":"$databaseSampleId","type":"Scoreboard"},{"id":"$databaseOtherId","type":"Text"}],
-            "scenes":[{"widgets":[{"widgetId":"$databaseSampleId","size":50},{"widgetId":"$databaseOtherId","size":40}]}]
-        """
-        val database = decodeDatabase("{$widgets}")
-        assertTrue(database.scoreboardSizeMigrated)
-        assertEquals(defaultScoreboardSize, database.scenes[0].widgets[0].layout.size)
-        assertEquals(40.0, database.scenes[0].widgets[1].layout.size)
-        val migrated = decodeDatabase("{$widgets,\"scoreboardSizeMigrated\":true}")
-        assertEquals(50.0, migrated.scenes[0].widgets[0].layout.size)
     }
 
     @Test
@@ -240,30 +221,11 @@ class DatabaseCodableSuite {
     }
 
     @Test
-    fun preferStereoMicMigratesToAudio() {
-        val database = decodeDatabase("""{"debug":{"preferStereoMic":true}}""")
-        assertTrue(database.audio.preferStereoMic.value)
-        assertFalse(database.debug.preferStereoMicToBeRemoved)
-        assertFalse(decodeDatabase("{}").audio.preferStereoMic.value)
-    }
-
-    @Test
     fun moblinkDefaultsToSrtlaRelay() {
         val database = decodeDatabase("""{"srtlaRelay":{}}""")
         assertSame(database.srtlaRelay, database.moblink)
         val separate = decodeDatabase("""{"srtlaRelay":{},"moblink":{}}""")
         assertTrue(separate.srtlaRelay !== separate.moblink)
-    }
-
-    @Test
-    fun faceFallsBackToDebugFace() {
-        val debugFace = """{"debug":{"beautyFilterSettings":{"privacyMode":"icon","blurStrength":0.5}}"""
-        assertEquals(SettingsFacePrivacyMode.icon, decodeDatabase("$debugFace}").face.privacyMode)
-        assertEquals(SettingsFacePrivacyMode.icon, decodeDatabase("$debugFace,\"face\":5}").face.privacyMode)
-        assertEquals(SettingsFacePrivacyMode.icon, decodeDatabase("$debugFace,\"face\":null}").face.privacyMode)
-        val face = decodeDatabase("$debugFace,\"face\":{\"privacyMode\":\"pixellate\"}}").face
-        assertEquals(SettingsFacePrivacyMode.pixellate, face.privacyMode)
-        assertEquals(0.8f, face.blurStrength)
     }
 
     @Test

@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlin.test.assertEquals
 import org.junit.Test
+import com.moblin.android.various.settings.SettingsDjiDeviceModel
 import com.moblin.android.various.settings.SettingsDjiDeviceResolution
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -30,14 +31,15 @@ class DjiDeviceSuite {
             bitrateKbps = 5000u.toUShort(),
             codec = "HEVC",
             enhancedRtmp = true,
-            header = DjiStartStreamingMessagePayload2.osmoPocket4Header,
             middle = DjiStartStreamingMessagePayload2.osmoPocket4Middle,
         )
         val encoded = payload.encode()
         assertEquals(161, encoded.size)
+        assertEquals(1, encoded[0].toInt() and 0xFF)
+        assertEquals(158, (encoded[1].toInt() and 0xFF) or ((encoded[2].toInt() and 0xFF) shl 8))
         assertEquals(
-            "01b5000a88130201030000009300",
-            encoded.copyOfRange(0, 14).hexString(),
+            "0a88130201030000009300",
+            encoded.copyOfRange(3, 14).hexString(),
         )
         val json = Json.parseToJsonElement(encoded.copyOfRange(14, 161).toString(Charsets.UTF_8))
         assertEquals(
@@ -60,22 +62,23 @@ class DjiDeviceSuite {
     @Test
     fun startStreamingOmsoAction6() {
         val payload = DjiStartStreamingMessagePayload2(
-            rtmpUrl = "rtmp://192.168.1.59/live/2",
+            rtmpUrl = "rtmp://192.168.1.59/live/123456789",
             resolution = SettingsDjiDeviceResolution.r720p,
             fps = 30,
             bitrateKbps = 7000u.toUShort(),
             codec = "AVC",
             enhancedRtmp = false,
-            header = DjiStartStreamingMessagePayload2.osmoAction6Header,
             middle = DjiStartStreamingMessagePayload2.osmoAction6Middle,
         )
         val encoded = payload.encode()
-        assertEquals(161, encoded.size)
+        assertEquals(169, encoded.size)
+        assertEquals(1, encoded[0].toInt() and 0xFF)
+        assertEquals(166, (encoded[1].toInt() and 0xFF) or ((encoded[2].toInt() and 0xFF) shl 8))
         assertEquals(
-            "019c0004581bfe00030000009300",
-            encoded.copyOfRange(0, 14).hexString(),
+            "04581bfe00030000009b00",
+            encoded.copyOfRange(3, 14).hexString(),
         )
-        val json = Json.parseToJsonElement(encoded.copyOfRange(14, 161).toString(Charsets.UTF_8))
+        val json = Json.parseToJsonElement(encoded.copyOfRange(14, 169).toString(Charsets.UTF_8))
         assertEquals(
             Json.parseToJsonElement(
                 """
@@ -83,7 +86,7 @@ class DjiDeviceSuite {
                     "EnhancedRTMP": 0,
                     "codec": "AVC",
                     "orientation": "landscape",
-                    "rtmpAddress": "rtmp://192.168.1.59/live/2",
+                    "rtmpAddress": "rtmp://192.168.1.59/live/123456789",
                     "supportStopLive": 0,
                     "watermark": 0
                 }
@@ -91,5 +94,28 @@ class DjiDeviceSuite {
             ).asNsObject(),
             json.asNsObject(),
         )
+    }
+
+    @Test
+    fun startStreamingOsmoAction4() {
+        val payload = DjiStartStreamingMessagePayload(
+            rtmpUrl = "rtmp://110.144.9.240:1935/publish/live",
+            resolution = SettingsDjiDeviceResolution.r1080p,
+            bitrateKbps = 6000u.toUShort(),
+            fps = 30,
+        )
+        assertEquals(
+            "0031000a7017020003000000260072746d703a2f2f3131302e3134342e392e3234303a313933352f7075626c6973682f6c697665",
+            payload.encode().hexString(),
+        )
+    }
+
+    @Test
+    fun modelOsmoPocket4Pro() {
+        val data = byteArrayOf(
+            0xAA.toByte(), 0x08, 0x00, 0x00, 0x00, 0xCF.toByte(), 0x00, 0x04,
+            0x76, 0xEA.toByte(), 0x8B.toByte(), 0x20, 0xDA.toByte(), 0x00, 0x00, 0x10,
+        )
+        assertEquals(SettingsDjiDeviceModel.osmoPocket4Pro, djiModelFromManufacturerData(data))
     }
 }

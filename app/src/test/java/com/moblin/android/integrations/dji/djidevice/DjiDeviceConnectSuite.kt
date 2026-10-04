@@ -51,7 +51,7 @@ private const val preparingRequest = "550e04660208128c4002e11a11df"
 private const val wifiRequest = "551904e40207198c40074704486f6d6506736563726574efd6"
 private const val configureRequest = "5513040302012d8c40028e0101080001012bfd"
 private const val startRequest =
-    "553b04b402082c8c400878002e000a7017020003000000200072746d703a2f2f3139322e3136382e312e323a313933352f6c6976652f646a694fc5"
+    "553b04b402082c8c400878002b000a7017020003000000200072746d703a2f2f3139322e3136382e312e323a313933352f6c6976652f646a69982b"
 private const val pairedResponse = "550f04a202079280400745000141ba"
 private const val stopResponse = "550e04660208c8ea40028e00b170"
 private const val preparingResponse = "550e04660208128c4002e100ca60"
@@ -349,7 +349,7 @@ class DjiDeviceConnectSuite : DjiDeviceDelegate {
             target = 0x0802u,
             id = 0x8C2Cu,
             type = 0x780840u,
-            payload = hex("002a000a7017020003000000200072746d703a2f2f3139322e3136382e312e323a313933352f6c6976652f646a69"),
+            payload = hex("002b000a7017020003000000200072746d703a2f2f3139322e3136382e312e323a313933352f6c6976652f646a69"),
         ).encode().hexString()
         val confirm = DjiMessage(
             target = 0x0802u,

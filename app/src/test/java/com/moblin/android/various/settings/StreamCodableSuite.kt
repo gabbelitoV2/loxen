@@ -77,7 +77,8 @@ private fun migratedSrt(): SettingsStreamSrt {
 
 private fun migratedPermissions(): SettingsChatBotPermissions {
     val permissions = SettingsChatBotPermissions()
-    permissions.migrated = true
+    permissions.scene.moderatorsEnabled = true
+    permissions.stream.moderatorsEnabled = true
     return permissions
 }
 
@@ -667,8 +668,7 @@ class StreamCodableSuite {
               "botEnabled": true,
               "botCommandPermissions": {
                 "scene": {"moderatorsEnabled": true, "othersEnabled": true, "cooldown": 5},
-                "macro": {"subscribersEnabled": true},
-                "migrated": true
+                "macro": {"subscribersEnabled": true}
               },
               "botCommandAi": {"role": "Be nice", "model": "m"},
               "aliases": [{"alias": "!a", "replacement": "!b"}],
@@ -703,7 +703,6 @@ class StreamCodableSuite {
         assertEquals("token", chat.ttsMonster.apiToken)
         assertTrue(chat.botEnabled)
         val permissions = chat.botCommandPermissions
-        assertTrue(permissions.migrated)
         assertTrue(permissions.scene.moderatorsEnabled)
         assertTrue(permissions.scene.othersEnabled)
         assertEquals(5, permissions.scene.cooldown)
@@ -756,12 +755,9 @@ class StreamCodableSuite {
             SettingsChatBotPermissions.serializer(),
             "{\"scene\":{\"moderatorsEnabled\":true},\"stream\":{\"moderatorsEnabled\":true}}",
         )
-        assertFalse(permissions.scene.moderatorsEnabled)
-        assertFalse(permissions.stream.moderatorsEnabled)
+        assertTrue(permissions.scene.moderatorsEnabled)
+        assertTrue(permissions.stream.moderatorsEnabled)
         assertFalse(permissions.macro.moderatorsEnabled)
-        assertTrue(permissions.migrated)
-        val fresh = SettingsChatBotPermissions()
-        assertFalse(fresh.migrated)
     }
 
     @Test
@@ -1008,7 +1004,7 @@ class StreamCodableSuite {
             SettingsChatBotPermissions.serializer(),
             SettingsChatBotPermissions(),
             "tts fix map alert fax snapshot filter zoom tesla audio reaction scene stream widget location ai " +
-                "twitch gimbal macro send music torch migrated",
+                "twitch gimbal macro send music torch",
         )
         assertKeys(SettingsChatBotAlias.serializer(), SettingsChatBotAlias(), "alias replacement")
         assertKeys(
@@ -1473,7 +1469,7 @@ class StreamCodableSuite {
             "\"$name\":{\"moderatorsEnabled\":${index % 2 == 0},\"subscribersEnabled\":${index % 2 == 1}," +
                 "\"minimumSubscriberTier\":${index % 3 + 1},\"othersEnabled\":${index % 3 == 0}," +
                 "\"sendChatMessages\":${index % 5 == 0},\"cooldown\":${if (index % 4 == 0) "null" else "$index"}}"
-        }.joinToString(",", "{", ",\"migrated\":true}")
+        }.joinToString(",", "{", "}")
         val command = "{\"moderatorsEnabled\":false,\"subscribersEnabled\":true,\"minimumSubscriberTier\":2," +
             "\"othersEnabled\":true,\"sendChatMessages\":true,\"cooldown\":30}"
         val json = """

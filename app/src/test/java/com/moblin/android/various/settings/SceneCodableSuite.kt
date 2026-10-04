@@ -168,8 +168,7 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
         "bingoCard", "pomodoroTimer", "enabled", "effects",
     ),
     "SettingsSceneWidget" to listOf(
-        "widgetId", "id", "x", "y", "width", "height", "size", "alignment", "positioningLock", "migrated",
-        "migrated2",
+        "widgetId", "id", "x", "y", "size", "alignment", "positioningLock",
     ),
     "SettingsWidgetVideoSource" to listOf(
         "cornerRadius", "cameraPosition", "backCameraId", "frontCameraId", "rtmpCameraId", "srtlaCameraId",
@@ -495,7 +494,6 @@ class SceneCodableSuite {
             "SettingsSceneWidget",
             SettingsSceneWidget.serializer(),
             { SettingsSceneWidget() },
-            fromEmpty = { SettingsSceneWidget(migrated = false, migrated2 = false) },
         ),
         Case("SettingsWidgetVideoSource", SettingsWidgetVideoSource.serializer(), { SettingsWidgetVideoSource() }),
         Case("SettingsWidgetScoreboardPlayer", SettingsWidgetScoreboardPlayer.serializer(), {
@@ -606,8 +604,8 @@ class SceneCodableSuite {
         assertSwiftJson(
             SettingsSceneWidget.serializer(),
             SettingsSceneWidget(widgetId = uuid(id1), id = uuid(id2)),
-            """{"widgetId":"$id1","id":"$id2","x":0,"y":0,"width":100,"height":100,"size":100,
-               "alignment":"TopLeft","positioningLock":false,"migrated":true,"migrated2":true}""",
+            """{"widgetId":"$id1","id":"$id2","x":0,"y":0,"size":100,
+               "alignment":"TopLeft","positioningLock":false}""",
         )
         assertSwiftJson(
             SettingsWidgetBrowser.serializer(),
@@ -818,11 +816,10 @@ class SceneCodableSuite {
         assertEquals("\"generic\"", scoreboard["type"].toString())
         val browser = parse(codableJson.encodeToString(SettingsWidgetBrowser.serializer(), SettingsWidgetBrowser()))
         assertEquals("5.0", browser["fps"].toString())
-        val sceneWidget = SettingsSceneWidget(widgetId = uuid(id1), id = uuid(id2), width2 = 12.0)
+        val sceneWidget = SettingsSceneWidget(widgetId = uuid(id1), id = uuid(id2))
         assertEquals(
             listOf(
-                "widgetId", "id", "x", "y", "width", "height", "size", "alignment", "positioningLock",
-                "migrated", "migrated2",
+                "widgetId", "id", "x", "y", "size", "alignment", "positioningLock",
             ),
             parse(codableJson.encodeToString(SettingsSceneWidget.serializer(), sceneWidget)).keys.toList(),
         )
@@ -866,14 +863,10 @@ class SceneCodableSuite {
         assertEquals(10.5, first.layout.x)
         assertEquals("10.5", first.layout.xString)
         assertEquals(20.0, first.layout.y)
-        assertEquals(30.0, first.width2)
-        assertEquals(40.0, first.height2)
-        assertEquals(30.0, first.layout.size)
-        assertEquals("30.0", first.layout.sizeString)
+        assertEquals(100.0, first.layout.size)
+        assertEquals("100.0", first.layout.sizeString)
         assertEquals(SettingsAlignment.bottomRight, first.layout.alignment)
         assertTrue(first.layout.positioningLock)
-        assertTrue(first.migrated)
-        assertFalse(first.migrated2)
         assertEquals(12.5, scene.widgets[1].layout.size)
         assertEquals(90.0, scene.videoSourceRotation)
         assertEquals(SettingsVideoStabilizationMode.cinematic, scene.videoStabilizationMode)
@@ -1251,9 +1244,9 @@ class SceneCodableSuite {
         assertEquals(45, clock.maximum)
         val sceneWidget = codableJson.decodeFromString(
             SettingsSceneWidget.serializer(),
-            """{"size":"big","width":50,"height":60,"alignment":"Middle"}""",
+            """{"size":"big","alignment":"Middle"}""",
         )
-        assertEquals(50.0, sceneWidget.layout.size)
+        assertEquals(100.0, sceneWidget.layout.size)
         assertEquals(SettingsAlignment.topLeft, sceneWidget.layout.alignment)
         val lutInvalid = codableJson.decodeFromString(SettingsVideoEffectLut.serializer(), """{"lut":"not-a-uuid"}""")
         assertNotNull(lutInvalid.lut)

@@ -1721,26 +1721,27 @@
   },
   "Moblin/Integrations/Dji/DjiDevice/DjiDeviceModel.swift": {
     "status": "ok",
-    "sha256": "aa3bdf42d8b7349e52f83d1e0597bbf2092a0941b8ae46317d0fe076d4985ae1",
+    "sha256": "1ff4a1992542b0889ff20cf017b8f7a007e11289ab168f60df2eb6377b22cdce",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceModel.kt",
     "notes": [
-      "Manufacturer-data constants are kept as private top-level ByteArray vals with the same names as the Swift globals.",
-      "Swift's `data[2...3]` inclusive range is translated with `copyOfRange(2, 4)` (exclusive upper bound) after the `data.size < 4` guard.",
-      "Byte-slice comparison uses `contentEquals` instead of a Swift `switch` on `Data`, expressed as a `when` chain preserving the original case order.",
-      "`prefix(2)` becomes `take(2).toByteArray()`, which also yields an empty array for short input exactly like Swift.",
-      "Enum cases are referenced as `SettingsDjiDeviceModel.unknown`, `.osmoAction2`, `.osmoAction3`, `.osmoAction4`, `.osmoPocket3`, `.osmoPocket4`, `.osmoAction5Pro`, `.osmo360`, `.osmoAction6`; the ported enum is assumed to use these Swift camelCase entry names.",
-      "Hex literals above 0x7F require `.toByte()` in Kotlin, which does not change the wire bytes.",
-      "No state, no coroutines and no Android APIs are involved, so the translation is side-effect free and deterministic."
+      "Added the two new private ByteArray constants djiDeviceModelNone and djiProductTypeOsmoPocket4Pro.",
+      "Added the djiDeviceModelNone branch inside the existing when in djiModelFromManufacturerData, calling the new fromNoneDevice helper with the full data.",
+      "Added the private fromNoneDevice helper that reads bytes 12..13 and maps djiProductTypeOsmoPocket4Pro to SettingsDjiDeviceModel.osmoPocket4Pro.",
+      "Swift slices data[2...3] and data[12...13] stay copyOfRange(2, 4) and copyOfRange(12, 14); Data equality is translated with contentEquals as before.",
+      "The branch on a model value of Data([0x00, 0x00]) must stay after the specific model cases and before else, exactly as in Swift.",
+      "SettingsDjiDeviceModel.osmoPocket4Pro is referenced; the enum in com.moblin.android.various.settings must gain that entry with rawValue \"osmoPocket4Pro\" so this file compiles.",
+      "All other Kotlin lines are unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2122,
-    "tokens_out": 1865,
-    "seconds": 7.4,
-    "ported_at": "2026-09-22T12:40:35+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 34655,
+    "tokens_out": 1482,
+    "seconds": 5.7,
+    "ported_at": "2026-10-04T22:49:18+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsSuite.swift": {
     "status": "ok",
@@ -2568,26 +2569,28 @@
   },
   "MoblinTests/Moblin/Integrations/Dji/DjiDevice/DjiDeviceSuite.swift": {
     "status": "ok",
-    "sha256": "16508fa8d6ad6fba65a2bb4ead2b1db6abf4e9e2a4c59ccc9fe14d83cbe7ba47",
+    "sha256": "344afd21712bea507832f2a8a1b61f3406e020cc695d1ec08544f2fca8dcb96d",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceSuite.kt",
     "notes": [
-      "Swift Testing suite translated to a JUnit 4 class using kotlin.test assertions; the Swift 'try' disappears because Kotlin has no checked exceptions.",
-      "The NSDictionary literal comparison was replaced by comparing the parsed payload with a kotlinx.serialization JsonElement built from the identical JSON text, so key order is irrelevant and number/string primitives compare structurally.",
-      "Data slicing encoded[0 ..< 14] / encoded[14 ..< 161] became ByteArray.copyOfRange(0, 14) / copyOfRange(14, 161).",
-      "DjiStartStreamingMessagePayload2.osmoPocket4Header/...Middle and osmoAction6Header/...Middle are assumed to be companion-object constants in the ported payload file (Swift 'static let' mapping).",
-      "The resolution argument is assumed to be a DjiDeviceResolution enum in this same package; adjust the name if the ported payload file names that enum differently.",
-      "Moblin's Data.hexString() utility was not provided by the glossary, so it is re-implemented here as a file-private ByteArray extension that renders lowercase hex via '%02x'.format(byte).",
-      "Hex strings, JSON key names and values are kept byte-identical to the Swift expectations (161 bytes total, 14-byte header)."
+      "DjiStartStreamingMessagePayload2 no longer receives a header argument in either test: the two payloads now derive it internally and only middle is passed.",
+      "The new length assertions follow the Swift change from a single hex prefix to three checks: first byte, the little-endian 16-bit value in bytes 1 and 2, and the 14-byte prefix from offset 3.",
+      "The little-endian check uses `and 0xFF` on both bytes because Kotlin Byte is signed while Swift's Int(Data[i]) is not.",
+      "startStreamingOmsoAction6 now uses the longer rtmp URL and a JSON body range of 14..169 with an expected total of 169 bytes.",
+      "The added startStreamingOsmoAction4 test builds DjiStartStreamingMessagePayload; the Kotlin data class also has an oa5 flag, so it is passed explicitly as false.",
+      "modelOsmoPocket4Pro is covered by modelOsmoPocket4Pro; it compares djiModelFromManufacturerData against SettingsDjiDeviceModel.osmoPocket4Pro.",
+      "The existing JSON comparison helper (parseToJsonElement plus asNsObject) is kept, only the byte ranges and expected dictionary values were updated.",
+      "RobolectricTestRunner and the file private hexString/asNsObject helpers are preserved."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2408,
-    "tokens_out": 6018,
-    "seconds": 25.1,
-    "ported_at": "2026-09-22T12:43:58+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 33187,
+    "tokens_out": 5499,
+    "seconds": 20.1,
+    "ported_at": "2026-10-04T22:49:43+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Media/DriftTrackerSuite.swift": {
     "status": "ok",
@@ -3084,27 +3087,26 @@
   },
   "Moblin/Integrations/Dji/DjiDevice/DjiDeviceMessage.swift": {
     "status": "ok",
-    "sha256": "b4ca335f0bda50ddf73e88dc47199f29b47191845585b35d2f7f22d8df1e0e6f",
+    "sha256": "2bf94313404b5ef127731aff5fd496c14d1937bd5aa341863848a3d80437df08",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceMessage.kt",
     "notes": [
-      "Swift structs that only hold static members became Kotlin objects: DjiPreparingToLivestreamMessagePayload, DjiConfirmStartStreamingMessagePayload and DjiStopStreamingMessagePayload (call sites drop the parentheses).",
-      "UInt8/UInt16 became UByte/UShort; ByteArray literals with values above 0x7F use .toByte() because Kotlin byte literals are signed.",
-      "ByteWriter is called with writeBytes(ByteArray), writeUInt8(UByte), writeUInt16Le(UShort) and the data property reading back a ByteArray; adjust if the ported ByteWriter uses Int parameters.",
-      "Enum entries of SettingsDjiDeviceResolution / SettingsDjiDeviceImageStabilization are referenced with UPPER_SNAKE_CASE names (R480P, R720P, R1080P, OFF, ROCK_STEADY, ROCK_STEADY_PLUS, HORIZON_BALANCING, HORIZON_STEADY), matching the port's Kotlin naming convention.",
-      "Primary constructor parameters of DjiStartStreamingMessagePayload and DjiStartStreamingMessagePayload2 follow the Swift stored-property order, which differs from the Swift init parameter order, so call sites should use named arguments.",
-      "The failable init DjiStatusMessagePayload.init?(payload:) became a companion operator fun invoke(payload: ByteArray) returning null for short payloads, keeping the call site DjiStatusMessagePayload(payload) unchanged.",
-      "Codable StartStreamingPayload became @Serializable with byte-identical property names (including EnhancedRTMP); no property has a default value, so all keys are always encoded, matching JSONEncoder.",
-      "try? JSONEncoder().encode(...) ?? Data() became runCatching { Json.encodeToString(...) }.getOrNull()?.encodeToByteArray() ?: ByteArray(0)."
+      "DjiStartStreamingMessagePayload lost payload1/payload2 and the oa5 flag; its fields now follow the Swift order rtmpUrl, resolution, fps, bitrateKbps.",
+      "encode() in both streaming payloads now builds a body ByteWriter and prefixes a length-prefixed header byte 0x00 / 0x01.",
+      "DjiStartStreamingMessagePayload2 dropped the header property, its two header constants and the header constructor parameter.",
+      "ByteWriter.writeUInt8 takes a UByte, so the literal header bytes are written as 0x00.toUByte() and 0x01.toUByte().",
+      "UInt16(truncatingIfNeeded: count) stays data.size.toUShort() as in the current Kotlin file.",
+      "The hand-written \"/\" -> \"\\/\" JSON escaping used for the Codable payload was kept."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3546,
-    "tokens_out": 15706,
-    "seconds": 58.6,
-    "ported_at": "2026-09-22T12:45:56+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46321,
+    "tokens_out": 3098,
+    "seconds": 9.3,
+    "ported_at": "2026-10-04T22:49:28+00:00"
   },
   "Moblin/Various/Settings/SettingsMoblink.swift": {
     "status": "ok",
@@ -3456,27 +3458,25 @@
   },
   "Moblin/Various/Settings/SettingsDjiDevice.swift": {
     "status": "ok",
-    "sha256": "54c0e621b5921e4eb699696178370dcffeb6d0f33711e0fded1e6968098a9915",
+    "sha256": "a83e00fe5fe32c8a99767080dd9e55f1d471a404c26ab1219f1d85a626211fa3",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsDjiDevice.kt",
     "notes": [
-      "`@Published` members become private `MutableStateFlow` fields with public get/set accessors, which keeps ObservableObject-style observation and still satisfies the `Named` interface (`override var name: String`).",
-      "The hand-written `Codable` becomes `@Serializable(with = ...)` classes plus custom `KSerializer` objects using private surrogate data classes whose property names equal the Swift coding keys.",
-      "Because surrogate property names match the Swift `CodingKeys` strings exactly, JSON keys need no `@SerialName` and stay byte-identical.",
-      "The Swift decoder's per-key default fallback becomes Kotlin default values on the surrogate properties; kotlinx.serialization applies them for missing keys.",
-      "`SettingsDjiDeviceUrlType`, `SettingsDjiDeviceResolution` and `SettingsDjiDeviceVideoCodec` have raw values that differ from their case names, so they get explicit serializers that write `rawValue`.",
-      "`SettingsDjiDeviceImageStabilization` and `SettingsDjiDeviceModel` raw values equal their case names, so the generated enum serializer already writes the correct strings.",
-      "Swift `toString()` label helpers become overrides of `Any.toString()`; the `CodingKeys` enums are kept as nested enums for source parity, and `CaseIterable` is covered by `entries` in the `fromRawValue` companions.",
-      "A private `UuidSerializer` encodes `java.util.UUID` as its canonical string form; `djiDeviceBitrates` uses `UInt` to mirror `[UInt32]`."
+      "Added the new SettingsDjiDeviceModel entry osmoPocket4Pro with raw value \"osmoPocket4Pro\" right after osmoPocket4.",
+      "Added osmoPocket4Pro branches to hasImageStabilization (false), hasNewProtocol (true) and hasVideoCodec (true).",
+      "Added the new hasFps() function after hasVideoCodec(); osmoPocket3/4/4Pro return true, every other model false.",
+      "hasVideoCodec already returned true for osmoPocket4 in the existing port, so only the osmoPocket4Pro branch was added there.",
+      "Enum raw values stay byte-identical for persisted JSON (osmoPocket4Pro)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4158,
-    "tokens_out": 31392,
-    "seconds": 111.4,
-    "ported_at": "2026-09-22T12:48:05+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41870,
+    "tokens_out": 13233,
+    "seconds": 39.5,
+    "ported_at": "2026-10-04T22:50:08+00:00"
   },
   "Moblin/Integrations/Emotes/Seventv.swift": {
     "status": "ok",
@@ -5913,28 +5913,25 @@
   },
   "Moblin/Integrations/Dji/DjiDevice/DjiDevice.swift": {
     "status": "ok",
-    "sha256": "8553c8e9ef83ec04396b0b3cd7fd44c7b00a350632470a30d6db38bd1eef70b8",
-    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
-    "mode": "full",
+    "sha256": "2bed99de2dd2d79971439ec37e9f7b05d8c42f4dbe381ceda3e2c7455dd78e6b",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDevice.kt",
     "notes": [
-      "CoreBluetooth delegate conformances are folded into the DjiDevice class header as override functions, keeping the Swift member order.",
-      "centralManager is backed by CBCentralManager.holder(), so reset() setting it to null releases the manager, its connections and its scan exactly like ARC.",
-      "The MainTimer single-shot closures lose [weak self] and call the class method directly; timeout 60 / 10 stay as Double seconds.",
-      "logger.debug/info become android.util.Log.d/i with the tag \"DjiDevice\".",
-      "The payload singletons DjiStopStreamingMessagePayload, DjiPreparingToLivestreamMessagePayload and DjiConfirmStartStreamingMessagePayload are Kotlin objects, so the Swift () is dropped and encode() is called on the object.",
-      "UInt16 targets/transaction ids are UShort and UInt32 types are UInt; bitrate and bitrateKbps are UInt so they match SettingsDjiDevice.bitrate and DjiStartStreamingMessagePayload's bitrateKbps (built by dividing by 1000 and masking with 0xFFFF).",
-      "Data([...]) payload comparisons use contentEquals, and try? DjiMessage(data:) uses runCatching to keep logging corrupt messages.",
-      "canStartLive stays a top-level extension function on SettingsDjiDevice in this package, preserving the property reads and the exhaustive when over rtmpUrlType."
+      "Swift now groups .osmoPocket4 and .osmoPocket4Pro: the Kotlin when branches in processSettingUpWifi and sendStartStreaming list both SettingsDjiDeviceModel.osmoPocket4 and SettingsDjiDeviceModel.osmoPocket4Pro.",
+      "SettingsDjiDeviceModel as currently declared in com.moblin.android.various.settings has no osmoPocket4Pro entry yet; it must be added (rawValue \"osmoPocket4Pro\") for this file to compile, and hasNewProtocol()/hasImageStabilization()/hasVideoCodec() should cover it like the other Pocket devices.",
+      "The header: argument was dropped from both DjiStartStreamingMessagePayload2 constructions in sendStartStreaming, matching the current Kotlin declaration of that payload, which has no header parameter.",
+      "The oa5: model.hasNewProtocol() argument was dropped from the DjiStartStreamingMessagePayload construction in the default branch; the DjiConfigureMessagePayload oa5 argument is unchanged.",
+      "Everything else in the Kotlin file, including the CBCentralManager.holder() property delegate and the log TAG calls, is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41143,
-    "tokens_out": 22481,
-    "seconds": 74.7,
-    "ported_at": "2026-09-25T08:30:35+00:00"
+    "tokens_in": 54637,
+    "tokens_out": 6137,
+    "seconds": 17.3,
+    "ported_at": "2026-10-04T22:50:03+00:00"
   },
   "Moblin/Media/WiFiAware/WiFiAwareSender.swift": {
     "status": "ok",
@@ -7760,26 +7757,27 @@
   },
   "Moblin/Various/Settings/SettingsDebug.swift": {
     "status": "ok",
-    "sha256": "873b07d542fe605925186680fa4235d4b20899c67d07cc117b1e3f8086cfc620",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "4ced893028a45a0ce4c724bbd0e42b2c679f94a386a76bc2b9fe1d687744d347",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsDebug.kt",
     "notes": [
-      "Removed the top-level pixelFormats and pixelFormatTypes globals together with their usages.",
-      "Removed the pixelFormat property, its encode/decode lines and its CodingKeys entry.",
-      "Removed the allowVideoRangePixelFormat published flow, its encode/decode lines and its CodingKeys entry.",
-      "Added the new externalCameraVideoRange published flow after packetPadding, with its encode and decode lines under the JSON key externalCameraVideoRange.",
-      "decode still migrates debugLogging and builtinAudioAndVideoDelay as before; those blocks are untouched.",
-      "The @Published additions use MutableStateFlow per the settings convention and are written with .value at call sites."
+      "Applies the diff only: removed the Swift 'faceToBeRemoved' (beautyFilterSettings) and 'preferStereoMicToBeRemoved' (preferStereoMic) properties together with their encode/decode entries.",
+      "Kotlin keys stay as the Swift CodingKeys raw strings ('beautyFilterSettings', 'preferStereoMic'), which is why the removed lines are gone from both encode() and decode().",
+      "Migrated logic in decode() (debugLoggingMigrated and builtinAudioAndVideoDelay70msMigrated) is untouched, as in the Swift file.",
+      "Both migration blocks still write the migrated flag unconditionally after the check, matching Swift.",
+      "Published Swift properties remain MutableStateFlow; plain Swift vars stay plain Kotlin vars.",
+      "Serializer stays the JsonObjectSerializer companion pattern; no CodingKeys enum exists in Kotlin.",
+      "No other file content, imports or declaration order was modified."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 40042,
-    "tokens_out": 3056,
-    "seconds": 10.1,
-    "ported_at": "2026-09-29T00:38:50+00:00"
+    "tokens_in": 40863,
+    "tokens_out": 3171,
+    "seconds": 9.6,
+    "ported_at": "2026-10-04T22:49:22+00:00"
   },
   "Moblin/View/Main/LockScreenView.swift": {
     "status": "ok",
@@ -11881,24 +11879,23 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "b6e6e0cd6f6f287a645f287b33bdc1a8932a57aca11c8bc0c083bc526f5ea7fb",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "e9341baa9f50498eafdd4d6a29f3145b26f89fb3e5b92e6a81076293f1661160",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "SettingsChatFilter.showOnScreen was renamed to showInChat and a new showInActivityFeed flag was added.",
-      "The JSON key 'showOnScreen' is kept for showInChat so stored filters still decode; showInActivityFeed uses its own key.",
-      "Both flags are Published-backed so Composable readers recompose, as on iOS.",
-      "Only SettingsChatFilter is affected; the other types in the file are untouched."
+      "Removed the migrated flag from SettingsChatBotPermissions, its encode entry and the decode-side migration block.",
+      "The Kotlin class previously kept scene/stream defaults at moderatorsEnabled = false, so dropping the migration code keeps the same default behaviour.",
+      "Everything else in the file is unchanged, including formatting, imports and declaration order."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58975,
-    "tokens_out": 9562,
-    "seconds": 25.5,
-    "ported_at": "2026-10-02T23:56:42+00:00"
+    "tokens_in": 58799,
+    "tokens_out": 9263,
+    "seconds": 23.3,
+    "ported_at": "2026-10-04T22:50:28+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -16339,27 +16336,28 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "026c5a9dfe4bcf2a9b10ec64c525c4c71235d99e233002e8dac46c2d2bf72fad",
-    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
+    "sha256": "5c64eaaf3dd487033c408ae20dd71a998bd9c844b6428b8634b16311c89df5b6",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Applied the Swift diff only: addDefaultScenes now also creates a 'Front' video source widget and a 'PiP' scene that shows it (non-macCatalyst branch).",
-      "Existing Android behaviour (isMac() check instead of #if targetEnvironment(macCatalyst), direct in-place mutation of widget.videoSource like the cropX/cropY migration) is kept.",
-      "scene.videoSource is a settings value data class, so the two Swift writes become one copy(cameraPosition =, backCameraId =) as elsewhere in this file.",
-      "The widget's nested videoSource fields are mutated in place, matching the existing migrateFromOlderVersions code for the same type.",
-      "Added import com.moblin.android.various.utils.widestBackCameraId, which the new PiP scene needs.",
-      "localized(\"Front\") / localized(\"PiP\") replace String(localized:) as in the rest of the file.",
-      "No other member, import or line was touched."
+      "Removed the `scoreboardSizeMigrated` property, its encode entry and its decode plus the scoreboard-size migration loop, matching the Swift diff.",
+      "Removed the `debug.preferStereoMicToBeRemoved` migration inside `Database` decode.",
+      "`face` is now decoded with an explicit default: `container.decode(\"face\", SettingsFace.serializer(), SettingsFace())`.",
+      "Removed the widget cropX/cropY/cropWidth/cropHeight migration loops, the scene widget text-alignment migration and the browser size migration from `migrateFromOlderVersions`.",
+      "`migrateFromOlderVersions` now only refreshes the bundled alerts media gallery and the quick buttons.",
+      "Imports were left byte-identical; `defaultScoreboardSize` is now unused but kept because the diff does not touch imports.",
+      "Swift `Settings` is a `final class` with a computed `database`; the Kotlin port keeps the private `realDatabase` plus a read-only `database` getter.",
+      "`Settings.fromString`/`toString` map to the Kotlin `Database.fromString`/`toJsonString` helpers already present in the file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 116394,
-    "tokens_out": 30023,
-    "seconds": 76.2,
-    "ported_at": "2026-10-03T22:29:37+00:00"
+    "tokens_in": 116979,
+    "tokens_out": 28124,
+    "seconds": 69.0,
+    "ported_at": "2026-10-04T22:53:12+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -16527,26 +16525,23 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "f7379fef88705873db10c1b12337454ff3d000fbd02298224bcf55e189506ffa",
-    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
+    "sha256": "e4bbfd0aad5e5ac186f8886d384f153f86c6b58f9a129d4e49be1158366fab0f",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "Only SettingsSceneWidget gained a secondary constructor translating Swift's convenience init(widget:); everything else is unchanged.",
-      "Swift's mutating layout.updateXString/YString/SizeString become the existing SettingsWidgetLayout.updatingXString()/updatingYString()/updatingSizeString() copy-returning calls, assigned back to the layout property.",
-      "All layout field writes in one switch branch are folded into a single SettingsWidgetLayout.copy(...) so Compose observes one state change, per the struct-copy rule.",
-      "The constructor assigns the layout through the Published delegate once, after building the value in a local variable.",
-      "defaultScoreboardSize is imported from com.moblin.android.various.model.",
-      "The constructor was placed after the delegate properties and before equals/hashCode, matching the Swift position of the convenience init relative to the stored properties and CodingKeys."
+      "Removed the deprecated width2/height2/migrated/migrated2 members of SettingsSceneWidget, their JSON keys and their encode/decode/clone handling.",
+      "SettingsSceneWidget.decode now reads size with a plain container.decode(\"size\", 100.0) instead of the width/height fallback.",
+      "Everything else in the file is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 140283,
-    "tokens_out": 48371,
-    "seconds": 122.9,
-    "ported_at": "2026-10-03T22:30:24+00:00"
+    "tokens_in": 140720,
+    "tokens_out": 44636,
+    "seconds": 106.3,
+    "ported_at": "2026-10-04T22:51:58+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",
@@ -16849,27 +16844,24 @@
   },
   "Moblin/View/Settings/DjiDevices/DjiDeviceSettingsView.swift": {
     "status": "ok",
-    "sha256": "9cbcbde0456d52d8120b8020a56985f709f521bb2ce6cc1e309fd8764f626a85",
+    "sha256": "921083f8bc2eb9b06f092df239f9aeb14aa71056862d0a3c16a169edeaef5862",
+    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/djidevices/DjiDeviceSettingsView.kt",
     "notes": [
-      "SwiftUI Form/Section views became ColumnScope extension composables that emit a small header Text plus their rows, so DjiDeviceSettingsView keeps the original member order inside a scrollable Column under a Scaffold + TopAppBar.",
-      "NavigationLink is routed through an onNavigate: (String) -> Unit parameter carrying the destination view name; destinations that need callbacks (scanner, SSID/password editors) are resolved by the navigation host, so DjiDeviceSelectDeviceSettingsView.onDeviceChange and DjiDeviceWiFiSettingsInnerView.updateSavedNetworks are wired there (updateSavedNetworks additionally runs from a LaunchedEffect keyed on SSID/password to keep it reachable).",
-      "Observable model objects are read with collectAsState() and written through their MutableStateFlow .value (SettingsDjiDevice, SettingsRtmpServer, Database, StatusTopRight, StatusOther, DjiDeviceScanner).",
-      "Picker is rendered as ExposedDropdownMenuBox + read-only OutlinedTextField with Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable), which needs Compose Material3 1.3+; the two Sections inside the URL picker were flattened into the menu's first (auto IP) item plus the fixed IP items.",
-      "SF Symbol names are mapped to Material icons by the private helper urlIcon() at the end of the file (Icons.Default.Wifi/Smartphone/HelpOutline), so material-icons-extended must be on the classpath.",
-      ".onDelete and the macOS-only .contextMenu delete were replaced by an always visible delete IconButton (Compose has no built-in swipe-to-delete here); isMac() is therefore no longer referenced in this file.",
-      ".onAppear/.onChange became LaunchedEffect(Unit)/LaunchedEffect(value); the server RTMP stream id effect also clears serverRtmpUrl on first composition, which is harmless.",
-      "Assumed Moblin API details: IpType.ipv4/ipv6 comes from com.moblin.android.various.model, rtmpServerStreamUrl takes an Int port, and TextButtonView(text, enabled, onClick), NameEditView(name, existingNames, onChange), TextEditNavigationView(title, value, onSubmit, onNavigate), RtmpServerSettingsView(rtmpServer) and status.isConnectedToIpv4WiFi() keep their Swift shapes."
+      "Only the FPS condition changed: `device.model == .osmoPocket3 || device.model == .osmoPocket4` became `device.model.hasFps()`.",
+      "The comparison is translated as `model.hasFps()` on the local `model` snapshot of `device.model` (SettingsDjiDeviceModel).",
+      "The now-unused import of com.moblin.android.various.settings.SettingsDjiDeviceModel was removed, since that type name no longer appears in the file.",
+      "hasFps() must exist on SettingsDjiDeviceModel in com.moblin.android.various.settings (parallel translation of SettingsDjiDevice.kt); everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 10115,
-    "tokens_out": 41027,
-    "seconds": 148.1,
-    "ported_at": "2026-09-22T14:12:24+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 61034,
+    "tokens_out": 5947,
+    "seconds": 17.0,
+    "ported_at": "2026-10-04T22:49:04+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardBingoCardSettingsView.swift": {
     "status": "ok",

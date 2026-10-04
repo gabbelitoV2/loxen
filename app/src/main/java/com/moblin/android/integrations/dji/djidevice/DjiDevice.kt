@@ -366,7 +366,7 @@ open class DjiDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
                 setState(state = DjiDeviceState.configuring)
             }
             SettingsDjiDeviceModel.osmoPocket3 -> sendStartStreaming()
-            SettingsDjiDeviceModel.osmoPocket4 -> sendStartStreaming()
+            SettingsDjiDeviceModel.osmoPocket4, SettingsDjiDeviceModel.osmoPocket4Pro -> sendStartStreaming()
             SettingsDjiDeviceModel.unknown -> sendStartStreaming()
         }
     }
@@ -383,7 +383,7 @@ open class DjiDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
         val resolution = this.resolution ?: return
         val bitrateKbps = ((bitrate / 1000u) and 0xFFFFu).toUShort()
         when (model) {
-            SettingsDjiDeviceModel.osmoPocket4 -> {
+            SettingsDjiDeviceModel.osmoPocket4, SettingsDjiDeviceModel.osmoPocket4Pro -> {
                 val payload = DjiStartStreamingMessagePayload2(
                     rtmpUrl = rtmpUrl,
                     resolution = resolution,
@@ -391,7 +391,6 @@ open class DjiDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
                     bitrateKbps = bitrateKbps,
                     codec = videoCodec.toDjiCodec(),
                     enhancedRtmp = videoCodec.toDjiEnhancedRtmp(),
-                    header = DjiStartStreamingMessagePayload2.osmoPocket4Header,
                     middle = DjiStartStreamingMessagePayload2.osmoPocket4Middle,
                 )
                 writeMessage(
@@ -411,7 +410,6 @@ open class DjiDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
                     bitrateKbps = bitrateKbps,
                     codec = videoCodec.toDjiCodec(),
                     enhancedRtmp = videoCodec.toDjiEnhancedRtmp(),
-                    header = DjiStartStreamingMessagePayload2.osmoAction6Header,
                     middle = DjiStartStreamingMessagePayload2.osmoAction6Middle,
                 )
                 writeMessage(
@@ -429,7 +427,6 @@ open class DjiDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
                     resolution = resolution,
                     fps = fps,
                     bitrateKbps = bitrateKbps,
-                    oa5 = model.hasNewProtocol(),
                 )
                 writeMessage(
                     message = DjiMessage(
