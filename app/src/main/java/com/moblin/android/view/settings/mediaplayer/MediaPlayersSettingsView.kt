@@ -2,7 +2,6 @@ package com.moblin.android.view.settings.mediaplayer
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
@@ -18,6 +17,7 @@ import com.moblin.android.various.settings.SettingsMediaPlayers
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
+import com.moblin.android.LocalModel
 
 @Composable
 fun MediaPlayersSettingsView(
@@ -48,7 +48,7 @@ fun MediaPlayersSettingsView(
                         deletePlayer(model, mediaPlayers, setOf(offset))
                     }
                 }) {
-                    MediaPlayerSettingsView(mediaPlayers = mediaPlayers, player = player)
+                    MediaPlayerSettingsView(model = model, mediaPlayers = mediaPlayers, player = player)
                 }
             }
             CreateButtonView {

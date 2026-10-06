@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.network.httpRequest
+import com.moblin.android.various.network.httpUrlSession
 import com.moblin.android.various.network.makeUrl
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,7 +18,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -26,10 +25,6 @@ import org.json.JSONObject
 private val json = Json { ignoreUnknownKeys = true }
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
-
-private val profilePictureHttpClient = OkHttpClient.Builder()
-    .callTimeout(10, TimeUnit.SECONDS)
-    .build()
 
 private fun serialize(value: Map<String, Any?>): ByteArray =
     (JSONObject.wrap(value) as JSONObject).toString().toByteArray(Charsets.UTF_8)
@@ -286,13 +281,13 @@ suspend fun fetchTwitchProfilePicture(username: String): ImageBitmap? = withCont
         val request = Request.Builder()
             .url("https://decapi.me/twitch/avatar/$username")
             .build()
-        profilePictureHttpClient.newCall(request).execute().use { it.body?.bytes() }
+        httpUrlSession().newCall(request).execute().use { it.body?.bytes() }
     }.getOrNull()?.decodeToString()?.trim() ?: return@withContext null
     val imageData = runCatching {
         val request = Request.Builder()
             .url(profileUrlString)
             .build()
-        profilePictureHttpClient.newCall(request).execute().use { it.body?.bytes() }
+        httpUrlSession().newCall(request).execute().use { it.body?.bytes() }
     }.getOrNull() ?: return@withContext null
     BitmapFactory.decodeByteArray(imageData, 0, imageData.size)?.asImageBitmap()
 }

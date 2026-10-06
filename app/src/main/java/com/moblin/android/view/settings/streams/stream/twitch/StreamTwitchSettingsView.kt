@@ -81,7 +81,11 @@ fun TwitchStreamLiveSettingsView(
     }
     NavigationLink(
         destination = {
-            TwitchCategoryPickerView(stream = stream, onDismiss = rememberDismiss())
+            TwitchCategoryPickerView(
+                model = model,
+                stream = stream,
+                onDismiss = rememberDismiss(),
+            )
         },
     ) {
         Text(localized("Category"))

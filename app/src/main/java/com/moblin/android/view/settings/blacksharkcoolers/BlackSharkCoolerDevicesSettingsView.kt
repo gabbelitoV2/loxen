@@ -1,7 +1,6 @@
 package com.moblin.android.view.settings.blacksharkcoolers
 
 import androidx.compose.runtime.Composable
-import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.ForEach
@@ -16,6 +15,7 @@ import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
 
 @Composable
 fun BlackSharkCoolerDevicesSettingsView(
@@ -44,6 +44,7 @@ fun BlackSharkCoolerDevicesSettingsView(
                         .filterNot { it.id == device.id }
                 }) {
                     BlackSharkCoolerDeviceSettingsView(
+                        model = model,
                         blackSharkCoolerDevices = blackSharkCoolerDevices,
                         device = device,
                         status = model.statusTopRight,

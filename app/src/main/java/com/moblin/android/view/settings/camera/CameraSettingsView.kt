@@ -173,7 +173,7 @@ private fun CameraSettingsCubeLutsView(
         }
     }
     Sheet(isPresented = showPicker, onDismissRequest = { showPicker = false }) {
-        AlertPickerView(type = "item")
+        AlertPickerView(model = model, type = "item")
     }
 }
 
@@ -354,9 +354,9 @@ fun CameraSettingsView(
                     Text("Zoom")
                 }
             }
-            VideoStabilizationSettingsView(mode = database.videoStabilizationMode)
+            VideoStabilizationSettingsView(model = model, mode = database.videoStabilizationMode)
             if (database.showAllSettings) {
-                FixedHorizonView(database = database)
+                FixedHorizonView(model = model, database = database)
             }
             MirrorFrontCameraOnStreamView(model = model, database = database)
             SelfieStickDoesNotWorkView(database = database, selfieStick = database.selfieStick)
@@ -373,7 +373,7 @@ fun CameraSettingsView(
                 footer = "⚠️ Hijacks volume buttons. You can only change volume in Control " +
                     "Center when enabled.",
             ) {
-                CameraControlsView(database = database)
+                CameraControlsView(model = model, database = database)
             }
         }
         if (database.showAllSettings) {

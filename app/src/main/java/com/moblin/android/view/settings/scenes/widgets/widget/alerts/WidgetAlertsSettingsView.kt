@@ -452,11 +452,11 @@ fun WidgetAlertsSettingsView(
         NavigationLink(destination = { WidgetAlertsKickSettingsView(kick = widget.alerts.kick) }) {
             KickLogoAndNameView()
         }
-        NavigationLink(destination = { WidgetAlertsChatBotSettingsView(chatBot = widget.alerts.chatBot) }) {
+        NavigationLink(destination = { WidgetAlertsChatBotSettingsView(model = model, chatBot = widget.alerts.chatBot) }) {
             Text("Chat bot")
         }
         NavigationLink(
-            destination = { WidgetAlertsSpeechToTextSettingsView(speechToText = widget.alerts.speechToText) },
+            destination = { WidgetAlertsSpeechToTextSettingsView(model = model, speechToText = widget.alerts.speechToText) },
         ) {
             Text("Speech to text")
         }

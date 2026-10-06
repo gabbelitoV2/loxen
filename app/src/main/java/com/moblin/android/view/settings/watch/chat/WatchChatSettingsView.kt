@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.moblin.android.LocalModel
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
@@ -23,6 +22,7 @@ import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.moblin.android.various.model.sendSettingsToWatch
+import com.moblin.android.LocalModel
 
 class WatchSettingsChat {
     val fontSize = MutableStateFlow(20.0f)

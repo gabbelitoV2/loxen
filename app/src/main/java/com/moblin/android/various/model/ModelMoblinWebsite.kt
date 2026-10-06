@@ -1,14 +1,13 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.various.logger
-import com.moblin.android.various.network.NetworkResponse
+import com.moblin.android.various.network.httpUrlSession
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.utils.isMac
 import java.net.URI
 import java.security.MessageDigest
 import java.util.Base64
-import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,10 +17,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import com.moblin.android.various.network.NetworkResponse
 
 private val baseUrl: String = ""
 private val liveUrl = URI("$baseUrl/streamers/live")
@@ -30,11 +29,6 @@ private val appAttestStorage = SimpleStringStorage("moblinWebsiteAppAttest")
 
 private val json = Json { ignoreUnknownKeys = true }
 private val mainScope = CoroutineScope(Dispatchers.Main)
-private val httpClient = OkHttpClient.Builder()
-    .connectTimeout(30, TimeUnit.SECONDS)
-    .readTimeout(30, TimeUnit.SECONDS)
-    .writeTimeout(30, TimeUnit.SECONDS)
-    .build()
 
 @Serializable
 private data class MoblinWebsiteChannel(
@@ -111,7 +105,7 @@ private suspend fun fetchChallenge(): String = withContext(Dispatchers.IO) {
         .url(challengeUrl.toString())
         .post(ByteArray(0).toRequestBody(null))
         .build()
-    httpClient.newCall(request).execute().use { response ->
+    httpUrlSession().newCall(request).execute().use { response ->
         val data = response.body?.bytes() ?: ByteArray(0)
         if (!response.isSuccessful) {
             throw MoblinWebsiteError.BadResponse("challenge: ${describe(response, data)}")
@@ -143,7 +137,7 @@ private suspend fun postLive(channels: List<MoblinWebsiteChannel>, appAttest: Mo
             .header("Moblin-Assertion", Base64.getEncoder().encodeToString(assertion))
             .post(body.toRequestBody("application/json".toMediaType()))
             .build()
-        httpClient.newCall(request).execute().use { response ->
+        httpUrlSession().newCall(request).execute().use { response ->
             val data = response.body?.bytes() ?: ByteArray(0)
             if (response.code == 401) {
                 throw MoblinWebsiteError.KeyRejected("live: ${describe(response, data)}")

@@ -179,7 +179,7 @@ fun StreamPlatformsSettingsView(
         GrayTextView(text = stream.twitchChannelName)
     }
     NavigationLink(destination = {
-        StreamKickSettingsView(stream = stream)
+        StreamKickSettingsView(model = model, stream = stream)
     }) {
         KickLogoAndNameView()
         Spacer(Modifier.weight(1f))
@@ -351,7 +351,7 @@ fun StreamSettingsView(
             }
             if (database.showAllSettings) {
                 NavigationLink(destination = {
-                    StreamSnapshotSettingsView(stream = stream, recording = stream.recording)
+                    StreamSnapshotSettingsView(model = model, stream = stream, recording = stream.recording)
                 }) {
                     IconAndTextSettingView(image = "camera.aperture", text = "Snapshot")
                 }
@@ -417,7 +417,7 @@ fun StreamSettingsView(
                     Text(localized("Go live notification"))
                 }
                 NavigationLink(destination = {
-                    StreamRealtimeIrlSettingsView(stream = stream)
+                    StreamRealtimeIrlSettingsView(model = model, stream = stream)
                 }) {
                     Text(localized("RealtimeIRL"), modifier = Modifier.weight(1f))
                     IosSwitch(

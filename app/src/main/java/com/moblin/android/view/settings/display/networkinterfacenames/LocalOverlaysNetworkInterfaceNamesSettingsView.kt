@@ -2,7 +2,6 @@ package com.moblin.android.view.settings.display.networkinterfacenames
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
@@ -13,6 +12,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 @Composable
 fun LocalOverlaysNetworkInterfaceNamesSettingsView(

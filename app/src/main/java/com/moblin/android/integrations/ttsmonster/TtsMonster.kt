@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.ttsmonster
 
-import com.moblin.android.common.various.httpGet
+import java.net.URI
 import java.util.Locale
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -11,6 +11,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import com.moblin.android.common.various.isSuccessful
+import com.moblin.android.various.network.httpGet
 
 private val baseUrl: HttpUrl = "https://api.console.tts.monster".toHttpUrl()
 
@@ -98,7 +100,7 @@ class TtsMonster(private val apiToken: String) {
             json.decodeFromString(TtsMonsterGenerateResponse.serializer(), data.decodeToString())
         }.getOrNull() ?: return null
         val url = generateResponse.url.toHttpUrlOrNull() ?: return null
-        val (audioData, audioResponse) = httpGet(url.toString()) ?: return null
+        val (audioData, audioResponse) = httpGet(URI(url.toString())) ?: return null
         if (!audioResponse.isSuccessful) {
             return null
         }

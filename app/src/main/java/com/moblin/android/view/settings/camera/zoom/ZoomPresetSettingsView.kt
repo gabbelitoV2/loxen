@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.moblin.android.LocalModel
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.NavigationLink
@@ -17,6 +16,7 @@ import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemView
 import com.moblin.android.various.model.backZoomPresetSettingsUpdated
 import com.moblin.android.various.model.frontZoomPresetSettingUpdated
+import com.moblin.android.LocalModel
 
 @Composable
 fun ZoomPresetSettingsView(

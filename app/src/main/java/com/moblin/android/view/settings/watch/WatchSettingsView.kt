@@ -25,6 +25,7 @@ fun WatchSettingsView(
             NavigationLink(
                 destination = {
                     WatchChatSettingsView(
+                        model = model,
                         chat = com.moblin.android.view.settings.watch.chat.WatchSettingsChat().apply {
                             fontSize.value = watch.chat.fontSize.value
                             timestampEnabled.value = watch.chat.timestampEnabled.value

@@ -4,7 +4,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.moblin.android.LocalModel
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
@@ -18,6 +17,7 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
 import com.moblin.android.various.model.httpProxyServerChanged
 import com.moblin.android.various.model.reloadHttpProxyServer
+import com.moblin.android.LocalModel
 
 @Composable
 fun HttpProxySettingsView(

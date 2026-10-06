@@ -1,8 +1,9 @@
 package com.moblin.android.streamingplatforms.soop
 
-import com.moblin.android.common.various.httpGet
 import kotlinx.coroutines.delay
 import com.moblin.android.various.model.PlatformStatus
+import com.moblin.android.various.network.getHttpsUrl
+import com.moblin.android.various.network.httpGet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,8 +53,8 @@ class SoopPlatformStatus {
     }
 
     private suspend fun getChannelInfo(url: String): SoopChannelInfo {
-        val response: Any = httpGet(url)
-        val data = if (response is ByteArray) response.decodeToString() else response.toString()
-        return Json.decodeFromString(data)
+        val uri = getHttpsUrl(url) ?: throw IllegalStateException("Invalid url")
+        val (data, _) = httpGet(from = uri)
+        return Json.decodeFromString(data.decodeToString())
     }
 }

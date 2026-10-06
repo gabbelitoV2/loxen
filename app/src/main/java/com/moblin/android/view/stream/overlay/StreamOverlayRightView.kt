@@ -853,7 +853,7 @@ private fun RightOverlayBottomVerticalView(
     ) {
         Spacer(modifier = Modifier.weight(1f))
         if (showMediaPlayerControls) {
-            StreamOverlayRightMediaPlayerControlsView(mediaPlayer = model.mediaPlayerPlayer)
+            StreamOverlayRightMediaPlayerControlsView(model = model, mediaPlayer = model.mediaPlayerPlayer)
         } else {
             Column(
                 horizontalAlignment = Alignment.End,
@@ -914,7 +914,7 @@ private fun RightOverlayBottomHorizontalView(
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
     val hasZoom by zoom.hasZoom.collectAsState()
     if (showMediaPlayerControls) {
-        StreamOverlayRightMediaPlayerControlsView(mediaPlayer = model.mediaPlayerPlayer)
+        StreamOverlayRightMediaPlayerControlsView(model = model, mediaPlayer = model.mediaPlayerPlayer)
     } else {
         StreamOverlayRightFaceView(model = model, face = database.face)
         if (showingPixellate) {

@@ -39,6 +39,7 @@ private fun DjiDeviceSettingsWrapperView(
         destination = {
             val status = model.statusTopRight
             DjiDeviceSettingsView(
+                model = model,
                 djiDevices = djiDevices,
                 device = device,
                 status = status,

@@ -779,6 +779,7 @@ private fun ChatBotCustomCommandTextSettingsView(
             )
         }
         TextFormatVariablesView(
+            model = model,
             widget = false,
             value = text,
             onChange = { text = it }
@@ -938,6 +939,7 @@ fun ChatBotSettingsView(
             NavigationLink(
                 destination = {
                     ChatBotCustomCommandsSettingsView(
+                        model = model,
                         chat = model.database.chat,
                         onNavigate = onNavigate
                     )

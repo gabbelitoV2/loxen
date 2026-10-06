@@ -1,6 +1,5 @@
 package com.moblin.android.streamingplatforms.youtube
 
-import com.moblin.android.common.various.httpGet
 import kotlinx.coroutines.delay
 import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.integrations.emotes.EmotesPlatform
@@ -23,11 +22,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import com.moblin.android.various.model.appendChatMessage
+import com.moblin.android.various.network.httpUrlSession
+import com.moblin.android.various.network.httpGet
+import com.moblin.android.common.various.isSuccessful
 
 private const val userAgent =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0"
@@ -244,7 +245,6 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
     private var continuation: String = ""
     private var delay: Long = 2000
     private val scope = MainScope()
-    private val client = OkHttpClient()
 
     fun start() {
         emotes.start(
@@ -544,7 +544,7 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
                 .url(url)
                 .header("User-Agent", userAgent)
                 .build()
-            client.newCall(request).execute().use { response ->
+            httpUrlSession().newCall(request).execute().use { response ->
                 val data = response.body?.bytes() ?: ByteArray(0)
                 data to response
             }
@@ -558,7 +558,7 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
                 .post(data.toRequestBody("application/json".toMediaType()))
                 .header("User-Agent", userAgent)
                 .build()
-            client.newCall(request).execute().use { response ->
+            httpUrlSession().newCall(request).execute().use { response ->
                 val responseData = response.body?.bytes() ?: ByteArray(0)
                 responseData to response
             }

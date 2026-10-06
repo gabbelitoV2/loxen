@@ -1,13 +1,14 @@
 package com.moblin.android.integrations.emotes
 
 import com.moblin.android.platform.log.Log
-import com.moblin.android.common.various.httpGet
 import com.moblin.android.localized
 import com.moblin.android.various.network.NetworkResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.net.URI
+import com.moblin.android.common.various.isSuccessful
+import com.moblin.android.various.network.httpGet
 
 private const val TAG = "Ffz"
 
@@ -80,7 +81,7 @@ private suspend fun fetchEmotes(
     if (runCatching { URI(url) }.isFailure) {
         return emptyMap()
     }
-    val (data, response) = httpGet(url)
+    val (data, response) = httpGet(from = URI(url))
     if (response.code == 404) {
         Log.i(TAG, "emotes: $platform: FFZ emotes not found (HTTP 404)")
         return emptyMap()

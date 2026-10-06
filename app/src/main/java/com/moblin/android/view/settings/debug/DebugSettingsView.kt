@@ -111,7 +111,7 @@ fun DebugSettingsView(
             }
             Section(header = "Experimental") {
                 NavigationLink(destination = {
-                    DebugVideoSettingsView(debug = debug)
+                    DebugVideoSettingsView(model = model, debug = debug)
                 }) {
                     Text(localized("Video"))
                 }
@@ -171,6 +171,7 @@ fun DebugSettingsView(
                 )
                 NavigationLink(destination = {
                     HttpProxySettingsView(
+                        model = model,
                         status = model.statusOther,
                         httpProxy = model.database.httpProxy,
                     )

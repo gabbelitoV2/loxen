@@ -6,6 +6,7 @@ import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.appendChatMessage
+import com.moblin.android.various.network.httpUrlSession
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.time.Instant
@@ -23,7 +24,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
@@ -115,7 +115,6 @@ class SoopChat(
     private var emotes: Emotes = Emotes()
     private var keepAliveTask: Job? = null
     private var messages: Channel<WebSocketMessage>? = null
-    private val client = OkHttpClient()
     private val json = Json { ignoreUnknownKeys = true }
     private val mainScope = MainScope()
 
@@ -208,7 +207,7 @@ class SoopChat(
             .url(url)
             .header("Sec-WebSocket-Protocol", "chat")
             .build()
-        webSocket = client.newWebSocket(
+        webSocket = httpUrlSession().newWebSocket(
             request,
             object : WebSocketListener() {
                 override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
@@ -316,7 +315,7 @@ class SoopChat(
             .post(body.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
             .build()
         val (data, successful) = withContext(kotlinx.coroutines.Dispatchers.IO) {
-            client.newCall(request).execute().use { response ->
+            httpUrlSession().newCall(request).execute().use { response ->
                 (response.body?.bytes() ?: ByteArray(0)) to response.isSuccessful
             }
         }

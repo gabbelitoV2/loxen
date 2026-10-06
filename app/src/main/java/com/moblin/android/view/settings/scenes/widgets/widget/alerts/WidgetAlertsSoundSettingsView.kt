@@ -88,7 +88,7 @@ fun CustomSoundView(
         }
     }
     Sheet(isPresented = showPicker, onDismissRequest = { showPicker = false }) {
-        AlertPickerView(type = "audio")
+        AlertPickerView(model = model, type = "audio")
     }
 }
 

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
@@ -20,6 +19,7 @@ import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
 
 @Composable
 fun WorkoutDevicesSettingsView(

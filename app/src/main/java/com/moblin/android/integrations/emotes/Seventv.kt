@@ -1,12 +1,14 @@
 package com.moblin.android.integrations.emotes
 
 import com.moblin.android.platform.log.Log
-import com.moblin.android.common.various.httpGet
 import com.moblin.android.localized
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import com.moblin.android.common.various.isSuccessful
+import com.moblin.android.various.network.getHttpsUrl
+import com.moblin.android.various.network.httpGet
 
 private const val TAG = "Seventv"
 
@@ -75,7 +77,7 @@ suspend fun fetchSeventvEmotes(
 
 private suspend fun fetchGlobalEmotes(): Map<String, Emote> {
     val url = "https://7tv.io/v3/emote-sets/global"
-    val (data, response) = httpGet(url)
+    val (data, response) = httpGet(getHttpsUrl(url) ?: return emptyMap())
     if (!response.isSuccessful) {
         throw IllegalStateException("Not successful")
     }
@@ -122,7 +124,7 @@ private suspend fun fetchChannelEmotes(
         return emptyMap()
     }
     val url = "https://7tv.io/v3/users/${platform.rawValue}/$channelId"
-    val (data, response) = httpGet(url)
+    val (data, response) = httpGet(getHttpsUrl(url) ?: return emptyMap())
     if (response.code == 404) {
         Log.i(TAG, "emotes: ${platform.rawValue}: $channelId: 7TV channel emotes not found (HTTP 404)")
         return emptyMap()

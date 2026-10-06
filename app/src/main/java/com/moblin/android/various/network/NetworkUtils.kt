@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -123,7 +124,7 @@ fun httpRequest(
     completion: ((ByteArray?, Response?, Throwable?) -> Unit)? = null,
 ) {
     val scope = CoroutineScope(queue)
-    httpClient.newCall(request).enqueue(object : Callback {
+    httpUrlSession().newCall(request).enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             val callback = completion ?: return
             scope.launch {
@@ -140,6 +141,39 @@ fun httpRequest(
             }
         }
     })
+}
+
+private suspend fun awaitResponse(call: Call): Response = suspendCancellableCoroutine { continuation ->
+    call.enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            if (continuation.isActive) {
+                continuation.resumeWith(Result.failure(e))
+            }
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            if (continuation.isActive) {
+                continuation.resumeWith(Result.success(response))
+            }
+        }
+    })
+    continuation.invokeOnCancellation {
+        call.cancel()
+    }
+}
+
+suspend fun httpGet(from: URI): Pair<ByteArray, Response> {
+    val response = awaitResponse(
+        httpUrlSession().newCall(Request.Builder().url(from.toString()).build()),
+    )
+    val data = response.body?.bytes() ?: ByteArray(0)
+    return data to response
+}
+
+suspend fun httpGet(request: Request): Pair<ByteArray, Response> {
+    val response = awaitResponse(httpUrlSession().newCall(request))
+    val data = response.body?.bytes() ?: ByteArray(0)
+    return data to response
 }
 
 fun getHttpsUrl(text: String): URI? {

@@ -406,6 +406,7 @@ private fun ObsAudioLevelsView(
 
 @Composable
 private fun ObsConnectedView(
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {
@@ -454,7 +455,7 @@ fun QuickButtonObsView(
                 Text(localized("Unable to connect the OBS server. Retrying every 5 seconds."))
             }
         } else {
-            ObsConnectedView(stream = stream, obsQuickButton = obsQuickButton)
+            ObsConnectedView(model = model, stream = stream, obsQuickButton = obsQuickButton)
         }
         if (stream !== fallbackStream) {
             ShortcutSectionView {

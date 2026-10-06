@@ -3,11 +3,11 @@ package com.moblin.android.streamingplatforms.kick
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import com.moblin.android.platform.log.Log
-import com.moblin.android.common.various.httpGet
 import com.moblin.android.view.controlbar.quickbutton.chat.ChatterInfo
 import com.moblin.android.view.controlbar.quickbutton.chat.ChatterRole
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
+import com.moblin.android.various.network.httpGet
 import com.moblin.android.various.network.httpRequest
 import com.moblin.android.various.network.makeUrl
 import java.net.URI
@@ -20,6 +20,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import com.moblin.android.platform.uikit.size
 
 @Serializable
 data class BadgeImage(
@@ -205,7 +206,7 @@ fun getKickChannelInfo(channelName: String, onComplete: (KickChannel?) -> Unit) 
 private suspend fun getKickChannelInfoInner(slug: String): KickChannel {
     val url = runCatching { URI("https://kick.com/api/v1/channels/$slug") }.getOrNull()
         ?: throw IllegalStateException("Invalid URL")
-    val pair = httpGet(url.toString())
+    val pair = httpGet(from = url)
     val data = pair.first
     val response = pair.second
     if (!response.isSuccessful) {
@@ -247,7 +248,7 @@ private suspend fun fetchKickProfilePictureWithUsername(username: String): Bitma
     val channelInfo = runCatching { getKickChannelInfo(username) }.getOrNull() ?: return null
     val profilePic = channelInfo.user?.profile_pic ?: return null
     val imageUrl = runCatching { URI(profilePic) }.getOrNull() ?: return null
-    val pair = runCatching { httpGet(imageUrl.toString()) }.getOrNull() ?: return null
+    val pair = runCatching { httpGet(from = imageUrl) }.getOrNull() ?: return null
     val data = pair.first
     val response = pair.second
     if (!response.isSuccessful) {

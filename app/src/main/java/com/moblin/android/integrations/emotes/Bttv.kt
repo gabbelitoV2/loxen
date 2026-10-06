@@ -1,12 +1,13 @@
 package com.moblin.android.integrations.emotes
 
 import com.moblin.android.platform.log.Log
-import com.moblin.android.common.various.httpGet
 import com.moblin.android.localized
 import java.net.URI
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import com.moblin.android.common.various.isSuccessful
+import com.moblin.android.various.network.httpGet
 
 private const val TAG = "Bttv"
 
@@ -62,7 +63,7 @@ private suspend fun fetchGlobalEmotes(): Map<String, Emote> {
     if (runCatching { URI(url) }.isFailure) {
         return emptyMap()
     }
-    val (data, response) = httpGet(url)
+    val (data, response) = httpGet(URI(url))
     if (!response.isSuccessful) {
         throw Exception("Not successful")
     }
@@ -86,7 +87,7 @@ private suspend fun fetchChannelEmotes(
     if (runCatching { URI(url) }.isFailure) {
         return emptyMap()
     }
-    val (data, response) = httpGet(url)
+    val (data, response) = httpGet(URI(url))
     if (response.code == 404) {
         Log.i(
             TAG,

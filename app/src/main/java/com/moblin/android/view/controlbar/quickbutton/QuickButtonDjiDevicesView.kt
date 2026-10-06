@@ -64,7 +64,7 @@ fun QuickButtonDjiDevicesView(
         ShortcutSectionView {
             NavigationLink(
                 destination = {
-                    DjiDevicesSettingsView(djiDevices = djiDevices)
+                    DjiDevicesSettingsView(model = model, djiDevices = djiDevices)
                 },
             ) {
                 Label("DJI devices", systemImage = "appletvremote.gen1")

@@ -85,6 +85,7 @@ fun RtspClientSettingsViewDestination(
                     },
                 ) {
                     RtspClientStreamSettingsView(
+                        model = model,
                         rtspClient = rtspClient,
                         stream = stream,
                     )

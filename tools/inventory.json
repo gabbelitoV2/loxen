@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-06T01:00:05+00:00",
+  "generated": "2026-10-06T23:21:52+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -1619,6 +1619,25 @@
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.various.network",
       "kotlin_path": "app/src/main/java/com/moblin/android/various/network/DnsLookup.kt",
+      "deps": [],
+      "wave": 0
+    },
+    {
+      "path": "Moblin/Various/Network/HttpUrlSession.swift",
+      "lines": 6,
+      "sha256": "558088daf1648aa0bfab90365f8b85ef7cbf519af81fe519fd2e7a46315d9d1f",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [
+        "httpUrlSession"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.network",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/network/HttpUrlSession.kt",
       "deps": [],
       "wave": 0
     },
@@ -3852,7 +3871,7 @@
       "kotlin_package": "com.moblin.android.integrations.ttsmonster",
       "kotlin_path": "app/src/main/java/com/moblin/android/integrations/ttsmonster/TtsMonster.kt",
       "deps": [
-        "Common/Various/CommonUtils.swift"
+        "Moblin/Various/Network/NetworkUtils.swift"
       ],
       "wave": 5
     },
@@ -4992,8 +5011,8 @@
     },
     {
       "path": "Moblin/Various/Network/NetworkUtils.swift",
-      "lines": 128,
-      "sha256": "9f535fc6ec8280b2e30937e3d152ef9953edde83354bccede87af39457881a27",
+      "lines": 145,
+      "sha256": "6bf184b24e96d09fa6707591175281eb873a443abdfc8c1e1216d9f70c7cb582",
       "imports": [
         "Foundation",
         "Network",
@@ -5009,13 +5028,15 @@
         "makeUrl",
         "makeMdnsHostname",
         "httpRequest",
+        "httpGet",
         "getHttpsUrl"
       ],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.various.network",
       "kotlin_path": "app/src/main/java/com/moblin/android/various/network/NetworkUtils.kt",
       "deps": [
-        "Moblin/Integrations/Tesla/TeslaVehicle.swift"
+        "Moblin/Integrations/Tesla/TeslaVehicle.swift",
+        "Moblin/Various/Network/HttpUrlSession.swift"
       ],
       "wave": 5
     },
@@ -6479,6 +6500,98 @@
       "wave": 8
     },
     {
+      "path": "Moblin/Integrations/Emotes/Bttv.swift",
+      "lines": 98,
+      "sha256": "14ff3ba845e13bbf1cccc2f1886861bb79e7b479879c93e01f9eda0515202448",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "BttvEmote",
+        "BttvChannel"
+      ],
+      "private_types": [
+        "BttvEmote",
+        "BttvChannel"
+      ],
+      "declared_functions": [
+        "fetchBttvEmotes"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.integrations.emotes",
+      "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Bttv.kt",
+      "deps": [
+        "Moblin/Integrations/Emotes/Emotes.swift",
+        "Moblin/Various/Network/NetworkUtils.swift"
+      ],
+      "wave": 8
+    },
+    {
+      "path": "Moblin/Integrations/Emotes/Ffz.swift",
+      "lines": 95,
+      "sha256": "b85dec1a78d7f2e496a0bc3b0c102c52840b3f97cddef0b5a20a87ece9c2c2a2",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "FfzImages",
+        "FfzEmote"
+      ],
+      "private_types": [
+        "FfzImages",
+        "FfzEmote"
+      ],
+      "declared_functions": [
+        "fetchFfzEmotes"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.integrations.emotes",
+      "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Ffz.kt",
+      "deps": [
+        "Moblin/Integrations/Emotes/Emotes.swift",
+        "Moblin/Various/Network/NetworkUtils.swift"
+      ],
+      "wave": 8
+    },
+    {
+      "path": "Moblin/Integrations/Emotes/Seventv.swift",
+      "lines": 145,
+      "sha256": "7fe5138a0632f77663ac8a52c90ca3f138635595d18989972e819fe6b85078c5",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "SeventvFile",
+        "SeventvHost",
+        "SeventvEmoteData",
+        "SeventvEmote",
+        "SeventvEmoteSet",
+        "SeventvUser"
+      ],
+      "private_types": [
+        "SeventvFile",
+        "SeventvHost",
+        "SeventvEmoteData",
+        "SeventvEmote",
+        "SeventvEmoteSet",
+        "SeventvUser"
+      ],
+      "declared_functions": [
+        "fetchSeventvEmotes"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.integrations.emotes",
+      "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Seventv.kt",
+      "deps": [
+        "Moblin/Integrations/Emotes/Emotes.swift",
+        "Moblin/Various/Network/NetworkUtils.swift"
+      ],
+      "wave": 8
+    },
+    {
       "path": "Moblin/Media/HaishinKit/Codec/Video/VideoDecoder.swift",
       "lines": 146,
       "sha256": "1f0a8137d5a452598de10bbf2e1d03e49d0749b9818e9f260488e0a79fd188c1",
@@ -6569,9 +6682,55 @@
       "wave": 8
     },
     {
+      "path": "Moblin/StreamingPlatforms/Kick/KickApi.swift",
+      "lines": 593,
+      "sha256": "62e75689ac9e80ce4b9624e7a0c1ae708f5577082d8b9b50624fa1c97604c1c1",
+      "imports": [
+        "Foundation",
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "BadgeImage",
+        "SubscriberBadge",
+        "KickLivestream",
+        "KickChatroom",
+        "KickChannelUser",
+        "KickChannel",
+        "KickChatterInfoBadge",
+        "KickChatterInfo",
+        "KickUser",
+        "KickCategory",
+        "KickFollowedChannel",
+        "KickFollowedChannelsResponse",
+        "KickHostChannelResponse",
+        "KickLiveSearchChannel",
+        "KickLiveSearchData",
+        "KickLiveSearchResponse",
+        "KickCategorySearchHit",
+        "KickCategorySearchResponse",
+        "KickStreamInfo",
+        "KickApiDelegate",
+        "KickApi"
+      ],
+      "private_types": [],
+      "declared_functions": [
+        "getKickChannelInfo",
+        "fetchKickProfilePicture"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.streamingplatforms.kick",
+      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/kick/KickApi.kt",
+      "deps": [
+        "Moblin/Various/Network/NetworkUtils.swift",
+        "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatChatterInfoView.swift"
+      ],
+      "wave": 8
+    },
+    {
       "path": "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
       "lines": 942,
-      "sha256": "9cd7db4468088fc3c3741a8de511bd494e5fdf1e63d6e6991d88df37a8089039",
+      "sha256": "bbec3e53399df5ce0335bf0ab297875891afd8f9b8f8eedf7a3d7792a9115224",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -6628,6 +6787,7 @@
       "deps": [
         "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
         "Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift",
+        "Moblin/Various/Network/HttpUrlSession.swift",
         "Moblin/Various/Network/NetworkUtils.swift"
       ],
       "wave": 8
@@ -6839,7 +6999,7 @@
     {
       "path": "Moblin/Various/Network/HttpClient.swift",
       "lines": 253,
-      "sha256": "9dcd467010aad8b3c199f88140ce2168228b84d65da57c66667938f31f29929b",
+      "sha256": "d15cfeb10ad153b0f3b8017cd39465b72438c890a93102b0566235bee42493bf",
       "imports": [
         "Foundation",
         "Network"
@@ -6862,6 +7022,7 @@
       "deps": [
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Network/HttpUrlSession.swift",
         "Moblin/Various/Network/NetworkUtils.swift"
       ],
       "wave": 8
@@ -7909,100 +8070,6 @@
       "wave": 13
     },
     {
-      "path": "Moblin/Integrations/Emotes/Bttv.swift",
-      "lines": 98,
-      "sha256": "14ff3ba845e13bbf1cccc2f1886861bb79e7b479879c93e01f9eda0515202448",
-      "imports": [
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "BttvEmote",
-        "BttvChannel"
-      ],
-      "private_types": [
-        "BttvEmote",
-        "BttvChannel"
-      ],
-      "declared_functions": [
-        "fetchBttvEmotes"
-      ],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.integrations.emotes",
-      "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Bttv.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Integrations/Emotes/Emotes.swift",
-        "Moblin/Various/Network/NetworkUtils.swift"
-      ],
-      "wave": 13
-    },
-    {
-      "path": "Moblin/Integrations/Emotes/Ffz.swift",
-      "lines": 95,
-      "sha256": "b85dec1a78d7f2e496a0bc3b0c102c52840b3f97cddef0b5a20a87ece9c2c2a2",
-      "imports": [
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "FfzImages",
-        "FfzEmote"
-      ],
-      "private_types": [
-        "FfzImages",
-        "FfzEmote"
-      ],
-      "declared_functions": [
-        "fetchFfzEmotes"
-      ],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.integrations.emotes",
-      "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Ffz.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Integrations/Emotes/Emotes.swift",
-        "Moblin/Various/Network/NetworkUtils.swift"
-      ],
-      "wave": 13
-    },
-    {
-      "path": "Moblin/Integrations/Emotes/Seventv.swift",
-      "lines": 145,
-      "sha256": "7fe5138a0632f77663ac8a52c90ca3f138635595d18989972e819fe6b85078c5",
-      "imports": [
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "SeventvFile",
-        "SeventvHost",
-        "SeventvEmoteData",
-        "SeventvEmote",
-        "SeventvEmoteSet",
-        "SeventvUser"
-      ],
-      "private_types": [
-        "SeventvFile",
-        "SeventvHost",
-        "SeventvEmoteData",
-        "SeventvEmote",
-        "SeventvEmoteSet",
-        "SeventvUser"
-      ],
-      "declared_functions": [
-        "fetchSeventvEmotes"
-      ],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.integrations.emotes",
-      "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Seventv.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Integrations/Emotes/Emotes.swift"
-      ],
-      "wave": 13
-    },
-    {
       "path": "Moblin/Integrations/GoPro/GoProBleProtocol.swift",
       "lines": 258,
       "sha256": "3d9fcd58dddbd96119c59a5e5d4930755c00247a652f5f86cfdce239111ccf06",
@@ -8583,49 +8650,25 @@
       "wave": 13
     },
     {
-      "path": "Moblin/StreamingPlatforms/Kick/KickApi.swift",
-      "lines": 593,
-      "sha256": "62e75689ac9e80ce4b9624e7a0c1ae708f5577082d8b9b50624fa1c97604c1c1",
+      "path": "Moblin/StreamingPlatforms/Kick/KickPlatformStatus.swift",
+      "lines": 41,
+      "sha256": "4defcc16a67aa4228505a2fd89cc1c7a3f482d6d15471d1511538763b8b750b7",
       "imports": [
-        "Foundation",
-        "SwiftUI"
+        "Foundation"
       ],
-      "tier": "ui",
+      "tier": "logic",
       "declared_types": [
-        "BadgeImage",
-        "SubscriberBadge",
-        "KickLivestream",
-        "KickChatroom",
-        "KickChannelUser",
-        "KickChannel",
-        "KickChatterInfoBadge",
-        "KickChatterInfo",
-        "KickUser",
-        "KickCategory",
-        "KickFollowedChannel",
-        "KickFollowedChannelsResponse",
-        "KickHostChannelResponse",
-        "KickLiveSearchChannel",
-        "KickLiveSearchData",
-        "KickLiveSearchResponse",
-        "KickCategorySearchHit",
-        "KickCategorySearchResponse",
-        "KickStreamInfo",
-        "KickApiDelegate",
-        "KickApi"
+        "KickPlatformStatus"
       ],
       "private_types": [],
-      "declared_functions": [
-        "getKickChannelInfo",
-        "fetchKickProfilePicture"
-      ],
+      "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.streamingplatforms.kick",
-      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/kick/KickApi.kt",
+      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/kick/KickPlatformStatus.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
-        "Moblin/Various/Network/NetworkUtils.swift",
-        "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatChatterInfoView.swift"
+        "Moblin/StreamingPlatforms/Kick/KickApi.swift",
+        "Moblin/Various/Model/Model.swift"
       ],
       "wave": 13
     },
@@ -8670,7 +8713,8 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/soop/SoopPlatformStatus.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
-        "Moblin/Various/Model/Model.swift"
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Network/NetworkUtils.swift"
       ],
       "wave": 13
     },
@@ -9473,7 +9517,7 @@
     {
       "path": "Moblin/View/Settings/Camera/FixedHorizon/FixedHorizonView.swift",
       "lines": 14,
-      "sha256": "389d79ee17ce1f726c1172727e7c21281a829cd42177b8a980e0389d5d7e4be0",
+      "sha256": "4d818ed78a7bdb7291edb95901040a7f45bbebb570fe59c8b7e858ba219231f8",
       "imports": [
         "SwiftUI"
       ],
@@ -9539,7 +9583,7 @@
     {
       "path": "Moblin/View/Settings/Debug/DebugVideoSettingsView.swift",
       "lines": 28,
-      "sha256": "84708ed82ed28ec55800d04b84e405f09a6548199524ba8e2fdeef401f938a7e",
+      "sha256": "3bda4794dc76be711b53c28407aa97ef38f5c6cd49487837a7ccad0cb1c45514",
       "imports": [
         "SwiftUI"
       ],
@@ -9586,7 +9630,7 @@
     {
       "path": "Moblin/View/Settings/Display/NetworkInterfaceNames/LocalOverlaysNetworkInterfaceNamesSettingsView.swift",
       "lines": 42,
-      "sha256": "ac5b9b4cdb1e9aac526df768f78c79941aff8426aa1ed39c1a7070db8be83ff7",
+      "sha256": "3badace4571c749291a67271688d10be61cf0f474fbf71ffb28a0b4cc0276d3e",
       "imports": [
         "SwiftUI"
       ],
@@ -9683,7 +9727,7 @@
     {
       "path": "Moblin/View/Settings/HttpProxy/HttpProxySettingsView.swift",
       "lines": 69,
-      "sha256": "dc58de447d81bfe653abac0cce05c7b88d3830ecf2f6f34fc6e3f265926614db",
+      "sha256": "966f3c5a5ed349594e679931ab002a9cea6d3169cdc95fc41fc6e9915c2b4cb0",
       "imports": [
         "SwiftUI"
       ],
@@ -9732,7 +9776,7 @@
     {
       "path": "Moblin/View/Settings/ImportExport/ImportSettingsView.swift",
       "lines": 73,
-      "sha256": "0e3111dd722d16b6443c1007e2a042b1f4911b2d7201aace440f5f65f818883d",
+      "sha256": "a933c2d0ab39ed51caeeceab0ca2660f88f3335d3c3004d9591dc0deb0a8b7ec",
       "imports": [
         "SwiftUI",
         "UniformTypeIdentifiers"
@@ -9788,7 +9832,7 @@
     {
       "path": "Moblin/View/Settings/SaveReset/SettingsResetView.swift",
       "lines": 30,
-      "sha256": "9cb068a7b00c9ad534a283ec5c911cdbf6cfe19dbfa08ed0457c2970be013848",
+      "sha256": "19835dc11a52344cee65ee935f6d769bf089e96c76af2d37452441d0aa9aa385",
       "imports": [
         "SwiftUI"
       ],
@@ -10051,7 +10095,7 @@
     {
       "path": "Moblin/View/Settings/Streams/Stream/RealtimeIrl/StreamRealtimeIrlSettingsView.swift",
       "lines": 45,
-      "sha256": "47216ca12723b01a748bfa9a2432788312da90e0ab013e1df429a6e23456256f",
+      "sha256": "773b3680fe7802e10693d265402d4e4983d198065fdcadd099ee23db7b457804",
       "imports": [
         "SwiftUI"
       ],
@@ -10119,7 +10163,7 @@
     {
       "path": "Moblin/View/Settings/Watch/WatchSettingsView.swift",
       "lines": 36,
-      "sha256": "5934bdb85f25f72ab2cf54e6032353a06fc5b67413434378f0234c288a9fe85b",
+      "sha256": "7e1f55056fc9492c095cf9949d0d78463be62a468a9037e97b21552ea992d770",
       "imports": [
         "SwiftUI"
       ],
@@ -10726,8 +10770,8 @@
     },
     {
       "path": "Common/Various/CommonUtils.swift",
-      "lines": 916,
-      "sha256": "0c605f527da822e57e84312562ae992fd0f9d070cab6ad4a1f8a7e61f824877a",
+      "lines": 898,
+      "sha256": "ab7c4ced651ccc4b6d2b84014164947b5d9ebb4f74e601e401bf9d113b7b9e9e",
       "imports": [
         "AVFoundation",
         "AVKit",
@@ -10764,7 +10808,6 @@
         "bitrateToMbps",
         "bitrateFromMbps",
         "diffAngles",
-        "httpGet",
         "rtmpCamera",
         "isRtmpCameraOrMic",
         "srtlaCamera",
@@ -10938,29 +10981,6 @@
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/Various/SimpleTimer.swift"
-      ],
-      "wave": 15
-    },
-    {
-      "path": "Moblin/StreamingPlatforms/Kick/KickPlatformStatus.swift",
-      "lines": 41,
-      "sha256": "4defcc16a67aa4228505a2fd89cc1c7a3f482d6d15471d1511538763b8b750b7",
-      "imports": [
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "KickPlatformStatus"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.streamingplatforms.kick",
-      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/kick/KickPlatformStatus.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/StreamingPlatforms/Kick/KickApi.swift",
-        "Moblin/Various/Model/Model.swift"
       ],
       "wave": 15
     },
@@ -12529,7 +12549,7 @@
     {
       "path": "Moblin/View/Settings/Camera/Zoom/ZoomPresetSettingsView.swift",
       "lines": 48,
-      "sha256": "bd7f95f849aa04563cacde4b43644ad55be607e521508c5bea6f34e9feea5c52",
+      "sha256": "67ac9184900098a9e3d5255ed4841abc42af3b2c762ba6b23ab3d9878ec7ff5c",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -12693,7 +12713,7 @@
     {
       "path": "Moblin/View/Settings/Watch/Chat/WatchChatSettingsView.swift",
       "lines": 59,
-      "sha256": "5dc1e308514f3b030b8e84ea4af0f6ff0b58e9edcf0a47d2e1184623206e6d04",
+      "sha256": "fb48bcded441a3adeb9a539687598c29f30290ff36dfa13a7b5de8adfbcc27f2",
       "imports": [
         "SwiftUI"
       ],
@@ -13138,7 +13158,7 @@
     {
       "path": "Moblin/Media/Webrtc/WhepClient/WhepClient.swift",
       "lines": 214,
-      "sha256": "d22deac717697461b25c8088d8061f5952e1305669972c3d03993457ff90cabf",
+      "sha256": "25452d10fcc130277064bfd51d865112ec917d46dd8ff07beb344de22e0106c6",
       "imports": [
         "CoreMedia",
         "libdatachannel"
@@ -13160,6 +13180,7 @@
         "Moblin/Media/Webrtc/WebrtcIngestClient.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Managers/Location.swift",
+        "Moblin/Various/Network/HttpUrlSession.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/Various/SimpleTimer.swift"
       ],
@@ -13229,7 +13250,7 @@
     {
       "path": "Moblin/StreamingPlatforms/Soop/SoopChat.swift",
       "lines": 292,
-      "sha256": "8db7d8674cfd7cef4f239b9500e4f95298eaca626be3ebd57b60d5b435fa6ca9",
+      "sha256": "5b5282c9283dc751697de2f5f85572e5fb36be49f2f76d67a0c6b0ba70852a65",
       "imports": [
         "Foundation"
       ],
@@ -13252,7 +13273,8 @@
         "Moblin/Integrations/Emotes/Emotes.swift",
         "Moblin/Integrations/OpenAi/OpenAi.swift",
         "Moblin/Various/ChatPost.swift",
-        "Moblin/Various/Model/Model.swift"
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Network/HttpUrlSession.swift"
       ],
       "wave": 22
     },
@@ -13866,7 +13888,7 @@
     {
       "path": "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
       "lines": 520,
-      "sha256": "e653ac4cbe1e67fec7cea5acc3abba871b5c0bb22013f08dd1a07919bd588220",
+      "sha256": "3add6e7ed411972bd1842f65de95eef2abf7a2b5e50c37ed2e0511c10f255d98",
       "imports": [
         "Foundation"
       ],
@@ -13936,6 +13958,8 @@
         "Moblin/StreamingPlatforms/Kick/KickPusher.swift",
         "Moblin/Various/ChatPost.swift",
         "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Network/HttpUrlSession.swift",
+        "Moblin/Various/Network/NetworkUtils.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
         "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift"
@@ -14063,7 +14087,7 @@
     {
       "path": "Moblin/Various/Model/ModelMoblinWebsite.swift",
       "lines": 213,
-      "sha256": "96b24bc6a74f94644a9f15814b3ffee15e2af569215b6ed5679389c0473d531f",
+      "sha256": "3168dbf2f0f3892874a84ba3b1dace599377de7711b06e5ed649453c0a992e93",
       "imports": [
         "CryptoKit",
         "DeviceCheck",
@@ -14091,6 +14115,7 @@
       "deps": [
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Network/HttpUrlSession.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/Various/Storages/SimpleStorage.swift",
         "Moblin/Various/Utils/UiUtils.swift"
@@ -14523,7 +14548,7 @@
     {
       "path": "Moblin/View/Settings/Moblink/MoblinkSettingsView.swift",
       "lines": 291,
-      "sha256": "b2d93f1b3db8f6ae856e7767731dfa9ce656c332021a04390f0a40c67a04935d",
+      "sha256": "6a97ebaaf09a27e1d52a047f3816edf0079658d7d18b90f22c46571ca4783a62",
       "imports": [
         "SwiftUI"
       ],
@@ -14594,7 +14619,7 @@
     {
       "path": "Moblin/View/Settings/Store/StoreSettingsView.swift",
       "lines": 168,
-      "sha256": "f8236baefac6c0ac17da311b3d0767b2feeb8454a455e50f62a4aa50d74fc123",
+      "sha256": "6c095562266c1adff60083fefbe6bda86209fe81ae2af16b87ac1644c706761b",
       "imports": [
         "SwiftUI"
       ],
@@ -14628,7 +14653,7 @@
     {
       "path": "Moblin/View/Settings/Streams/Stream/Kick/StreamKickSettingsView.swift",
       "lines": 319,
-      "sha256": "4e584b1373313ce92e46028718b2d17977f5a705b5b8472b6781e16f0d88136c",
+      "sha256": "ed49797ff1cb26183315fc16a8759a1acef5a16729d617de7ef3bf7bd03c0c50",
       "imports": [
         "SwiftUI"
       ],
@@ -14667,7 +14692,7 @@
     {
       "path": "Moblin/View/Settings/Streams/Stream/Snapshot/StreamSnapshotSettingsView.swift",
       "lines": 58,
-      "sha256": "3093b9d66f648cf44519b4a3ebeaa575a8950537fc00ffd0f20cc020126fe2f7",
+      "sha256": "b6b900ec88072956b364171d74c120a33bad9aebf8a519c93dd4607979f0130a",
       "imports": [
         "SwiftUI"
       ],
@@ -14744,7 +14769,7 @@
     {
       "path": "Moblin/View/Settings/Streams/Stream/Twitch/StreamTwitchSettingsView.swift",
       "lines": 284,
-      "sha256": "46b0d5bb0cff3f936a756c61ec8ee67ea914703e1388d465979debdb3980513b",
+      "sha256": "98fa6acbafb5260f5a601bfb89457be28387efe86695fb3e5e617eb44f15a090",
       "imports": [
         "SwiftUI"
       ],
@@ -15298,7 +15323,7 @@
     {
       "path": "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift",
       "lines": 78,
-      "sha256": "954b2a4193effa378bae56797f9f5f7e184f2859442d8c4d39a70aa319e89541",
+      "sha256": "1592c75016c17b9d568d6bd934b108567547cb6306ec26dd0fef8f51d7e2a7d7",
       "imports": [
         "SwiftUI"
       ],
@@ -15420,7 +15445,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/RtspClient/RtspClientStreamSettingsView.swift",
       "lines": 159,
-      "sha256": "df205d22739b8855d5d71976771e4fe531d81452043ff498bed045e2f3474456",
+      "sha256": "0f826a2b8b921046001874dbdb972abd09c064afe4ab8702fd4fe0a7b271c742",
       "imports": [
         "Network",
         "SwiftUI"
@@ -15600,7 +15625,7 @@
     {
       "path": "Moblin/View/Stream/Overlay/Right/MediaPlayerControlsView.swift",
       "lines": 70,
-      "sha256": "c8eceb52578650d4d30ad2bafeccee26a225af9698657b3a5e6ca3c3b890497c",
+      "sha256": "176fbe0444e51a889416f02e883dedac0fcbdc39d1a75a5f9c7237bd4fff4092",
       "imports": [
         "SwiftUI"
       ],
@@ -16253,7 +16278,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/RtspClient/RtspClientSettingsView.swift",
       "lines": 59,
-      "sha256": "5293453fdd79d4f56470f72adf6b7f865f26469f24abf99ff239a0ddf47a0d92",
+      "sha256": "0a95842dcf9fcb4c60cb989370b819fee362178bd0aa97c4d3b5c6df33e8da78",
       "imports": [
         "SwiftUI"
       ],
@@ -16282,7 +16307,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/SrtClient/SrtClientStreamSettingsView.swift",
       "lines": 49,
-      "sha256": "ccae28f4460c1a3fb89135c5eaa3d0240fb6b02872ef1bf6a42cee5622074e03",
+      "sha256": "dcb71dd9814a1dc10b9f8a7f65bc4443eb15673ddc8893b3a0914ec278c8f6ab",
       "imports": [
         "SwiftUI"
       ],
@@ -16336,7 +16361,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/WhepClient/WhepClientStreamSettingsView.swift",
       "lines": 72,
-      "sha256": "06f5bbde84d510ed60a0e78afb95d9a683b941a9e3e080e8335877b9d83173b7",
+      "sha256": "c019a8ff03fadb84a0d986fb263b1d1bca94759de2f3af69c4d6fa8c83488f12",
       "imports": [
         "SwiftUI"
       ],
@@ -16448,7 +16473,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/RistServer/RistServerSettingsView.swift",
       "lines": 105,
-      "sha256": "77e2e2ba52c4dcf1c94cae46b608af3075a9e9d73f3171eb7e1f08f62834a370",
+      "sha256": "53d314b1f8ed0432bfc0ef7cc690a1acd635372ce4119dacbe34fef7298d14c3",
       "imports": [
         "SwiftUI"
       ],
@@ -16479,7 +16504,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/SrtClient/SrtClientSettingsView.swift",
       "lines": 55,
-      "sha256": "30f326d1d58477e1c498ac1a9715f5cbfe815a24744196560fb2baa54f41ff4f",
+      "sha256": "e3b083dd86050cf20711abaf91bb58145ad9c7745ff7833dc87062ca03820d36",
       "imports": [
         "SwiftUI"
       ],
@@ -16538,7 +16563,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/WhepClient/WhepClientSettingsView.swift",
       "lines": 62,
-      "sha256": "4dbdf180e7f8f4b465266bedf187a56e070abe211401a6630a71f93bc29cf8cc",
+      "sha256": "30f830672647b733cabbf8cbfe47d75b5c01044b4cfb35bd5ed8c58c33308396",
       "imports": [
         "SwiftUI"
       ],
@@ -16598,7 +16623,7 @@
     {
       "path": "Moblin/View/Settings/Ingests/IngestsSettingsView.swift",
       "lines": 47,
-      "sha256": "f55500597a9d5945ee0f579ad6f2e490a6567ccbe0adbf604b7e27137d189efa",
+      "sha256": "754ad2afee3e43b71a60711c3cbadfb4bbc764317fd4156f671c67991340f780",
       "imports": [
         "SwiftUI"
       ],
@@ -17876,7 +17901,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonObsView.swift",
       "lines": 372,
-      "sha256": "91fc54eb962821873de1d943289ae9189c4ae5b864b54f7dc18b62c79e64f955",
+      "sha256": "6af5993a4a375d661432b7f449fd32e9769c917796a26db8d398fd623e14b3ab",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -17937,7 +17962,7 @@
     {
       "path": "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift",
       "lines": 167,
-      "sha256": "ff07d3467f09780947e26823f5ae96632eb6362c5c7f794f74ea9b4c1e7f4581",
+      "sha256": "5af9c7744350b3008f4c1797b09bbb1047de85cdc0de126b9cd02e369d07edb5",
       "imports": [
         "SwiftUI"
       ],
@@ -17963,8 +17988,8 @@
     },
     {
       "path": "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift",
-      "lines": 48,
-      "sha256": "737d73023d48198a4ca4362796a1fb0c4bf9412e904837c04cecf4be9483936c",
+      "lines": 51,
+      "sha256": "07a36c7a7ae06559a2beeb7c9aecc28c455b19214bd620057be5a2221d7787be",
       "imports": [
         "SwiftUI"
       ],
@@ -17992,7 +18017,7 @@
     {
       "path": "Moblin/View/Settings/Camera/CameraControls/CameraControlsView.swift",
       "lines": 14,
-      "sha256": "59bf0e9f6426306e36b988634a6985f18dfa4be4a013b0ad62979b7569aaf008",
+      "sha256": "72f40319a1c9e519056be7460ab6beba62c4fd0f8d5f3503389bd040cb9464ad",
       "imports": [
         "SwiftUI"
       ],
@@ -18015,7 +18040,7 @@
     {
       "path": "Moblin/View/Settings/Camera/VideoStabilization/VideoStabilizationSettingsView.swift",
       "lines": 20,
-      "sha256": "07e0ffa9e163530a383b976b7fce76b9dbec110ceeebd1e99d59bc5d9b7e71f1",
+      "sha256": "3ae6ee1553d79bc1958c3fc197e39ab992959fc0b62c2e645f93570a44b0fff0",
       "imports": [
         "SwiftUI"
       ],
@@ -18039,7 +18064,7 @@
     {
       "path": "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift",
       "lines": 199,
-      "sha256": "87b663766e87d007440df086e5cdc5cb3c399f01974f967929337691ee2a7e90",
+      "sha256": "77d2016e26963d1a335b8bb64eb6837f2d8280987b2a012cf6e6fe1632ca46ec",
       "imports": [
         "AVFAudio",
         "SwiftUI"
@@ -18074,8 +18099,8 @@
     },
     {
       "path": "Moblin/View/Settings/Debug/DebugSettingsView.swift",
-      "lines": 153,
-      "sha256": "552390d80292b1fce75559cac14327cb8afe4e3bdff7b488c0d334bd1b318683",
+      "lines": 157,
+      "sha256": "fff5d78bd8a945c294d13bdaa7345eabdcf60e7fb0d6d39b2f55e8b6354bbce0",
       "imports": [
         "Collections",
         "SwiftUI",
@@ -18108,8 +18133,8 @@
     },
     {
       "path": "Moblin/View/Settings/DjiDevices/DjiDevicesSettingsView.swift",
-      "lines": 67,
-      "sha256": "2ec41c69856236a5b444b99d5e9596992322ae56c1141441657aae2b12de6982",
+      "lines": 72,
+      "sha256": "0cc8ccfac5014abf8c6fd5f3f29e1e6ee2c11a962aae2d87c0a984ab750ce879",
       "imports": [
         "SwiftUI"
       ],
@@ -18196,7 +18221,7 @@
     {
       "path": "Moblin/View/Settings/Location/LocationSettingsView.swift",
       "lines": 142,
-      "sha256": "652b19a3a5a2b04f3876a7d9ad3be77f57b35961eca37240c57af4fbb6900fa3",
+      "sha256": "b4a43bf90ae70346b25b6bc1813ee70b0c7a5bae78a2a157542cdfd510ce959e",
       "imports": [
         "MapKit",
         "SwiftUI"
@@ -18232,7 +18257,7 @@
     {
       "path": "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift",
       "lines": 116,
-      "sha256": "0aed0559e491e187697dec25e617d1d7dabb7aae54caa34b4b38ca240acda6d3",
+      "sha256": "b76c0c441fc46408cdf7c183ecd6c4a94afe2af2b2d76084c11aae5284f3124d",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -18261,8 +18286,8 @@
     },
     {
       "path": "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift",
-      "lines": 655,
-      "sha256": "25848e9add241f5bb19832b4b9e99aed13ec9a15b08d872d1f34edf945660593",
+      "lines": 656,
+      "sha256": "c9827c821fc4a18a438b92c4806df6df16ded0bbd6bd1ceaf348e0822ae15cce",
       "imports": [
         "SwiftUI"
       ],
@@ -18373,7 +18398,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsChatBotSettingsView.swift",
       "lines": 106,
-      "sha256": "3362355c2bbf4c61d39970738de24c32dce2cf841a723e85c5f921afb5cc1ba1",
+      "sha256": "430c91610f85a4ccf80ef75c2c875544b39e2dcdefde6702dc69aaa5e43b0815",
       "imports": [
         "SwiftUI"
       ],
@@ -18457,7 +18482,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSpeechToTextSettingsView.swift",
       "lines": 90,
-      "sha256": "865d006a485da693a860c5c290da62069405eef6be2719a037479cedf3a44f2c",
+      "sha256": "6d61524e2643336d34e18c14ce61222d0378c8acfe5848a72842057cdd0713aa",
       "imports": [
         "SwiftUI"
       ],
@@ -18489,7 +18514,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsTwitchSettingsView.swift",
       "lines": 387,
-      "sha256": "537912473a2304206e1a0ee3dd60d5cf09bb10b2aeeaf9387aea85400e1a6a84",
+      "sha256": "5c0194946782596e4d69c3eeb2e3cc6eb8f70cdc4e664bc7be30cdbbf9468051",
       "imports": [
         "SwiftUI"
       ],
@@ -18930,7 +18955,7 @@
     {
       "path": "Moblin/View/Settings/Streams/Stream/Recording/StreamRecordingSettingsView.swift",
       "lines": 210,
-      "sha256": "3694f8cb8f3d29be8b9a1cb9692cdebee9ee7d9bb31838d5f432d72f05d762f6",
+      "sha256": "b78fbf05a96460eda06f58d0b40ba69490ce231d3029e1f58f1d0f44fe18c4d6",
       "imports": [
         "SwiftUI"
       ],
@@ -19106,7 +19131,7 @@
     {
       "path": "Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift",
       "lines": 46,
-      "sha256": "d081a5cf00db369e6228fa31b720470da856cc1928fbc11672b8e8f4e8cce140",
+      "sha256": "566ca663dccd259e601e67d89ea12bacf3e2758228664abbfdf4cc1a04837d09",
       "imports": [
         "SwiftUI"
       ],
@@ -19135,7 +19160,7 @@
     {
       "path": "Moblin/View/Stream/Overlay/Right/CameraSettingsControlView.swift",
       "lines": 380,
-      "sha256": "b271176d3253e4d3124887b4da044f2009d4f6502169b2aa98f0e621e88d7941",
+      "sha256": "3315a07e0d271637155704325b9d56c9ff2b6eba25ac1475ed1cb874acf7b2b2",
       "imports": [
         "SwiftUI"
       ],
@@ -19259,7 +19284,7 @@
     {
       "path": "Moblin/View/Stream/Overlay/Right/ZoomPresetSelctorView.swift",
       "lines": 173,
-      "sha256": "750dc5ca05b3f9948b0291d6d48d4394c7ba4dab607d968583720ff8541a9abe",
+      "sha256": "a912c706d5858071c77d6d8c3e8456638af29f231448f321685bc8500f262bac",
       "imports": [
         "SwiftUI"
       ],
@@ -19598,8 +19623,8 @@
     },
     {
       "path": "Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift",
-      "lines": 134,
-      "sha256": "d00b721b1db63ce4d2b525e63ba938b08f20bdeefeae903f24078ab61c7cd3df",
+      "lines": 136,
+      "sha256": "5710175618d4132717d4fb33530076ef135536a8450467670237e1257532b519",
       "imports": [
         "SwiftUI"
       ],
@@ -20552,7 +20577,7 @@
     {
       "path": "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift",
       "lines": 52,
-      "sha256": "9e786b6aa5bc97d03024326e00e9e8b9d5d69ce8314c0a433dfa0367dd53dfce",
+      "sha256": "6b043f9ac98f52a10b6725c2ca99671c1df1f171f1e7b47ef5bd73ca2b003d7b",
       "imports": [
         "SwiftUI"
       ],
@@ -21033,7 +21058,7 @@
     {
       "path": "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
       "lines": 403,
-      "sha256": "ef7d37695d05cb2834b3d6166b2270d8352ed3b26286461ac266faac37c6abb4",
+      "sha256": "577408936556703bb83ca6555011f137bb870738094e4b6e58f00bbc8d9fb62f",
       "imports": [
         "SwiftUI"
       ],
@@ -21114,7 +21139,7 @@
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
       "lines": 809,
-      "sha256": "14c8ff8c56075bba3d8e138c0416954300b6daee0e664712a6948b348d406a29",
+      "sha256": "3ee1a6238304f20223c336d4c36451ebfaefed806b6c16d00b3dd826e7f3ab56",
       "imports": [
         "Charts",
         "SwiftUI"
@@ -21459,7 +21484,7 @@
     {
       "path": "Moblin/View/ControlBar/ControlBarPortraitView.swift",
       "lines": 257,
-      "sha256": "34d6d132a9835b1e68067773f44df091eb254e2c502d26180982bd555c97d89a",
+      "sha256": "a5760d7de010f22ca4e26e733ed257792c63a406e437eb4ff46624e25978b561",
       "imports": [
         "SwiftUI"
       ],
@@ -21537,7 +21562,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift",
       "lines": 1705,
-      "sha256": "f6e6316dee460e84d02fea90653366a01ed0492cea399bdb734b05d4bc7ae3ab",
+      "sha256": "01f4ab0f688d5d56bf5a6591c411ca5e6273606d8b66177c124a07a32dd2bc0d",
       "imports": [
         "PhotosUI",
         "SwiftUI",
@@ -21711,7 +21736,7 @@
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
       "lines": 789,
-      "sha256": "f2ff0382c6468f4d096dc87ab0d421f32baa4d5f771ffe4176a7bdc373fe84c7",
+      "sha256": "cb98972427720311e84450e94bb4e787d23faceb00770a42385289cc5f85eed8",
       "imports": [
         "SwiftUI"
       ],
@@ -22021,7 +22046,7 @@
     {
       "path": "Moblin/View/Settings/Chat/ChatSettingsView.swift",
       "lines": 113,
-      "sha256": "23f357ee16877beb7df0da69e3d06800c1caf73f98ff7eafa48867ce778c9c64",
+      "sha256": "077e67bb4ca2e78e3909bd84408eea14e35092ea3b01c958c142d6b0fbc5edb3",
       "imports": [
         "SwiftUI"
       ],
@@ -22060,7 +22085,7 @@
     {
       "path": "Moblin/View/Settings/Display/DisplaySettingsView.swift",
       "lines": 262,
-      "sha256": "d6fe90323ca5b4e6d1cb5884f1a79a3706c26af2e408f4efe9541f0b0df79f6f",
+      "sha256": "cc6c80d31154b7bc9d3ebbd15b5fe48a46db79bef49dddd1eb07f5cb9c58b3b0",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -22104,7 +22129,7 @@
     {
       "path": "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift",
       "lines": 270,
-      "sha256": "647ffe7c2d32655c4e34cc2dc5f17526d2857e2196e3db3540b7d9abbc100997",
+      "sha256": "66563b99025f5b7a421295722b1d3a9fa39985dcc1b623e994ae1fe43c6ea4e9",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -22141,7 +22166,7 @@
     {
       "path": "Moblin/View/Settings/DjiDevices/DjiDeviceSettingsView.swift",
       "lines": 435,
-      "sha256": "921083f8bc2eb9b06f092df239f9aeb14aa71056862d0a3c16a169edeaef5862",
+      "sha256": "bef4e5b5edb5fbd48c7a04958a40dc3114b0a1ebbf1fca085c4d23b335868d45",
       "imports": [
         "SwiftUI"
       ],
@@ -22206,7 +22231,7 @@
     {
       "path": "Moblin/View/Settings/Macros/MacrosSettingsView.swift",
       "lines": 629,
-      "sha256": "4f85f82edc054191ce1f6ae8dc38117e90f4cd3649ff024370f1cd919072021a",
+      "sha256": "ee3b3d71a96889ae1e7c394ceaebb8f3b7e095b525602bfcf2d16a14989eba65",
       "imports": [
         "SwiftUI"
       ],
@@ -22260,7 +22285,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift",
       "lines": 384,
-      "sha256": "785f5447ffab673b1c0fc4a1e449fd74fe829b16761e2ddeac00c4b32c28dcc8",
+      "sha256": "46b127920acc137af24a114554efaf7e773bc131c85084c0f20d7cb2aacab0dc",
       "imports": [
         "SwiftUI"
       ],
@@ -22321,7 +22346,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsImageSettingsView.swift",
       "lines": 203,
-      "sha256": "eff7e9f9140a5593f4c833b4107a23581a1a9c9bcc7ce2521b87ebe87b5b6ab6",
+      "sha256": "4cc9310097e3376f35cb750cf850942bc69eae1317b37910ee2638fb706db3ca",
       "imports": [
         "AVFAudio",
         "PhotosUI",
@@ -22364,7 +22389,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift",
       "lines": 172,
-      "sha256": "2379fbe9a89348783ab998730257e2a82804ba8c421afaf57bbf09d3610a7731",
+      "sha256": "bc50e8a3be5eda362a604f95ad78ff36c2d34c33943ea77b61b55b6fe1a480d2",
       "imports": [
         "AVFAudio",
         "SwiftUI",
@@ -22907,7 +22932,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift",
       "lines": 380,
-      "sha256": "8b430ad0dfc0e5c60769bbc62b14de9bb0ad4b501615118a5d4157242a345ba6",
+      "sha256": "ab3a9648b7ca8885f11a31969be5cc8dce17669ed160925482713dc0766ca719",
       "imports": [
         "AVFAudio",
         "PhotosUI",
@@ -22967,7 +22992,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonDjiDevicesView.swift",
       "lines": 52,
-      "sha256": "d0e63ba3815379e9978fa948ed84e1dca1b82fda3b51fa2eb4e50412b2dcb70c",
+      "sha256": "84d9817994c486cbf635c366f8022fa3bdba15ac15c6d5985451bdae4b844719",
       "imports": [
         "SwiftUI"
       ],
@@ -23024,7 +23049,7 @@
     {
       "path": "Moblin/View/Settings/Camera/CameraSettingsView.swift",
       "lines": 334,
-      "sha256": "3881d3f80d2613c30f4ee6d4593485e27360f5b20ba8fc1b93cf9417b8b48304",
+      "sha256": "5ea74077c1044bc76bc887be63b14814fc22b2065aeb2f771c1288f29ca42a7f",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -23119,7 +23144,7 @@
     {
       "path": "Moblin/View/Settings/GoPro/GoProBleDeviceSettingsView.swift",
       "lines": 376,
-      "sha256": "3bfb9ad77fd118540cc1c48714451c83d81fecec0ed3764e3e2505e0fb2edfe7",
+      "sha256": "193effb32f53b1313a2fcb32d512126e525b23c75c6729f0c52cf8e71aad029e",
       "imports": [
         "SwiftUI"
       ],
@@ -23263,7 +23288,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardPadelSettingsView.swift",
       "lines": 171,
-      "sha256": "bb710e571283392cca51cce9599c941f5349a88442398b3f3c06ae8960030b91",
+      "sha256": "9063243a826afbdf28124efd70bd4097a0fa00851b4d0b5b61c4c2958979430f",
       "imports": [
         "SwiftUI"
       ],
@@ -23685,7 +23710,7 @@
     {
       "path": "Moblin/View/Settings/SettingsView.swift",
       "lines": 278,
-      "sha256": "44d5132bc3109ae4d9f43d67c2b074f17abd6833efc4dd81da707830265d4025",
+      "sha256": "6ff08cd2139f0bcb30518e9fcca479db7658cd0a530568bdaa224f4925da1e46",
       "imports": [
         "SwiftUI"
       ],
@@ -24015,8 +24040,8 @@
     },
     {
       "path": "Moblin/View/MainView.swift",
-      "lines": 677,
-      "sha256": "5ba8b6c3843f2d0cdf64ddc9e983d6c2af36b295605906b555989338f76c8524",
+      "lines": 680,
+      "sha256": "8fd55beafb9fed2e6d5719fb37c205c485b033d109c89b3430ae4c992c8a53fb",
       "imports": [
         "AVFoundation",
         "SwiftUI",

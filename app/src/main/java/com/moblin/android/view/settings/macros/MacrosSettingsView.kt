@@ -219,6 +219,7 @@ private fun TextFormatView(
             }
         }
         TextFormatVariablesView(
+            model = model,
             widget = false,
             value = currentValue,
             onChange = { currentValue = it },

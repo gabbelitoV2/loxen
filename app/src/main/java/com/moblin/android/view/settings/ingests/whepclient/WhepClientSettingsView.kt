@@ -110,6 +110,7 @@ fun WhepClientSettingsDestinationView(
                     },
                 ) {
                     WhepClientStreamSettingsView(
+                        model = model,
                         whepClient = whepClient,
                         stream = stream,
                         onNavigate = onNavigate,

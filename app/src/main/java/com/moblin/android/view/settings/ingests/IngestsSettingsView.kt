@@ -44,10 +44,10 @@ fun IngestsSettingsView(
             RtmpServerSettingsView(rtmpServer = database.rtmpServer)
             SrtlaServerSettingsView(srtlaServer = database.srtlaServer)
             SrtClientSettingsView(srtClient = database.srtClient)
-            RistServerSettingsView(ristServer = database.ristServer)
-            RtspClientSettingsView(rtspClient = database.rtspClient)
+            RistServerSettingsView(model = model, ristServer = database.ristServer)
+            RtspClientSettingsView(model = model, rtspClient = database.rtspClient)
             WhipServerSettingsView(whipServer = database.whipServer)
-            WhepClientSettingsView(whepClient = database.whepClient)
+            WhepClientSettingsView(model = model, whepClient = database.whepClient)
             if (showWiFiAware) {
                 NavigationLink(
                     destination = {

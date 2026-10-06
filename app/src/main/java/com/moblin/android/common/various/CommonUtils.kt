@@ -369,23 +369,6 @@ val Response.isForbidden: Boolean
 val Response.isTooManyRequests: Boolean
     get() = code == 429
 
-private val httpClient: OkHttpClient = OkHttpClient()
-
-suspend fun httpGet(from: String): Pair<ByteArray, Response> = withContext(Dispatchers.IO) {
-    val request = Request.Builder().url(from).build()
-    httpClient.newCall(request).execute().use { response ->
-        val data = response.body?.bytes() ?: ByteArray(0)
-        data to response
-    }
-}
-
-suspend fun httpGet(request: Request): Pair<ByteArray, Response> = withContext(Dispatchers.IO) {
-    httpClient.newCall(request).execute().use { response ->
-        val data = response.body?.bytes() ?: ByteArray(0)
-        data to response
-    }
-}
-
 fun Request.Builder.setAuthorization(value: String) {
     header("Authorization", value)
 }

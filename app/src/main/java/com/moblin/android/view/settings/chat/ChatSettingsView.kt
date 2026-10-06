@@ -53,7 +53,11 @@ private fun ChatSettingsGeneralView(
     }
     NavigationLink(
         destination = {
-            ChatTextToSpeechSettingsView(chat = chat, ttsMonster = chat.ttsMonster)
+            ChatTextToSpeechSettingsView(
+                model = model,
+                chat = chat,
+                ttsMonster = chat.ttsMonster,
+            )
         },
     ) {
         Toggle(

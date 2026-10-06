@@ -197,11 +197,11 @@ fun StoreSettingsView(model: Model = LocalModel.current, store: Store) {
             Text(localized("Support Moblin developers by buying icons. ❤️"))
         }
         if (iconsInStore.isNotEmpty()) {
-            StoreSettingsIconsToBuyView(store = store)
+            StoreSettingsIconsToBuyView(model = model, store = store)
         } else {
             StoreSettingsBoughtEverythingView()
         }
-        StoreSettingsMyIconsView(store = store)
+        StoreSettingsMyIconsView(model = model, store = store)
         StoreSettingsRestoreView(model = model)
     }
 }

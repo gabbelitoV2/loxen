@@ -3,12 +3,12 @@ package com.moblin.android.view.settings.debug
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.*
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsDebug
+import com.moblin.android.LocalModel
 
 @Composable
 fun DebugVideoSettingsView(

@@ -68,12 +68,13 @@ private fun onUrl(url: String, recording: SettingsStreamRecording) {
 
 @Composable
 private fun RecordingPathView(
+    model: Model = LocalModel.current,
     recording: SettingsStreamRecording,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val recordingPath = recording.recordingPath
     NavigationLink(
-        destination = { RecordingPathFormView(recording = recording) },
+        destination = { RecordingPathFormView(model = model, recording = recording) },
     ) {
         Text(localized("Recording path"))
         Spacer(Modifier.weight(1f))
@@ -252,7 +253,7 @@ fun StreamRecordingSettingsView(
                 )
             }
         }
-        RecordingPathView(recording = recording, onNavigate = onNavigate)
+        RecordingPathView(model = model, recording = recording, onNavigate = onNavigate)
         Section(footer = "Do not show widgets in recordings.") {
             Toggle(
                 title = "Clean recordings",

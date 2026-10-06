@@ -178,7 +178,7 @@ fun LocationSettingsView(
         if (showAllSettings && stream !== fallbackStream) {
             ShortcutSectionView {
                 NavigationLink(destination = {
-                    StreamRealtimeIrlSettingsView(stream = stream)
+                    StreamRealtimeIrlSettingsView(model = model, stream = stream)
                 }) {
                     Label(
                         "RealtimeIRL",
