@@ -4666,22 +4666,28 @@
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift": {
     "status": "ok",
-    "sha256": "3add6e7ed411972bd1842f65de95eef2abf7a2b5e50c37ed2e0511c10f255d98",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "09e930bc5196178e07e7d9307b68e0c77bb9902211dd0ad9b000d06ec7929c3b",
+    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt",
     "notes": [
-      "Swift now calls httpUrlSession() instead of URLSession.shared; the hand-written OkHttp client field was replaced by the shared httpUrlSession() client, so the private OkHttpClient field and its import were removed and httpUrlSession imported.",
-      "All other Kotlin lines, hand-written Android adjustments (MainScope, Pair-based response type, statusOther.digitalClock.value) stay byte-identical."
+      "Added the YouTubeLiveChatDelegate interface and replaced the Model dependency with a weak delegate, translated as a plain non-null constructor property (Kotlin has no weak refs here).",
+      "The message-handling block of readMessages was extracted into a public handleGetLiveChat(data: ByteArray) that decodes and dispatches, exactly as the Swift refactor does.",
+      "handleError/handleOk now call the delegate; the Model/Platform/appendChatMessage imports are kept byte-identical even though they are no longer referenced by this file.",
+      "handleGiftPurchaseDescription and handleGiftMessageViewModel previously returned 0 and skipped the chat post in the ported file; the new delegate calls restore the missing message emission and the return of 1, matching Swift.",
+      "userId for gift-message updates is passed as null.",
+      "updateContinuation still throws IllegalStateException (Kotlin unchecked) so handleGetLiveChat needs no throws clause.",
+      "delay stays a Long millisecond value and is fed to sleep(milliSeconds = delay).",
+      "segments use the ported createSegments(message, id) -> Pair<List<ChatPostSegment>, Int> helper instead of Swift's inout id."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53109,
-    "tokens_out": 5139,
-    "seconds": 15.0,
-    "ported_at": "2026-10-06T23:22:31+00:00"
+    "tokens_in": 53400,
+    "tokens_out": 6537,
+    "seconds": 20.7,
+    "ported_at": "2026-10-07T23:54:27+00:00"
   },
   "Moblin/Various/Settings/SettingsDeepLinkCreator.swift": {
     "status": "ok",
@@ -4869,25 +4875,28 @@
   },
   "Moblin/Various/Model/ModelYouTube.swift": {
     "status": "ok",
-    "sha256": "b440c198ff7025a5a03becb580171b659df230fd5c8609f2d2f267f505674f18",
-    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "sha256": "8c956906e028712ec4abf0c0c47c186c70b6d38b1ae202a22b34add4c378da08",
+    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt",
     "notes": [
-      "Inserted Model.banYouTubeUser between updateYouTubeStream and getYouTubeAccesssToken, matching the Swift diff position.",
-      "Used stream.value, NetworkResponse.Success and localized(...) exactly like the rest of the Kotlin port.",
-      "compactMap(\\.liveStreamingDetails.activeLiveChatId) became mapNotNull { it.liveStreamingDetails.activeLiveChatId }.",
-      "The shared remaining/failed counters are captured by the insertLiveChatBan completions like the Swift closure captures.",
-      "No other line of the existing file was changed."
+      "The YouTubeLiveChat call site stays `YouTubeLiveChat(model = this, videoId = videoId, settings = stream.value.chat)`: the current Kotlin YouTubeLiveChat takes a Model, not a delegate, so the Android behaviour is kept even though Swift now passes `delegate: self`.",
+      "The new Swift `extension Model: YouTubeLiveChatDelegate` is materialised as the private class ModelYouTubeLiveChatDelegate, because Kotlin cannot add an interface to Model from another file - the same pattern the file already uses for YouTubeApiDelegate.",
+      "The three delegate methods are added as top-level Model extension functions at the end of the file, keeping the Swift declaration order.",
+      "Added imports for ChatHighlight and ChatPostSegment, which the new appendChatMessage call needs.",
+      "`timestampTime: .now` becomes java.time.Instant.now(), matching the Instant used by ChatPost.timestampTime and the rest of this file.",
+      "`userBadges: []` becomes emptyList() and `segments: [ChatPostSegment]` becomes List<ChatPostSegment>.",
+      "No Swift API in this file is Apple-only; nothing was replaced by TODO().",
+      "Only the constructor label and the added delegate extension changed; every other line is byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54100,
-    "tokens_out": 4671,
-    "seconds": 14.1,
-    "ported_at": "2026-09-27T22:39:47+00:00"
+    "tokens_in": 57538,
+    "tokens_out": 15252,
+    "seconds": 58.6,
+    "ported_at": "2026-10-07T23:55:06+00:00"
   },
   "MoblinTests/Moblin/Obs/ObsWebSocketSuite.swift": {
     "status": "ok",
@@ -12451,27 +12460,24 @@
   },
   "Moblin/VideoEffects/Browser/BrowserEffect.swift": {
     "status": "ok",
-    "sha256": "13dd00303a8dcf67ce966e21eb16e54f273915f731d285cc03e3de8fb98e3c7c",
-    "moblin_commit": "d44af46ea84ff9481870bf73183bd6ce7df6e2a0",
+    "sha256": "e23b536c880c81370da773380b89b3293b063c96e841c936b2a6d51e29367972",
+    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt",
     "notes": [
-      "createStyleSheetSource now emits an IIFE wrapper, matching the new Swift output byte for byte.",
-      "New private viewportScript(width: Int) helper added next to the other script builders.",
-      "The init block adds a viewport WKUserScript at .atDocumentStart with forMainFrameOnly = true, before the video script.",
-      "webView.scrollView.contentInsetAdjustmentBehavior has no counterpart on the WebKit shim's UIScrollViewFlags, so it becomes a TODO.",
-      "Everything else in the file is unchanged, including the hand-written java.net.URI / java.net.InetSocketAddress signatures and NWEndpoint conversions."
+      "reload() now keeps the Swift guard on isLoaded, resets startLoadingTime and reloads via webView.load(URLRequest(url = url)) instead of webView.reload().",
+      "Its Android translation matches the load call already used in setSceneWidgetEnabled, so the URLRequest(url = URI) constructor of the WebKit shim is reused.",
+      "ContinuousClock.now is assigned to startLoadingTime exactly as in the load path.",
+      "No other member, import or declaration order changed."
     ],
-    "unsupported": [
-      "UIScrollViewFlags.contentInsetAdjustmentBehavior"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 67768,
-    "tokens_out": 4676,
-    "seconds": 14.6,
-    "ported_at": "2026-10-01T23:28:48+00:00"
+    "tokens_in": 67500,
+    "tokens_out": 3635,
+    "seconds": 10.9,
+    "ported_at": "2026-10-07T23:54:18+00:00"
   },
   "Moblin/VideoEffects/DrawOnStreamEffect.swift": {
     "status": "ok",
@@ -16238,27 +16244,27 @@
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
-    "sha256": "bff1c8965750bc30155f2772235801d93bec3d6273ffad566d3b136bf66d739f",
+    "sha256": "6241be08480b4b805f72c643bd0f60aaf46b488814d3aa33e7956d663e259d8b",
+    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/quickbuttons/QuickButtonsSettingsView.kt",
     "notes": [
-      "SwiftUI Section header/footer with no Compose counterpart are rendered as Text elements at the top and bottom of a Column.",
-      "Form is translated to a LazyColumn with one item per settings section; the section composables return a Column.",
-      "Published properties of Database, SettingsQuickButtons, SettingsQuickButton and Model.quickButtons are assumed to be exposed as MutableStateFlow in the Kotlin port: they are read through collectAsState() and written through .value. Non-flow properties such as SettingsQuickButton.isOn are read directly.",
-      "NavigationLink becomes an onNavigate route callback; the destination's onAppear work is executed in the row's click handler, while its onDisappear reset of selectedButtonType has to be performed by the navigation host that owns the destination.",
-      "onChange(of: button.enabled) is translated to LaunchedEffect(enabled), which therefore also runs on the first composition.",
-      "database.quickButtons is assumed to be the quick button list as StateFlow<List<SettingsQuickButton>> and database.quickButtonsGeneral the SettingsQuickButtons instance, matching the Swift call sites.",
-      "Text(\"Page \\(page)\") is kept as the interpolated, non-localized string \"Page $page\".",
-      "navigationTitle becomes the title of a Scaffold TopAppBar on the root QuickButtonsSettingsView; the navigation icon is provided by the host."
+      "ButtonsSettingsView now keeps the filter text in `var filter by remember { mutableStateOf(\"\") }`, matching the Swift @State, and exposes the Swift private func buttons(page:) as a local function with the same name and signature.",
+      "com.moblin.android.platform.swiftui declares no TextField shim, so the filter row is built with Compose foundation's BasicTextField plus a BasicText placeholder styled like an iOS Form text field; never Material TextField.",
+      "Swift's `.autocorrectionDisabled()` is mapped to KeyboardOptions(autoCorrectEnabled = false, capitalization = KeyboardCapitalization.None).",
+      "The Swift `let buttons = buttons(page: page)` is written as `val pageButtons = buttons(page)` because a Kotlin local val cannot be initialised from a function of the same name in the same scope; the page label and the Section stay unchanged.",
+      "Pages whose filtered button list is empty are skipped with `if (pageButtons.isNotEmpty())`, as in the Swift `if !buttons.isEmpty`.",
+      "The guard/return false of the Swift filter closure becomes `return@filter false`, and `name.lowercased().contains(...)` becomes `name.lowercase().contains(...)` (locale independent, like Swift lowercased()).",
+      "AppearanceSettingsView, ButtonSettingsView and QuickButtonsSettingsView are untouched, including their imports order and bodies."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4392,
-    "tokens_out": 13843,
-    "seconds": 53.2,
-    "ported_at": "2026-09-22T14:07:37+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43659,
+    "tokens_out": 10165,
+    "seconds": 40.5,
+    "ported_at": "2026-10-07T23:54:47+00:00"
   },
   "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift": {
     "status": "ok",
@@ -16673,23 +16679,25 @@
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift": {
     "status": "ok",
-    "sha256": "66563b99025f5b7a421295722b1d3a9fa39985dcc1b623e994ae1fe43c6ea4e9",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "6d357308c1c191a219a425db4ae3e0583a779f883275e1892e133eb81dc84065",
+    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/quickbuttons/QuickButtonsButtonSettingsView.kt",
     "notes": [
-      "The Swift diff only turns the stealth-mode view's EnvironmentObject into an explicit `let model`; the Kotlin file already received `model` as a parameter, so the translation is unchanged.",
-      "`QuickButtonStealthModeView` keeps `model: Model = LocalModel.current`, the platform convention for model parameters, and the call site already passes `model = model`.",
-      "No Kotlin line changes; the file is returned byte-identical, with all hand-written Android picker and Bitmap handling intact."
+      "Only the page Picker's onChange changed: Swift added model.database.objectWillChange.send() after model.updateQuickButtonPairs().",
+      "The Kotlin port's settings classes expose their @Published state through Published delegates and flows and declare no objectWillChange, so that Combine notification has no counterpart and stays a TODO at the same position.",
+      "All other declarations, imports and formatting are kept byte-identical to the current Kotlin file."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "model.database.objectWillChange.send() (Combine ObservableObjectPublisher on the settings Database)"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49666,
-    "tokens_out": 4143,
-    "seconds": 12.7,
-    "ported_at": "2026-10-06T23:24:03+00:00"
+    "tokens_in": 49595,
+    "tokens_out": 7055,
+    "seconds": 27.8,
+    "ported_at": "2026-10-07T23:54:34+00:00"
   },
   "Moblin/View/Settings/DjiDevices/DjiDeviceSettingsView.swift": {
     "status": "ok",
@@ -18364,5 +18372,30 @@
     "tokens_out": 755,
     "seconds": 4.2,
     "ported_at": "2026-10-06T23:22:05+00:00"
+  },
+  "MoblinTests/Moblin/StreamingPlatforms/YouTube/YouTubeLiveChatSuite.swift": {
+    "status": "ok",
+    "sha256": "5fbd9b5f76edcd1ebe0df72b20a6c879fb0f1b87b46956bc718a5932e4de0f53",
+    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChatSuite.kt",
+    "notes": [
+      "Swift Testing suite ported to a JUnit 4 class using kotlin.test assertions; @Test functions kept in Swift order.",
+      "The suite is @MainActor and the delegate is @MainActor, so every test body is wrapped in runMainTest { } so it runs on the Robolectric main thread and the looper is drained.",
+      "The Swift test constructs YouTubeLiveChat with a delegate (YouTubeLiveChat(delegate:videoId:settings:)) and calls handleGetLiveChat(data:); the Kotlin calls YouTubeLiveChat(delegate = delegate, videoId = \"video\", settings = SettingsStreamChat()) and chat.handleGetLiveChat(data) as in Swift.",
+      "The test-only struct Message and @MainActor delegate class Delegate stay file-private top-level Kotlin declarations.",
+      "Multi-line JSON is built with raw strings plus trimIndent(); the parser ignores the resulting whitespace, so fragments stay equivalent to the Swift literals.",
+      "The '$' in the paid-message amount is written as ${'$'} in raw strings so the JSON text stays byte-identical to the Swift literal; the assertion uses \"\\$5.00\".",
+      "texts() from com.moblin.android returns List<String?>, so expected segment lists are written as listOf<String?>(...).",
+      "Swift #expect(throws:) maps to assertFailsWith<Exception> for the two throwing cases."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 35822,
+    "tokens_out": 28921,
+    "seconds": 100.1,
+    "ported_at": "2026-10-07T23:55:47+00:00"
   }
 }

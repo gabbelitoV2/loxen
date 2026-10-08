@@ -1,14 +1,28 @@
 package com.moblin.android.view.settings.display.quickbuttons
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.moblin.android.LocalModel
+import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.settings.Database
@@ -98,13 +112,51 @@ private fun ButtonSettingsView(model: Model = LocalModel.current, button: Settin
 @Composable
 private fun ButtonsSettingsView(model: Model = LocalModel.current, database: Database) {
     val quickButtons = database.quickButtons
+    var filter by remember { mutableStateOf("") }
+    fun buttons(page: Int): List<SettingsQuickButton> {
+        return quickButtons.reversed().filter { button ->
+            if (button.page.value != page) {
+                return@filter false
+            }
+            filter.isEmpty() || button.name.lowercase().contains(filter.lowercase())
+        }
+    }
+    val palette = formPalette()
+    Section {
+        BasicTextField(
+            value = filter,
+            onValueChange = { filter = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            textStyle = formBodyStyle,
+            cursorBrush = SolidColor(palette.accent),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+            ),
+            decorationBox = { innerTextField ->
+                Box {
+                    if (filter.isEmpty()) {
+                        BasicText(
+                            text = localized("Filter"),
+                            style = formBodyStyle.copy(color = palette.secondaryLabel),
+                        )
+                    }
+                    innerTextField()
+                }
+            },
+        )
+    }
     for (page in 1..controlBarPages) {
-        Section(header = "Page $page") {
-            for (button in quickButtons.reversed().filter { it.page.value == page }) {
-                ButtonSettingsView(
-                    model = model,
-                    button = button,
-                )
+        val pageButtons = buttons(page)
+        if (pageButtons.isNotEmpty()) {
+            Section(header = "Page $page") {
+                for (button in pageButtons) {
+                    ButtonSettingsView(
+                        model = model,
+                        button = button,
+                    )
+                }
             }
         }
     }

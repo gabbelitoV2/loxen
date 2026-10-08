@@ -22,6 +22,8 @@ import com.moblin.android.streamingplatforms.youtube.youTubeIssuer
 import com.moblin.android.streamingplatforms.youtube.youTubeRedirectUri
 import com.moblin.android.streamingplatforms.youtube.youTubeScopes
 import com.moblin.android.streamingplatforms.youtube.*
+import com.moblin.android.various.ChatHighlight
+import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.*
@@ -40,6 +42,31 @@ open class YouTube {
 private class ModelYouTubeApiDelegate(private val model: Model) : YouTubeApiDelegate {
     override fun youTubeApiUnauthorized() {
         model.youTubeApiUnauthorized()
+    }
+}
+
+private class ModelYouTubeLiveChatDelegate(private val model: Model) : YouTubeLiveChatDelegate {
+    override fun youTubeLiveChatMakeErrorToast(title: String, subTitle: String) {
+        model.youTubeLiveChatMakeErrorToast(title = title, subTitle = subTitle)
+    }
+
+    override fun youTubeLiveChatMakeToast(title: String) {
+        model.youTubeLiveChatMakeToast(title = title)
+    }
+
+    override fun youTubeLiveChatAppendMessage(user: String,
+                                              userId: String?,
+                                              segments: List<ChatPostSegment>,
+                                              isModerator: Boolean,
+                                              isOwner: Boolean,
+                                              highlight: ChatHighlight?)
+    {
+        model.youTubeLiveChatAppendMessage(user = user,
+                                           userId = userId,
+                                           segments = segments,
+                                           isModerator = isModerator,
+                                           isOwner = isOwner,
+                                           highlight = highlight)
     }
 }
 
@@ -217,7 +244,7 @@ fun Model.reloadYouTubeLiveChat() {
     youTubeLiveChats.clear()
     if (isYouTubeLiveChatConfigured() && !isRemoteControlChatAndEvents(platform = Platform.youTube)) {
         for (videoId in stream.value.getYouTubeVideoIds()) {
-            val chat = YouTubeLiveChat(model = this, videoId = videoId, settings = stream.value.chat)
+            val chat = YouTubeLiveChat(delegate = ModelYouTubeLiveChatDelegate(this), videoId = videoId, settings = stream.value.chat)
             youTubeLiveChats[videoId] = chat
             chat.start()
         }
@@ -340,4 +367,38 @@ fun Model.youTubeApiUnauthorized() {
     stream.value.youTubeAuthState = null
     removeYouTubeAuthStateInKeychain(streamId = stream.value.id)
     makeNotLoggedInToToast(platform = Platform.youTube)
+}
+
+fun Model.youTubeLiveChatMakeErrorToast(title: String, subTitle: String) {
+    makeErrorToast(title = title, subTitle = subTitle)
+}
+
+fun Model.youTubeLiveChatMakeToast(title: String) {
+    makeToast(title = title)
+}
+
+fun Model.youTubeLiveChatAppendMessage(user: String,
+                                       userId: String?,
+                                       segments: List<ChatPostSegment>,
+                                       isModerator: Boolean,
+                                       isOwner: Boolean,
+                                       highlight: ChatHighlight?)
+{
+    appendChatMessage(platform = Platform.youTube,
+                      messageId = null,
+                      displayName = user,
+                      user = user,
+                      userId = userId,
+                      userColor = null,
+                      userBadges = emptyList(),
+                      segments = segments,
+                      timestamp = statusOther.digitalClock.value,
+                      timestampTime = java.time.Instant.now(),
+                      isAction = false,
+                      isSubscriber = false,
+                      isModerator = isModerator,
+                      isOwner = isOwner,
+                      bits = null,
+                      highlight = highlight,
+                      live = true)
 }

@@ -198,7 +198,11 @@ class BrowserEffect(
     }
 
     fun reload() {
-        webView.reload()
+        if (!isLoaded) {
+            return
+        }
+        startLoadingTime = ContinuousClock.now
+        webView.load(URLRequest(url = url))
     }
 
     fun setSceneWidget(sceneWidget: SettingsSceneWidget?, crops: List<WidgetCrop>) {

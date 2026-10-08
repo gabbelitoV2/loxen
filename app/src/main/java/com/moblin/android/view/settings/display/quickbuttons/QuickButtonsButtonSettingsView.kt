@@ -180,6 +180,7 @@ fun QuickButtonsButtonSettingsView(
                 model.quickButtons.page = newPage
                 model.quickButtons.activePage.value = newPage
                 model.updateQuickButtonPairs()
+                Unit
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,

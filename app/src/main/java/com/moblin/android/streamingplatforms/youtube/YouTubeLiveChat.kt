@@ -235,8 +235,23 @@ private data class GetLiveChat(
     val continuationContents: ContinuationContents,
 )
 
-class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamChat) {
-    private val model: Model = model
+interface YouTubeLiveChatDelegate {
+    fun youTubeLiveChatMakeErrorToast(title: String, subTitle: String)
+
+    fun youTubeLiveChatMakeToast(title: String)
+
+    fun youTubeLiveChatAppendMessage(
+        user: String,
+        userId: String?,
+        segments: List<ChatPostSegment>,
+        isModerator: Boolean,
+        isOwner: Boolean,
+        highlight: ChatHighlight?,
+    )
+}
+
+class YouTubeLiveChat(delegate: YouTubeLiveChatDelegate, videoId: String, settings: SettingsStreamChat) {
+    private val delegate: YouTubeLiveChatDelegate = delegate
     private val videoId: String = videoId
     private var task: Job? = null
     private val emotes: Emotes = Emotes()
@@ -287,11 +302,11 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
     }
 
     private fun handleError(title: String, subTitle: String) {
-        model.makeErrorToast(title, null)
+        delegate.youTubeLiveChatMakeErrorToast(title = title, subTitle = subTitle)
     }
 
     private fun handleOk(title: String) {
-        model.makeToast(title)
+        delegate.youTubeLiveChatMakeToast(title = title)
     }
 
     private fun makeLiveChatUrl(): String {
@@ -324,66 +339,70 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             if (!response.isSuccessful) {
                 throw IllegalStateException("Unsuccessful HTTP response")
             }
-            var numberOfMessages = 0
-            val getLiveChat = json.decodeFromString<GetLiveChat>(data.decodeToString())
-            val actions = getLiveChat.continuationContents.liveChatContinuation.actions
-            if (actions != null) {
-                for (action in actions) {
-                    val item = action.addChatItemAction?.item
-                    if (item == null) {
-                        continue
-                    }
-                    item.liveChatTextMessageRenderer?.let { chatDescription ->
-                        numberOfMessages += handleChatDescription(
-                            chatDescription = chatDescription,
-                            highlight = null,
-                        )
-                    }
-                    item.liveChatPaidMessageRenderer?.let { chatDescription ->
-                        numberOfMessages += handleChatDescription(
-                            chatDescription = chatDescription,
-                            text = createPaidMessageText(chatDescription),
-                            highlight = ChatHighlight.makePaidMessage(),
-                        )
-                    }
-                    item.liveChatPaidStickerRenderer?.let { chatDescription ->
-                        numberOfMessages += handleChatDescription(
-                            chatDescription = chatDescription,
-                            text = createPaidStickerText(chatDescription),
-                            highlight = ChatHighlight.makePaidSticker(),
-                        )
-                    }
-                    item.liveChatMembershipItemRenderer?.let { chatDescription ->
-                        numberOfMessages += handleChatDescription(
-                            chatDescription = chatDescription,
-                            highlight = ChatHighlight.makeMember(),
-                        )
-                    }
-                    item.liveChatSponsorshipsGiftPurchaseAnnouncementRenderer?.let { giftPurchase ->
-                        val headerRenderer = giftPurchase.header?.liveChatSponsorshipsHeaderRenderer
-                        if (headerRenderer != null) {
-                            numberOfMessages += handleGiftPurchaseDescription(
-                                headerRenderer = headerRenderer,
-                            )
-                        }
-                    }
-                    item.liveChatSponsorshipsGiftRedemptionAnnouncementRenderer?.let { chatDescription ->
-                        numberOfMessages += handleChatDescription(
-                            chatDescription = chatDescription,
-                            highlight = ChatHighlight.makeGiftedMemberships(),
-                        )
-                    }
-                    item.giftMessageViewModel?.let { giftMessageViewModel ->
-                        numberOfMessages += handleGiftMessageViewModel(
-                            giftMessageViewModel = giftMessageViewModel,
+            handleGetLiveChat(data)
+            sleep(milliSeconds = delay)
+        }
+    }
+
+    fun handleGetLiveChat(data: ByteArray) {
+        var numberOfMessages = 0
+        val getLiveChat = json.decodeFromString<GetLiveChat>(data.decodeToString())
+        val actions = getLiveChat.continuationContents.liveChatContinuation.actions
+        if (actions != null) {
+            for (action in actions) {
+                val item = action.addChatItemAction?.item
+                if (item == null) {
+                    continue
+                }
+                item.liveChatTextMessageRenderer?.let { chatDescription ->
+                    numberOfMessages += handleChatDescription(
+                        chatDescription = chatDescription,
+                        highlight = null,
+                    )
+                }
+                item.liveChatPaidMessageRenderer?.let { chatDescription ->
+                    numberOfMessages += handleChatDescription(
+                        chatDescription = chatDescription,
+                        text = createPaidMessageText(chatDescription),
+                        highlight = ChatHighlight.makePaidMessage(),
+                    )
+                }
+                item.liveChatPaidStickerRenderer?.let { chatDescription ->
+                    numberOfMessages += handleChatDescription(
+                        chatDescription = chatDescription,
+                        text = createPaidStickerText(chatDescription),
+                        highlight = ChatHighlight.makePaidSticker(),
+                    )
+                }
+                item.liveChatMembershipItemRenderer?.let { chatDescription ->
+                    numberOfMessages += handleChatDescription(
+                        chatDescription = chatDescription,
+                        highlight = ChatHighlight.makeMember(),
+                    )
+                }
+                item.liveChatSponsorshipsGiftPurchaseAnnouncementRenderer?.let { giftPurchase ->
+                    val headerRenderer = giftPurchase.header?.liveChatSponsorshipsHeaderRenderer
+                    if (headerRenderer != null) {
+                        numberOfMessages += handleGiftPurchaseDescription(
+                            headerRenderer = headerRenderer,
                         )
                     }
                 }
+                item.liveChatSponsorshipsGiftRedemptionAnnouncementRenderer?.let { chatDescription ->
+                    numberOfMessages += handleChatDescription(
+                        chatDescription = chatDescription,
+                        highlight = ChatHighlight.makeGiftedMemberships(),
+                    )
+                }
+                item.giftMessageViewModel?.let { giftMessageViewModel ->
+                    numberOfMessages += handleGiftMessageViewModel(
+                        giftMessageViewModel = giftMessageViewModel,
+                    )
+                }
             }
-            updateContinuation(getLiveChat)
-            updateDelayMs(numberOfMessages)
-            sleep(milliSeconds = delay)
         }
+        updateContinuation(getLiveChat)
+        updateDelayMs(numberOfMessages)
     }
 
     private fun updateDelayMs(numberOfMessages: Int) {
@@ -460,24 +479,13 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             return 0
         }
         val (isOwner, isModerator) = getUserRoles(chatDescription.authorBadges)
-        model.appendChatMessage(
-            platform = Platform.youTube,
-            messageId = null,
-            displayName = chatDescription.authorName.simpleText,
+        delegate.youTubeLiveChatAppendMessage(
             user = chatDescription.authorName.simpleText,
             userId = chatDescription.authorExternalChannelId,
-            userColor = null,
-            userBadges = listOf(),
             segments = segments,
-            timestamp = model.statusOther.digitalClock.value,
-            timestampTime = Instant.now(),
-            isAction = false,
-            isSubscriber = false,
             isModerator = isModerator,
             isOwner = isOwner,
-            bits = null,
             highlight = highlight,
-            live = true,
         )
         return 1
     }
@@ -500,13 +508,29 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             return 0
         }
         val (isOwner, isModerator) = getUserRoles(headerRenderer.authorBadges)
-        return 0
+        delegate.youTubeLiveChatAppendMessage(
+            user = headerRenderer.authorName.simpleText,
+            userId = headerRenderer.authorExternalChannelId,
+            segments = segments,
+            isModerator = isModerator,
+            isOwner = isOwner,
+            highlight = ChatHighlight.makeGiftedMemberships(),
+        )
+        return 1
     }
 
     private fun handleGiftMessageViewModel(giftMessageViewModel: GiftMessageVieModel): Int {
         var id = 0
         val (segments, _) = createSegments(giftMessageViewModel.text.content, id)
-        return 0
+        delegate.youTubeLiveChatAppendMessage(
+            user = giftMessageViewModel.authorName.content,
+            userId = null,
+            segments = segments,
+            isModerator = false,
+            isOwner = false,
+            highlight = ChatHighlight.makeJewels(),
+        )
+        return 1
     }
 
     private fun updateContinuation(getLiveChat: GetLiveChat) {
