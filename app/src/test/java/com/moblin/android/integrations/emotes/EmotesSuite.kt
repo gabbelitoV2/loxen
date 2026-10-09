@@ -2,6 +2,7 @@ package com.moblin.android.integrations.emotes
 
 import com.moblin.android.emoteNames
 import com.moblin.android.makeEmotes
+import com.moblin.android.spokenEmoteNames
 import com.moblin.android.texts
 import com.moblin.android.various.ChatPostSegment
 import java.util.concurrent.atomic.AtomicInteger
@@ -51,6 +52,7 @@ class EmotesSuite {
         val segments = createSegments("hello Kappa world", listOf("Kappa"))
         assertEquals(listOf("hello ", "", "", "world "), texts(segments))
         assertEquals(listOf(null, "Kappa", null, null), emoteNames(segments))
+        assertEquals(listOf(null, "Kappa", null, null), spokenEmoteNames(segments))
     }
 
     @Test
@@ -64,6 +66,7 @@ class EmotesSuite {
     fun consecutiveEmotes() {
         val segments = createSegments("Kappa LUL", listOf("Kappa", "LUL"))
         assertEquals(listOf("Kappa", null, "LUL", null), emoteNames(segments))
+        assertEquals(listOf("Kappa", null, "LUL", null), spokenEmoteNames(segments))
     }
 
     @Test

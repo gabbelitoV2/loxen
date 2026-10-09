@@ -85,6 +85,8 @@ class SettingsDebug {
 
     val externalCameraVideoRange = MutableStateFlow(false)
 
+    val photosImageQuality = MutableStateFlow(0.95)
+
     fun encode(): JsonObject = encodeContainer {
         encode("logLevel", logLevel)
         encode("logFilter", logFilter)
@@ -117,6 +119,7 @@ class SettingsDebug {
         encode("httpProxy3", httpProxyToBeRemoved)
         encode("packetPadding", packetPadding)
         encode("externalCameraVideoRange", externalCameraVideoRange)
+        encode("photosImageQuality", photosImageQuality)
     }
 
     companion object {
@@ -169,6 +172,7 @@ class SettingsDebug {
             debug.httpProxyToBeRemoved = container.decode("httpProxy3", false)
             debug.packetPadding.value = container.decode("packetPadding", false)
             debug.externalCameraVideoRange.value = container.decode("externalCameraVideoRange", false)
+            debug.photosImageQuality.value = container.decode("photosImageQuality", 0.95)
             return debug
         }
     }

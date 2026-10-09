@@ -2,6 +2,7 @@ package com.moblin.android.streamingplatforms.kick
 
 import com.moblin.android.emoteNames
 import com.moblin.android.makeEmotes
+import com.moblin.android.spokenEmoteNames
 import com.moblin.android.texts
 import com.moblin.android.various.ChatPostSegment
 import java.util.concurrent.atomic.AtomicInteger
@@ -37,6 +38,13 @@ class KickChatSegmentsSuite {
             "https://files.kick.com/emotes/37226/fullsize",
             segments[1].url?.still?.toString(),
         )
+        assertEquals(listOf<String?>(null, "KEKW", null), spokenEmoteNames(segments))
+    }
+
+    @Test
+    fun emoteNameMayContainColons() {
+        val segments = createSegments("[emote:1:a:b]")
+        assertEquals(listOf<String?>("a:b"), spokenEmoteNames(segments))
     }
 
     @Test
@@ -57,6 +65,7 @@ class KickChatSegmentsSuite {
         val segments = createSegments("[emote:1:A][emote:2:B]")
         assertEquals(listOf<String?>(null, null), texts(segments))
         assertEquals(2, segments.size)
+        assertEquals(listOf<String?>("A", "B"), spokenEmoteNames(segments))
     }
 
     @Test
@@ -77,6 +86,7 @@ class KickChatSegmentsSuite {
         val segments = createSegments("LUL [emote:1:A] LUL", emotes = listOf("LUL"))
         assertEquals(listOf<String?>("", "", null, "", ""), texts(segments))
         assertEquals(listOf<String?>("LUL", null, "fullsize", "LUL", null), emoteNames(segments))
+        assertEquals(listOf<String?>("LUL", null, "A", "LUL", null), spokenEmoteNames(segments))
     }
 
     @Test

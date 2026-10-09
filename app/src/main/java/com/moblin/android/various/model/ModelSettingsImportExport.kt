@@ -101,6 +101,7 @@ private fun Model.importDone(message: String?) {
 private fun Model.importSucceeded() {
     setDebugLogging(database.debug.debugLogging.value)
     setExternalCameraVideoRange()
+    setPhotosImageQuality()
     setCurrentStream()
     updateIconImageFromDatabase()
     updateMics()

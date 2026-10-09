@@ -43,6 +43,7 @@ interface ProcessorDelegate {
     fun streamRecorderFinished()
     fun streamAudio(sampleBuffer: MediaSample)
     fun streamNoTorch()
+    fun streamPhotoTaken()
     fun streamSetZoomX(x: Float)
     fun streamSetExposureBias(bias: Float)
     fun streamSelectedFps(auto: Boolean)
@@ -270,8 +271,8 @@ class Processor(val delegate: ProcessorDelegate, colorRange: SettingsStreamColor
         video.takeSnapshot(age, onComplete)
     }
 
-    fun takePhoto() {
-        video.takePhoto()
+    fun takePhoto(flash: Boolean) {
+        video.takePhoto(flash = flash)
     }
 
     fun takeVideoSourceSnapshot(videoSourceId: UUID, onComplete: (Bitmap?) -> Unit) {

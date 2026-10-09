@@ -1,5 +1,6 @@
 package com.moblin.android.various.settings
 
+import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.various.network.DefaultTcpPorts
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -75,5 +76,22 @@ class SettingsSuite {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun textToSpeechSayEmotesDefaultsToOff() {
+        val chat = codableJson.decodeFromString(SettingsChat.serializer(), "{}")
+        assertFalse(chat.textToSpeechSayEmotes)
+    }
+
+    @Test
+    fun textToSpeechSayEmotesIsPersisted() {
+        val chat = SettingsChat()
+        chat.textToSpeechSayEmotes = true
+        val decoded = codableJson.decodeFromString(
+            SettingsChat.serializer(),
+            codableJson.encodeToString(SettingsChat.serializer(), chat),
+        )
+        assertTrue(decoded.textToSpeechSayEmotes)
     }
 }

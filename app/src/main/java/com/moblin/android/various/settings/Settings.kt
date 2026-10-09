@@ -1626,6 +1626,8 @@ class Database(
     forceSceneSwitchTransition: Boolean = false,
     alwaysAttachCameraPreview: Boolean = false,
     alwaysAttachPhotoShoot: Boolean = false,
+    photoShootFlash: Boolean = false,
+    photoShootInterval: Int = 1,
     cameraControlsEnabled: Boolean = false,
     externalDisplayContent: SettingsExternalDisplayContent =
         SettingsExternalDisplayContent.stream,
@@ -1691,6 +1693,8 @@ class Database(
     var forceSceneSwitchTransition: Boolean by Published(forceSceneSwitchTransition)
     var alwaysAttachCameraPreview: Boolean by Published(alwaysAttachCameraPreview)
     var alwaysAttachPhotoShoot: Boolean by Published(alwaysAttachPhotoShoot)
+    var photoShootFlash: Boolean by Published(photoShootFlash)
+    var photoShootInterval: Int by Published(photoShootInterval)
     var cameraControlsEnabled: Boolean by Published(cameraControlsEnabled)
     var externalDisplayContent: SettingsExternalDisplayContent by Published(externalDisplayContent)
     var sceneNumericInput: Boolean by Published(sceneNumericInput)
@@ -1773,6 +1777,8 @@ class Database(
         encode("forceSceneSwitchTransition", forceSceneSwitchTransition)
         encode("alwaysAttachCameraPreview", alwaysAttachCameraPreview)
         encode("alwaysAttachPhotoShoot", alwaysAttachPhotoShoot)
+        encode("photoShootFlash", photoShootFlash)
+        encode("photoShootInterval", photoShootInterval)
         encode("cameraControlsEnabled", cameraControlsEnabled)
         encode("externalDisplayContent", externalDisplayContent)
         encode("cyclingPowerDevices", cyclingPowerDevices, SettingsCyclingPowerDevices.serializer())
@@ -1924,6 +1930,8 @@ class Database(
             database.forceSceneSwitchTransition = container.decode("forceSceneSwitchTransition", false)
             database.alwaysAttachCameraPreview = container.decode("alwaysAttachCameraPreview", false)
             database.alwaysAttachPhotoShoot = container.decode("alwaysAttachPhotoShoot", false)
+            database.photoShootFlash = container.decode("photoShootFlash", false)
+            database.photoShootInterval = container.decode("photoShootInterval", 1)
             database.cameraControlsEnabled = container.decode("cameraControlsEnabled", false)
             database.externalDisplayContent = container.decode(
                 "externalDisplayContent",

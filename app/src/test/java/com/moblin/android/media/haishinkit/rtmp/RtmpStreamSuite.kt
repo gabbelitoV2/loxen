@@ -98,6 +98,9 @@ private class ModelMock : RtmpStreamDelegate, ProcessorDelegate {
     override fun streamNoTorch() {
     }
 
+    override fun streamPhotoTaken() {
+    }
+
     override fun streamSetZoomX(x: Float) {
     }
 

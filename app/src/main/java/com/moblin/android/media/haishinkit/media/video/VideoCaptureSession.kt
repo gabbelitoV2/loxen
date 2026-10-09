@@ -74,6 +74,8 @@ var nativeLowLightBoost = false
 
 var externalCameraVideoRange = false
 
+var photosImageQuality = 0.95
+
 data class CaptureDevice(
     val device: AVCaptureDevice,
     val id: UUID,
@@ -415,12 +417,18 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
         }
     }
 
-    fun takePhoto() {
+    fun takePhoto(flash: Boolean) {
         for (device in devices) {
             val photoOutput = device.photoOutput ?: continue
+            Unit
             val settings = AVCapturePhotoSettings()
             settings.maxPhotoDimensions = photoOutput.maxPhotoDimensions
             settings.photoQualityPrioritization = AVCapturePhotoOutput.QualityPrioritization.balanced
+            if (flash) {
+                Unit
+                settings.flashMode = AVCaptureDevice.TorchMode.on
+            }
+            Unit
             settings.isShutterSoundSuppressionEnabled = true
             photoOutput.capturePhoto(settings = settings, delegate = this)
         }

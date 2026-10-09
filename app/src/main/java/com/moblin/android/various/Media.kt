@@ -110,6 +110,7 @@ interface MediaDelegate {
     fun mediaOnRecorderDataSegment(segment: RecorderDataSegment)
     fun mediaOnRecorderFinished()
     fun mediaOnNoTorch()
+    fun mediaOnPhotoTaken()
     fun mediaOnFps(fps: Int)
     fun mediaMoblinkStreamerDestinationAddress(address: String, port: Int)
     fun mediaMoblinkStreamerRestartTunnel(relayId: UUID)
@@ -829,8 +830,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         processor?.takeSnapshot(age = age, onComplete = onComplete)
     }
 
-    fun takePhoto() {
-        processor?.takePhoto()
+    fun takePhoto(flash: Boolean) {
+        processor?.takePhoto(flash = flash)
     }
 
     fun takeVideoSourceSnapshot(videoSourceId: UUID,
@@ -1199,6 +1200,10 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
 
     override fun streamNoTorch() {
         delegate.mediaOnNoTorch()
+    }
+
+    override fun streamPhotoTaken() {
+        delegate.mediaOnPhotoTaken()
     }
 
     override fun streamVideoFps(fps: Int) {

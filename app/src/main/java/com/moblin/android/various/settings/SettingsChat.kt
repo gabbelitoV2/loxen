@@ -749,6 +749,7 @@ class SettingsChat {
                 false,
             )
             chat.textToSpeechSayUsername = container.decode("textToSpeechSayUsername", true)
+            chat.textToSpeechSayEmotes = container.decode("textToSpeechSayEmotes", false)
             chat.textToSpeechRate = container.decode("textToSpeechRate", 0.4f)
             chat.textToSpeechSayVolume = container.decode("textToSpeechSayVolume", 0.6f)
             chat.textToSpeechLanguageVoices = container.decode(
@@ -860,6 +861,7 @@ class SettingsChat {
     var textToSpeechDefaultLanguage: String? by Published<String?>(null)
     var textToSpeechDetectLanguagePerMessage: Boolean by Published(false)
     var textToSpeechSayUsername: Boolean by Published(true)
+    var textToSpeechSayEmotes: Boolean by Published(false)
     var textToSpeechRate: Float by Published(0.4f)
     var textToSpeechSayVolume: Float by Published(0.6f)
     var textToSpeechLanguageVoices: MutableMap<String, SettingsVoice> by PublishedMap()
@@ -922,6 +924,7 @@ class SettingsChat {
         encode("textToSpeechDefaultLanguage", textToSpeechDefaultLanguage)
         encode("textToSpeechDetectLanguagePerMessage", textToSpeechDetectLanguagePerMessage)
         encode("textToSpeechSayUsername", textToSpeechSayUsername)
+        encode("textToSpeechSayEmotes", textToSpeechSayEmotes)
         encode("textToSpeechRate", textToSpeechRate)
         encode("textToSpeechSayVolume", textToSpeechSayVolume)
         encode("textToSpeechLanguageVoices", textToSpeechLanguageVoices)

@@ -111,10 +111,24 @@ class DjiDeviceSuite {
     }
 
     @Test
-    fun modelOsmoPocket4Pro() {
+    fun modelOsmoAction6() {
         val data = byteArrayOf(
+            0xAA.toByte(), 0x08, 0x18, 0x00, 0xFA.toByte(), 0x0C, 0x9A.toByte(), 0xE6.toByte(),
+            0xA0.toByte(), 0x97.toByte(), 0x56, 0x00,
+        )
+        assertEquals(SettingsDjiDeviceModel.osmoAction6, djiModelFromManufacturerData(data))
+    }
+
+    @Test
+    fun modelOsmoPocket4Pro() {
+        var data = byteArrayOf(
             0xAA.toByte(), 0x08, 0x00, 0x00, 0x00, 0xCF.toByte(), 0x00, 0x04,
             0x76, 0xEA.toByte(), 0x8B.toByte(), 0x20, 0xDA.toByte(), 0x00, 0x00, 0x10,
+        )
+        assertEquals(SettingsDjiDeviceModel.osmoPocket4Pro, djiModelFromManufacturerData(data))
+        data = byteArrayOf(
+            0xAA.toByte(), 0x08, 0x00, 0x00, 0x00, 0xC1.toByte(), 0x00, 0x04,
+            0xFD.toByte(), 0x9C.toByte(), 0xD3.toByte(), 0x20, 0xDA.toByte(), 0x00, 0x00, 0x40,
         )
         assertEquals(SettingsDjiDeviceModel.osmoPocket4Pro, djiModelFromManufacturerData(data))
     }

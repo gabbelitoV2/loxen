@@ -230,6 +230,13 @@ fun ChatTextToSpeechSettingsView(
                 },
             )
             Toggle(
+                localized("Say emotes"),
+                isOn = chat.textToSpeechSayEmotes,
+                onChange = { value ->
+                    chat.textToSpeechSayEmotes = value
+                },
+            )
+            Toggle(
                 localized("Subscribers only"),
                 isOn = chat.textToSpeechSubscribersOnly,
                 onChange = { value ->

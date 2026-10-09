@@ -1280,9 +1280,9 @@ fun Model.mediaOnRecorderDataSegment(segment: RecorderDataSegment) {
 
 fun Model.mediaOnRecorderFinished() {}
 
-fun Model.mediaOnNoTorch() {
+fun Model.mediaOnPhotoTaken() {
     mainScope.launch {
-        handleNoTorch()
+        handlePhotoTaken()
     }
 }
 

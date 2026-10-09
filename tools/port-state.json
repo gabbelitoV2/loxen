@@ -2290,22 +2290,28 @@
   },
   "Moblin/Various/Model/ModelPhotoShoot.swift": {
     "status": "ok",
-    "sha256": "f31188dddf033c34c7412ae4cb66e58c0ee13b99ddaafed58c21266bd85e5d30",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "c6703b8266d95831ae58d5b74e625b025d4888ab2f4c85e6f5b9e01573ad3a7e",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelPhotoShoot.kt",
     "notes": [
-      "Only the call inside togglePhotoShoot changed: reattachCamera() -> attachCamera(), matching the Swift diff.",
-      "Everything else in the file is unchanged, including startPhotoShoot/stopPhotoShoot and formatting."
+      "startPeriodic now takes Double(database.photoShootInterval), written as database.photoShootInterval.toDouble().",
+      "media.takePhoto() now passes the flash flag: media.takePhoto(flash = database.photoShootFlash).",
+      "photoTaken and photoShootEnabled are published state in the port (MutableStateFlow), so they are written as photoShoot.photoTaken.value and read as photoShootEnabled.value.",
+      "The flash is cleared with photoShootFlashTimer.startSingleShot(timeout = 0.15) { ... } using the Kotlin named argument and trailing lambda.",
+      "stopPhotoShoot also stops photoShootFlashTimer and resets photoShoot.photoTaken.",
+      "setPhotoShootInterval persists the value on database and restarts the timer only when photoShootEnabled is true.",
+      "handlePhotoTaken and setPhotoShootInterval are added in the same position as in the Swift file, before togglePhotoShoot.",
+      "togglePhotoShoot is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4228,
-    "tokens_out": 245,
-    "seconds": 1.4,
-    "ported_at": "2026-09-23T11:18:43+00:00"
+    "tokens_in": 35699,
+    "tokens_out": 4124,
+    "seconds": 16.8,
+    "ported_at": "2026-10-09T00:00:09+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/Message/RtmpUserControlMessage.swift": {
     "status": "ok",
@@ -2569,28 +2575,24 @@
   },
   "MoblinTests/Moblin/Integrations/Dji/DjiDevice/DjiDeviceSuite.swift": {
     "status": "ok",
-    "sha256": "344afd21712bea507832f2a8a1b61f3406e020cc695d1ec08544f2fca8dcb96d",
-    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "sha256": "a5e52c8a2dc4c86700fb2190b1905667df21d1af6340f93c99e8ab1b12b0db0b",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceSuite.kt",
     "notes": [
-      "DjiStartStreamingMessagePayload2 no longer receives a header argument in either test: the two payloads now derive it internally and only middle is passed.",
-      "The new length assertions follow the Swift change from a single hex prefix to three checks: first byte, the little-endian 16-bit value in bytes 1 and 2, and the 14-byte prefix from offset 3.",
-      "The little-endian check uses `and 0xFF` on both bytes because Kotlin Byte is signed while Swift's Int(Data[i]) is not.",
-      "startStreamingOmsoAction6 now uses the longer rtmp URL and a JSON body range of 14..169 with an expected total of 169 bytes.",
-      "The added startStreamingOsmoAction4 test builds DjiStartStreamingMessagePayload; the Kotlin data class also has an oa5 flag, so it is passed explicitly as false.",
-      "modelOsmoPocket4Pro is covered by modelOsmoPocket4Pro; it compares djiModelFromManufacturerData against SettingsDjiDeviceModel.osmoPocket4Pro.",
-      "The existing JSON comparison helper (parseToJsonElement plus asNsObject) is kept, only the byte ranges and expected dictionary values were updated.",
-      "RobolectricTestRunner and the file private hexString/asNsObject helpers are preserved."
+      "Added the new modelOsmoAction6 test before modelOsmoPocket4Pro, matching the Swift order.",
+      "modelOsmoPocket4Pro now uses a `var data` local and asserts twice, once per manufacturer-data sample.",
+      "Byte literals with the high bit set keep the explicit `.toByte()` conversion already used in this file.",
+      "No new imports were needed; JUnit 4, kotlin.test and Robolectric setup are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 33187,
-    "tokens_out": 5499,
-    "seconds": 20.1,
-    "ported_at": "2026-10-04T22:49:43+00:00"
+    "tokens_in": 33099,
+    "tokens_out": 1937,
+    "seconds": 6.4,
+    "ported_at": "2026-10-08T23:59:58+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Media/DriftTrackerSuite.swift": {
     "status": "ok",
@@ -2684,26 +2686,6 @@
     "tokens_out": 1409,
     "seconds": 5.8,
     "ported_at": "2026-09-22T12:44:12+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "MoblinTests/Moblin/Various/ChatPostUrlSuite.swift": {
-    "status": "ok",
-    "sha256": "6b3bdf6ccce9a6eba77b5a1abe1ea180df0452cd766c00e3c07ddc82feb40279",
-    "tier": "test",
-    "kotlin_path": "app/src/test/java/com/moblin/android/various/ChatPostUrlSuite.kt",
-    "notes": [
-      "Swift URL constants are translated to plain Strings since ChatPostUrl only stores them.",
-      "ChatPostUrl lives in the same Kotlin package, so no import is required for it.",
-      "Expectations on optional equality are split into assertEquals for non-nil cases and assertNull for the nil case.",
-      "JUnit 4 @Test is used with kotlin.test assertion helpers as required by the test tier."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1890,
-    "tokens_out": 560,
-    "seconds": 2.9,
-    "ported_at": "2026-09-22T12:44:15+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/Various/Settings/SettingsSelfieStick.swift": {
@@ -3692,27 +3674,22 @@
   },
   "MoblinTests/Moblin/Integrations/Emotes/EmotesSuite.swift": {
     "status": "ok",
-    "sha256": "469c05931783d91d0288dd9c7f936da623300ae842bcd5d338c9aa28c786eb6d",
+    "sha256": "638ad1425b7e875d27f9a05b69e40556ab489e2423174cca73f58ce34152f2cb",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/integrations/emotes/EmotesSuite.kt",
     "notes": [
-      "Swift Testing struct translated to a JUnit 4 class with kotlin.test assertions and @Test methods; imports from the glossary packages are used.",
-      "The private createSegments helper keeps its Swift signature, with the emotes parameter defaulting to emptyList().",
-      "Swift's `id: inout Int` has no Kotlin equivalent, so the ported Emotes.createSegments is assumed to return Pair<List<ChatPostSegment>, Int>, where second is the next id used by the caller.",
-      "#expect(a == b) was mapped to assertEquals(b, a) so the literal stays the expected value; #expect(cond) became assertTrue(cond).",
-      "Comparisons against [nil, ...] use listOf<String?>(null, ...) so the expected list has the same nullable element type as texts()/emoteNames().",
-      "The Swift suite has no init, so no @Before setUp() method is generated.",
-      "makeEmotes, texts and emoteNames are imported from com.moblin.android; ChatPostSegment from com.moblin.android.various.",
-      "Test order, names and byte-identical string literals match the Swift source."
+      "Added the import for spokenEmoteNames from com.moblin.android, keeping the import list alphabetical.",
+      "Added the spokenEmoteNames expectation to emoteInTheMiddle and consecutiveEmotes, translated as assertEquals(expected, actual) with kotlin.test."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2568,
-    "tokens_out": 7689,
-    "seconds": 31.8,
-    "ported_at": "2026-09-22T12:49:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 32547,
+    "tokens_out": 1427,
+    "seconds": 5.1,
+    "ported_at": "2026-10-08T23:59:57+00:00"
   },
   "Moblin/Media/AdaptiveBitrate/AdaptiveBitrateSrtBelabox.swift": {
     "status": "ok",
@@ -3834,27 +3811,25 @@
   },
   "MoblinTests/Moblin/Various/Settings/SettingsSuite.swift": {
     "status": "ok",
-    "sha256": "9980c165445763d75e05290f004417b49929db98f360c6ea93103d682b3fa061",
+    "sha256": "bfe7a787d4e80cc44079addcb488d09af7dd354fa2eaefbff75a1ad6dfa62489",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt",
     "notes": [
-      "JUnit 4 test class with kotlin.test assertions, mirroring the two Swift Testing cases one-to-one.",
-      "SettingsChatFilter, SettingsStream, SettingsStreamProtocol and SettingsStreamDetailedProtocol are in this same package, so they need no import.",
-      "The Swift `.init(id:text:)` message segment maps to ChatMessageSegment, imported from com.moblin.android.chat; verify the actual package name if it differs.",
-      "messageStartWords is assigned with mutableListOf so it works whether the Kotlin property is List<String> or MutableList<String>.",
-      "DefaultTcpPorts comes from com.moblin.android.various.network and provides mobcamStream.",
-      "Boolean results are asserted with assertTrue/assertFalse following the cond -> assertTrue mapping.",
-      "Enum comparisons use the fully qualified SettingsStreamProtocol.mobcam / SettingsStreamDetailedProtocol.mobcam values.",
-      "No suite-level setup was needed since the Swift struct has no init or shared mutable state."
+      "Added the two new tests textToSpeechSayEmotesDefaultsToOff and textToSpeechSayEmotesIsPersisted at the end of the class, in Swift order.",
+      "JSONDecoder/JSONEncoder are replaced with codableJson.decodeFromString(SettingsChat.serializer(), ...) and codableJson.encodeToString(SettingsChat.serializer(), chat), as required for Codable types.",
+      "Imported com.moblin.android.platform.codable.codableJson and reused the already-imported assertTrue/assertFalse.",
+      "Swift `throws` on a test disappears: Kotlin has no checked exceptions.",
+      "All pre-existing Kotlin lines are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2963,
-    "tokens_out": 3706,
-    "seconds": 14.0,
-    "ported_at": "2026-09-22T12:49:47+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 34467,
+    "tokens_out": 2759,
+    "seconds": 10.1,
+    "ported_at": "2026-10-09T00:00:06+00:00"
   },
   "MoblinTests/Moblin/View/Settings/Macros/MacrosSettingsViewSuite.swift": {
     "status": "ok",
@@ -3953,28 +3928,23 @@
   },
   "MoblinTests/TestUtils.swift": {
     "status": "ok",
-    "sha256": "1ab168cb990944cb64f8fb7a2e42298acf867cac119bf5eb3e34ff557011501a",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "6b02e717751d5c34dd470b4c9a44e1fc510f5dbc77204125b4f69dd3c34b8ac2",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/TestUtils.kt",
     "notes": [
-      "Only the diff is applied: waitUntil and TemporaryDirectory are added between MessageQueue and readMainFile; every other line is byte-identical.",
-      "waitUntil keeps java.time.Duration and measures elapsed time with System.nanoTime() instead of ContinuousClock, mirroring startTime.duration(to: .now).",
-      "Thread.sleep(forTimeInterval: 0.02) becomes Thread.sleep(20).",
-      "TemporaryDirectory's non-copyable deinit becomes AutoCloseable.close(), so tests use it with use { } and the directory is removed on exit.",
-      "FileManager.default.temporaryDirectory.appending(component:) becomes java.io.File(AppDelegate.context.cacheDir, UUID) so no new import is needed.",
-      "The throwing Swift init keeps its failure as an IOException when the directory cannot be created.",
-      "java.io.File and java.util.UUID are fully qualified to leave the existing import block untouched.",
-      "BundleToken stays the private file-level class that readMainFile/readTestFile use for resource lookup."
+      "Adds spokenEmoteNames right after emoteNames, matching the new Swift helper.",
+      "ChatPostUrl has no name member in the Kotlin port, so the same value is produced inline as the still URL's last path component, which keeps it consistent with the sibling emoteNames helper.",
+      "Everything else in the file, including the Android-only runMainTest and MainLooperDrainRule hooks, is left byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38073,
-    "tokens_out": 3672,
-    "seconds": 13.6,
-    "ported_at": "2026-09-29T23:49:18+00:00"
+    "tokens_in": 38596,
+    "tokens_out": 9313,
+    "seconds": 38.4,
+    "ported_at": "2026-10-09T00:00:38+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsReaderSuite.swift": {
     "status": "ok",
@@ -4095,26 +4065,23 @@
   },
   "MoblinTests/Moblin/StreamingPlatforms/Kick/KickChatSegmentsSuite.swift": {
     "status": "ok",
-    "sha256": "a21b981f60178a4aa3fc16f005e99ee001abec165ddcbe9aace1e6a8a9d3b20e",
+    "sha256": "057c6e277fad60aecd0bc8ed4ba4ec62f01954db0c53f73757f7b611ea89b9c9",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/kick/KickChatSegmentsSuite.kt",
     "notes": [
-      "Swift's `id: inout Int` counter cannot exist in Kotlin, so `createKickSegments` is called with a `() -> Int` lambda holding a local `var id`; adjust the call if the ported function uses a different holder.",
-      "`makeEmotes(...)` from package com.moblin.android supplies the emotes manager that the Swift test builds from the emotes list.",
-      "`url?.still?.absoluteString` becomes `url?.still?.toString()` because the Android ChatPostUrl stores parsed URIs rather than NSURL.",
-      "Expected value lists are typed as List<String?> so they unify with the nullable results of `texts` and `emoteNames`.",
-      "Swift's `compactMap` maps onto Kotlin's `mapNotNull`.",
-      "Everything under test (createKickSegments, ChatPostSegment, makeEmotes, texts, emoteNames) lives in the same package or com.moblin.android, hence no local re-declarations.",
-      "Run as a plain JUnit 4 test class; no suite setup was needed because the Swift struct has no stored state."
+      "Added the new spokenEmoteNames import from com.moblin.android and the three new assertions plus the emoteNameMayContainColons test from the Swift diff.",
+      "New test emoteNameMayContainColons is placed between emoteInTheMiddle and emoteAtStartAndEnd, matching the Swift order.",
+      "Only the changed tests and the new test were touched; all other lines stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2973,
-    "tokens_out": 5265,
-    "seconds": 21.5,
-    "ported_at": "2026-09-22T12:51:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 33739,
+    "tokens_out": 1385,
+    "seconds": 5.5,
+    "ported_at": "2026-10-09T00:00:29+00:00"
   },
   "MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift": {
     "status": "ok",
@@ -4141,27 +4108,23 @@
   },
   "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchChatSegmentsSuite.swift": {
     "status": "ok",
-    "sha256": "9445f42a10a7b0c9bd0d965e8d0165c207d4b1affc70030104f74732457dbde8",
+    "sha256": "d23468493a7a0bd1126329bf94007120fdbb05ce24cdc38be91529478329ff49",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchChatSegmentsSuite.kt",
     "notes": [
-      "Swift Testing suite translated to a JUnit 4 test class using org.junit.Test with kotlin.test assertions (#expect(a == b) -> assertEquals(b, a), #expect(cond) -> assertTrue(cond)).",
-      "File-private helpers (makeTwitchEmote, makeTwitchGif, gifNames, textFragment, emoteFragment, twitchEmoteIds) stay as private top-level functions in this file, in the same order as the Swift source.",
-      "ChatMessageEmote.url / stillUrl are treated as String in this port, so URL(string:) literals became plain string interpolation.",
-      "Swift's URL.path has no String counterpart, so twitchEmoteIds parses the still URL with java.net.URI; the Swift split/dropFirst(2) idiom gained a filter { it.isNotEmpty() } because Kotlin's split keeps empty parts.",
-      "gifNames reproduces lastPathComponent with substringAfterLast('/') on the assumed String URL in bigGifUrl.moving.",
-      "ClosedRange<Int> parameters became IntRange (3 ... 7 -> 3..7).",
-      "createTwitchSegments's Swift `id: inout Int` is assumed ported as a trailing () -> Int id supplier; only uniqueness of ids is asserted, so the exact values do not matter.",
-      "Lists that can contain nulls are written with an explicit listOf<String?> type argument so the generic assertEquals resolves."
+      "The Swift diff only adds #expect(spokenEmoteNames(...)) assertions, so the Kotlin file adds the matching assertEquals calls plus the spokenEmoteNames import.",
+      "Import com.moblin.android.spokenEmoteNames was inserted in alphabetical order between makeEmotes and texts.",
+      "Every other line, including the Robolectric runner, helpers and existing assertions, is unchanged byte for byte."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6505,
-    "tokens_out": 12415,
-    "seconds": 43.4,
-    "ported_at": "2026-09-22T12:52:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45968,
+    "tokens_out": 3400,
+    "seconds": 10.3,
+    "ported_at": "2026-10-09T00:00:37+00:00"
   },
   "Moblin/VideoEffects/Text/TextEffectFormatter.swift": {
     "status": "ok",
@@ -4715,28 +4678,23 @@
   },
   "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift": {
     "status": "ok",
-    "sha256": "ce1da765ea0c852ed18902e02f80a116d713902372d85b6e550408bc57f47b42",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "f250f528e437a44e69234b9ed18ee2f1aeaaccab67b18008716ac440d7d51d70",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt",
     "notes": [
-      "The Swift diff only adds `colorRange: .full` to three `Processor(...)` initialisations.",
-      "The Kotlin `Processor` declared for this port takes a single `delegate` parameter and exposes no `colorRange`, and no Kotlin color-range type exists in the platform glossary, so the three `Processor(delegate = modelMock)` calls stay unchanged rather than inventing a parameter.",
-      "Everything else in the file is untouched and kept byte-identical.",
-      "The custom `RtmpServerMock` (ServerSocket based) still stands in for the Swift NWListener actor.",
-      "ModelMock keeps the RtmpStreamDelegate and ProcessorDelegate overrides as before.",
-      "readMessages/readMessage helpers, byte literals and toBigEndianBytes/joinBytes extensions are unchanged.",
-      "runBlocking is still used inside the two connection tests, as in the current port.",
-      "No new imports were required by the Swift change."
+      "Incremental change: only the new ProcessorDelegate method streamPhotoTaken() was added to ModelMock, right after streamNoTorch(), matching the Swift position.",
+      "streamPhotoTaken is declared with `override`, so the app-side ProcessorDelegate interface is expected to declare it as well.",
+      "All other lines, imports and declaration order are byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 52317,
-    "tokens_out": 9203,
-    "seconds": 27.0,
-    "ported_at": "2026-09-29T00:01:48+00:00"
+    "tokens_in": 55381,
+    "tokens_out": 9529,
+    "seconds": 27.6,
+    "ported_at": "2026-10-09T00:00:38+00:00"
   },
   "Moblin/Various/Model/ModelGoProDevice.swift": {
     "status": "ok",
@@ -7756,27 +7714,23 @@
   },
   "Moblin/Various/Settings/SettingsDebug.swift": {
     "status": "ok",
-    "sha256": "4ced893028a45a0ce4c724bbd0e42b2c679f94a386a76bc2b9fe1d687744d347",
-    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "sha256": "44d6f79b3433b89759df40b75ab62d864f5e414af7a4edeaf84ffeb342fbdd53",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsDebug.kt",
     "notes": [
-      "Applies the diff only: removed the Swift 'faceToBeRemoved' (beautyFilterSettings) and 'preferStereoMicToBeRemoved' (preferStereoMic) properties together with their encode/decode entries.",
-      "Kotlin keys stay as the Swift CodingKeys raw strings ('beautyFilterSettings', 'preferStereoMic'), which is why the removed lines are gone from both encode() and decode().",
-      "Migrated logic in decode() (debugLoggingMigrated and builtinAudioAndVideoDelay70msMigrated) is untouched, as in the Swift file.",
-      "Both migration blocks still write the migrated flag unconditionally after the check, matching Swift.",
-      "Published Swift properties remain MutableStateFlow; plain Swift vars stay plain Kotlin vars.",
-      "Serializer stays the JsonObjectSerializer companion pattern; no CodingKeys enum exists in Kotlin.",
-      "No other file content, imports or declaration order was modified."
+      "Added the @Published photosImageQuality Double property as MutableStateFlow(0.95) after externalCameraVideoRange, matching Swift declaration order.",
+      "Added the matching photosImageQuality key to encode() and to decode(), both positioned after externalCameraVideoRange as in the Swift diff.",
+      "CodingKeys is not translated; JSON keys are the literal strings passed to encode/decode, so the new key is written as \"photosImageQuality\"."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 40863,
-    "tokens_out": 3171,
-    "seconds": 9.6,
-    "ported_at": "2026-10-04T22:49:22+00:00"
+    "tokens_in": 40458,
+    "tokens_out": 2297,
+    "seconds": 7.2,
+    "ported_at": "2026-10-08T23:59:59+00:00"
   },
   "Moblin/View/Main/LockScreenView.swift": {
     "status": "ok",
@@ -9569,47 +9523,47 @@
   },
   "Moblin/Various/Model/ModelSettingsImportExport.swift": {
     "status": "ok",
-    "sha256": "544acfb81c11421d9c3ee42637ce6e226acc9823a6ea816447687cbd00b2c9a7",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "f32c3e9ceca3792816951f76e4ca1e334abc96dfd3d8bbb70539851c1debf4e0",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt",
     "notes": [
-      "Applied only the diff: updateMicsList() was replaced by updateMics() followed by updateVideoSources() in Model.importSucceeded().",
-      "Every other line, import and declaration order stays byte-identical to the current Kotlin file.",
-      "All other declarations in the file are unchanged Model extension functions."
+      "Added the new setPhotosImageQuality() call in Model.importSucceeded, right after setExternalCameraVideoRange() as in the Swift diff.",
+      "Everything else in the Kotlin file is unchanged, including the hand-written Context-taking clipboard and data-import helpers."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 43583,
-    "tokens_out": 1267,
-    "seconds": 4.6,
-    "ported_at": "2026-09-29T23:51:26+00:00"
+    "tokens_in": 44339,
+    "tokens_out": 1093,
+    "seconds": 3.8,
+    "ported_at": "2026-10-08T23:59:56+00:00"
   },
   "Moblin/Various/Model/ModelSnapshot.swift": {
     "status": "ok",
-    "sha256": "312440d843690e10154659de26217f4a7e2c1cb0fe4fc7b881d249a33a393152",
+    "sha256": "cca0fe36cfcd0d12e45c683a50d54d33cfc7757e12cdb2f727006aa635d2f4f3",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSnapshot.kt",
     "notes": [
-      "Model extension in a separate Swift file became top-level Kotlin extension functions on Model in the same package; public ones are public, private ones are file-private.",
-      "DispatchQueue.main.asyncAfter was mapped to a file-private `mainScope = CoroutineScope(Dispatchers.Main)` plus delay() launches; the nested asyncAfter(10s) becomes a nested launch.",
-      "UIImage and CIImage have no Android equivalent, so they are typed as android.graphics.Bitmap; jpegData(compressionQuality: 0.9) becomes Bitmap.compress(Bitmap.CompressFormat.JPEG, 90, ...) into a ByteArrayOutputStream.",
-      "getDiscordWebhookUrl returns String? instead of URL?, using takeIf { it.isNotBlank() } because URL(string:) returns nil for invalid urls and the url is only forwarded to the upload helper.",
-      "snapshotJobs must be a MutableList/ArrayDeque<SnapshotJob>: popFirst() -> removeFirstOrNull() and append(_:) -> add(_); snapshot.currentJob is nullable and is reset with null.",
-      "media.takeSnapshot(age:completion:) and media.takeVideoSourceSnapshot(videoSourceId:onComplete:) are assumed to be callback APIs of the media layer, with the completion parameters typed Bitmap / Bitmap?.",
-      "String(localized: \"...\\(x)...\") kept its interpolation inside localized(...), matching the rest of the port.",
-      "takeVideoSourcePreviewImage collapses the two-part guard into a single if that calls onComplete(null) before returning."
+      "takeSnapshot now delegates the Photos save to the new saveSnapshotToPhotos instead of saving inline.",
+      "DispatchQueue.global().async -> CoroutineScope(Dispatchers.IO).launch; the PHPhotoLibrary shim keeps its performChanges(changeBlock, completionHandler) shape.",
+      "logger.info(x) -> Log.i(TAG, x) with import android.util.Log and the file TAG \"Model\".",
+      "AVError.localizedDescription -> Throwable.localizedMessage.",
+      "ImageIO (CGImageDestination, UTType.heic) and the IPTC keyword properties have no Android counterpart: encodeSnapshotForPhotos re-encodes the bitmap with Bitmap.compress as JPEG at quality 90, and returns null when compression fails so the caller still falls back to the 0.9 JPEG bytes.",
+      "photosImageQuality is not declared in this port, so its value is inlined as the JPEG quality 90, the same quality the fallback JPEG already uses.",
+      "image.cgImage -> the non-null cgImage extension from com.moblin.android.platform.uikit, so Swift's nil guard has no Kotlin counterpart.",
+      "PHAssetCreationRequest.forAsset().addResource(with = PHAssetResourceType.photo, data = data, options = null) is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5723,
-    "tokens_out": 12244,
-    "seconds": 47.4,
-    "ported_at": "2026-09-22T13:27:20+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 59330,
+    "tokens_out": 21058,
+    "seconds": 88.0,
+    "ported_at": "2026-10-09T00:01:20+00:00"
   },
   "Moblin/Various/Model/ModelSrtClient.swift": {
     "status": "ok",
@@ -11808,23 +11762,27 @@
   },
   "Moblin/View/Settings/Debug/DebugVideoSettingsView.swift": {
     "status": "ok",
-    "sha256": "3bda4794dc76be711b53c28407aa97ef38f5c6cd49487837a7ccad0cb1c45514",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "8b0bcc109caa17e41488ac7d54d3b9494f3d67cb587ac0ee3647941070c24365",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/debug/DebugVideoSettingsView.kt",
     "notes": [
-      "`model` changed from an `@EnvironmentObject` to a plain `let`, so it is no longer defaulted from `LocalModel.current` and is now a required parameter.",
-      "The now-unused `com.moblin.android.LocalModel` import was removed.",
-      "Everything else in the composable is unchanged: the toggles still write the MutableStateFlows and call the model helpers in their setters."
+      "Added the third Section with the Photos image quality Picker after the Periodic video bitrate change Section and before the Form closes.",
+      "photosImageQuality is collected like the other flows and the write plus model.setPhotosImageQuality() live in the Picker onChange, mirroring the Swift .onChange.",
+      "Picker options are the three Swift ForEach literals 0.9, 0.95, 1.0 as Float values (0.9f, 0.95f, 1.0f) so they match the settings property type.",
+      "text = { it.toString() } keeps the Swift String(quality) labels of the picker options.",
+      "The Section footer is passed as footer = localized(...) since the Swift puts it in footer:.",
+      "Neither photosImageQuality nor model.setPhotosImageQuality() appear in the currently listed Kotlin declarations; they are taken from the new Swift code.",
+      "Imports, onNavigate and the first two Sections stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38504,
-    "tokens_out": 829,
-    "seconds": 3.8,
-    "ported_at": "2026-10-06T23:22:05+00:00"
+    "tokens_in": 38756,
+    "tokens_out": 18932,
+    "seconds": 86.7,
+    "ported_at": "2026-10-09T00:01:19+00:00"
   },
   "Moblin/View/Settings/Camera/Zoom/ZoomSwitchToSettingsView.swift": {
     "status": "ok",
@@ -11852,23 +11810,25 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "e9341baa9f50498eafdd4d6a29f3145b26f89fb3e5b92e6a81076293f1661160",
-    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "sha256": "a12e7c1bb0921faace845a57832388af3acb8deee0408c721a18c32aa1001247",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "Removed the migrated flag from SettingsChatBotPermissions, its encode entry and the decode-side migration block.",
-      "The Kotlin class previously kept scene/stream defaults at moderatorsEnabled = false, so dropping the migration code keeps the same default behaviour.",
-      "Everything else in the file is unchanged, including formatting, imports and declaration order."
+      "Added the textToSpeechSayEmotes published property, its encode entry and its decode entry in SettingsChat.",
+      "The new property uses the Published delegate like the neighbouring textToSpeechSayUsername, so Settings views observe it directly.",
+      "The JSON key is textToSpeechSayEmotes in both directions, matching the Swift CodingKeys case.",
+      "Default is false in the property initializer and in the decode call, as in Swift.",
+      "No other declaration in the file changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58799,
-    "tokens_out": 9263,
-    "seconds": 23.3,
-    "ported_at": "2026-10-04T22:50:28+00:00"
+    "tokens_in": 58943,
+    "tokens_out": 9261,
+    "seconds": 23.6,
+    "ported_at": "2026-10-09T00:00:23+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -12270,27 +12230,19 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
-    "sha256": "f85dd788d893b424cde8ba5c0bb55ca8471ed840089316077d90c492921d2c19",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "46544e7677890d9f09f7c8c0047afcf97a6848d6f7ebb27a6f5a3936dc36a4e1",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt",
-    "notes": [
-      "Only the preview-layer loop changed: it now disables automatic video mirroring and copies the device's isVideoMirrored onto the preview connection, exactly as the new Swift hunk does.",
-      "VideoUnitAttachParams.cameraPreviewLayers is still Map<UUID, Any> in this port, so the Kotlin loop keeps UUID keys and the hand-written `value as? AVCaptureVideoPreviewLayer` cast; the local Swift rename id -> deviceId is mirrored by renaming the Kotlin local.",
-      "The Swift dictionary apparently re-keyed itself to [AVCaptureVideoPreviewLayer: UUID], but the declared dependency type Map<UUID, Any> is the truth and is left untouched.",
-      "connection.automaticallyAdjustsVideoMirroring and connection.isVideoMirrored already exist on the AVCaptureConnection shim, so no new platform call was needed.",
-      "The mirroring block runs after session.addConnection(connection) and after the canAddConnection guard, matching Swift's control flow.",
-      "Smart cast of `device` (userInput port guard with continue) makes device.device.isVideoMirrored compile without an extra null check, as it already did for `port`.",
-      "No other Swift line in the diff touches this file, so every other Kotlin line is unchanged byte for byte."
-    ],
+    "notes": [],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 63569,
-    "tokens_out": 11410,
-    "seconds": 34.8,
-    "ported_at": "2026-10-02T23:57:08+00:00"
+    "tokens_in": 64093,
+    "tokens_out": 19132,
+    "seconds": 69.4,
+    "ported_at": "2026-10-09T00:01:52+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",
@@ -14467,24 +14419,24 @@
   },
   "Moblin/Media/HaishinKit/Media/Processor.swift": {
     "status": "ok",
-    "sha256": "704d1995792b664deda75514902bb3c84ecc28d78322565d829480ffdcb5e59e",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "ca098a7a37df5e02c34f590bd4019e2151826e567051c2ecd7a291d022e992fd",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/Processor.kt",
     "notes": [
-      "Processor now takes a colorRange: SettingsStreamColorRange constructor parameter and forwards it to VideoUnit(colorRange = colorRange).",
-      "video is declared as a val without initializer and assigned first in the init block, before audio.processor / video.processor / recorder.delegate.",
-      "VideoUnit(colorRange = ...) is called as declared by the Kotlin VideoUnit port; the constructor parameter name matches the Swift label.",
-      "No other member changed; every other line of the file is byte-identical to the previous translation."
+      "ProcessorDelegate gained streamPhotoTaken() right after streamNoTorch(), matching the new Swift protocol member.",
+      "takePhoto() became takePhoto(flash: Boolean) and forwards the flag to VideoUnit; the VideoUnit.takePhoto shim in com.moblin.android.media.haishinkit.media.video must accept the flash parameter, the declaration listed in the request still shows the old no-argument form.",
+      "All other members, imports, formatting and declaration order are unchanged from the previous Kotlin file.",
+      "processorControlQueue / processorPipelineQueue / mainScope and the Android logging and URI-based Recorder calls stay as the hand-written Android layer."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54601,
-    "tokens_out": 5358,
-    "seconds": 18.2,
-    "ported_at": "2026-09-29T00:39:14+00:00"
+    "tokens_in": 57811,
+    "tokens_out": 4450,
+    "seconds": 15.7,
+    "ported_at": "2026-10-09T00:01:10+00:00"
   },
   "Moblin/Various/Model/ModelKick.swift": {
     "status": "ok",
@@ -14766,23 +14718,24 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift": {
     "status": "ok",
-    "sha256": "20b25196f1ce34947fa9f38c294a6de8ff2b6b50c6eb9ae8b22194f4cf985da0",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "a6d78e742c22cc52c9601dbba1e71d795925bf091ebe6a626dd3bdd009438958",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoUnit.kt",
     "notes": [
-      "cameraPreviewLayers changes from a UUID-keyed map to a layer-keyed map, matching Swift's [AVCaptureVideoPreviewLayer: UUID]; the Kotlin value type is Map<PreviewView, UUID> since AVCaptureVideoPreviewLayer is a typealias of PreviewView.",
-      "The new `cameraPreviewLayers != other.cameraPreviewLayers` check is translated with Kotlin Map equality, which compares PreviewView keys by identity exactly like Swift dictionary equality on class keys.",
-      "Only the VideoUnitAttachParams declaration and canQuickSwitchTo changed; every other line is byte-identical to the current Kotlin file."
+      "Only the takePhoto change from the diff was applied; every other line is byte-identical to the current Kotlin file.",
+      "takePhoto() now takes a flash Boolean and forwards it as captureSession.takePhoto(flash = flash), matching the new Swift signature.",
+      "VideoCaptureSession.takePhoto in the current dependency declarations still has no parameter; the parallel change to VideoCaptureSession.swift must add takePhoto(flash: Boolean) for this call to compile.",
+      "No other Swift member, timer, detection or buffered-video logic in this file changed, so no Android-specific hooks were touched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 78016,
-    "tokens_out": 10202,
-    "seconds": 28.8,
-    "ported_at": "2026-10-02T23:58:46+00:00"
+    "tokens_in": 77960,
+    "tokens_out": 9721,
+    "seconds": 27.6,
+    "ported_at": "2026-10-09T00:01:19+00:00"
   },
   "Moblin/Various/Model/ModelTwitch.swift": {
     "status": "ok",
@@ -15000,27 +14953,22 @@
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
-    "sha256": "77d2016e26963d1a335b8bb64eb6837f2d8280987b2a012cf6e6fe1632ca46ec",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "84f05c87c38b0fcd2ec4d62bfa993420d7471ee2c9b9a1f2c56c7834398e2efe",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatTextToSpeechSettingsView.kt",
     "notes": [
-      "The Swift change from @EnvironmentObject var model: Model to let model: Model makes the model an explicit parameter, so ChatTextToSpeechSettingsView no longer defaults to LocalModel.current and model must be passed by the caller.",
-      "Every call site of ChatTextToSpeechSettingsView in the app must now pass model explicitly, exactly as the Swift call sites must pass it.",
-      "import com.moblin.android.LocalModel stays in the header but is unused by this file now.",
-      "The rest of the file (TtsMonsterSettingsView, textToSpeechLocalize, TextToSpeechLanguage, textToSpeechLanguages, onVoiceChange/onLanguageReset and all sections) is unchanged.",
-      "textToSpeechLanguages keeps using the Android Speech TextToSpeech Voice list, so appleVoices is a List<Voice>.",
-      "The two onEditingChanged handlers stay on FormSlider's onValueChangeFinished, so setVolume/setRate are called when the drag ends.",
-      "@ObservedObject chat/ttsMonster keep reading and writing SettingsChat/SettingsTtsMonster published properties directly, without collectAsState."
+      "Added the 'Say emotes' Toggle between 'Say username' and 'Subscribers only', mirroring the surrounding Toggle style (isOn plus onChange that assigns).",
+      "All other lines, including the Android-specific FormSlider rows, the TextToSpeech voice loading and the footer placement, are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49933,
-    "tokens_out": 17409,
-    "seconds": 74.9,
-    "ported_at": "2026-10-06T23:24:16+00:00"
+    "tokens_in": 50171,
+    "tokens_out": 2741,
+    "seconds": 9.5,
+    "ported_at": "2026-10-09T00:01:00+00:00"
   },
   "Moblin/View/Settings/Debug/DebugSettingsView.swift": {
     "status": "ok",
@@ -15885,23 +15833,25 @@
   },
   "Moblin/Various/Media.swift": {
     "status": "ok",
-    "sha256": "c9497cbff4c8d5a443a881950dea7807c18a6ae0e9e6fd51d5ebdcc93b50adcc",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "ccbdaf1753ddbf9025b181900d5de438e370c8d66660465404d63ebb7f768429",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/Media.kt",
     "notes": [
-      "Only attachBufferedCamera changed: the Swift dictionary key/value order was swapped, so the Kotlin parameter becomes Map<PreviewView, UUID> (was Map<UUID, Any>).",
-      "That type now matches VideoUnitAttachParams.cameraPreviewLayers exactly, so the call no longer needs a cast.",
-      "All other lines, imports and declaration order are unchanged."
+      "Added mediaOnPhotoTaken() to MediaDelegate right after mediaOnNoTorch().",
+      "takePhoto() became takePhoto(flash: Boolean) and forwards the flag to Processor.takePhoto.",
+      "Added override fun streamPhotoTaken() after streamNoTorch() in Media's ProcessorDelegate implementation.",
+      "Processor.kt must declare takePhoto(flash: Boolean) and Processor.kt's ProcessorDelegate must declare streamPhotoTaken(), since Swift changed Processor.swift in the same commit.",
+      "Everything else in the file is unchanged, including the Android-specific mainScope, SrtlaClient host/port signatures and Log calls."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 89835,
-    "tokens_out": 13666,
-    "seconds": 34.8,
-    "ported_at": "2026-10-02T23:59:23+00:00"
+    "tokens_in": 90017,
+    "tokens_out": 15732,
+    "seconds": 44.1,
+    "ported_at": "2026-10-09T00:01:43+00:00"
   },
   "Moblin/Various/Model/ModelMacros.swift": {
     "status": "ok",
@@ -16091,24 +16041,24 @@
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "2df9f78896b904ff62141e316f568e3a3fbff4a1d180a02099471f926b15c142",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "20be8d011b7c9ba148abddb35dcc6caa3094a987764bbb39adb27746809107b6",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "Only one line changed: cameraPreviewView.setDevices in setNetStream now also passes widgets: [:].",
-      "widgets is translated as emptyMap(); the key/value types are inferred from the hand-written CameraPreviewView.setDevices signature.",
-      "ids keeps the existing emptyList<UUID>() from the current Kotlin file.",
-      "Every other line of the Kotlin file is byte-identical to the previous translation."
+      "Applied the Swift diff only: added the new mediaOnPhotoTaken delegate method to Model, placed between mediaOnRecorderFinished and mediaOnFps, exactly where the Swift source adds it.",
+      "The nonisolated + DispatchQueue.main.async pair is translated to mainScope.launch { handlePhotoTaken() }, matching every other media callback in this file.",
+      "Every other line of the Kotlin file is unchanged, including the hand-written Android deviations (SystemClock timestamps, Int microsecond times, processor accessors).",
+      "handlePhotoTaken() is expected to exist on Model in another Model file; no new declaration is introduced here."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88035,
-    "tokens_out": 11679,
-    "seconds": 30.4,
-    "ported_at": "2026-10-03T00:00:25+00:00"
+    "tokens_in": 88195,
+    "tokens_out": 11313,
+    "seconds": 31.1,
+    "ported_at": "2026-10-09T00:01:32+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
@@ -16199,72 +16149,69 @@
   },
   "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift": {
     "status": "ok",
-    "sha256": "98004735bbf48eb6f92cca91efe458a05e2ab0832ff321e68fb0eea28c1a85e3",
-    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "sha256": "2cd342ec2c92581363751a1b39acd13a29be5b0fd95035ecf88681ace07c9d7b",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt",
     "notes": [
-      "Only change: a new Version entry 35.3.0 (2026-09-25) prepended to the versions list.",
-      "Everything else, including formatting, imports and the composable, is byte-identical to the previous Kotlin file.",
-      "The lazy items import was already `androidx.compose.foundation.lazy.items`, which matches the current file."
+      "Adds the new 35.5.0 changelog entry at the top of the private versions list; every other line is unchanged.",
+      "The entry follows the existing Kotlin style: Version(\"35.5.0\", \"2026-10-08\", listOf(...)) with bullet strings one to one from Swift.",
+      "Escaped quotes around \"Limited color range\" and \"External camera video range\" are kept as in the Swift source.",
+      "Everything else (imports, data class Version, the rest of the version list and AboutVersionHistorySettingsView) is byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 141702,
-    "tokens_out": 16155,
-    "seconds": 46.2,
-    "ported_at": "2026-09-25T13:03:30+00:00"
+    "tokens_in": 148490,
+    "tokens_out": 17689,
+    "seconds": 53.2,
+    "ported_at": "2026-10-09T00:02:07+00:00"
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "5c64eaaf3dd487033c408ae20dd71a998bd9c844b6428b8634b16311c89df5b6",
-    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "sha256": "3902e5858c39acf7ebea5ee04b3b0909ed649708dcb2d4c294a1aaaa38c89e4d",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Removed the `scoreboardSizeMigrated` property, its encode entry and its decode plus the scoreboard-size migration loop, matching the Swift diff.",
-      "Removed the `debug.preferStereoMicToBeRemoved` migration inside `Database` decode.",
-      "`face` is now decoded with an explicit default: `container.decode(\"face\", SettingsFace.serializer(), SettingsFace())`.",
-      "Removed the widget cropX/cropY/cropWidth/cropHeight migration loops, the scene widget text-alignment migration and the browser size migration from `migrateFromOlderVersions`.",
-      "`migrateFromOlderVersions` now only refreshes the bundled alerts media gallery and the quick buttons.",
-      "Imports were left byte-identical; `defaultScoreboardSize` is now unused but kept because the diff does not touch imports.",
-      "Swift `Settings` is a `final class` with a computed `database`; the Kotlin port keeps the private `realDatabase` plus a read-only `database` getter.",
-      "`Settings.fromString`/`toString` map to the Kotlin `Database.fromString`/`toJsonString` helpers already present in the file."
+      "The Swift diff only adds two Database properties (photoShootFlash, photoShootInterval); all other lines are byte-identical to the existing Kotlin file.",
+      "photoShootFlash is exposed as `var photoShootFlash: Boolean by Published(false)` so Compose observes it, matching the other @Published flags on Database.",
+      "photoShootInterval is exposed as `var photoShootInterval: Int by Published(1)` for the same reason.",
+      "Both keys were inserted in the same relative position in the constructor, the Published body properties, encode() and decode(), so the JSON key order and declaration order mirror the Swift source.",
+      "Decoding keeps the Swift defaults false and 1, so settings files written before this change still load.",
+      "No new imports, helpers or platform hooks were required."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 116979,
-    "tokens_out": 28124,
-    "seconds": 69.0,
-    "ported_at": "2026-10-04T22:53:12+00:00"
+    "tokens_in": 115073,
+    "tokens_out": 27638,
+    "seconds": 71.0,
+    "ported_at": "2026-10-09T00:02:11+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
-    "sha256": "6241be08480b4b805f72c643bd0f60aaf46b488814d3aa33e7956d663e259d8b",
-    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
+    "sha256": "5f8277e990f5bada3d4032d447a96047e3f0ff3759034ece0ce46ba5acfed6ea",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/quickbuttons/QuickButtonsSettingsView.kt",
     "notes": [
-      "ButtonsSettingsView now keeps the filter text in `var filter by remember { mutableStateOf(\"\") }`, matching the Swift @State, and exposes the Swift private func buttons(page:) as a local function with the same name and signature.",
-      "com.moblin.android.platform.swiftui declares no TextField shim, so the filter row is built with Compose foundation's BasicTextField plus a BasicText placeholder styled like an iOS Form text field; never Material TextField.",
-      "Swift's `.autocorrectionDisabled()` is mapped to KeyboardOptions(autoCorrectEnabled = false, capitalization = KeyboardCapitalization.None).",
-      "The Swift `let buttons = buttons(page: page)` is written as `val pageButtons = buttons(page)` because a Kotlin local val cannot be initialised from a function of the same name in the same scope; the page label and the Section stay unchanged.",
-      "Pages whose filtered button list is empty are skipped with `if (pageButtons.isNotEmpty())`, as in the Swift `if !buttons.isEmpty`.",
-      "The guard/return false of the Swift filter closure becomes `return@filter false`, and `name.lowercased().contains(...)` becomes `name.lowercase().contains(...)` (locale independent, like Swift lowercased()).",
-      "AppearanceSettingsView, ButtonSettingsView and QuickButtonsSettingsView are untouched, including their imports order and bodies."
+      "Added the private data class ButtonsPage (id + buttons) that the new Swift code introduces.",
+      "ButtonsSettingsView now builds pages() with mapNotNull over 1..controlBarPages and renders one Section per non-empty page.",
+      "The Filter text field Section and its BasicTextField are unchanged from the previous Kotlin version.",
+      "ButtonSettingsView, AppearanceSettingsView and QuickButtonsSettingsView are untouched by the diff and kept byte-identical.",
+      "No new imports were needed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 43659,
-    "tokens_out": 10165,
-    "seconds": 40.5,
-    "ported_at": "2026-10-07T23:54:47+00:00"
+    "tokens_in": 44232,
+    "tokens_out": 2982,
+    "seconds": 12.5,
+    "ported_at": "2026-10-09T00:01:32+00:00"
   },
   "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift": {
     "status": "ok",
@@ -16494,26 +16441,25 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "6a357d7c9f4d9dcd5401b1354639f5af08dcd1a39bc8cdfa71dab288925a4554",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "fcc2e5b07732f897cd538838efad69a45456af9f97d16197a9e9aa7378adc138",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Incremental update: only the camera preview device/widget wiring in attachCameraFinalize and attachBufferedCamera changed.",
-      "cameraPreviewView.setDevices now takes a second widgets argument; the branch on attachCameraPreview is kept instead of the previous inline if-expression.",
-      "cameraPreviewView.select now also receives isMirrored.",
-      "updateCameraPreviewWidgets() is called right after select in the attach success handler.",
-      "getCameraPreviewWidgetDeviceIds(scene = scene) is a Model extension in the same package, so no import is added.",
-      "Everything else in the file is byte-identical to the previous translation, including the Android-only hooks."
+      "Added the new PhotoShootProvider ObservableObject right after SceneSelector, with photoTaken as a MutableStateFlow like the other provider classes.",
+      "Added photoShootFlashTimer (MainTimer) and photoShoot (PhotoShootProvider) to Model, next to the existing photoShootTimer.",
+      "Added setPhotosImageQuality() next to setNativeLowLightBoost/setExternalCameraVideoRange, reading database.debug.photosImageQuality through .value like the other debug settings.",
+      "Added the setPhotosImageQuality() call in setup(), between setExternalCameraVideoRange() and setHighQualityDownsampling(), matching the Swift order.",
+      "Every other Kotlin line, import and declaration order is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 145383,
-    "tokens_out": 35545,
-    "seconds": 93.3,
-    "ported_at": "2026-10-03T00:02:02+00:00"
+    "tokens_in": 145380,
+    "tokens_out": 35435,
+    "seconds": 94.1,
+    "ported_at": "2026-10-09T00:02:56+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -18117,25 +18063,27 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "8fd55beafb9fed2e6d5719fb37c205c485b033d109c89b3430ae4c992c8a53fb",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "b6c856b3180d4922f27865b1d391913e031d2924237c7f41ee951835e4dbe328",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "PanelButtonsView and WebBrowserAlertsView now take model as a required parameter instead of the EnvironmentObject default.",
-      "The Kotlin default value LocalModel.current was removed from both declarations to match the Swift change; every call site already passes model = model, so no call site changed.",
-      "LocalModel is still imported and used by the remaining private composables that keep the composition-local default.",
-      "The landscape call site in Swift was only reformatted across lines: the Kotlin PanelButtonsView call is single-line with the same arguments and stays unchanged.",
-      "No other member of MainView.swift changed, so the rest of the Kotlin file is byte-identical."
+      "PhotoShootView now takes model, photoShoot and enabled, and delegates its info panel to the new private PhotoShootInfoView; both call sites (portrait and landscape) pass model.photoShoot.",
+      "PhotoShootIntervalPickerView is translated with the swiftui Menu and Picker shims, options listOf(1, 2, 3, 10, 60) and model.setPhotoShootInterval(interval = ...) as the picker change handler.",
+      "PhotoShootFlashButtonView reads database.photoShootFlash directly and toggles it through the Published delegate, as settings properties are never wrapped in collectAsState.",
+      "The flash button is shown only when model.cameraDevice?.hasFlash == true, the AVCaptureDevice shim property.",
+      "PhotoShootInfoView collects photoShoot.photoTaken and animates its background with animateColorAsState, using snap() while the photo is being taken and tween(200 ms) otherwise, matching .animation(photoTaken ? nil : .easeOut(duration: 0.2)).",
+      "allowsHitTesting(false) is still dropped as in the previous PhotoShootView translation.",
+      "New imports: animateColorAsState, snap, tween, formatShortDuration, swiftui Menu and Picker, PhotoShootProvider and Database."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 73164,
-    "tokens_out": 10079,
-    "seconds": 26.1,
-    "ported_at": "2026-10-06T23:24:46+00:00"
+    "tokens_in": 76766,
+    "tokens_out": 23010,
+    "seconds": 79.3,
+    "ported_at": "2026-10-09T00:02:41+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",
@@ -18375,27 +18323,23 @@
   },
   "MoblinTests/Moblin/StreamingPlatforms/YouTube/YouTubeLiveChatSuite.swift": {
     "status": "ok",
-    "sha256": "5fbd9b5f76edcd1ebe0df72b20a6c879fb0f1b87b46956bc718a5932e4de0f53",
-    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
-    "mode": "full",
+    "sha256": "719eb30a02a45a5cd4a85744b0ed34f305802d271e4a9f3b47effb465a51935d",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChatSuite.kt",
     "notes": [
-      "Swift Testing suite ported to a JUnit 4 class using kotlin.test assertions; @Test functions kept in Swift order.",
-      "The suite is @MainActor and the delegate is @MainActor, so every test body is wrapped in runMainTest { } so it runs on the Robolectric main thread and the looper is drained.",
-      "The Swift test constructs YouTubeLiveChat with a delegate (YouTubeLiveChat(delegate:videoId:settings:)) and calls handleGetLiveChat(data:); the Kotlin calls YouTubeLiveChat(delegate = delegate, videoId = \"video\", settings = SettingsStreamChat()) and chat.handleGetLiveChat(data) as in Swift.",
-      "The test-only struct Message and @MainActor delegate class Delegate stay file-private top-level Kotlin declarations.",
-      "Multi-line JSON is built with raw strings plus trimIndent(); the parser ignores the resulting whitespace, so fragments stay equivalent to the Swift literals.",
-      "The '$' in the paid-message amount is written as ${'$'} in raw strings so the JSON text stays byte-identical to the Swift literal; the assertion uses \"\\$5.00\".",
-      "texts() from com.moblin.android returns List<String?>, so expected segment lists are written as listOf<String?>(...).",
-      "Swift #expect(throws:) maps to assertFailsWith<Exception> for the two throwing cases."
+      "Added import for spokenEmoteNames from com.moblin.android (TestUtils.kt) and the new assertion in emoji()",
+      "Added the new emojiWithoutShortcutsHasNoName test right after emoji(), translated with runMainTest and assertTrue/assertEquals",
+      "assertTrue(cond) used for the Swift #expect(segments[0].url != nil) check",
+      "spokenEmoteNames returns List<String?> so the expected list is typed String? to keep assertEquals unambiguous"
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 35822,
-    "tokens_out": 28921,
-    "seconds": 100.1,
-    "ported_at": "2026-10-07T23:55:47+00:00"
+    "tokens_in": 39716,
+    "tokens_out": 3733,
+    "seconds": 11.7,
+    "ported_at": "2026-10-09T00:00:50+00:00"
   }
 }

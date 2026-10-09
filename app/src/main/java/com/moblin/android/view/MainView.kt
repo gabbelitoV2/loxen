@@ -6,6 +6,9 @@ import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -86,12 +89,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.moblin.android.LocalModel
+import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coregraphics.toCGSize
 import com.moblin.android.platform.swiftui.ButtonRole
 import com.moblin.android.platform.swiftui.ConfirmationDialog
+import com.moblin.android.platform.swiftui.Menu
+import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Visibility
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
@@ -103,6 +109,7 @@ import com.moblin.android.various.model.CameraState
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
+import com.moblin.android.various.model.PhotoShootProvider
 import com.moblin.android.various.model.ReplayProvider
 import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.model.Toast
@@ -111,8 +118,10 @@ import com.moblin.android.various.model.commitZoomX
 import com.moblin.android.various.model.navigation
 import com.moblin.android.various.model.setAutoFocus
 import com.moblin.android.various.model.setFocusPointOfInterest
+import com.moblin.android.various.model.setPhotoShootInterval
 import com.moblin.android.various.model.updateAutoSceneSwitcherButtonState
 import com.moblin.android.various.model.updateLutsButtonState
+import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
@@ -441,27 +450,111 @@ private fun MutedView(audio: AudioProvider) {
 }
 
 @Composable
-private fun PhotoShootView(enabled: Boolean) {
+private fun PhotoShootFlashButtonView(database: Database) {
+    val flash = database.photoShootFlash
+    PlainButton(onClick = { database.photoShootFlash = !database.photoShootFlash }) {
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.75f))
+                .size(60.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            SystemImage(
+                name = if (flash) "bolt.fill" else "bolt.slash.fill",
+                fontSize = 30.sp,
+                tint = if (flash) Color.Yellow else Color.White
+            )
+        }
+    }
+}
+
+@Composable
+private fun PhotoShootIntervalPickerView(model: Model = LocalModel.current, database: Database) {
+    Menu(
+        content = {
+            Picker(
+                title = "",
+                selection = database.photoShootInterval,
+                options = listOf(1, 2, 3, 10, 60),
+                text = { formatShortDuration(seconds = it) },
+                onChange = { model.setPhotoShootInterval(interval = it) }
+            )
+        },
+        label = {
+            Column(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.75f))
+                    .size(60.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                SystemImage(name = "timer", fontSize = 24.sp, tint = Color.White)
+                Text(
+                    text = "${database.photoShootInterval}s",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun PhotoShootInfoView(photoShoot: PhotoShootProvider) {
+    val photoTaken by photoShoot.photoTaken.collectAsState()
+    val background by animateColorAsState(
+        targetValue = if (photoTaken) {
+            Color.White.copy(alpha = 0.75f)
+        } else {
+            Color.Black.copy(alpha = 0.75f)
+        },
+        animationSpec = if (photoTaken) snap() else tween(durationMillis = 200)
+    )
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(background)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        SystemImage(name = "person.crop.square.badge.camera", fontSize = 60.sp, tint = Color.White)
+        Text(
+            text = localized("Photo shoot"),
+            color = Color.White,
+            fontSize = 30.sp
+        )
+        Text(
+            text = localized("Taking photos periodically"),
+            color = Color.White,
+            fontSize = 17.sp
+        )
+    }
+}
+
+@Composable
+private fun PhotoShootView(
+    model: Model = LocalModel.current,
+    photoShoot: PhotoShootProvider,
+    enabled: Boolean,
+) {
     if (enabled) {
         Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.Black.copy(alpha = 0.75f))
-                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            SystemImage(name = "person.crop.square.badge.camera", fontSize = 60.sp, tint = Color.White)
-            Text(
-                text = localized("Photo shoot"),
-                color = Color.White,
-                fontSize = 30.sp
-            )
-            Text(
-                text = localized("Taking photos periodically"),
-                color = Color.White,
-                fontSize = 17.sp
-            )
+            PhotoShootInfoView(photoShoot = photoShoot)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(15.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PhotoShootIntervalPickerView(model = model, database = model.database)
+                if (model.cameraDevice != null) {
+                    PhotoShootFlashButtonView(database = model.database)
+                }
+            }
         }
     }
 }
@@ -915,7 +1008,7 @@ private fun portrait(
                 DrawOnStreamView(model = model)
             }
             MutedView(audio = model.audio)
-            PhotoShootView(enabled = photoShootEnabled)
+            PhotoShootView(model = model, photoShoot = model.photoShoot, enabled = photoShootEnabled)
             if (showBrowser) {
                 WebBrowserView(
                     model = model,
@@ -1006,7 +1099,7 @@ private fun landscape(
                 DrawOnStreamView(model = model)
             }
             MutedView(audio = model.audio)
-            PhotoShootView(enabled = photoShootEnabled)
+            PhotoShootView(model = model, photoShoot = model.photoShoot, enabled = photoShootEnabled)
             if (showBrowser) {
                 WebBrowserView(
                     model = model,

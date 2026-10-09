@@ -94,6 +94,13 @@ import com.moblin.android.platform.coregraphics.toCGSize
 
 private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+private fun makeMediaDelegate(): MediaDelegate =
+    java.lang.reflect.Proxy.newProxyInstance(
+        MediaDelegate::class.java.classLoader,
+        arrayOf(MediaDelegate::class.java),
+        java.lang.reflect.InvocationHandler { _, _, _ -> null },
+    ) as MediaDelegate
+
 private sealed class BackgroundRunLevel {
     data object Full : BackgroundRunLevel()
 
@@ -374,6 +381,10 @@ class SceneSelector {
     val trigger = MutableStateFlow(0)
     val sceneIndex = MutableStateFlow(0)
     var selectedSceneId = UUID.randomUUID()
+}
+
+class PhotoShootProvider {
+    val photoTaken = MutableStateFlow(false)
 }
 
 class StreamOverlay {
@@ -827,6 +838,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var httpProxyPort: Int? = null
     val streamDeck = StreamDeck()
     val photoShootTimer = MainTimer()
+    val photoShootFlashTimer = MainTimer()
+    val photoShoot = PhotoShootProvider()
 
     var processor: Processor? = null
         set(value) {
@@ -962,6 +975,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setExternalCameraVideoRange() {
         externalCameraVideoRange = database.debug.externalCameraVideoRange.value
+    }
+
+    fun setPhotosImageQuality() {
+        photosImageQuality = database.debug.photosImageQuality.value
     }
 
     fun setHighQualityDownsampling() {
@@ -1117,7 +1134,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         bluetoothCentralManger = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState(it) }, queue = null)
         deleteTrash()
         removeUnusedKeychainItems()
-        media = Media(delegate = object : MediaDelegate {
+        media = Media(delegate = object : MediaDelegate by makeMediaDelegate() {
             override fun mediaOnSrtConnected() {
                 this@Model.mediaOnSrtConnected()
             }
@@ -1187,9 +1204,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             override fun mediaOnRecorderFinished() {
                 this@Model.mediaOnRecorderFinished()
             }
-            override fun mediaOnNoTorch() {
-                this@Model.mediaOnNoTorch()
-            }
             override fun mediaOnFps(fps: Int) {
                 this@Model.mediaOnFps(fps)
             }
@@ -1217,6 +1231,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         fixAlertMediasNoUpdate()
         setNativeLowLightBoost()
         setExternalCameraVideoRange()
+        setPhotosImageQuality()
         setHighQualityDownsampling()
         setExternalDisplayContent()
         portraitVideoOffsetFromTop.value = database.portraitVideoOffsetFromTop

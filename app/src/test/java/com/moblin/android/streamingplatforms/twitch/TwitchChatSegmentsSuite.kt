@@ -2,6 +2,7 @@ package com.moblin.android.streamingplatforms.twitch
 
 import com.moblin.android.emoteNames
 import com.moblin.android.makeEmotes
+import com.moblin.android.spokenEmoteNames
 import com.moblin.android.texts
 import com.moblin.android.various.ChatMessageEmote
 import com.moblin.android.various.ChatPostSegment
@@ -82,6 +83,7 @@ class TwitchChatSegmentsSuite {
         ))
         assertEquals(listOf<String?>("hi ", null, "", "lol "), texts(segments))
         assertEquals(listOf<String?>(null, "25", null, null), twitchEmoteIds(segments))
+        assertEquals(listOf<String?>(null, "Kappa", null, null), spokenEmoteNames(segments))
     }
 
     @Test
@@ -93,6 +95,7 @@ class TwitchChatSegmentsSuite {
         ))
         assertEquals(listOf<String?>(null, "", null, ""), texts(segments))
         assertEquals(listOf<String?>("25", null, "305954156", null), twitchEmoteIds(segments))
+        assertEquals(listOf<String?>("Kappa", null, "PogChamp", null), spokenEmoteNames(segments))
     }
 
     @Test
@@ -137,6 +140,7 @@ class TwitchChatSegmentsSuite {
         val segments = createSegments("hi Kappa lol", listOf(makeTwitchEmote("Kappa", 3..7)))
         assertEquals(listOf<String?>("hi ", null, "", "lol "), texts(segments))
         assertEquals(listOf<String?>(null, "Kappa", null, null), emoteNames(segments))
+        assertEquals(listOf<String?>(null, "Kappa", null, null), spokenEmoteNames(segments))
     }
 
     @Test
@@ -168,6 +172,7 @@ class TwitchChatSegmentsSuite {
         ))
         assertEquals(listOf<String?>(null, "", null, ""), texts(segments))
         assertEquals(listOf<String?>("Kappa", null, "LUL", null), emoteNames(segments))
+        assertEquals(listOf<String?>("Kappa", null, "LUL", null), spokenEmoteNames(segments))
     }
 
     @Test
@@ -192,6 +197,7 @@ class TwitchChatSegmentsSuite {
         val segments = createSegments("😀 Kappa", listOf(makeTwitchEmote("Kappa", 2..6)))
         assertEquals(listOf<String?>("😀 ", null, ""), texts(segments))
         assertEquals(listOf<String?>(null, "Kappa", null), emoteNames(segments))
+        assertEquals(listOf<String?>(null, "Kappa", null), spokenEmoteNames(segments))
     }
 
     @Test
@@ -200,6 +206,7 @@ class TwitchChatSegmentsSuite {
         assertEquals(listOf<String?>(null, ""), texts(segments))
         assertEquals(listOf<String?>(null, null), emoteNames(segments))
         assertEquals(listOf<String?>("hello", null), gifNames(segments))
+        assertEquals(listOf<String?>("Hello GIF by HULU", null), spokenEmoteNames(segments))
         assertTrue(segments.mapNotNull { it.text }.joinToString("").isEmpty())
     }
 
@@ -236,6 +243,7 @@ class TwitchChatSegmentsSuite {
         val segments = createSegments("hello", listOf(makeTwitchEmote("Kappa", 1..3)))
         assertEquals(listOf<String?>("h ", null, "", "o "), texts(segments))
         assertEquals(listOf<String?>(null, "Kappa", null, null), emoteNames(segments))
+        assertEquals(listOf<String?>(null, "ell", null, null), spokenEmoteNames(segments))
     }
 
     @Test

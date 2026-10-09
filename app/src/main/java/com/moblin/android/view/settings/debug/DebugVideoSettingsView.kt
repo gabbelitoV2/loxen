@@ -19,6 +19,7 @@ fun DebugVideoSettingsView(
     val nativeLowLightBoost by debug.nativeLowLightBoost.collectAsState()
     val externalCameraVideoRange by debug.externalCameraVideoRange.collectAsState()
     val videoBitrateChange by debug.videoBitrateChange.collectAsState()
+    val photosImageQuality by debug.photosImageQuality.collectAsState()
 
     Form(title = localized("Video")) {
         Section(
@@ -52,6 +53,20 @@ fun DebugVideoSettingsView(
                     get = { videoBitrateChange },
                     set = { debug.videoBitrateChange.value = it },
                 ),
+            )
+        }
+        Section(
+            footer = localized("Compression quality of snapshots and photo shoot photos saved to Photos."),
+        ) {
+            Picker(
+                title = localized("Photos image quality"),
+                selection = photosImageQuality,
+                options = listOf(0.9, 0.95, 1.0),
+                text = { it.toString() },
+                onChange = {
+                    debug.photosImageQuality.value = it
+                    model.setPhotosImageQuality()
+                },
             )
         }
     }

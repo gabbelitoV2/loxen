@@ -109,16 +109,27 @@ private fun ButtonSettingsView(model: Model = LocalModel.current, button: Settin
     }
 }
 
+private data class ButtonsPage(
+    val id: Int,
+    val buttons: List<SettingsQuickButton>,
+)
+
 @Composable
 private fun ButtonsSettingsView(model: Model = LocalModel.current, database: Database) {
     val quickButtons = database.quickButtons
     var filter by remember { mutableStateOf("") }
-    fun buttons(page: Int): List<SettingsQuickButton> {
-        return quickButtons.reversed().filter { button ->
-            if (button.page.value != page) {
-                return@filter false
+    fun pages(): List<ButtonsPage> {
+        return (1..controlBarPages).mapNotNull { page ->
+            val buttons = quickButtons.reversed().filter { button ->
+                if (button.page.value != page) {
+                    return@filter false
+                }
+                filter.isEmpty() || button.name.lowercase().contains(filter.lowercase())
             }
-            filter.isEmpty() || button.name.lowercase().contains(filter.lowercase())
+            if (buttons.isEmpty()) {
+                return@mapNotNull null
+            }
+            ButtonsPage(id = page, buttons = buttons)
         }
     }
     val palette = formPalette()
@@ -147,16 +158,13 @@ private fun ButtonsSettingsView(model: Model = LocalModel.current, database: Dat
             },
         )
     }
-    for (page in 1..controlBarPages) {
-        val pageButtons = buttons(page)
-        if (pageButtons.isNotEmpty()) {
-            Section(header = "Page $page") {
-                for (button in pageButtons) {
-                    ButtonSettingsView(
-                        model = model,
-                        button = button,
-                    )
-                }
+    for (page in pages()) {
+        Section(header = "Page ${page.id}") {
+            for (button in page.buttons) {
+                ButtonSettingsView(
+                    model = model,
+                    button = button,
+                )
             }
         }
     }

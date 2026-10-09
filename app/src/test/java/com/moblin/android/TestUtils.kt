@@ -121,6 +121,10 @@ fun emoteNames(segments: List<ChatPostSegment>): List<String?> {
     return segments.map { it.url?.still?.substringAfterLast('/') }
 }
 
+fun spokenEmoteNames(segments: List<ChatPostSegment>): List<String?> {
+    return segments.map { (it.url ?: it.bigGifUrl)?.still?.substringAfterLast('/') }
+}
+
 fun runMainTest(block: suspend CoroutineScope.() -> Unit) {
     val looper = shadowOf(Looper.getMainLooper())
     val test = CoroutineScope(Dispatchers.Main).async(block = block)

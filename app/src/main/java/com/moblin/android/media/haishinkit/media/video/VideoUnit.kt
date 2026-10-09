@@ -383,9 +383,9 @@ class VideoUnit(private val colorRange: SettingsStreamColorRange) : VideoCapture
         }
     }
 
-    fun takePhoto() {
+    fun takePhoto(flash: Boolean) {
         processorPipelineQueue.launch {
-            captureSession.takePhoto()
+            captureSession.takePhoto(flash = flash)
         }
     }
 

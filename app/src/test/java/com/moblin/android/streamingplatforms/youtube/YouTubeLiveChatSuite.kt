@@ -1,6 +1,7 @@
 package com.moblin.android.streamingplatforms.youtube
 
 import com.moblin.android.runMainTest
+import com.moblin.android.spokenEmoteNames
 import com.moblin.android.texts
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatPostSegment
@@ -141,6 +142,15 @@ class YouTubeLiveChatSuite {
         assertEquals(listOf<String?>("hi ", null, "there "), texts(segments))
         assertEquals("https://yt3.example.com/yt.png", segments[1].url?.still)
         assertEquals(segments.size, segments.map { it.id }.toSet().size)
+        assertEquals(listOf<String?>(null, "yt", null), spokenEmoteNames(segments))
+    }
+
+    @Test
+    fun emojiWithoutShortcutsHasNoName() = runMainTest {
+        val emoji = """{"emoji": {"image": {"thumbnails": [{"url": "https://yt3.example.com/a.png"}]}}}"""
+        val messages = handle(makeGetLiveChat(actions = listOf(makeTextMessage(runs = "[$emoji]"))))
+        assertTrue(messages[0].segments[0].url != null)
+        assertEquals(listOf<String?>(null), spokenEmoteNames(messages[0].segments))
     }
 
     @Test
