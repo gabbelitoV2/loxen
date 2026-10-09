@@ -92,6 +92,7 @@ import com.moblin.android.LocalModel
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.core.ContinuousClock
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coregraphics.toCGSize
 import com.moblin.android.platform.swiftui.ButtonRole
@@ -99,7 +100,9 @@ import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Menu
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.platform.swiftui.Visibility
+import com.moblin.android.platform.swiftui.monospacedDigit
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
 import com.moblin.android.various.WebBrowserAlertDialog
 import com.moblin.android.various.WebBrowserController
@@ -165,8 +168,11 @@ import com.moblin.android.view.stream.StreamViewLayout
 import com.moblin.android.view.stream.StreamViewMetrics
 import com.moblin.android.view.stream.overlay.StreamOverlayNavigationView
 import com.moblin.android.view.webbrowser.WebBrowserView
+import java.time.Instant
 import java.util.UUID
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.max
 import kotlinx.coroutines.delay
 
 private fun Modifier.opacityAndHitTesting(enabled: Boolean): Modifier = layout { measurable, constraints ->
@@ -502,7 +508,56 @@ private fun PhotoShootIntervalPickerView(model: Model = LocalModel.current, data
 }
 
 @Composable
-private fun PhotoShootInfoView(photoShoot: PhotoShootProvider) {
+private fun PhotoShootCountdownView(photoShoot: PhotoShootProvider, database: Database) {
+    var nowNs by remember { mutableStateOf(ContinuousClock.now.nanoseconds) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(50)
+            nowNs = ContinuousClock.now.nanoseconds
+        }
+    }
+    val nextPhotoTime by photoShoot.nextPhotoTime.collectAsState()
+    val interval = database.photoShootInterval.toDouble()
+    val remaining = nextPhotoTime?.let { max((it.nanoseconds - nowNs) / 1_000_000_000.0, 0.0) } ?: interval
+    Box(
+        modifier = Modifier.size(70.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeWidth = 5.dp.toPx()
+            val inset = strokeWidth / 2
+            val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
+            drawArc(
+                color = Color.White.copy(alpha = 0.3f),
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = Offset(inset, inset),
+                size = arcSize,
+                style = Stroke(width = strokeWidth)
+            )
+            if (interval > 0.0) {
+                drawArc(
+                    color = Color.White,
+                    startAngle = -90f,
+                    sweepAngle = (remaining / interval).toFloat() * 360f,
+                    useCenter = false,
+                    topLeft = Offset(inset, inset),
+                    size = arcSize,
+                    style = Stroke(width = strokeWidth)
+                )
+            }
+        }
+        Text(
+            text = "${max(ceil(remaining).toInt(), 1)}",
+            color = Color.White,
+            style = SwiftUIFonts.system(size = 28f, weight = FontWeight.Bold).monospacedDigit()
+        )
+    }
+}
+
+@Composable
+private fun PhotoShootInfoView(photoShoot: PhotoShootProvider, database: Database) {
     val photoTaken by photoShoot.photoTaken.collectAsState()
     val background by animateColorAsState(
         targetValue = if (photoTaken) {
@@ -520,17 +575,12 @@ private fun PhotoShootInfoView(photoShoot: PhotoShootProvider) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SystemImage(name = "person.crop.square.badge.camera", fontSize = 60.sp, tint = Color.White)
         Text(
             text = localized("Photo shoot"),
             color = Color.White,
             fontSize = 30.sp
         )
-        Text(
-            text = localized("Taking photos periodically"),
-            color = Color.White,
-            fontSize = 17.sp
-        )
+        PhotoShootCountdownView(photoShoot = photoShoot, database = database)
     }
 }
 
@@ -545,7 +595,7 @@ private fun PhotoShootView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            PhotoShootInfoView(photoShoot = photoShoot)
+            PhotoShootInfoView(photoShoot = photoShoot, database = model.database)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(15.dp),
                 verticalAlignment = Alignment.CenterVertically

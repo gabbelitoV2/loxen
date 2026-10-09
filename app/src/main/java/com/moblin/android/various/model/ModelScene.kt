@@ -638,19 +638,36 @@ fun Model.getBuiltinCameraDevices(scene: SettingsScene, sceneDevice: CaptureDevi
 }
 
 fun Model.getCameraPreviewDeviceIds(scene: SettingsScene, sceneDevice: CaptureDevice?): List<UUID> {
-    val devices = mutableListOf<CaptureDevice>()
+    val deviceIds = mutableSetOf<UUID>()
     if (sceneDevice != null) {
-        devices.add(makeCaptureDevice(device = sceneDevice))
+        deviceIds.add(makeCaptureDevice(device = sceneDevice).id)
     }
-    val quickSwitchGroup = scene.quickSwitchGroup
-    if (quickSwitchGroup != null) {
-        for (otherScene in enabledScenes) {
-            if (otherScene.quickSwitchGroup == quickSwitchGroup) {
-                getBuiltinCameraDevices(videoSource = otherScene.videoSource, devices = devices)
-            }
+    for (otherScene in getQuickSwitchScenes(scene = scene)) {
+        val devices = mutableListOf<CaptureDevice>()
+        getBuiltinCameraDevices(videoSource = otherScene.videoSource, devices = devices)
+        deviceIds.addAll(devices.map { it.id })
+        deviceIds.addAll(getCameraPreviewWidgets(scene = otherScene).map { it.deviceId })
+    }
+    return deviceIds.toList()
+}
+
+private fun Model.getQuickSwitchScenes(scene: SettingsScene): List<SettingsScene> {
+    val deviceIds = getSceneBuiltinCameraDeviceIds(scene = scene)
+    return enabledScenes.filter { otherScene ->
+        val quickSwitchGroup = scene.quickSwitchGroup
+        if (quickSwitchGroup != null && otherScene.quickSwitchGroup == quickSwitchGroup) {
+            return@filter true
         }
+        getSceneBuiltinCameraDeviceIds(scene = otherScene) == deviceIds
     }
-    return devices.map { it.id }
+}
+
+private fun Model.getSceneBuiltinCameraDeviceIds(scene: SettingsScene): Set<UUID> {
+    val devices = mutableListOf<CaptureDevice>()
+    getBuiltinCameraDevices(videoSource = scene.videoSource, devices = devices)
+    val addedSceneIds = mutableSetOf<UUID>()
+    getBuiltinCameraDevicesInScene(scene = scene, devices = devices, addedSceneIds = addedSceneIds)
+    return devices.map { it.id }.toSet()
 }
 
 fun Model.getCameraPreviewWidgets(scene: SettingsScene): List<CameraPreviewWidget> {
@@ -686,21 +703,6 @@ fun Model.getCameraPreviewWidgets(scene: SettingsScene): List<CameraPreviewWidge
         widgets.add(previewWidget)
     }
     return widgets
-}
-
-fun Model.getCameraPreviewWidgetDeviceIds(scene: SettingsScene): Map<UUID, UUID> {
-    val scenes = mutableListOf(scene)
-    val quickSwitchGroup = scene.quickSwitchGroup
-    if (quickSwitchGroup != null) {
-        scenes.addAll(enabledScenes.filter { it.quickSwitchGroup == quickSwitchGroup })
-    }
-    val deviceIds = mutableMapOf<UUID, UUID>()
-    for (scene in scenes) {
-        for (widget in getCameraPreviewWidgets(scene = scene)) {
-            deviceIds[widget.id] = widget.deviceId
-        }
-    }
-    return deviceIds
 }
 
 fun Model.updateCameraPreviewWidgets() {

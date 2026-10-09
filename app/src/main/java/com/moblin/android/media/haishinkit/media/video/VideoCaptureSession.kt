@@ -418,8 +418,10 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
     }
 
     fun takePhoto(flash: Boolean) {
+        var started = false
         for (device in devices) {
             val photoOutput = device.photoOutput ?: continue
+            started = true
             Unit
             val settings = AVCapturePhotoSettings()
             settings.maxPhotoDimensions = photoOutput.maxPhotoDimensions
@@ -431,6 +433,9 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
             Unit
             settings.isShutterSoundSuppressionEnabled = true
             photoOutput.capturePhoto(settings = settings, delegate = this)
+        }
+        if (!started) {
+            processor?.delegate?.streamPhotoTaken()
         }
     }
 
@@ -810,6 +815,7 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
     override fun sessionControlsDidBecomeInactive(session: AVCaptureSession) {}
 
     override fun photoOutput(output: AVCapturePhotoOutput, didFinishProcessingPhoto: AVCapturePhoto, error: Throwable?) {
+        processor?.delegate?.streamPhotoTaken()
         if (error != null) {
             Log.i(TAG, "video-unit: Photo error: $error")
             return

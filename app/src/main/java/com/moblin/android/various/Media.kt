@@ -1015,7 +1015,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         isLandscapeStreamAndPortraitUi: Boolean,
         forceSceneTransition: Boolean,
         macScreenCapture: Boolean,
-        attachPhotoShoot: Boolean
+        attachPhotoShoot: Boolean,
+        onSuccess: (() -> Unit)? = null
     ) {
         val params = VideoUnitAttachParams(devices = devices,
             builtinDelay = builtinDelay,
@@ -1031,7 +1032,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             forceSceneTransition = forceSceneTransition,
             macScreenCapture = macScreenCapture,
             attachPhotoShoot = attachPhotoShoot)
-        processor?.attachCamera(params = params)
+        attachCamera(params = params, onSuccess = onSuccess)
     }
 
     fun attachBufferedAudio(cameraId: UUID?) {

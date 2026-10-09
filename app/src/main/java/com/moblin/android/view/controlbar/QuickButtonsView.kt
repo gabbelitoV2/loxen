@@ -51,10 +51,8 @@ import com.moblin.android.various.model.disableInteractiveChat
 import com.moblin.android.various.model.instantReplay
 import com.moblin.android.various.model.makeReplayIsNotEnabledToast
 import com.moblin.android.various.model.sceneUpdated
-import com.moblin.android.various.model.startPhotoShoot
 import com.moblin.android.various.model.startRecording
 import com.moblin.android.various.model.startWorkout
-import com.moblin.android.various.model.stopPhotoShoot
 import com.moblin.android.various.model.stopRecording
 import com.moblin.android.various.model.stopWorkout
 import com.moblin.android.various.model.takeSnapshot
@@ -567,13 +565,6 @@ fun QuickButtonsInnerView(
     }
 
     fun photoShootAction() {
-        model.toggleQuickButton(type = SettingsQuickButtonType.photoShoot)
-        model.photoShootEnabled.value = button.isOn.value
-        if (model.photoShootEnabled.value) {
-            model.startPhotoShoot()
-        } else {
-            model.stopPhotoShoot()
-        }
         model.togglePhotoShoot()
     }
 

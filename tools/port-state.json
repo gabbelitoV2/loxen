@@ -2290,28 +2290,28 @@
   },
   "Moblin/Various/Model/ModelPhotoShoot.swift": {
     "status": "ok",
-    "sha256": "c6703b8266d95831ae58d5b74e625b025d4888ab2f4c85e6f5b9e01573ad3a7e",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "63973f67c19f05d6af48303dc326398fc32ab7ecfda1e6fda376c0823067c8df",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelPhotoShoot.kt",
     "notes": [
-      "startPeriodic now takes Double(database.photoShootInterval), written as database.photoShootInterval.toDouble().",
-      "media.takePhoto() now passes the flash flag: media.takePhoto(flash = database.photoShootFlash).",
-      "photoTaken and photoShootEnabled are published state in the port (MutableStateFlow), so they are written as photoShoot.photoTaken.value and read as photoShootEnabled.value.",
-      "The flash is cleared with photoShootFlashTimer.startSingleShot(timeout = 0.15) { ... } using the Kotlin named argument and trailing lambda.",
-      "stopPhotoShoot also stops photoShootFlashTimer and resets photoShoot.photoTaken.",
-      "setPhotoShootInterval persists the value on database and restarts the timer only when photoShootEnabled is true.",
-      "handlePhotoTaken and setPhotoShootInterval are added in the same position as in the Swift file, before togglePhotoShoot.",
-      "togglePhotoShoot is unchanged from the previous translation."
+      "The file is now a set of Model extension functions: togglePhotoShoot, setPhotoShootInterval, activatePhotoShoot, handlePhotoTaken plus the file-private start and stop (the old startPhotoShoot/stopPhotoShoot are gone).",
+      "photoShootEnabled is a MutableStateFlow in the port, so it is read and written through .value.",
+      "photoShoot.photoTaken keeps its MutableStateFlow form (.value) as in the previous Kotlin file; photoShoot.active and photoShoot.nextPhotoTime are written as plain properties.",
+      "The two timers moved from Model into the photoShoot object: photoShoot.timer and photoShoot.flashTimer.",
+      "start() now uses a single-shot timer and records photoShoot.nextPhotoTime; ContinuousClock.now + .seconds(interval) is translated with the shim's advanced(bySeconds = interval).",
+      "stop() clears photoShoot.photoTaken, photoShoot.nextPhotoTime and photoShoot.active.",
+      "setQuickButton(type:isOn:) keeps its Swift labels and uses SettingsQuickButtonType.photoShoot, imported from com.moblin.android.various.settings.",
+      "activatePhotoShoot combines the two Swift guard clauses into a single early return."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 35699,
-    "tokens_out": 4124,
-    "seconds": 16.8,
-    "ported_at": "2026-10-09T00:00:09+00:00"
+    "tokens_in": 36296,
+    "tokens_out": 14914,
+    "seconds": 59.5,
+    "ported_at": "2026-10-09T23:37:00+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/Message/RtmpUserControlMessage.swift": {
     "status": "ok",
@@ -8275,28 +8275,28 @@
   },
   "Moblin/View/Stream/StreamView.swift": {
     "status": "ok",
-    "sha256": "7ef3b6bcfea7dae6f90d9b61b0265dbb885e90e01590592f51c673056dd04f21",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "76b82441b746b21674af995b4373834d5eaf54ff2a3df37fc71642c21c0becc4",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/StreamView.kt",
     "notes": [
-      "CALayer, CATransaction and CATransform3D have no counterpart in the platform layer, so the widget layer hierarchy is translated to Android FrameLayout views using visibility, translationZ, rotation/scaleX and a rounded GradientDrawable, matching how the existing CameraPreviewUiView was hand-ported.",
-      "AVMakeRect(aspectRatio:insideRect:) is implemented as the private top-level helper avMakeRect in this file.",
-      "UIColor(red:green:blue:alpha:) is replaced with android.graphics.Color.argb built from the WidgetShape CIColor components.",
-      "previewLayer.videoGravity = .resizeAspectFill is dropped: PreviewView (the AVCaptureVideoPreviewLayer typealias) reads its own videoGravity.",
-      "AVCaptureVideoPreviewLayer maps to PreviewView; scene and widget preview layers are added as child views of the FrameLayouts instead of sublayers.",
-      "CATransaction.begin/setDisableActions/commit are dropped because Android views have no implicit animations.",
-      "previewLayers is now a computed Map<PreviewView, UUID> that covers both the scene layers and every widget layer's device id.",
-      "CameraPreviewWidget is a data class; its shape stays a var because WidgetShape is a mutable class."
+      "sceneLayers was renamed to deviceLayers and now owns every AVCaptureVideoPreviewLayer; widget preview layers are no longer duplicated in the widget layer map.",
+      "CameraPreviewWidgetLayer keeps its Android Context constructor parameter (Swift init() takes none) because it creates FrameLayouts for borderLayer/contentLayer.",
+      "CALayer addSublayer/removeFromSuperlayer become addView/removeView; a preview layer is detached from its previous parent before being re-added to contentLayer or to the container.",
+      "The preview layer gravity is set through the shim property PreviewView.videoGravity, and the layer is moved with a MATCH_PARENT LayoutParams when it is a direct child of the container (the Swift layer.frame = bounds).",
+      "layoutLayers() centralises hiding/showing the device layers and the selection transform, then calls layoutWidgets(); onLayout now just calls layoutLayers().",
+      "layoutWidgets() prunes widgetLayers whose widget disappeared, hides the remaining ones, skips the currently selected device and creates the widget layer lazily.",
+      "setDevices(ids:) no longer takes the widgetId->deviceId map; the widget layers are created on demand in layoutWidgets().",
+      "selectedDeviceId is stored so select(), setWidgets() and layoutSubviews can all re-run the same layer pass."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54027,
-    "tokens_out": 20152,
-    "seconds": 73.3,
-    "ported_at": "2026-10-02T23:59:29+00:00"
+    "tokens_in": 55796,
+    "tokens_out": 16079,
+    "seconds": 61.0,
+    "ported_at": "2026-10-09T23:37:02+00:00"
   },
   "Moblin/View/Utils/SwipeLeftToDuplicateOrDeleteHelpView.swift": {
     "status": "ok",
@@ -12223,19 +12223,23 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
-    "sha256": "46544e7677890d9f09f7c8c0047afcf97a6848d6f7ebb27a6f5a3936dc36a4e1",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "f423f5b5f39f2f68d52119ebb51892b4eaf0d0757118af818b8e76c86331eea2",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt",
-    "notes": [],
+    "notes": [
+      "takePhoto now tracks whether any photo output was started and reports streamPhotoTaken() itself when the loop found none.",
+      "The photo delegate reports streamPhotoTaken() as soon as didFinishProcessingPhoto is called; the removed willCapturePhotoFor callback had no Kotlin counterpart in this file, so only the call was added.",
+      "Everything else in this incremental change is unchanged from the previous Kotlin translation."
+    ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 64093,
-    "tokens_out": 19132,
-    "seconds": 69.4,
-    "ported_at": "2026-10-09T00:01:52+00:00"
+    "tokens_in": 63952,
+    "tokens_out": 7872,
+    "seconds": 20.5,
+    "ported_at": "2026-10-09T23:36:23+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",
@@ -14921,23 +14925,23 @@
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
-    "sha256": "5629cfe426a5dcf71b53bbe04b1ece1e4d03fc4ab6550a119d8f048f62fb5bfa",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "6f0998e1a6c94f20f7d8a36bd790bcdf802e6bb468602146e4650cb1de18fe83",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt",
     "notes": [
-      "Only the portraitAction body changed: model.reattachCamera() was replaced by model.attachCamera().",
-      "Everything else in the Kotlin file, including hand-written Android helpers (MinimumScaleText, ConfirmationDialog, SystemImage, AssetImage) and imports, is kept byte-identical.",
-      "The existing TODO(\"walking\") for the walking workout type is preserved since it is unrelated to this diff."
+      "photoShootAction() now only calls model.togglePhotoShoot(); the four removed Swift statements are deleted from Kotlin.",
+      "The now-unused imports of startPhotoShoot and stopPhotoShoot were removed, since they existed solely for the deleted lines.",
+      "Everything else in the file is unchanged, including the hand-written MinimumScaleText, SystemImage and AssetImage helpers."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 25577,
-    "tokens_out": 7689,
-    "seconds": 19.4,
-    "ported_at": "2026-09-23T11:19:37+00:00"
+    "tokens_in": 61386,
+    "tokens_out": 7556,
+    "seconds": 19.9,
+    "ported_at": "2026-10-09T23:36:21+00:00"
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
@@ -15821,25 +15825,21 @@
   },
   "Moblin/Various/Media.swift": {
     "status": "ok",
-    "sha256": "ccbdaf1753ddbf9025b181900d5de438e370c8d66660465404d63ebb7f768429",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "f20b0af49de8e21a4991294fbaa83b7c2949c6c05130a936db16db402c1277d2",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/Media.kt",
     "notes": [
-      "Added mediaOnPhotoTaken() to MediaDelegate right after mediaOnNoTorch().",
-      "takePhoto() became takePhoto(flash: Boolean) and forwards the flag to Processor.takePhoto.",
-      "Added override fun streamPhotoTaken() after streamNoTorch() in Media's ProcessorDelegate implementation.",
-      "Processor.kt must declare takePhoto(flash: Boolean) and Processor.kt's ProcessorDelegate must declare streamPhotoTaken(), since Swift changed Processor.swift in the same commit.",
-      "Everything else in the file is unchanged, including the Android-specific mainScope, SrtlaClient host/port signatures and Log calls."
+      "attachBufferedCamera gained an onSuccess: (() -> Unit)? = null parameter and now delegates to attachCamera(params, onSuccess) instead of calling processor.attachCamera directly."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 90017,
-    "tokens_out": 15732,
-    "seconds": 44.1,
-    "ported_at": "2026-10-09T00:01:43+00:00"
+    "tokens_in": 89997,
+    "tokens_out": 13676,
+    "seconds": 34.1,
+    "ported_at": "2026-10-09T23:36:37+00:00"
   },
   "Moblin/Various/Model/ModelMacros.swift": {
     "status": "ok",
@@ -16029,44 +16029,47 @@
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "20be8d011b7c9ba148abddb35dcc6caa3094a987764bbb39adb27746809107b6",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "5ff81d7ed61f0f59ded6767bbfc1b5c2be815847394ac996b700c04194ee72a7",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "Applied the Swift diff only: added the new mediaOnPhotoTaken delegate method to Model, placed between mediaOnRecorderFinished and mediaOnFps, exactly where the Swift source adds it.",
-      "The nonisolated + DispatchQueue.main.async pair is translated to mainScope.launch { handlePhotoTaken() }, matching every other media callback in this file.",
-      "Every other line of the Kotlin file is unchanged, including the hand-written Android deviations (SystemClock timestamps, Int microsecond times, processor accessors).",
-      "handlePhotoTaken() is expected to exist on Model in another Model file; no new declaration is introduced here."
+      "Only change: cameraPreviewView.setDevices in setNetStream now takes just ids, so the widgets = emptyMap() argument was removed.",
+      "Everything else in the Kotlin file is unchanged, including the Android-specific calls into com.moblin.android.platform."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88195,
-    "tokens_out": 11313,
-    "seconds": 31.1,
-    "ported_at": "2026-10-09T00:01:32+00:00"
+    "tokens_in": 88169,
+    "tokens_out": 11171,
+    "seconds": 28.7,
+    "ported_at": "2026-10-09T23:36:32+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
-    "sha256": "b8c3a32566d49e4006ab1cde0989a2b00b8c5d650529aa5c58f8d60f6e3a7d44",
-    "moblin_commit": "57c76090bc92ebf698204478179d6e3bd5c54f07",
+    "sha256": "439ffd5a6912aa0617bff191abd3caf152543699f4eae791d15f95f740449f33",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
     "notes": [
-      "`appendWidgetToScene` now calls the `SettingsSceneWidget(widget = widget)` constructor instead of the removed private helper.",
-      "The private `Model.createSceneWidget` helper is deleted; `defaultScoreboardSize` stays as a top-level const because the Swift file keeps it.",
-      "All other lines, imports and declaration order are unchanged from the previous Kotlin file."
+      "Only the diff was applied: getCameraPreviewDeviceIds now collects ids into a Set from getQuickSwitchScenes, and getCameraPreviewWidgetDeviceIds was deleted.",
+      "The two new Swift private helpers became private Model extension functions, placed right after getCameraPreviewDeviceIds at the same position as in Swift.",
+      "Swift's Set.formUnion(x.map(\\.id)) is written as deviceIds.addAll(x.map { it.id }); Array(set) is deviceIds.toList().",
+      "getQuickSwitchScenes uses return@filter true for Swift's inner return true, and compares the UUID sets with ==.",
+      "The private Kotlin helpers getBuiltinCameraDevices(videoSource:devices:) and getBuiltinCameraDevicesInScene already exist later in this file and are reused unchanged.",
+      "The camera preview widget construction still uses makeCaptureDevice and the AVCaptureDevice.withUniqueID Android hook, untouched by this diff.",
+      "Everything else in the file, including formatting, imports and declaration order, is byte-identical to the previous Kotlin file.",
+      "No new iOS API without a counterpart is used by this diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 98934,
-    "tokens_out": 18121,
-    "seconds": 46.3,
-    "ported_at": "2026-10-03T22:29:07+00:00"
+    "tokens_in": 98528,
+    "tokens_out": 19232,
+    "seconds": 48.6,
+    "ported_at": "2026-10-09T23:36:53+00:00"
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",
@@ -16429,25 +16432,27 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "fcc2e5b07732f897cd538838efad69a45456af9f97d16197a9e9aa7378adc138",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "a5f6a2d425119eb41aaf5e8c406c0622baa3220dde6acedf768e26cf96d48798",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Added the new PhotoShootProvider ObservableObject right after SceneSelector, with photoTaken as a MutableStateFlow like the other provider classes.",
-      "Added photoShootFlashTimer (MainTimer) and photoShoot (PhotoShootProvider) to Model, next to the existing photoShootTimer.",
-      "Added setPhotosImageQuality() next to setNativeLowLightBoost/setExternalCameraVideoRange, reading database.debug.photosImageQuality through .value like the other debug settings.",
-      "Added the setPhotosImageQuality() call in setup(), between setExternalCameraVideoRange() and setHighQualityDownsampling(), matching the Swift order.",
-      "Every other Kotlin line, import and declaration order is unchanged."
+      "PhotoShootProvider gained timer, flashTimer (MainTimer), the published nextPhotoTime (ContinuousClock.Instant?) and the plain var active.",
+      "Model lost photoShootTimer and photoShootFlashTimer, which now live on PhotoShootProvider as photoShoot.timer / photoShoot.flashTimer.",
+      "cameraPreviewView.setDevices lost its widgets argument in both attachCameraFinalize and attachBufferedCamera.",
+      "activatePhotoShoot() is now called at the end of the attachCameraFinalize onSuccess block, and attachBufferedCamera gained an onSuccess callback that calls it too.",
+      "nextPhotoTime keeps the Apple ContinuousClock.Instant type and is exposed as a MutableStateFlow so Compose observes it like SwiftUI.",
+      "attachBufferedCamera's onSuccess callback is written in Kotlin parameter syntax (onSuccess = { ... }) matching the other media.attach* call in this file.",
+      "All other lines, imports and declaration order are unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 145380,
-    "tokens_out": 35435,
-    "seconds": 94.1,
-    "ported_at": "2026-10-09T00:02:56+00:00"
+    "tokens_in": 145856,
+    "tokens_out": 38331,
+    "seconds": 100.6,
+    "ported_at": "2026-10-09T23:37:48+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -18051,27 +18056,28 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "b6c856b3180d4922f27865b1d391913e031d2924237c7f41ee951835e4dbe328",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "7cc1c86bf13c4eca4f91ef1eb86dcea3ea9f13d6efbcccd38a558d1dd14b03e3",
+    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "PhotoShootView now takes model, photoShoot and enabled, and delegates its info panel to the new private PhotoShootInfoView; both call sites (portrait and landscape) pass model.photoShoot.",
-      "PhotoShootIntervalPickerView is translated with the swiftui Menu and Picker shims, options listOf(1, 2, 3, 10, 60) and model.setPhotoShootInterval(interval = ...) as the picker change handler.",
-      "PhotoShootFlashButtonView reads database.photoShootFlash directly and toggles it through the Published delegate, as settings properties are never wrapped in collectAsState.",
-      "The flash button is shown only when model.cameraDevice?.hasFlash == true, the AVCaptureDevice shim property.",
-      "PhotoShootInfoView collects photoShoot.photoTaken and animates its background with animateColorAsState, using snap() while the photo is being taken and tween(200 ms) otherwise, matching .animation(photoTaken ? nil : .easeOut(duration: 0.2)).",
-      "allowsHitTesting(false) is still dropped as in the previous PhotoShootView translation.",
-      "New imports: animateColorAsState, snap, tween, formatShortDuration, swiftui Menu and Picker, PhotoShootProvider and Database."
+      "PhotoShootCountdownView is new: TimelineView(.periodic(from: .now, by: 0.05)) became a LaunchedEffect that refreshes a clock state every 50 ms.",
+      "The two stroked circles are drawn with DrawScope.drawArc; the trim arc starts at -90 degrees like rotationEffect(.degrees(-90)) and its sweep is remaining/interval of a full turn.",
+      "photoShoot.nextPhotoTime is read as a MutableStateFlow<Instant?> with collectAsState, and remaining seconds are computed from epoch milliseconds.",
+      "The countdown text uses SwiftUIFonts.system(size = 28f, weight = FontWeight.Bold).monospacedDigit() so the digits stay monospaced like .monospacedDigit().",
+      "PhotoShootInfoView now takes a Database and renders PhotoShootCountdownView instead of the camera symbol plus the 'Taking photos periodically' text.",
+      "PhotoShootView passes model.database down to PhotoShootInfoView; the flash button is unchanged.",
+      "Swift clips the progress arc to 0...1 by construction; the Kotlin divides by interval only when interval is greater than zero.",
+      "Only imports, the new countdown composable and the two PhotoShootInfoView/PhotoShootView lines were touched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 76766,
-    "tokens_out": 23010,
-    "seconds": 79.3,
-    "ported_at": "2026-10-09T00:02:41+00:00"
+    "tokens_in": 77260,
+    "tokens_out": 19902,
+    "seconds": 61.2,
+    "ported_at": "2026-10-09T23:37:24+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",

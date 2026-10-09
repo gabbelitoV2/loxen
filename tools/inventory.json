@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-09T00:25:56+00:00",
+  "generated": "2026-10-09T23:35:46+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4884,8 +4884,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelPhotoShoot.swift",
-      "lines": 37,
-      "sha256": "c6703b8266d95831ae58d5b74e625b025d4888ab2f4c85e6f5b9e01573ad3a7e",
+      "lines": 54,
+      "sha256": "63973f67c19f05d6af48303dc326398fc32ab7ecfda1e6fda376c0823067c8df",
       "imports": [],
       "tier": "logic",
       "declared_types": [],
@@ -14221,8 +14221,8 @@
     },
     {
       "path": "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift",
-      "lines": 880,
-      "sha256": "46544e7677890d9f09f7c8c0047afcf97a6848d6f7ebb27a6f5a3936dc36a4e1",
+      "lines": 882,
+      "sha256": "f423f5b5f39f2f68d52119ebb51892b4eaf0d0757118af818b8e76c86331eea2",
       "imports": [
         "AVFoundation",
         "ImageIO",
@@ -19434,8 +19434,8 @@
     },
     {
       "path": "Moblin/View/Stream/StreamView.swift",
-      "lines": 238,
-      "sha256": "7ef3b6bcfea7dae6f90d9b61b0265dbb885e90e01590592f51c673056dd04f21",
+      "lines": 252,
+      "sha256": "76b82441b746b21674af995b4373834d5eaf54ff2a3df37fc71642c21c0becc4",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -19649,8 +19649,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButtonsView.swift",
-      "lines": 1025,
-      "sha256": "5629cfe426a5dcf71b53bbe04b1ece1e4d03fc4ab6550a119d8f048f62fb5bfa",
+      "lines": 1018,
+      "sha256": "6f0998e1a6c94f20f7d8a36bd790bcdf802e6bb468602146e4650cb1de18fe83",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -19967,8 +19967,8 @@
     },
     {
       "path": "Moblin/Various/Media.swift",
-      "lines": 1446,
-      "sha256": "ccbdaf1753ddbf9025b181900d5de438e370c8d66660465404d63ebb7f768429",
+      "lines": 1447,
+      "sha256": "f20b0af49de8e21a4991294fbaa83b7c2949c6c05130a936db16db402c1277d2",
       "imports": [
         "AVFoundation",
         "Network",
@@ -20541,7 +20541,7 @@
     {
       "path": "Moblin/Various/Model/ModelStream.swift",
       "lines": 1140,
-      "sha256": "20be8d011b7c9ba148abddb35dcc6caa3094a987764bbb39adb27746809107b6",
+      "sha256": "5ff81d7ed61f0f59ded6767bbfc1b5c2be815847394ac996b700c04194ee72a7",
       "imports": [
         "AVFoundation",
         "Foundation",
@@ -20706,8 +20706,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
-      "lines": 1746,
-      "sha256": "b8c3a32566d49e4006ab1cde0989a2b00b8c5d650529aa5c58f8d60f6e3a7d44",
+      "lines": 1753,
+      "sha256": "439ffd5a6912aa0617bff191abd3caf152543699f4eae791d15f95f740449f33",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21310,8 +21310,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3484,
-      "sha256": "fcc2e5b07732f897cd538838efad69a45456af9f97d16197a9e9aa7378adc138",
+      "lines": 3490,
+      "sha256": "a5f6a2d425119eb41aaf5e8c406c0622baa3220dde6acedf768e26cf96d48798",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -24109,8 +24109,8 @@
     },
     {
       "path": "Moblin/View/MainView.swift",
-      "lines": 746,
-      "sha256": "b6c856b3180d4922f27865b1d391913e031d2924237c7f41ee951835e4dbe328",
+      "lines": 773,
+      "sha256": "7cc1c86bf13c4eca4f91ef1eb86dcea3ea9f13d6efbcccd38a558d1dd14b03e3",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -24128,6 +24128,7 @@
         "MutedView",
         "PhotoShootFlashButtonView",
         "PhotoShootIntervalPickerView",
+        "PhotoShootCountdownView",
         "PhotoShootInfoView",
         "PhotoShootView",
         "WebBrowserAlertsView",
@@ -24143,6 +24144,7 @@
         "MutedView",
         "PhotoShootFlashButtonView",
         "PhotoShootIntervalPickerView",
+        "PhotoShootCountdownView",
         "PhotoShootInfoView",
         "PhotoShootView",
         "WebBrowserAlertsView",

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import com.moblin.android.media.haishinkit.media.video.PreviewView
+import com.moblin.android.media.haishinkit.media.video.VideoGravity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -78,20 +79,23 @@ data class CameraPreviewWidget(
 
 private class CameraPreviewWidgetLayer(
     context: Context,
-    val deviceId: UUID,
 ) {
     val borderLayer = FrameLayout(context)
-    val previewLayer = PreviewView(context)
     private val contentLayer = FrameLayout(context)
 
     init {
         borderLayer.visibility = View.INVISIBLE
         contentLayer.clipChildren = true
-        contentLayer.addView(previewLayer, FrameLayout.LayoutParams(0, 0))
         borderLayer.addView(contentLayer, FrameLayout.LayoutParams(0, 0))
     }
 
-    fun layout(widget: CameraPreviewWidget, index: Int, canvasSize: CGSize, streamSize: CGSize) {
+    fun layout(
+        widget: CameraPreviewWidget,
+        previewLayer: PreviewView,
+        index: Int,
+        canvasSize: CGSize,
+        streamSize: CGSize,
+    ) {
         val shape = widget.shape
         val contentRegion = shape.contentRegion
         if (contentRegion.isEmpty) {
@@ -132,6 +136,11 @@ private class CameraPreviewWidgetLayer(
         }
         setFrame(contentLayer, borderWidth, borderWidth, placement.size.width, placement.size.height)
         clipToRoundedRect(contentLayer, shape.cornerRadiusPixels(placement.size))
+        if (previewLayer.parent !== contentLayer) {
+            (previewLayer.parent as? ViewGroup)?.removeView(previewLayer)
+            contentLayer.addView(previewLayer, FrameLayout.LayoutParams(0, 0))
+        }
+        previewLayer.videoGravity = VideoGravity.resizeAspectFill
         setFrame(
             previewLayer,
             -contentRegion.minX * scale,
@@ -139,15 +148,17 @@ private class CameraPreviewWidgetLayer(
             canvasSize.width * scale,
             canvasSize.height * scale,
         )
+        previewLayer.visibility = View.VISIBLE
     }
 }
 
 class CameraPreviewUiView(context: Context) : FrameLayout(context) {
-    private val sceneLayers: MutableMap<UUID, PreviewView> = mutableMapOf()
+    private val deviceLayers: MutableMap<UUID, PreviewView> = mutableMapOf()
     private val widgetLayers: MutableMap<UUID, CameraPreviewWidgetLayer> = mutableMapOf()
     private val widgetsLayer = FrameLayout(context)
     private var widgets: List<CameraPreviewWidget> = emptyList()
     private var canvasSize: CGSize = CGSize.zero
+    private var selectedDeviceId: UUID? = null
 
     init {
         widgetsLayer.translationZ = 1f
@@ -161,17 +172,14 @@ class CameraPreviewUiView(context: Context) : FrameLayout(context) {
     val previewLayers: Map<PreviewView, UUID>
         get() {
             val previewLayers = mutableMapOf<PreviewView, UUID>()
-            for ((id, previewLayer) in sceneLayers) {
+            for ((id, previewLayer) in deviceLayers) {
                 previewLayers[previewLayer] = id
-            }
-            for (widgetLayer in widgetLayers.values) {
-                previewLayers[widgetLayer.previewLayer] = widgetLayer.deviceId
             }
             return previewLayers
         }
 
-    fun setDevices(ids: List<UUID>, widgets: Map<UUID, UUID>) {
-        val iterator = sceneLayers.entries.iterator()
+    fun setDevices(ids: List<UUID>) {
+        val iterator = deviceLayers.entries.iterator()
         while (iterator.hasNext()) {
             val entry = iterator.next()
             if (!ids.contains(entry.key)) {
@@ -180,54 +188,69 @@ class CameraPreviewUiView(context: Context) : FrameLayout(context) {
             }
         }
         for (id in ids) {
-            if (sceneLayers[id] == null) {
+            if (deviceLayers[id] == null) {
                 val previewLayer = PreviewView(context)
                 previewLayer.visibility = View.INVISIBLE
                 addView(
                     previewLayer,
                     LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
                 )
-                sceneLayers[id] = previewLayer
-            }
-        }
-        val widgetIterator = widgetLayers.entries.iterator()
-        while (widgetIterator.hasNext()) {
-            val entry = widgetIterator.next()
-            if (widgets[entry.key] != entry.value.deviceId) {
-                widgetsLayer.removeView(entry.value.borderLayer)
-                widgetIterator.remove()
-            }
-        }
-        for ((id, deviceId) in widgets) {
-            if (widgetLayers[id] == null) {
-                val widgetLayer = CameraPreviewWidgetLayer(context, deviceId)
-                widgetsLayer.addView(widgetLayer.borderLayer)
-                widgetLayers[id] = widgetLayer
+                deviceLayers[id] = previewLayer
             }
         }
     }
 
     fun select(id: UUID?, isMirrored: Boolean) {
-        for ((previewLayerId, previewLayer) in sceneLayers) {
-            previewLayer.visibility = if (previewLayerId == id) View.VISIBLE else View.INVISIBLE
-        }
+        selectedDeviceId = id
         scaleX = if (isMirrored) -1f else 1f
+        layoutLayers()
     }
 
     fun setWidgets(widgets: List<CameraPreviewWidget>, canvasSize: CGSize) {
         this.widgets = widgets
         this.canvasSize = canvasSize
-        layoutWidgets()
+        layoutLayers()
     }
 
     fun setVideoOrientation(videoOrientation: Int) {
-        for (previewLayer in previewLayers.keys) {
+        for (previewLayer in deviceLayers.values) {
             val connection = previewLayer.session?.connections?.firstOrNull { it.videoPreviewLayer === previewLayer }
             connection?.videoOrientation = videoOrientation
         }
     }
 
+    private fun layoutLayers() {
+        for (previewLayer in deviceLayers.values) {
+            previewLayer.visibility = View.INVISIBLE
+        }
+        val deviceId = selectedDeviceId
+        if (deviceId != null) {
+            val previewLayer = deviceLayers[deviceId]
+            if (previewLayer != null) {
+                if (previewLayer.parent !== this) {
+                    (previewLayer.parent as? ViewGroup)?.removeView(previewLayer)
+                    addView(
+                        previewLayer,
+                        LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
+                    )
+                }
+                previewLayer.videoGravity = VideoGravity.resizeAspect
+                previewLayer.layout(0, 0, width, height)
+                previewLayer.visibility = View.VISIBLE
+            }
+        }
+        layoutWidgets()
+    }
+
     private fun layoutWidgets() {
+        val iterator = widgetLayers.entries.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            if (widgets.none { it.id == entry.key }) {
+                widgetsLayer.removeView(entry.value.borderLayer)
+                iterator.remove()
+            }
+        }
         for (widgetLayer in widgetLayers.values) {
             widgetLayer.borderLayer.visibility = View.INVISIBLE
         }
@@ -242,8 +265,19 @@ class CameraPreviewUiView(context: Context) : FrameLayout(context) {
             rect.maxY.toInt(),
         )
         for ((index, widget) in widgets.withIndex()) {
-            widgetLayers[widget.id]?.layout(
+            if (widget.deviceId == selectedDeviceId) {
+                continue
+            }
+            val previewLayer = deviceLayers[widget.deviceId] ?: continue
+            var widgetLayer = widgetLayers[widget.id]
+            if (widgetLayer == null) {
+                widgetLayer = CameraPreviewWidgetLayer(context)
+                widgetsLayer.addView(widgetLayer.borderLayer)
+                widgetLayers[widget.id] = widgetLayer
+            }
+            widgetLayer.layout(
                 widget = widget,
+                previewLayer = previewLayer,
                 index = index,
                 canvasSize = canvasSize,
                 streamSize = CGSize(widgetsLayer.width, widgetsLayer.height),
@@ -253,10 +287,7 @@ class CameraPreviewUiView(context: Context) : FrameLayout(context) {
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        for (previewLayer in sceneLayers.values) {
-            previewLayer.layout(0, 0, width, height)
-        }
-        layoutWidgets()
+        layoutLayers()
     }
 }
 

@@ -384,7 +384,11 @@ class SceneSelector {
 }
 
 class PhotoShootProvider {
+    val timer = MainTimer()
+    val flashTimer = MainTimer()
     val photoTaken = MutableStateFlow(false)
+    val nextPhotoTime = MutableStateFlow<com.moblin.android.platform.core.ContinuousClock.Instant?>(null)
+    var active = false
 }
 
 class StreamOverlay {
@@ -837,8 +841,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var httpProxyServer: HttpProxyServer? = null
     var httpProxyPort: Int? = null
     val streamDeck = StreamDeck()
-    val photoShootTimer = MainTimer()
-    val photoShootFlashTimer = MainTimer()
     val photoShoot = PhotoShootProvider()
 
     var processor: Processor? = null
@@ -2991,11 +2993,13 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val attachCameraPreview = showCameraPreview || database.alwaysAttachCameraPreview
         if (attachCameraPreview) {
             cameraPreviewView.setDevices(
-                ids = getCameraPreviewDeviceIds(scene = scene, sceneDevice = cameraDevice),
-                widgets = getCameraPreviewWidgetDeviceIds(scene = scene),
+                ids = getCameraPreviewDeviceIds(
+                    scene = scene,
+                    sceneDevice = cameraDevice,
+                ),
             )
         } else {
-            cameraPreviewView.setDevices(ids = emptyList(), widgets = emptyMap())
+            cameraPreviewView.setDevices(ids = emptyList())
         }
         val params = VideoUnitAttachParams(
             devices = devices,
@@ -3035,6 +3039,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 updateCameraPreviewWidgets()
                 updateCameraPreviewRotation()
                 updateVideoPreviews()
+                activatePhotoShoot()
             },
         )
         zoom.xPinch = zoom.x.value
@@ -3059,7 +3064,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         streamPreviewView.isMirrored = false
         externalDisplayStreamPreviewView.isMirrored = false
         zoom.hasZoom.value = false
-        cameraPreviewView.setDevices(ids = emptyList<UUID>(), widgets = emptyMap())
+        cameraPreviewView.setDevices(ids = emptyList<UUID>())
         media.attachBufferedCamera(
             devices = getBuiltinCameraDevices(scene = scene, sceneDevice = null),
             builtinDelay = database.debug.builtinAudioAndVideoDelay.value,
@@ -3075,6 +3080,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             forceSceneTransition = database.forceSceneSwitchTransition,
             macScreenCapture = sceneNeedsMacScreenCapture(scene = scene),
             attachPhotoShoot = photoShootEnabled.value || database.alwaysAttachPhotoShoot,
+            onSuccess = {
+                activatePhotoShoot()
+            },
         )
         media.usePendingAfterAttachEffects()
         updateVideoPreviews()
