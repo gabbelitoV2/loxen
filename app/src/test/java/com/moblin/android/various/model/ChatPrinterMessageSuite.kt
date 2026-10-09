@@ -15,7 +15,7 @@ import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.ChatPostState
-import com.moblin.android.various.ChatPostUrl
+import com.moblin.android.various.ChatPostEmote
 import com.moblin.android.various.makeChatPostTextSegments
 import com.moblin.android.various.settings.SettingsChat
 import java.time.Instant
@@ -93,7 +93,7 @@ class ChatPrinterMessageSuite {
     fun emoteThatIsNotLoadedYetShowsTheAppIcon() {
         val segments = listOf(
             ChatPostSegment(id = 0, text = "hi "),
-            ChatPostSegment(id = 1, url = ChatPostUrl(moving = null, still = "http://127.0.0.1:1/emote.png")),
+            ChatPostSegment(id = 1, url = ChatPostEmote(moving = null, still = "http://127.0.0.1:1/emote.png")),
         )
         show(post(segments), SettingsChat())
         val message = rule.onNodeWithTag("message").fetchSemanticsNode()

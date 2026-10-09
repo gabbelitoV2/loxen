@@ -74,6 +74,7 @@ import androidx.compose.material.icons.filled.FilterDrama
 import androidx.compose.material.icons.filled.FilterVintage
 import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.Flare
+import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.FlipCameraAndroid
@@ -347,6 +348,7 @@ private val symbols: Map<String, ImageVector> = controllerSymbols + mapOf(
     "cart" to Icons.Filled.ShoppingCart,
     "bookmark" to Icons.Filled.Bookmark,
     "bolt.fill" to Icons.Filled.Bolt,
+    "bolt.slash.fill" to Icons.Filled.FlashOff,
     "info.circle.fill" to Icons.Filled.Info,
     "square" to Icons.Filled.CropSquare,
     "music.note" to Icons.Filled.MusicNote,

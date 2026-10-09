@@ -122,7 +122,7 @@ fun emoteNames(segments: List<ChatPostSegment>): List<String?> {
 }
 
 fun spokenEmoteNames(segments: List<ChatPostSegment>): List<String?> {
-    return segments.map { (it.url ?: it.bigGifUrl)?.still?.substringAfterLast('/') }
+    return segments.map { (it.url ?: it.bigGifUrl)?.name }
 }
 
 fun runMainTest(block: suspend CoroutineScope.() -> Unit) {

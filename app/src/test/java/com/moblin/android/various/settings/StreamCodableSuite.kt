@@ -1036,7 +1036,7 @@ class StreamCodableSuite {
             backgroundColorEnabled shadowColor shadowColorEnabled boldUsername boldMessage animatedEmotes
             timestampColor timestampColorEnabled height width activityFeed activityFeedHeight maximumAge
             maximumAgeEnabled meInUsernameColor enabled usernamesToIgnore textToSpeechEnabled
-            textToSpeechDefaultLanguage textToSpeechDetectLanguagePerMessage textToSpeechSayUsername textToSpeechRate
+            textToSpeechDefaultLanguage textToSpeechDetectLanguagePerMessage textToSpeechSayUsername textToSpeechSayEmotes textToSpeechRate
             textToSpeechSayVolume textToSpeechLanguageVoices textToSpeechSubscribersOnly textToSpeechFilter
             textToSpeechFilterMentions textToSpeechBluetoothSpeakerOnly ttsMonster mirrored botEnabled
             botCommandPermissions botSendLowBatteryWarning botCommandAi badges showFirstTimeChatterMessage
@@ -1515,6 +1515,7 @@ class StreamCodableSuite {
               "textToSpeechDefaultLanguage": "sv",
               "textToSpeechDetectLanguagePerMessage": true,
               "textToSpeechSayUsername": false,
+              "textToSpeechSayEmotes": false,
               "textToSpeechRate": 0.7,
               "textToSpeechSayVolume": 0.5,
               "textToSpeechLanguageVoices": {

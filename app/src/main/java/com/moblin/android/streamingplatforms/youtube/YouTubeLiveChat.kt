@@ -6,7 +6,7 @@ import com.moblin.android.integrations.emotes.EmotesPlatform
 import com.moblin.android.localized
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatPostSegment
-import com.moblin.android.various.ChatPostUrl
+import com.moblin.android.various.ChatPostEmote
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStreamChat
@@ -105,7 +105,13 @@ private data class Image(
 @Serializable
 private data class Emoji(
     val image: Image,
-)
+    val shortcuts: List<String>? = null,
+) {
+    fun name(): String? {
+        val shortcut = shortcuts?.firstOrNull() ?: return null
+        return shortcut.trim(':')
+    }
+}
 
 @Serializable
 private data class Run(
@@ -447,7 +453,11 @@ class YouTubeLiveChat(delegate: YouTubeLiveChatDelegate, videoId: String, settin
                     segments.add(
                         ChatPostSegment(
                             id = id,
-                            url = ChatPostUrl(moving = emojiUrl, still = emojiUrl),
+                            url = ChatPostEmote(
+                                moving = emojiUrl,
+                                still = emojiUrl,
+                                name = run.emoji?.name(),
+                            ),
                         ),
                     )
                     id += 1
@@ -468,7 +478,11 @@ class YouTubeLiveChat(delegate: YouTubeLiveChatDelegate, videoId: String, settin
                     segments.add(
                         ChatPostSegment(
                             id = id,
-                            url = ChatPostUrl(moving = emojiUrl, still = emojiUrl),
+                            url = ChatPostEmote(
+                                moving = emojiUrl,
+                                still = emojiUrl,
+                                name = run.emoji?.name(),
+                            ),
                         ),
                     )
                     id += 1

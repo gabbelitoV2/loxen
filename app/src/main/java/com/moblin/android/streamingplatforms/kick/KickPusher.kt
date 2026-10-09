@@ -6,8 +6,8 @@ import com.moblin.android.common.various.RgbColor
 import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.integrations.emotes.EmotesPlatform
 import com.moblin.android.various.ChatHighlight
+import com.moblin.android.various.ChatPostEmote
 import com.moblin.android.various.ChatPostSegment
-import com.moblin.android.various.ChatPostUrl
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
 import com.moblin.android.various.settings.SettingsStreamChat
@@ -43,7 +43,7 @@ private object BadgeType {
 private const val badgesBaseUrl =
     "https://raw.githubusercontent.com/id3adeye/kickicons/refs/heads/main"
 
-private val emoteRegex = Regex("""\[emote:(\d+):[^\]]+\]""")
+private val emoteRegex = Regex("""\[emote:(\d+):([^\]]+)\]""")
 
 fun createKickSegments(
     message: String,
@@ -57,7 +57,12 @@ fun createKickSegments(
         val textBeforeEmote = message.substring(startIndex, match.range.first)
         val url = "https://files.kick.com/emotes/$emoteId/fullsize"
         segments.addAll(emotesManager.createSegments(textBeforeEmote, id))
-        segments.add(ChatPostSegment(id = id.get(), url = ChatPostUrl(moving = url, still = url)))
+        segments.add(
+            ChatPostSegment(
+                id = id.get(),
+                url = ChatPostEmote(moving = url, still = url, name = match.groupValues[2]),
+            ),
+        )
         id.incrementAndGet()
         startIndex = match.range.last + 1
     }
@@ -235,7 +240,7 @@ data class KickPusherKicksGiftedEvent(
 private val json = Json { ignoreUnknownKeys = true }
 
 private val url =
-    "wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=7.6.0&flash=false"
+    "wss://ws-us2.pusher.com/app/34bf7a0ff419a2a775b9?protocol=7&client=js&version=7.6.0&flash=false"
 
 private fun decodeEvent(message: String): Pair<String, String> {
     val jsonResult = json.parseToJsonElement(message).jsonObject

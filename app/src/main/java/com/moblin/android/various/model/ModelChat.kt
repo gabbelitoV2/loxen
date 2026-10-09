@@ -301,7 +301,7 @@ fun Model.appendChatMessage(
     )
     chatPostId += 1
     if (isTextToSpeechEnabledForMessage(post = post)) {
-        val message = post.text()
+        val message = post.text(emoteNames = database.chat.textToSpeechSayEmotes)
         if (!message.trim().isEmpty()) {
             chatTextToSpeech.say(
                 messageId = post.messageId,

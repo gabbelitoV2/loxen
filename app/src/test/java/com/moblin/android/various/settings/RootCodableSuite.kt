@@ -165,7 +165,7 @@ class RootCodableSuite {
             "recordSegmentLength", "builtinAudioAndVideoDelay", "builtinAudioAndVideoDelay70msMigrated",
             "cameraManMoveVertically", "cameraManSpeed", "cameraManAlwaysMove", "enhancedMoblinSrt",
             "videoBitrateChangeEnabled", "highQualityDownsampling", "httpProxy3", "packetPadding",
-            "externalCameraVideoRange",
+            "externalCameraVideoRange", "photosImageQuality",
         )
         assertKeys(SettingsDebug.serializer(), SettingsDebug(), keys)
         val migrated = SettingsDebug()

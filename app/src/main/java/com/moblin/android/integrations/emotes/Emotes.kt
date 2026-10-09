@@ -3,7 +3,7 @@ package com.moblin.android.integrations.emotes
 import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.various.ChatPostSegment
-import com.moblin.android.various.ChatPostUrl
+import com.moblin.android.various.ChatPostEmote
 import com.moblin.android.various.settings.SettingsStreamChat
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
@@ -117,7 +117,7 @@ class Emotes {
                 ChatPostSegment(
                     id = id.get(),
                     text = "",
-                    url = ChatPostUrl(moving = emote.url, still = emote.stillUrl ?: emote.url),
+                    url = ChatPostEmote(moving = emote.url, still = emote.stillUrl ?: emote.url, name = word),
                 ),
             )
             id.incrementAndGet()

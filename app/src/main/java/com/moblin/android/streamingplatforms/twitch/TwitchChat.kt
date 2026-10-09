@@ -6,8 +6,8 @@ import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.integrations.emotes.EmotesPlatform
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatMessageEmote
+import com.moblin.android.various.ChatPostEmote
 import com.moblin.android.various.ChatPostSegment
-import com.moblin.android.various.ChatPostUrl
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
@@ -200,20 +200,32 @@ fun createTwitchSegments(
                 id = id,
             )
         }
+        val emoteStartIndex = startIndex + (emote.range.first - startOffset)
+        val emoteEndIndex = startIndex + (emote.range.last + 1 - startOffset)
+        val emoteName = String(unicodeText, emoteStartIndex, emoteEndIndex - emoteStartIndex)
         if (emote.isGif) {
-            segments.add(ChatPostSegment(id = id.get(), bigGifUrl = ChatPostUrl(moving = emote.url, still = null)))
+            segments.add(
+                ChatPostSegment(
+                    id = id.get(),
+                    bigGifUrl = ChatPostEmote(
+                        moving = emote.url,
+                        still = null,
+                        name = emoteName.trim('[', ']'),
+                    ),
+                )
+            )
         } else {
             segments.add(
                 ChatPostSegment(
                     id = id.get(),
-                    url = ChatPostUrl(moving = emote.url, still = emote.stillUrl),
+                    url = ChatPostEmote(moving = emote.url, still = emote.stillUrl, name = emoteName),
                 )
             )
         }
         id.incrementAndGet()
         segments.add(ChatPostSegment(id = id.get(), text = ""))
         id.incrementAndGet()
-        startIndex = startIndex + (emote.range.last + 1 - startOffset)
+        startIndex = emoteEndIndex
         startOffset = emote.range.last + 1
     }
     if (startIndex < unicodeTextCount) {
@@ -239,7 +251,12 @@ fun createTwitchSegments(
             null
         }
         if (urls != null) {
-            segments.add(ChatPostSegment(id = id.get(), url = ChatPostUrl(moving = urls.moving, still = urls.still)))
+            segments.add(
+                ChatPostSegment(
+                    id = id.get(),
+                    url = ChatPostEmote(moving = urls.moving, still = urls.still, name = fragment.text),
+                )
+            )
             id.incrementAndGet()
             segments.add(ChatPostSegment(id = id.get(), text = ""))
             id.incrementAndGet()
@@ -743,7 +760,7 @@ class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDel
                 continue
             }
             id += 1
-            newSegments.add(ChatPostSegment(id = id, url = ChatPostUrl(moving = null, still = urlAndBits.first)))
+            newSegments.add(ChatPostSegment(id = id, url = ChatPostEmote(moving = null, still = urlAndBits.first)))
             id += 1
             newSegments.add(ChatPostSegment(id = id, text = "${urlAndBits.second} "))
         }

@@ -29,9 +29,10 @@ data class ChatMessageEmote(
 }
 
 @Serializable
-data class ChatPostUrl(
+data class ChatPostEmote(
     val moving: String?,
     val still: String?,
+    var name: String? = null,
 ) {
     fun url(animated: Boolean): String? {
         return if (animated) {
@@ -46,8 +47,8 @@ data class ChatPostUrl(
 data class ChatPostSegment(
     val id: Int,
     var text: String? = null,
-    var url: ChatPostUrl? = null,
-    var bigGifUrl: ChatPostUrl? = null,
+    var url: ChatPostEmote? = null,
+    var bigGifUrl: ChatPostEmote? = null,
 )
 
 fun makeChatPostTextSegments(text: String): List<ChatPostSegment> {
@@ -359,8 +360,15 @@ class ChatPost(
         return segments.firstOrNull()?.bigGifUrl != null
     }
 
-    fun text(): String {
-        return segments.mapNotNull { it.text }.joinToString(separator = "").trim()
+    fun text(emoteNames: Boolean = false): String {
+        return segments.mapNotNull { segment ->
+            val name = (segment.url ?: segment.bigGifUrl)?.name
+            if (emoteNames && name != null) {
+                "$name "
+            } else {
+                segment.text
+            }
+        }.joinToString(separator = "").trim()
     }
 
     fun displayName(nicknames: SettingsChatNicknames, displayStyle: SettingsChatDisplayStyle): String {

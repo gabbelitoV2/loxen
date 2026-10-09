@@ -4463,27 +4463,25 @@
   },
   "Moblin/StreamingPlatforms/Kick/KickPusher.swift": {
     "status": "ok",
-    "sha256": "bcfa843e3f1d861e602954f5998990933f23a076b720c2162e5eea985d859553",
+    "sha256": "dbc2ddc2a53a1e4256c789e3f723a3f6a73d41dae67e2dc432bdf6b755176b9c",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/kick/KickPusher.kt",
     "notes": [
-      "inout Int is modeled with kotlin.jvm.internal.Ref.IntRef; Emotes.createSegments is called positionally with that holder.",
-      "Swift's JSONSerialization-based decodeEvent is reimplemented with kotlinx.serialization Json.parseToJsonElement; the thrown String becomes IllegalStateException.",
-      "The shared Json instance sets ignoreUnknownKeys = true because Swift's JSONDecoder silently ignores unknown JSON keys.",
-      "URL(string:) validity checks are dropped: badge and emote URLs are plain Strings (ChatPostUrl(moving, still)).",
-      "logger.debug/info map to Log.d/Log.i with the tag \"KickPusher\".",
-      "@MainActor is dropped and the weak delegate is a plain nullable property; emotes callbacks are passed as function references.",
-      "getKickChannelInfo is invoked with a trailing lambda, assuming the ported API keeps its callback (non-suspend) signature.",
-      "All Decodable structs keep their snake_case JSON keys as Kotlin property names and are annotated @Serializable."
+      "The emote regex now captures the emote name: Regex(\"\"\"\\\\[emote:(\\\\d+):([^\\\\]]+)\\\\]\"\"\").",
+      "The chat segment for an emote now carries the name from the second capture group, so ChatPostUrl was replaced by ChatPostEmote(moving, still, name); the ChatPostUrl import was swapped for the ChatPostEmote import at the same position.",
+      "Only the regex group, the emote segment construction and the Pusher app key changed; every other line is byte-identical.",
+      "The Pusher websocket app key is now 34bf7a0ff419a2a775b9.",
+      "Swift's inout Int counter stays AtomicInteger in Kotlin."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8119,
-    "tokens_out": 29423,
-    "seconds": 104.8,
-    "ported_at": "2026-09-22T12:54:47+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50651,
+    "tokens_out": 9662,
+    "seconds": 32.6,
+    "ported_at": "2026-10-09T00:27:04+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift": {
     "status": "ok",
@@ -4629,28 +4627,26 @@
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift": {
     "status": "ok",
-    "sha256": "09e930bc5196178e07e7d9307b68e0c77bb9902211dd0ad9b000d06ec7929c3b",
-    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
+    "sha256": "9a4789d74d7ffc860be8c16aed35dbb65ff91c971246ff8925f0fc2693fe1376",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt",
     "notes": [
-      "Added the YouTubeLiveChatDelegate interface and replaced the Model dependency with a weak delegate, translated as a plain non-null constructor property (Kotlin has no weak refs here).",
-      "The message-handling block of readMessages was extracted into a public handleGetLiveChat(data: ByteArray) that decodes and dispatches, exactly as the Swift refactor does.",
-      "handleError/handleOk now call the delegate; the Model/Platform/appendChatMessage imports are kept byte-identical even though they are no longer referenced by this file.",
-      "handleGiftPurchaseDescription and handleGiftMessageViewModel previously returned 0 and skipped the chat post in the ported file; the new delegate calls restore the missing message emission and the return of 1, matching Swift.",
-      "userId for gift-message updates is passed as null.",
-      "updateContinuation still throws IllegalStateException (Kotlin unchecked) so handleGetLiveChat needs no throws clause.",
-      "delay stays a Long millisecond value and is fed to sleep(milliSeconds = delay).",
-      "segments use the ported createSegments(message, id) -> Pair<List<ChatPostSegment>, Int> helper instead of Swift's inout id."
+      "Emoji now carries shortcuts and a name() function; both are translated: shortcuts is List<String>? and name() trims ':' from the first shortcut.",
+      "The two emoji segment appends now use ChatPostEmote(moving, still, name) instead of ChatPostUrl, matching the new Swift call; the ChatPostUrl import was replaced with ChatPostEmote.",
+      "Everything else in the file is byte-identical to the previous Kotlin revision, including the OkHttp fetch/upload helpers and the coroutine loop.",
+      "Swift's trimmingCharacters(in: CharacterSet(charactersIn: \":\")) maps to Kotlin String.trim(':'), which trims the same leading/trailing ':' characters.",
+      "URL(string:) string-to-URL conversion drops away because emoji thumbnails are already String paths in Kotlin.",
+      "run.emoji?.name() is evaluated only when the emoji URL is non-null, as in Swift."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53400,
-    "tokens_out": 6537,
-    "seconds": 20.7,
-    "ported_at": "2026-10-07T23:54:27+00:00"
+    "tokens_in": 51762,
+    "tokens_out": 8253,
+    "seconds": 26.7,
+    "ported_at": "2026-10-09T00:28:03+00:00"
   },
   "Moblin/Various/Settings/SettingsDeepLinkCreator.swift": {
     "status": "ok",
@@ -11300,27 +11296,24 @@
   },
   "Moblin/Integrations/Emotes/Emotes.swift": {
     "status": "ok",
-    "sha256": "ad4dbf6c4a6799b6c0b22ae099db2dfaa6520270aebe5d2e6806ccaac29905c5",
+    "sha256": "e39e72a58cf11bbfb3f2e96300e80485d8ad8e205d6cc55e39cd9d857f6cf16f",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Emotes.kt",
     "notes": [
-      "Swift concurrency maps to a Main-dispatched CoroutineScope; `task` becomes a Job that stop() cancels, and `Task.isCancelled` becomes the `isActive` check inside the launch block.",
-      "`createSegments(text:id:)` used an inout Int; it now takes a java.util.concurrent.atomic.AtomicInteger so callers keep the running segment id.",
-      "URL is only stored here, so it becomes String, and ChatPostUrl(moving:still:) is assumed to take String urls.",
-      "`settings.clone()` is assumed to exist on SettingsStreamChat and is stored in a local val named chatSettings because Kotlin cannot shadow a parameter with a val of the same name.",
-      "fetchBttvEmotes/fetchFfzEmotes/fetchSeventvEmotes are destructured with `val (emotes, error) = ...`, which matches a Pair or a two-property data class return.",
-      "@unchecked Sendable has no Kotlin counterpart and is dropped; Emotes itself performs no extra synchronisation.",
-      "EmotesPlatform cases keep the Swift lowercase names so the two codebases read side by side.",
-      "sleep(seconds:) is treated as a suspending function taking Double seconds."
+      "Only one Swift line changed: the emote segment now uses ChatPostEmote(moving:still:name:) instead of ChatPostUrl(moving:still:).",
+      "The Kotlin line now builds ChatPostEmote with name = word; the loop's word is already a String, so no String(word) conversion is needed.",
+      "ChatPostEmote comes from com.moblin.android.various, so the file imports it in place of the no longer referenced ChatPostUrl.",
+      "Everything else in the file, including formatting, imports and declaration order, is byte-identical to the current Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5030,
-    "tokens_out": 8715,
-    "seconds": 34.8,
-    "ported_at": "2026-09-22T13:33:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41070,
+    "tokens_out": 10501,
+    "seconds": 42.9,
+    "ported_at": "2026-10-09T00:27:07+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift": {
     "status": "ok",
@@ -11461,16 +11454,16 @@
   },
   "Moblin/Various/ChatPost.swift": {
     "status": "ok",
-    "sha256": "6ef20b8c6ea81d965fd20674f85778d05d7d6930c6d492a5662b7c3e75a7802d",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "63085e381ce6275d6d25ac81ece34b18438634d565fc0df922e45c3411f9d9dc",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatPost.kt",
     "notes": [
-      "Added the MacroNotification enum entry with @SerialName(\"macroNotification\"), matching the Swift case order at the end of the enum.",
-      "Added ChatHighlight.makeMacroNotification() after makeRemoteControlAssistant() in the companion object, using the iOS cyan colour Color(0xFF32ADE6).",
-      "Added the ChatHighlightKind.MacroNotification -> WatchProtocolChatHighlightKind.other branch to toWatchProtocol().",
-      "Everything else in the file is unchanged."
+      "Renamed ChatPostUrl to ChatPostEmote and added the optional name property (defaulting to null, as Swift's optional var does).",
+      "ChatPostSegment.url and bigGifUrl now use ChatPostEmote.",
+      "text() gained the emoteNames parameter with default false; the emote-name branch appends a trailing space to the emote name and falls back to segment.text.",
+      "The file keeps the existing Kotlin adaptations (String URLs, RgbColor, take() for prefix, localized())."
     ],
     "unsupported": [],
     "apple_only": [
@@ -11478,10 +11471,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 48397,
-    "tokens_out": 3426,
-    "seconds": 9.5,
-    "ported_at": "2026-10-02T23:56:16+00:00"
+    "tokens_in": 49180,
+    "tokens_out": 4161,
+    "seconds": 13.0,
+    "ported_at": "2026-10-09T00:27:20+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift": {
     "status": "ok",
@@ -12246,27 +12239,28 @@
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",
-    "sha256": "b9edcb78ed0b1ce522157ef5ee17395b4d30582e4fcf1fa68099e27b9c9cdb68",
+    "sha256": "25a45234098a267fa14a908945ef6d1a50bd4cab8de9032374c7e77567996ff5",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchChat.kt",
     "notes": [
-      "URL values are stored as String everywhere; java.net.URI is used only inside lowResolutionGiphyUrl.",
-      "Swift's inout Int id is threaded through createTwitchSegments as an IntArray of size 1; Emotes.createSegments must use the same convention.",
-      "TwitchApi calls keep the completion-handler style of the Swift source instead of suspend functions.",
-      "@MainActor class isolation has no Kotlin equivalent; MainTimer keeps the 30 second retry loop for badges and cheermotes.",
-      "The weak delegate becomes a nullable constructor property.",
-      "ChatMessageEmote ranges map to IntRange and text offsets use Unicode code points, mirroring Swift's unicodeScalars.",
-      "TwitchChatMessage parses the raw IRC line inside its init block and throws MessageError for missing or unknown commands.",
-      "logger.debug maps to Log.d with the tag TwitchChat."
+      "Only the three ChatPostUrl -> ChatPostEmote usages from the Swift diff changed; everything else is byte-identical to the current Kotlin file.",
+      "The file-private import of ChatPostUrl was replaced by com.moblin.android.various.ChatPostEmote, in the same position, because the diff removes every ChatPostUrl use here.",
+      "createTwitchSegments now derives emoteStartIndex / emoteEndIndex as code-point offsets into the IntArray unicodeText and slices emoteName with String(unicodeText, start, length), matching Swift's unicodeScalars indexing.",
+      "emoteName.trimmingCharacters(in: CharacterSet(charactersIn: \"[]\")) is the Kotlin stdlib emoteName.trim('[', ']'), which trims both bracket characters from both ends exactly like Swift.",
+      "startIndex = startIndex + (emote.range.last + 1 - startOffset) became startIndex = emoteEndIndex, the same value.",
+      "The GIF segment still passes still = null and now adds the bracket-trimmed name; the regular emote segment passes emoteName untrimmed, as in Swift.",
+      "The fragment path passes name = fragment.text, and replaceCheermotes keeps its optional-name ChatPostEmote(moving = null, still = urlAndBits.first).",
+      "No behaviour, ordering, id increment or logging changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 12027,
-    "tokens_out": 46789,
-    "seconds": 161.5,
-    "ported_at": "2026-09-22T13:39:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 58935,
+    "tokens_out": 10083,
+    "seconds": 30.8,
+    "ported_at": "2026-10-09T00:27:36+00:00"
   },
   "Moblin/MoblinApp.swift": {
     "status": "ok",
@@ -12340,25 +12334,19 @@
   },
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
-    "sha256": "08deb8f371744967682e68c10c0fbfc128ac3f3c1cc2d7e3de808edc85d7ea68",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "8dca1475135216aaa2128f3f9e95f6bcf099f3232f23805d205eaaa3c28e9831",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
-    "notes": [
-      "Only the showOnScreen block changed: it split into a showInActivityFeed branch and a showInChat branch.",
-      "Swift `else if let highlight, highlight.isAlert()` became `else if (highlight != null && highlight.isAlert())`.",
-      "The new firstMessage check uses the Kotlin enum entry ChatHighlightKind.FirstMessage.",
-      "The chat / quickButtonChat appends and the browser, watch, external display, widget and emote-combo effects moved into the showInChat block unchanged.",
-      "SettingsChatFilter.showInActivityFeed and showInChat are the Published-backed properties read from the filter."
-    ],
+    "notes": [],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 64839,
-    "tokens_out": 6182,
-    "seconds": 17.5,
-    "ported_at": "2026-10-02T23:57:01+00:00"
+    "tokens_in": 65551,
+    "tokens_out": 4813,
+    "seconds": 13.3,
+    "ported_at": "2026-10-09T00:27:51+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -18341,5 +18329,52 @@
     "tokens_out": 3733,
     "seconds": 11.7,
     "ported_at": "2026-10-09T00:00:50+00:00"
+  },
+  "MoblinTests/Moblin/Various/ChatPostEmoteSuite.swift": {
+    "status": "ok",
+    "sha256": "acf0f099b7c45dcf686d7b82d7c6c07272e3d80e418551ed543e427ca872f0c3",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/ChatPostEmoteSuite.kt",
+    "notes": [
+      "Swift ChatPostEmote is the Kotlin data class ChatPostUrl in com.moblin.android.various; it has the same moving/still fields and url(animated:) method, so the suite builds ChatPostUrl values.",
+      "Swift URL values become the URL strings, since ChatPostUrl stores String? fields.",
+      "#expect(a == b) is written as assertEquals(b, a), and #expect(x == nil) as assertNull(x).",
+      "The private stored let properties of the Swift struct become private val fields of the JUnit 4 test class.",
+      "No locale, time zone or main-queue dependency, so no @Config or runMainTest wrapper is needed."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 33190,
+    "tokens_out": 1388,
+    "seconds": 6.3,
+    "ported_at": "2026-10-09T00:26:30+00:00"
+  },
+  "MoblinTests/Moblin/Various/ChatPostTextSuite.swift": {
+    "status": "ok",
+    "sha256": "3944124f88a18b8e8a38eae8d3bca14a3ef5c191b3844b99156b515fcb2c21b6",
+    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/ChatPostTextSuite.kt",
+    "notes": [
+      "ChatPostTextSuite is a plain JUnit 4 class; no main-looper work is needed because ChatPost construction and text() are pure.",
+      "The Kotlin ChatPost constructor has no default for userId, so the extra named argument userId = null is passed.",
+      "ChatPostEmote and ChatMessageEmote use String URLs instead of URL, so the Swift URL(string:)! values become string literals.",
+      "createTwitchSegments/createKickSegments take an AtomicInteger id in Kotlin, so Swift's inout id becomes a val id = AtomicInteger(0) passed by reference.",
+      "ChatMessageEmote lives in com.moblin.android.various (same package), so no import is needed for it.",
+      "makeEmotes and createTwitchSegments/createKickSegments are imported from com.moblin.android and com.moblin.android.streamingplatforms.twitch.",
+      "timestampTime: .now becomes Instant.now() since ChatPost stores a java.time.Instant.",
+      "RgbColor comes from com.moblin.android.common.various, not platform.swiftui."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 38764,
+    "tokens_out": 4128,
+    "seconds": 16.2,
+    "ported_at": "2026-10-09T00:27:37+00:00"
   }
 }

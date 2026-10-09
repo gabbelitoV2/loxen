@@ -11,7 +11,7 @@ import com.moblin.android.platform.webkit.WKWebView
 import com.moblin.android.platform.webkit.WKWebViewConfiguration
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.ChatPostSegment
-import com.moblin.android.various.ChatPostUrl
+import com.moblin.android.various.ChatPostEmote
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.utils.loadStringResource
 import java.util.Base64
@@ -101,9 +101,10 @@ private data class ChatMessage(val user: String, val segments: List<ChatPostSegm
         segment.bigGifUrl?.let { put("bigGifUrl", encodeUrl(it)) }
     }
 
-    private fun encodeUrl(url: ChatPostUrl): JsonObject = buildJsonObject {
+    private fun encodeUrl(url: ChatPostEmote): JsonObject = buildJsonObject {
         url.moving?.let { put("moving", it) }
         url.still?.let { put("still", it) }
+        url.name?.let { put("name", it) }
     }
 }
 

@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-private data class Message(
+private data class AppendedMessage(
     val user: String,
     val userId: String?,
     val segments: List<ChatPostSegment>,
@@ -25,7 +25,7 @@ private data class Message(
 )
 
 private class Delegate : YouTubeLiveChatDelegate {
-    val messages = mutableListOf<Message>()
+    val messages = mutableListOf<AppendedMessage>()
 
     override fun youTubeLiveChatMakeErrorToast(title: String, subTitle: String) {}
 
@@ -40,7 +40,7 @@ private class Delegate : YouTubeLiveChatDelegate {
         highlight: ChatHighlight?,
     ) {
         messages.add(
-            Message(
+            AppendedMessage(
                 user = user,
                 userId = userId,
                 segments = segments,
@@ -103,7 +103,7 @@ private val emojiRun = """
 
 @RunWith(RobolectricTestRunner::class)
 class YouTubeLiveChatSuite {
-    private fun handle(data: ByteArray): List<Message> {
+    private fun handle(data: ByteArray): List<AppendedMessage> {
         val delegate = Delegate()
         val chat = YouTubeLiveChat(delegate = delegate, videoId = "video", settings = SettingsStreamChat())
         chat.handleGetLiveChat(data)

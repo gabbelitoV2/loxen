@@ -19,7 +19,7 @@ class ChatHighlightSuite {
             image = "party.popper",
             titleSegments = listOf(
                 ChatPostSegment(id = 0, text = "New "),
-                ChatPostSegment(id = 1, url = ChatPostUrl("https://x/y.gif", null)),
+                ChatPostSegment(id = 1, url = ChatPostEmote("https://x/y.gif", null)),
                 ChatPostSegment(id = 2, text = "subscriber"),
             ),
         )
