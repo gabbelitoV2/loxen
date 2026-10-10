@@ -390,6 +390,10 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
         session.beginConfiguration()
         try {
             removeDevices(session)
+            var photoShootDevice: CaptureDevice? = null
+            if (params.attachPhotoShoot) {
+                photoShootDevice = params.devices.getSceneDevice() ?: params.devices.devices.firstOrNull()
+            }
             for (device in params.devices.devices) {
                 setDeviceFormat(
                     device = device.device,
@@ -397,7 +401,7 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
                     preferAutoFrameRate = preferAutoFps,
                     colorSpace = colorSpace,
                 )
-                attachDevice(device, session, params.attachPhotoShoot)
+                attachDevice(device, session, device.id == photoShootDevice?.id)
             }
             device = params.devices.getSceneDevice()?.device
             for (device in devices) {
@@ -418,25 +422,22 @@ class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
     }
 
     fun takePhoto(flash: Boolean) {
-        var started = false
-        for (device in devices) {
-            val photoOutput = device.photoOutput ?: continue
-            started = true
-            Unit
-            val settings = AVCapturePhotoSettings()
-            settings.maxPhotoDimensions = photoOutput.maxPhotoDimensions
-            settings.photoQualityPrioritization = AVCapturePhotoOutput.QualityPrioritization.balanced
-            if (flash) {
-                Unit
-                settings.flashMode = AVCaptureDevice.TorchMode.on
-            }
-            Unit
-            settings.isShutterSoundSuppressionEnabled = true
-            photoOutput.capturePhoto(settings = settings, delegate = this)
-        }
-        if (!started) {
+        val photoOutput = devices.mapNotNull { it.photoOutput }.firstOrNull()
+        if (photoOutput == null) {
             processor?.delegate?.streamPhotoTaken()
+            return
         }
+        Unit
+        val settings = AVCapturePhotoSettings()
+        settings.maxPhotoDimensions = photoOutput.maxPhotoDimensions
+        settings.photoQualityPrioritization = AVCapturePhotoOutput.QualityPrioritization.balanced
+        if (flash) {
+            Unit
+            settings.flashMode = AVCaptureDevice.TorchMode.on
+        }
+        Unit
+        settings.isShutterSoundSuppressionEnabled = true
+        photoOutput.capturePhoto(settings = settings, delegate = this)
     }
 
     private fun updateOrientation(device: CaptureSessionDevice) {

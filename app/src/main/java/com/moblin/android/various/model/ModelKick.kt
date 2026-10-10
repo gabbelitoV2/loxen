@@ -31,6 +31,7 @@ import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.settings.MacroEvent
 import com.moblin.android.various.settings.SettingsMacrosEvent
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.various.utils.sortedBySearchPrefix
 import com.moblin.android.view.controlbar.quickbutton.chat.ChatterInfo
 import java.time.Instant
 import com.moblin.android.AppDelegate
@@ -323,7 +324,13 @@ fun Model.searchKickCategories(
     onComplete: (List<KickCategory>?) -> Unit
 ) {
     kickSearchCategoriesTimer.startSingleShot(0.5) {
-        createKickApi(stream = stream).searchCategories(query = query, onComplete = onComplete)
+        createKickApi(stream = stream).searchCategories(query = query) { categories ->
+            if (categories == null) {
+                onComplete(null)
+                return@searchCategories
+            }
+            onComplete(sortedBySearchPrefix(categories, searchText = query) { it.name })
+        }
     }
 }
 

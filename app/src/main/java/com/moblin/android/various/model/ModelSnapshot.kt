@@ -36,7 +36,6 @@ fun Model.takeSnapshot(isChatBot: Boolean = false, message: String? = null, noDe
         if (uiImage.compress(Bitmap.CompressFormat.JPEG, 90, output)) {
             val imageJpeg = output.toByteArray()
             saveSnapshotToPhotos(image = uiImage, fallbackImage = imageJpeg)
-            makeToast(title = localized("Snapshot saved to Photos"))
             tryUploadSnapshotToDiscord(imageJpeg, message, isChatBot)
             printSnapshotCatPrinters(image = portraitImage)
             appendSnapshotToSnapshotWidgets(image = image)
@@ -52,7 +51,14 @@ private fun Model.saveSnapshotToPhotos(image: Bitmap, fallbackImage: ByteArray) 
             creationRequest.addResource(with = PHAssetResourceType.photo, data = data, options = null)
         }) { _, error ->
             if (error != null) {
-                Log.i(TAG, "snapshot: Error saving snapshot: ${error.localizedMessage}")
+                makeErrorToastMain(
+                    title = localized("Failed to save snapshot to Photos"),
+                    subTitle = error.localizedMessage,
+                )
+            } else {
+                mainScope.launch {
+                    makeToast(title = localized("Snapshot saved to Photos"))
+                }
             }
         }
     }

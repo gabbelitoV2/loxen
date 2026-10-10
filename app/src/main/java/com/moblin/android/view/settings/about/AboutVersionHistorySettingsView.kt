@@ -26,6 +26,17 @@ data class Version(
 
 private val versions: List<Version> = listOf(
     Version(
+        "35.6.0",
+        "2026-10-09",
+        listOf(
+            "• New Kick pusher key. 🧑‍🏭 iChrisIRL",
+            "• Optionally use flash when taking photos during photo shoot.",
+            "• Photo shoot interval setting.",
+            "• Make photo shoot pictures searchable in Photos. 💡 G",
+            "• Save snapshots and photo shoot pictures as HEIC instead of JPG.",
+        ),
+    ),
+    Version(
         "35.5.0",
         "2026-10-08",
         listOf(

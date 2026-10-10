@@ -22,6 +22,7 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamTwitchReward
 import com.moblin.android.various.settings.SettingsTwitchAlerts
 import com.moblin.android.various.settings.appendTwitchRaidChannel
+import com.moblin.android.various.utils.sortedBySearchPrefix
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
@@ -209,7 +210,13 @@ fun Model.searchTwitchCategories(
     onComplete: (List<TwitchApiGameData>?) -> Unit
 ) {
     twitchSearchCategoriesTimer.startSingleShot(0.5) {
-        createTwitchApi(stream).searchCategories(filter, onComplete)
+        createTwitchApi(stream).searchCategories(filter) { categories ->
+            if (categories == null) {
+                onComplete(null)
+                return@searchCategories
+            }
+            onComplete(sortedBySearchPrefix(categories, filter) { it.name })
+        }
     }
 }
 

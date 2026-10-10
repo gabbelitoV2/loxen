@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-09T23:35:46+00:00",
+  "generated": "2026-10-10T22:59:48+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -8944,8 +8944,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSnapshot.swift",
-      "lines": 175,
-      "sha256": "cca0fe36cfcd0d12e45c683a50d54d33cfc7757e12cdb2f727006aa635d2f4f3",
+      "lines": 179,
+      "sha256": "456e726505bf8af9e2d86d48bb6a39e7135e779a73b50defe1c798d7f372c7bd",
       "imports": [
         "ImageIO",
         "Photos",
@@ -14221,8 +14221,8 @@
     },
     {
       "path": "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift",
-      "lines": 882,
-      "sha256": "f423f5b5f39f2f68d52119ebb51892b4eaf0d0757118af818b8e76c86331eea2",
+      "lines": 880,
+      "sha256": "e6c03776876298e10554096e1baa6053f210f9b33823a47e8e6ce16186cb353d",
       "imports": [
         "AVFoundation",
         "ImageIO",
@@ -16983,8 +16983,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelKick.swift",
-      "lines": 552,
-      "sha256": "62108044eb4244fffa9af8f1fa43a3c815419abbee29db18eee640385717bda2",
+      "lines": 558,
+      "sha256": "770959600f8885eba225d4b60b3f6533d04c9b4d57a608c2bd99bcf983e6d55a",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -17007,6 +17007,7 @@
         "Moblin/Various/Network/NetworkUtils.swift",
         "Moblin/Various/Settings/SettingsMacros.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Utils/Utils.swift",
         "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatChatterInfoView.swift"
       ],
       "wave": 29
@@ -17110,8 +17111,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelTwitch.swift",
-      "lines": 1337,
-      "sha256": "d21652f8eac6f286e151c6054ca6ef4e796d2c6b6c1800873a9bb6426839743c",
+      "lines": 1343,
+      "sha256": "208e1160698ec58f1b0185bd081f74eecefa3c129c81033159be9bb245bc21fc",
       "imports": [
         "CoreImage",
         "Foundation",
@@ -17135,7 +17136,8 @@
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Network/NetworkUtils.swift",
         "Moblin/Various/Settings/SettingsMacros.swift",
-        "Moblin/Various/Settings/SettingsStream.swift"
+        "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Utils/Utils.swift"
       ],
       "wave": 29
     },
@@ -20588,8 +20590,8 @@
     },
     {
       "path": "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
-      "lines": 4372,
-      "sha256": "2cd342ec2c92581363751a1b39acd13a29be5b0fd95035ecf88681ace07c9d7b",
+      "lines": 4379,
+      "sha256": "61cee62e49b59395b7f55a2491fc35e3282bf12558ae95ef4ba0f010d86da325",
       "imports": [
         "SwiftUI"
       ],

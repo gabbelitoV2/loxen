@@ -9538,28 +9538,26 @@
   },
   "Moblin/Various/Model/ModelSnapshot.swift": {
     "status": "ok",
-    "sha256": "cca0fe36cfcd0d12e45c683a50d54d33cfc7757e12cdb2f727006aa635d2f4f3",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "456e726505bf8af9e2d86d48bb6a39e7135e779a73b50defe1c798d7f372c7bd",
+    "moblin_commit": "9cdae30a02b72102eaeb96ef439b4fe09a0cc048",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSnapshot.kt",
     "notes": [
-      "takeSnapshot now delegates the Photos save to the new saveSnapshotToPhotos instead of saving inline.",
-      "DispatchQueue.global().async -> CoroutineScope(Dispatchers.IO).launch; the PHPhotoLibrary shim keeps its performChanges(changeBlock, completionHandler) shape.",
-      "logger.info(x) -> Log.i(TAG, x) with import android.util.Log and the file TAG \"Model\".",
-      "AVError.localizedDescription -> Throwable.localizedMessage.",
-      "ImageIO (CGImageDestination, UTType.heic) and the IPTC keyword properties have no Android counterpart: encodeSnapshotForPhotos re-encodes the bitmap with Bitmap.compress as JPEG at quality 90, and returns null when compression fails so the caller still falls back to the 0.9 JPEG bytes.",
-      "photosImageQuality is not declared in this port, so its value is inlined as the JPEG quality 90, the same quality the fallback JPEG already uses.",
-      "image.cgImage -> the non-null cgImage extension from com.moblin.android.platform.uikit, so Swift's nil guard has no Kotlin counterpart.",
-      "PHAssetCreationRequest.forAsset().addResource(with = PHAssetResourceType.photo, data = data, options = null) is unchanged from the previous translation."
+      "The success toast moved out of takeSnapshot into the photo-library completion handler: it now only shows when the write succeeds, on the main thread via mainScope.launch.",
+      "The failure branch now calls Model.makeErrorToastMain(title = ..., subTitle = error.localizedMessage) instead of logging.",
+      "The old Log.i call was removed with the Swift logger.info line; the Log import and the private TAG constant are kept byte-identical as required for unchanged lines.",
+      "mainScope (CoroutineScope(Dispatchers.Main)) already exists in this file and stands in for DispatchQueue.main.async.",
+      "localized(...) keeps the same format strings, including the interpolated user name variants.",
+      "encodeSnapshotForPhotos still returns JPEG bytes; NSMutableData/CGImageDestination have no Android counterpart and keep their existing JPEG encoding."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59330,
-    "tokens_out": 21058,
-    "seconds": 88.0,
-    "ported_at": "2026-10-09T00:01:20+00:00"
+    "tokens_in": 59226,
+    "tokens_out": 5250,
+    "seconds": 21.1,
+    "ported_at": "2026-10-10T23:00:21+00:00"
   },
   "Moblin/Various/Model/ModelSrtClient.swift": {
     "status": "ok",
@@ -12223,23 +12221,27 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
-    "sha256": "f423f5b5f39f2f68d52119ebb51892b4eaf0d0757118af818b8e76c86331eea2",
-    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
+    "sha256": "e6c03776876298e10554096e1baa6053f210f9b33823a47e8e6ce16186cb353d",
+    "moblin_commit": "9cdae30a02b72102eaeb96ef439b4fe09a0cc048",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt",
     "notes": [
-      "takePhoto now tracks whether any photo output was started and reports streamPhotoTaken() itself when the loop found none.",
-      "The photo delegate reports streamPhotoTaken() as soon as didFinishProcessingPhoto is called; the removed willCapturePhotoFor callback had no Kotlin counterpart in this file, so only the call was added.",
-      "Everything else in this incremental change is unchanged from the previous Kotlin translation."
+      "attach() now picks one photo shoot device (scene device or first device) and passes `device.id == photoShootDevice?.id` to attachDevice, so only that device gets a photo output.",
+      "takePhoto() now uses a single photo output taken from the first device that has one, instead of looping over all devices.",
+      "Swift's `params.devices.devices.first` is written as firstOrNull() to avoid an index crash; the Swift code crashes on an empty list anyway.",
+      "The photo codec selection (AVVideoCodecType.jpeg/hevc) and the IPTC metadata dictionary have no Kotlin shim, so they stay dropped as Unit markers, as in the previous translation.",
+      "The `photoOutput.supportedFlashModes.contains(.on)` check still has no shim; the Kotlin keeps setting flashMode whenever `flash` is true.",
+      "devices.compactMap(\\.photoOutput).first is devices.mapNotNull { it.photoOutput }.firstOrNull().",
+      "The JPEG fallback branch (no photo output) still calls streamPhotoTaken() and returns early."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 63952,
-    "tokens_out": 7872,
-    "seconds": 20.5,
-    "ported_at": "2026-10-09T23:36:23+00:00"
+    "tokens_in": 64502,
+    "tokens_out": 10182,
+    "seconds": 29.4,
+    "ported_at": "2026-10-10T23:00:30+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",
@@ -14432,22 +14434,23 @@
   },
   "Moblin/Various/Model/ModelKick.swift": {
     "status": "ok",
-    "sha256": "62108044eb4244fffa9af8f1fa43a3c815419abbee29db18eee640385717bda2",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "770959600f8885eba225d4b60b3f6533d04c9b4d57a608c2bd99bcf983e6d55a",
+    "moblin_commit": "9cdae30a02b72102eaeb96ef439b4fe09a0cc048",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelKick.kt",
     "notes": [
-      "Single-line change: kickPusherStreamHost now reports the .kickRaid macro event instead of .kickHost.",
-      "Kotlin already used the SCREAMING_SNAKE macro-event entries, so this becomes SettingsMacrosEvent.KICK_RAID in the existing macrosEventOccurred call."
+      "Only Model.searchKickCategories changed: the KickApi categories callback now sorts the result with sortedBySearchPrefix on the category name before calling onComplete.",
+      "The new import com.moblin.android.various.utils.sortedBySearchPrefix is added in the various group of imports.",
+      "Swift's guard let categories else { onComplete(nil); return } becomes an early return with return@searchCategories inside the callback lambda."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 56839,
-    "tokens_out": 6141,
-    "seconds": 16.1,
-    "ported_at": "2026-09-24T15:40:43+00:00"
+    "tokens_in": 64124,
+    "tokens_out": 7030,
+    "seconds": 19.7,
+    "ported_at": "2026-10-10T23:00:20+00:00"
   },
   "Moblin/Various/Model/ModelScreenCapture.swift": {
     "status": "ok",
@@ -14731,28 +14734,23 @@
   },
   "Moblin/Various/Model/ModelTwitch.swift": {
     "status": "ok",
-    "sha256": "d21652f8eac6f286e151c6054ca6ef4e796d2c6b6c1800873a9bb6426839743c",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "208e1160698ec58f1b0185bd081f74eecefa3c129c81033159be9bb245bc21fc",
+    "moblin_commit": "9cdae30a02b72102eaeb96ef439b4fe09a0cc048",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt",
     "notes": [
-      "sendTwitchShoutout is added between startRaidTwitchChannel and cancelRaidTwitchChannel, calling TwitchApi.sendShoutout with the same broadcasterId/toBroadcasterId/onComplete shape as startRaid.",
-      "The failure log in the no-callback overload used NetworkResponse.Success instead of isSuccessful() so no new network extension import is needed.",
-      "MacroEvent calls now pass variables; keys are built with MacroVariable.fromRawValue(\"...\") using the Swift case names, matching the SettingsMacrosEvent.fromRawValue convention already used in this file.",
-      "MacroVariable is imported from com.moblin.android.various.settings and the map is passed as a plain mapOf, which matches a MacroVariables typealias over Map<MacroVariable, String>.",
-      "twitchEventSubChannelShoutoutCreate is added right after twitchEventSubChannelModerate, matching the Swift declaration order.",
-      "Because TwitchEventSubDelegate is implemented as an explicit anonymous object here, an override for twitchEventSubChannelShoutoutCreate was added there too so reloadTwitchEventSub keeps compiling.",
-      "Swift .orange is translated as Color(0xFFFF9500), the orange value already used elsewhere in this file.",
-      "Pre-existing TODO()s for Alert playback, EventCat printers and ChatHighlightKind cases were kept unchanged."
+      "searchTwitchCategories now sorts the returned categories by search prefix, wrapping the API callback to map a null result to a null onComplete.",
+      "Added the import com.moblin.android.various.utils.sortedBySearchPrefix for the new sort call.",
+      "Everything else in the file is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45483,
-    "tokens_out": 21984,
-    "seconds": 67.7,
-    "ported_at": "2026-09-23T11:20:25+00:00"
+    "tokens_in": 79535,
+    "tokens_out": 14298,
+    "seconds": 36.9,
+    "ported_at": "2026-10-10T23:00:37+00:00"
   },
   "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift": {
     "status": "ok",
@@ -16140,24 +16138,23 @@
   },
   "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift": {
     "status": "ok",
-    "sha256": "2cd342ec2c92581363751a1b39acd13a29be5b0fd95035ecf88681ace07c9d7b",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "61cee62e49b59395b7f55a2491fc35e3282bf12558ae95ef4ba0f010d86da325",
+    "moblin_commit": "9cdae30a02b72102eaeb96ef439b4fe09a0cc048",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt",
     "notes": [
-      "Adds the new 35.5.0 changelog entry at the top of the private versions list; every other line is unchanged.",
-      "The entry follows the existing Kotlin style: Version(\"35.5.0\", \"2026-10-08\", listOf(...)) with bullet strings one to one from Swift.",
-      "Escaped quotes around \"Limited color range\" and \"External camera video range\" are kept as in the Swift source.",
-      "Everything else (imports, data class Version, the rest of the version list and AboutVersionHistorySettingsView) is byte-identical."
+      "Applied the Swift diff: added the 35.6.0 version entry at the top of the versions list, before 35.5.0.",
+      "The new entry uses the same positional Version(...) call shape as the existing entries in this file.",
+      "Everything else in the Kotlin file is unchanged, including the AboutVersionHistorySettingsView composable."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 148490,
-    "tokens_out": 17689,
-    "seconds": 53.2,
-    "ported_at": "2026-10-09T00:02:07+00:00"
+    "tokens_in": 148659,
+    "tokens_out": 16863,
+    "seconds": 47.2,
+    "ported_at": "2026-10-10T23:00:52+00:00"
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
