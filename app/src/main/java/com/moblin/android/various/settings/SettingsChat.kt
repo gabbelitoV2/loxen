@@ -334,6 +334,71 @@ class SettingsChatBotCustomCommand {
     )
 }
 
+@Serializable(with = SettingsChatBotCommandSnapshotSource.Serializer::class)
+enum class SettingsChatBotCommandSnapshotSource(val rawValue: String) {
+    thisDevice("This device"),
+    webRemoteControl("Web remote control");
+
+    override fun toString(): String {
+        return when (this) {
+            thisDevice -> localized("This device")
+            webRemoteControl -> localized("Web remote control")
+        }
+    }
+
+    companion object {
+        fun fromRawValue(rawValue: String): SettingsChatBotCommandSnapshotSource {
+            return entries.firstOrNull { it.rawValue == rawValue } ?: thisDevice
+        }
+    }
+
+    object Serializer : KSerializer<SettingsChatBotCommandSnapshotSource> {
+        override val descriptor: SerialDescriptor =
+            PrimitiveSerialDescriptor(
+                "com.moblin.android.various.settings.SettingsChatBotCommandSnapshotSource",
+                PrimitiveKind.STRING,
+            )
+
+        override fun serialize(encoder: Encoder, value: SettingsChatBotCommandSnapshotSource) {
+            encoder.encodeString(value.rawValue)
+        }
+
+        override fun deserialize(decoder: Decoder): SettingsChatBotCommandSnapshotSource {
+            return fromRawValue(decoder.decodeString())
+        }
+    }
+}
+
+@Serializable(with = SettingsChatBotCommandSnapshot.Serializer::class)
+class SettingsChatBotCommandSnapshot {
+    var source: SettingsChatBotCommandSnapshotSource by Published(SettingsChatBotCommandSnapshotSource.thisDevice)
+    var webRemoteControlUrl: String by Published("")
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("source", source)
+        encode("webRemoteControlUrl", webRemoteControlUrl)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsChatBotCommandSnapshot {
+            val snapshot = SettingsChatBotCommandSnapshot()
+            snapshot.source = container.decode(
+                "source",
+                SettingsChatBotCommandSnapshotSource.Serializer,
+                SettingsChatBotCommandSnapshotSource.thisDevice,
+            )
+            snapshot.webRemoteControlUrl = container.decode("webRemoteControlUrl", "")
+            return snapshot
+        }
+    }
+
+    object Serializer : KSerializer<SettingsChatBotCommandSnapshot> by JsonObjectSerializer(
+        "SettingsChatBotCommandSnapshot",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
 @Serializable(with = SettingsChatPredefinedMessage.Serializer::class)
 class SettingsChatPredefinedMessage {
     companion object {
@@ -783,6 +848,11 @@ class SettingsChat {
             )
             chat.botSendLowBatteryWarning = container.decode("botSendLowBatteryWarning", false)
             chat.botCommandAi = container.decode("botCommandAi", SettingsOpenAi.serializer(), SettingsOpenAi())
+            chat.botCommandSnapshot = container.decode(
+                "botCommandSnapshot",
+                SettingsChatBotCommandSnapshot.serializer(),
+                SettingsChatBotCommandSnapshot(),
+            )
             chat.badges = container.decode("badges", true)
             chat.showFirstTimeChatterMessage = container.decode("showFirstTimeChatterMessage", true)
             chat.showNewFollowerMessage = container.decode("showNewFollowerMessage", true)
@@ -875,6 +945,7 @@ class SettingsChat {
     var botCommandPermissions: SettingsChatBotPermissions = SettingsChatBotPermissions()
     var botSendLowBatteryWarning: Boolean = false
     var botCommandAi: SettingsOpenAi = SettingsOpenAi()
+    var botCommandSnapshot: SettingsChatBotCommandSnapshot = SettingsChatBotCommandSnapshot()
     var badges: Boolean by Published(true)
     var showFirstTimeChatterMessage: Boolean = true
     var showNewFollowerMessage: Boolean = true
@@ -938,6 +1009,7 @@ class SettingsChat {
         encode("botCommandPermissions", botCommandPermissions)
         encode("botSendLowBatteryWarning", botSendLowBatteryWarning)
         encode("botCommandAi", botCommandAi)
+        encode("botCommandSnapshot", botCommandSnapshot)
         encode("badges", badges)
         encode("showFirstTimeChatterMessage", showFirstTimeChatterMessage)
         encode("showNewFollowerMessage", showNewFollowerMessage)

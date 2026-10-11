@@ -478,7 +478,7 @@ private fun Model.executeTorch(action: SettingsMacrosAction): Boolean {
 }
 
 private fun Model.executeSnapshot(): Boolean {
-    takeSnapshot()
+    takeSnapshot(age = 0.0f, isChatBot = false, message = null)
     return true
 }
 

@@ -74,6 +74,7 @@ interface RemoteControlWebDelegate {
     fun remoteControlWebGetRecordingUrl(filename: String): URI?
     fun remoteControlWebGetRecordingThumbnail(filename: String): ByteArray?
     fun remoteControlWebDeleteRecording(filename: String)
+    fun remoteControlWebTakeSnapshot(age: Float, onComplete: (ByteArray?) -> Unit)
     fun remoteControlWebStartPreview()
     fun remoteControlWebStopPreview()
 }
@@ -208,6 +209,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
         routes.add(HttpServerRoute(path = "/", handler = ::handleRoot))
         routes.add(HttpServerRoute(path = "/js/config.mjs", handler = ::handleConfigMjs))
         routes.add(HttpServerRoute(path = "/recordings.json", handler = ::handleRecordingsJson))
+        routes.add(HttpServerRoute(path = "/snapshot", handler = ::handleSnapshot))
         routes.add(
             HttpServerRoute(
                 path = recordingsPrefix,
@@ -354,6 +356,28 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
             return
         }
         response.send(data = thumbnail, status = HttpServerStatus.ok, contentType = "image/jpeg")
+    }
+
+    private fun handleSnapshot(request: HttpServerRequest, response: HttpServerResponse) {
+        if (request.method != "GET") {
+            response.send(status = HttpServerStatus.methodNotAllowed)
+            return
+        }
+        val delegate = this.delegate ?: run {
+            response.send(status = HttpServerStatus.notFound)
+            return
+        }
+        val age = request.path.substringAfter('?', "").split('&')
+            .firstOrNull { it.substringBefore('=') == "age" }
+            ?.substringAfter('=', "")
+            ?.toFloatOrNull() ?: 0.0f
+        delegate.remoteControlWebTakeSnapshot(age = age) { snapshot ->
+            if (snapshot == null) {
+                response.send(status = HttpServerStatus.notFound)
+                return@remoteControlWebTakeSnapshot
+            }
+            response.send(data = snapshot, status = HttpServerStatus.ok, contentType = "image/heic")
+        }
     }
 
     private fun handleWebsocketStateUpdate(failed: Boolean) {

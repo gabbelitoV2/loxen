@@ -19,18 +19,21 @@ import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
 
 private const val TAG = "HttpServer"
 
-private data class HttpRequestParseResult(
+internal data class HttpRequestParseResult(
     val method: String,
     val path: String,
+    val query: Map<String, String>,
     val version: String,
     val headers: List<SettingsHttpHeader>,
     val data: ByteArray,
 )
 
-private class HttpRequestParser {
+internal class HttpRequestParser {
     private val parser = HttpParser()
 
     fun append(data: ByteArray) {
@@ -48,9 +51,20 @@ private class HttpRequestParser {
             return Pair(true, null)
         }
         val method = startParts[0]
-        val path = startParts[1]
-        if (path.contains("//") || path.contains("..")) {
+        val target = startParts[1]
+        if (target.contains("//") || target.contains("..")) {
             return Pair(true, null)
+        }
+        val targetParts = target.split("?", limit = 2).filter { it.isNotEmpty() }
+        val path = targetParts.firstOrNull() ?: ""
+        val query = mutableMapOf<String, String>()
+        if (targetParts.size == 2) {
+            for (item in targetParts[1].split("&").filter { it.isNotEmpty() }) {
+                val parts = item.split("=", limit = 2).filter { it.isNotEmpty() }
+                val name = parts.firstOrNull()?.removingPercentEncoding() ?: continue
+                val value = if (parts.size == 2) parts[1].removingPercentEncoding() ?: "" else ""
+                query[name] = value
+            }
         }
         val version = startParts[2]
         if (!version.startsWith("HTTP/1.")) {
@@ -80,6 +94,7 @@ private class HttpRequestParser {
                     HttpRequestParseResult(
                         method = method,
                         path = path,
+                        query = query,
                         version = version,
                         headers = headers,
                         data = body.copyOf(contentLength),
@@ -95,6 +110,7 @@ private class HttpRequestParser {
 class HttpServerRequest internal constructor(
     val method: String,
     val path: String,
+    val query: Map<String, String>,
     val version: String,
     val headers: List<SettingsHttpHeader>,
     val body: ByteArray,
@@ -118,7 +134,8 @@ enum class HttpServerStatus {
     noContent,
     badRequest,
     notFound,
-    methodNotAllowed;
+    methodNotAllowed,
+    serviceUnavailable;
 
     fun code(): Int {
         return when (this) {
@@ -128,6 +145,7 @@ enum class HttpServerStatus {
             badRequest -> 400
             notFound -> 404
             methodNotAllowed -> 405
+            serviceUnavailable -> 503
         }
     }
 
@@ -139,6 +157,7 @@ enum class HttpServerStatus {
             badRequest -> "Bad Request"
             notFound -> "Not Found"
             methodNotAllowed -> "Method Not Allowed"
+            serviceUnavailable -> "Service Unavailable"
         }
     }
 }
@@ -225,6 +244,7 @@ internal class HttpServerConnection(
         val request = HttpServerRequest(
             method = result.method,
             path = result.path,
+            query = result.query,
             version = result.version,
             headers = result.headers,
             body = result.data,
@@ -342,6 +362,47 @@ private fun appendCloseHeaderAndFinalize(lines: MutableList<String>): ByteArray 
     lines.add("")
     lines.add("")
     return lines.joinToString("\r\n").toByteArray()
+}
+
+private fun percentHexValue(c: Char): Int {
+    return when (c) {
+        in '0'..'9' -> c - '0'
+        in 'a'..'f' -> c - 'a' + 10
+        in 'A'..'F' -> c - 'A' + 10
+        else -> -1
+    }
+}
+
+private fun String.removingPercentEncoding(): String? {
+    val input = toByteArray()
+    val output = ByteArray(input.size)
+    var size = 0
+    var i = 0
+    while (i < input.size) {
+        val byte = input[i].toInt() and 0xFF
+        if (byte == 0x25) {
+            if (i + 2 >= input.size) {
+                return null
+            }
+            val high = percentHexValue((input[i + 1].toInt() and 0xFF).toChar())
+            val low = percentHexValue((input[i + 2].toInt() and 0xFF).toChar())
+            if (high < 0 || low < 0) {
+                return null
+            }
+            output[size++] = ((high shl 4) or low).toByte()
+            i += 3
+        } else {
+            output[size++] = byte.toByte()
+            i += 1
+        }
+    }
+    return runCatching {
+        Charsets.UTF_8.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT)
+            .decode(ByteBuffer.wrap(output, 0, size))
+            .toString()
+    }.getOrNull()
 }
 
 class HttpServerRoute(

@@ -6,59 +6,150 @@ import com.moblin.android.localized
 import com.moblin.android.platform.avfoundation.PHAssetCreationRequest
 import com.moblin.android.platform.avfoundation.PHAssetResourceType
 import com.moblin.android.platform.avfoundation.PHPhotoLibrary
+import com.moblin.android.platform.coregraphics.CGImagePropertyOrientation
+import com.moblin.android.platform.coreimage.CIContext
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.uikit.UIImage
 import com.moblin.android.platform.uikit.cgImage
+import com.moblin.android.various.network.httpRequest
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.utils.uploadImage
 import java.io.ByteArrayOutputStream
+import java.net.URI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.Request
 
 private const val TAG = "Model"
 
 data class SnapshotJob(
-    val isChatBot: Boolean,
     val message: String,
     val user: String?,
+    val takeSnapshot: (String) -> Unit,
 )
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
-fun Model.takeSnapshot(isChatBot: Boolean = false, message: String? = null, noDelay: Boolean = false) {
+fun Model.takeSnapshot(age: Float, isChatBot: Boolean, message: String?) {
     if (isChatPhone()) {
         return
     }
-    val age = if (isChatBot && !noDelay) stream.value.estimatedViewerDelay else 0.0
-    media.takeSnapshot(age = age.toFloat()) { uiImage, image, portraitImage ->
+    media.takeSnapshot(age = age) { uiImage, image, portraitImage ->
         val output = ByteArrayOutputStream()
         if (uiImage.compress(Bitmap.CompressFormat.JPEG, 90, output)) {
             val imageJpeg = output.toByteArray()
             saveSnapshotToPhotos(image = uiImage, fallbackImage = imageJpeg)
-            tryUploadSnapshotToDiscord(imageJpeg, message, isChatBot)
-            printSnapshotCatPrinters(image = portraitImage)
-            appendSnapshotToSnapshotWidgets(image = image)
+            handleSnapshot(
+                imageJpeg,
+                image,
+                portraitImage,
+                message,
+                isChatBot,
+                !stream.value.discordSnapshotWebhookOnlyWhenLive || isLive.value,
+            )
         }
     }
+}
+
+fun Model.takeSnapshotWebRemoteControl(age: Float, isChatBot: Boolean, message: String?) {
+    val url = runCatching {
+        val base = URI(database.chat.botCommandSnapshot.webRemoteControlUrl)
+        val basePath = base.path ?: ""
+        URI(base.scheme, base.authority, basePath.trimEnd('/') + "/snapshot", "age=$age", null)
+    }.getOrNull()
+    if (url == null) {
+        makeErrorToast(title = localized("Invalid chat bot snapshot web remote control URL"))
+        return
+    }
+    val request = Request.Builder().url(url.toString()).build()
+    httpRequest(request = request, queue = Dispatchers.IO) { data, response, error ->
+        val failure = localized("Failed to fetch snapshot from web remote control")
+        if (error != null || response?.isSuccessful != true) {
+            makeErrorToastMain(title = failure)
+            return@httpRequest
+        }
+        val bytes = data
+        if (bytes == null) {
+            makeErrorToastMain(title = failure)
+            return@httpRequest
+        }
+        val uiImage = UIImage(data = bytes)
+        val output = ByteArrayOutputStream()
+        if (uiImage == null || !uiImage.compress(Bitmap.CompressFormat.JPEG, 90, output)) {
+            makeErrorToastMain(title = failure)
+            return@httpRequest
+        }
+        val imageJpeg = output.toByteArray()
+        val image = uiImage.cgImage
+        var portraitImage = image
+        if (image.width > image.height) {
+            val ciImage = CIImage(cgImage = image)
+            val portraitCIImage = ciImage.oriented(orientation = CGImagePropertyOrientation.left)
+            val context = CIContext()
+            portraitImage = context.createCGImage(portraitCIImage, from = portraitCIImage.extent) ?: image
+        }
+        mainScope.launch {
+            saveSnapshotToPhotos(image = bytes)
+            handleSnapshot(imageJpeg, image, portraitImage, message, isChatBot, true)
+        }
+    }
+}
+
+fun Model.takeSnapshotHeic(age: Float, onComplete: (ByteArray?) -> Unit) {
+    if (isChatPhone()) {
+        onComplete(null)
+        return
+    }
+    media.takeSnapshot(age = age) { uiImage, _, _ ->
+        CoroutineScope(Dispatchers.IO).launch {
+            val imageHeic = encodeSnapshotForPhotos(image = uiImage)
+            mainScope.launch {
+                onComplete(imageHeic)
+            }
+        }
+    }
+}
+
+private fun Model.handleSnapshot(
+    imageJpeg: ByteArray,
+    image: Bitmap,
+    portraitImage: Bitmap,
+    message: String?,
+    isChatBot: Boolean,
+    uploadToDiscord: Boolean,
+) {
+    if (uploadToDiscord) {
+        tryUploadSnapshotToDiscord(imageJpeg, message, isChatBot)
+    }
+    printSnapshotCatPrinters(image = portraitImage)
+    appendSnapshotToSnapshotWidgets(image = image)
 }
 
 private fun Model.saveSnapshotToPhotos(image: Bitmap, fallbackImage: ByteArray) {
     CoroutineScope(Dispatchers.IO).launch {
         val data = encodeSnapshotForPhotos(image = image) ?: fallbackImage
-        PHPhotoLibrary.shared().performChanges({
-            val creationRequest = PHAssetCreationRequest.forAsset()
-            creationRequest.addResource(with = PHAssetResourceType.photo, data = data, options = null)
-        }) { _, error ->
-            if (error != null) {
-                makeErrorToastMain(
-                    title = localized("Failed to save snapshot to Photos"),
-                    subTitle = error.localizedMessage,
-                )
-            } else {
-                mainScope.launch {
-                    makeToast(title = localized("Snapshot saved to Photos"))
-                }
+        mainScope.launch {
+            saveSnapshotToPhotos(image = data)
+        }
+    }
+}
+
+private fun Model.saveSnapshotToPhotos(image: ByteArray) {
+    PHPhotoLibrary.shared().performChanges({
+        val creationRequest = PHAssetCreationRequest.forAsset()
+        creationRequest.addResource(with = PHAssetResourceType.photo, data = image, options = null)
+    }) { _, error ->
+        if (error != null) {
+            makeErrorToastMain(
+                title = localized("Failed to save snapshot to Photos"),
+                subTitle = error.localizedMessage,
+            )
+        } else {
+            mainScope.launch {
+                makeToast(title = localized("Snapshot saved to Photos"))
             }
         }
     }
@@ -108,7 +199,7 @@ private fun Model.snapshotCountdownTick() {
             message += "\n"
             message += formatSnapshotTakenBy(user = user)
         }
-        takeSnapshot(isChatBot = snapshotJob.isChatBot, message = message, noDelay = true)
+        snapshotJob.takeSnapshot(message)
         mainScope.launch {
             delay(10_000)
             snapshot.currentJob.value = null
@@ -117,11 +208,8 @@ private fun Model.snapshotCountdownTick() {
     }
 }
 
-fun Model.takeSnapshotWithCountdown(isChatBot: Boolean, message: String, user: String?) {
-    if (isChatPhone()) {
-        return
-    }
-    snapshotJobs.add(SnapshotJob(isChatBot = isChatBot, message = message, user = user))
+fun Model.takeSnapshotWithCountdown(message: String, user: String?, takeSnapshot: (String) -> Unit) {
+    snapshotJobs.add(SnapshotJob(message = message, user = user, takeSnapshot = takeSnapshot))
     tryTakeNextSnapshot()
 }
 
@@ -135,19 +223,20 @@ private fun Model.getDiscordWebhookUrl(isChatBot: Boolean): String? {
 
 private fun Model.tryUploadSnapshotToDiscord(image: ByteArray, message: String?, isChatBot: Boolean) {
     val url = getDiscordWebhookUrl(isChatBot)
-    if ((!stream.value.discordSnapshotWebhookOnlyWhenLive || isLive.value) && url != null) {
-        uploadImage(
-            url = url,
-            paramName = "snapshot",
-            fileName = "snapshot.jpg",
-            image = image,
-            message = message,
-        ) { ok ->
-            if (ok) {
-                makeToast(title = localized("Snapshot uploaded to Discord"))
-            } else {
-                makeErrorToast(title = localized("Failed to upload snapshot to Discord"))
-            }
+    if (url == null) {
+        return
+    }
+    uploadImage(
+        url = url,
+        paramName = "snapshot",
+        fileName = "snapshot.jpg",
+        image = image,
+        message = message,
+    ) { ok ->
+        if (ok) {
+            makeToast(title = localized("Snapshot uploaded to Discord"))
+        } else {
+            makeErrorToast(title = localized("Failed to upload snapshot to Discord"))
         }
     }
 }

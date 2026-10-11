@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.common.various.cleanUrl
+import com.moblin.android.common.various.isValidHttpUrl
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
@@ -25,8 +27,11 @@ import com.moblin.android.platform.swiftui.move
 import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.chatBotCustomCommandsTextChanged
+import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatBotAlias
+import com.moblin.android.various.settings.SettingsChatBotCommandSnapshot
+import com.moblin.android.various.settings.SettingsChatBotCommandSnapshotSource
 import com.moblin.android.various.settings.SettingsChatBotCustomCommand
 import com.moblin.android.various.settings.SettingsChatBotPermissionsCommand
 import com.moblin.android.various.settings.SettingsOpenAi
@@ -38,6 +43,7 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.OpenAiSettingsView
+import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 
@@ -157,14 +163,40 @@ private fun FaxPermissionsSettingsView(
 @Composable
 private fun SnapshotPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
+    snapshot: SettingsChatBotCommandSnapshot,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Section(footer = "Take snapshot.") {
-        PermissionsSettingsView(
-            title = localized("!moblin snapshot <optional message>"),
-            permissions = permissions,
-            onNavigate = onNavigate
-        )
+        NavigationLink(
+            destination = {
+                Form(title = "!moblin snapshot <optional message>") {
+                    Section(
+                        footer = "Take the snapshot on this device, or fetch it from another " +
+                            "device's web remote control.",
+                    ) {
+                        Picker(
+                            title = "Source",
+                            selection = snapshot.source,
+                            options = SettingsChatBotCommandSnapshotSource.entries,
+                        ) {
+                            snapshot.source = it
+                        }
+                        if (snapshot.source == SettingsChatBotCommandSnapshotSource.webRemoteControl) {
+                            TextEditNavigationView(
+                                title = localized("URL"),
+                                value = snapshot.webRemoteControlUrl,
+                                onChange = ::isValidHttpUrl,
+                                onSubmit = { snapshot.webRemoteControlUrl = cleanUrl(it) },
+                                placeholder = "http://192.168.1.10:${DefaultTcpPorts.remoteControlWeb}",
+                            )
+                        }
+                    }
+                    PermissionsSettingsInnerView(permissions = permissions)
+                }
+            },
+        ) {
+            Text(text = "!moblin snapshot <optional message>")
+        }
     }
 }
 
@@ -636,6 +668,7 @@ private fun ChatBotCommandsSettingsView(
         )
         SnapshotPermissionsSettingsView(
             permissions = permissions.snapshot,
+            snapshot = database.chat.botCommandSnapshot,
             onNavigate = onNavigate
         )
         StreamPermissionsSettingsView(

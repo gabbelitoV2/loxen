@@ -27,6 +27,7 @@ import com.moblin.android.various.ChatBotTwitchArgument
 import com.moblin.android.various.ChatBotWidgetArgument
 import com.moblin.android.various.ChatBotWidgetTimerArgument
 import com.moblin.android.various.ChatBotWidgetWheelOfLuckArgument
+import com.moblin.android.various.settings.SettingsChatBotCommandSnapshotSource
 import com.moblin.android.various.settings.SettingsChatBotPermissionsCommand
 import com.moblin.android.various.settings.SettingsMacrosMacro
 import com.moblin.android.various.settings.SettingsQuickButtonType
@@ -254,6 +255,7 @@ private fun Model.handleChatBotMessageSnapshot(command: ChatBotCommand) {
         permissions = permissions,
         command = command,
         onCompleted = {
+            var message: String? = null
             val user = command.user()
             if (user != null) {
                 if (permissions.sendChatMessages) {
@@ -262,9 +264,20 @@ private fun Model.handleChatBotMessageSnapshot(command: ChatBotCommand) {
                         platform = command.message.platform
                     )
                 }
-                takeSnapshot(isChatBot = true, message = formatSnapshotTakenBy(user = user))
-            } else {
-                takeSnapshot(isChatBot = true)
+                message = formatSnapshotTakenBy(user = user)
+            }
+            val age = stream.value.estimatedViewerDelay
+            when (database.chat.botCommandSnapshot.source) {
+                SettingsChatBotCommandSnapshotSource.thisDevice -> takeSnapshot(
+                    age = age,
+                    isChatBot = true,
+                    message = message
+                )
+                SettingsChatBotCommandSnapshotSource.webRemoteControl -> takeSnapshotWebRemoteControl(
+                    age = age,
+                    isChatBot = true,
+                    message = message
+                )
             }
         },
         onNotAllowed = {
@@ -292,11 +305,20 @@ private fun Model.handleChatBotMessageSnapshotWithMessage(command: ChatBotComman
                     platform = command.message.platform
                 )
             }
-            takeSnapshotWithCountdown(
-                isChatBot = true,
-                message = command.rest(),
-                user = command.user()
-            )
+            takeSnapshotWithCountdown(message = command.rest(), user = command.user()) { message ->
+                when (database.chat.botCommandSnapshot.source) {
+                    SettingsChatBotCommandSnapshotSource.thisDevice -> takeSnapshot(
+                        age = 0.0f,
+                        isChatBot = true,
+                        message = message
+                    )
+                    SettingsChatBotCommandSnapshotSource.webRemoteControl -> takeSnapshotWebRemoteControl(
+                        age = 0.0f,
+                        isChatBot = true,
+                        message = message
+                    )
+                }
+            }
         },
         onNotAllowed = {
             val user = command.user()

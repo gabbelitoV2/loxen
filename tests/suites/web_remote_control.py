@@ -46,7 +46,22 @@ class WebRemoteControlLive(TestCase):
                 browser.close()
 
 
+class WebRemoteControlSnapshot(TestCase):
+    """Take snapshots with different ages over the web remote control HTTP endpoint and check the HEIC images."""
+
+    def setup(self):
+        self.moblin.import_settings(overrides={})
+
+    def run(self):
+        self.moblin.set_scene(SceneName.FRONT)
+        for age in [0.0, 3.0]:
+            snapshot = self.moblin.take_snapshot(age=age)
+            self.assert_equal(snapshot[4:8], b"ftyp")
+            self.assert_greater(len(snapshot), 10_000)
+
+
 def tests(moblin: Moblin):
     return [
         WebRemoteControlLive(moblin),
+        WebRemoteControlSnapshot(moblin),
     ]

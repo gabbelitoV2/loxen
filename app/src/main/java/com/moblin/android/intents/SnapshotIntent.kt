@@ -16,7 +16,7 @@ class SnapshotIntent : AppIntent {
     }
 
     override suspend fun perform(): IntentResult {
-        model.takeSnapshot()
+        model.takeSnapshot(age = 0.0f, isChatBot = false, message = null)
         return IntentResult.result()
     }
 

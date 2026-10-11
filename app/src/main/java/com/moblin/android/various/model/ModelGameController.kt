@@ -134,7 +134,7 @@ fun Model.handleControllerFunction(
         }
         SettingsControllerFunction.SNAPSHOT -> {
             if (!pressed) {
-                takeSnapshot()
+                takeSnapshot(age = 0f, isChatBot = false, message = null)
             }
         }
         SettingsControllerFunction.PAUSE_TTS -> {

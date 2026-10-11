@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-10T22:59:48+00:00",
+  "generated": "2026-10-11T23:14:08+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -3930,7 +3930,7 @@
     {
       "path": "Moblin/Intents/SnapshotIntent.swift",
       "lines": 17,
-      "sha256": "cd4f38d4b786512b063e9e31bafe4e43d0dda701b62b82f7238c707a12fb9dba",
+      "sha256": "4ed5350d26c68923e09b021f44a42a06533c994bc45f64698c75860be629e5a1",
       "imports": [
         "AppIntents"
       ],
@@ -6210,6 +6210,27 @@
       "kotlin_path": "app/src/test/java/com/moblin/android/various/network/HttpProxyServerSuite.kt",
       "deps": [
         "Moblin/Various/Network/HttpProxyServer.swift"
+      ],
+      "wave": 5
+    },
+    {
+      "path": "MoblinTests/Moblin/Various/Network/HttpServerSuite.swift",
+      "lines": 165,
+      "sha256": "fe6c3d3665d516c5fbc4c2e38f96416eba5e65a1e05688814239a198c1a236dc",
+      "imports": [
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "HttpServerSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.network",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/network/HttpServerSuite.kt",
+      "deps": [
+        "Moblin/Various/Network/HttpServer.swift"
       ],
       "wave": 5
     },
@@ -8944,8 +8965,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSnapshot.swift",
-      "lines": 179,
-      "sha256": "456e726505bf8af9e2d86d48bb6a39e7135e779a73b50defe1c798d7f372c7bd",
+      "lines": 242,
+      "sha256": "54eb2d986786bc989b0a7581ba2f4abc685336741e1a24d2b9d99364ba557dfc",
       "imports": [
         "ImageIO",
         "Photos",
@@ -8963,6 +8984,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSnapshot.kt",
       "deps": [
         "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Network/NetworkUtils.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/Various/Utils/Utils.swift"
       ],
@@ -12215,8 +12237,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsChat.swift",
-      "lines": 916,
-      "sha256": "a12e7c1bb0921faace845a57832388af3acb8deee0408c721a18c32aa1001247",
+      "lines": 967,
+      "sha256": "0c490ee646f63aa58d28d6e51da290c45a49e92150f70bdf6344ad0d04e082a9",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -12228,6 +12250,8 @@
         "SettingsChatBotPermissions",
         "SettingsChatBotAlias",
         "SettingsChatBotCustomCommand",
+        "SettingsChatBotCommandSnapshotSource",
+        "SettingsChatBotCommandSnapshot",
         "SettingsChatPredefinedMessage",
         "SettingsChatPredefinedMessagesFilter",
         "SettingsChatNickname",
@@ -13139,8 +13163,8 @@
     },
     {
       "path": "Moblin/Various/Network/HttpServer.swift",
-      "lines": 425,
-      "sha256": "be8f6f81d83699f8f8583bc02f396fda7eaea3aeccf0fc6d2dc24e578de04a90",
+      "lines": 449,
+      "sha256": "24365894da741e34c75f1f037a6a505cdc14a603c9e4c7ffca51cc0e06aa9b19",
       "imports": [
         "Foundation",
         "Network"
@@ -13157,8 +13181,6 @@
         "HttpServer"
       ],
       "private_types": [
-        "HttpRequestParseResult",
-        "HttpRequestParser",
         "HttpServerConnection"
       ],
       "declared_functions": [],
@@ -14294,8 +14316,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlWeb.swift",
-      "lines": 517,
-      "sha256": "8f1facb4ed98e968f64ff013a128c826eb82de1900154923e19f7da244bf2bfd",
+      "lines": 538,
+      "sha256": "5d6a1e2af906f6336752dffdd335f0b05e94674445c772c495b484a001a3f50d",
       "imports": [
         "Foundation",
         "Network"
@@ -15834,7 +15856,7 @@
     {
       "path": "Moblin/Various/Model/ModelGameController.swift",
       "lines": 334,
-      "sha256": "87ec2d5a6e836777175f3d34a92372cbea7719c147dccf9750bb88e1fe5df382",
+      "sha256": "28247f77527e7a27f69ae0f8017328c42229e117abc4bae08344f465475f230e",
       "imports": [
         "GameController"
       ],
@@ -16906,8 +16928,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
-      "lines": 1047,
-      "sha256": "a1345c5ad787fe37ff043a0e5d8eac06ee26a94c8bfa93d4ed4772f70465435c",
+      "lines": 1056,
+      "sha256": "3347f5e3e6722c8e0f51cbabdf1bfa67e0715723f6808a35a903ce851dafc739",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -19652,7 +19674,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButtonsView.swift",
       "lines": 1018,
-      "sha256": "6f0998e1a6c94f20f7d8a36bd790bcdf802e6bb468602146e4650cb1de18fe83",
+      "sha256": "61693f0b889b4853b40dc373c3d0a2fbe295451120f5b514c48da77f350a0f00",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -20491,7 +20513,7 @@
     {
       "path": "Moblin/Various/Model/ModelMacros.swift",
       "lines": 480,
-      "sha256": "7c6a8b6829926c7cd75177be508dab20cb37a663687fdd4f841e4abde863e502",
+      "sha256": "de75c5262b402076757a18739010f4a170579137f2f0f4f5cc0c0e67f25ad1ac",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -20670,8 +20692,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1481,
-      "sha256": "51848e88f4f32ada3ade7b4a60df5a9b9e73d98e54ccdda94a108045bc95ed0a",
+      "lines": 1485,
+      "sha256": "494524dc3486607664096dab4a7e1eb731ae6690e244de576b71cf465f65d5aa",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21806,8 +21828,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
-      "lines": 789,
-      "sha256": "cb98972427720311e84450e94bb4e787d23faceb00770a42385289cc5f85eed8",
+      "lines": 816,
+      "sha256": "33f06c4301e47106fd2d2f2dc60ae78a464224efc97b6c6cd9f0fd4f31d550ce",
       "imports": [
         "SwiftUI"
       ],
@@ -21882,16 +21904,20 @@
       "kotlin_package": "com.moblin.android.view.settings.chat",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatBotSettingsView.kt",
       "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Common/Various/Validate.swift",
         "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
         "Moblin/StreamingPlatforms/OpenStreamingPlatform/OpenStreamingPlatformChat.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelZoom.swift",
+        "Moblin/Various/Network/Ports.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift",
         "Moblin/View/Utils/OpenAiSettingsView.swift",
+        "Moblin/View/Utils/TextEditNavigationView.swift",
         "Moblin/View/Utils/TextEditView.swift",
         "Moblin/View/Utils/TextItemView.swift"
       ],

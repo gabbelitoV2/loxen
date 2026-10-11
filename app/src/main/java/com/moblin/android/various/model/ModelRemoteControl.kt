@@ -1501,6 +1501,10 @@ fun Model.remoteControlWebDeleteRecording(filename: String) {
     recordingThumbnailsCache.remove(filename)
 }
 
+fun Model.remoteControlWebTakeSnapshot(age: Float, onComplete: (ByteArray?) -> Unit) {
+    takeSnapshotHeic(age = age, onComplete = onComplete)
+}
+
 fun Model.remoteControlWebStartPreview() {
     isRemoteControlWebRequestingPreview = true
     setLowFpsImage()
@@ -1932,6 +1936,10 @@ private class RemoteControlWebDelegateAdapter(
 
     override fun remoteControlWebDeleteRecording(filename: String) {
         model.remoteControlWebDeleteRecording(filename = filename)
+    }
+
+    override fun remoteControlWebTakeSnapshot(age: Float, onComplete: (ByteArray?) -> Unit) {
+        model.remoteControlWebTakeSnapshot(age = age, onComplete = onComplete)
     }
 
     override fun remoteControlWebStartPreview() {

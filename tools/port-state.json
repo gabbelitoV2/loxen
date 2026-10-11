@@ -5987,27 +5987,28 @@
   },
   "Moblin/Various/Network/HttpServer.swift": {
     "status": "ok",
-    "sha256": "be8f6f81d83699f8f8583bc02f396fda7eaea3aeccf0fc6d2dc24e578de04a90",
+    "sha256": "24365894da741e34c75f1f037a6a505cdc14a603c9e4c7ffca51cc0e06aa9b19",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/network/HttpServer.kt",
     "notes": [
-      "Network.framework NWListener/NWConnection are replaced by java.net.ServerSocket/Socket; the accept loop and each connection read loop run as coroutines on Dispatchers.IO.",
-      "HttpServer.queue is modelled as a CoroutineDispatcher and the class exposes an internal scope so HttpServerConnection can share it; SimpleTimer is assumed to be constructible as SimpleTimer(queue: CoroutineDispatcher).",
-      "NWEndpoint.Port becomes Int (default 80); the NWListener.State failure branch became handleStateUpdate(failed: Boolean) driving the same 1 second retry through retryTimer.",
-      "sendFileAndClose takes a java.io.File and streams it in 512 KiB blocking chunks (iterative loop) instead of the recursive NWConnection completion chain.",
-      "HttpServerConnection is internal instead of fileprivate because it appears in HttpServerResponse's internal constructor; HttpServerResponse.connection is a plain nullable reference (Kotlin has no weak properties).",
-      "HttpParser, declared in the same package, is assumed to be an open class exposing data: ByteArray, append(data: ByteArray) and getLine(data: ByteArray, offset: Int): Pair<String, Int>?.",
-      "Data.advanced(by:)/prefix become ByteArray.copyOfRange/copyOf; utf8Data becomes String.toByteArray().",
-      "logger.debug/info become Log.d/Log.i with a file level TAG constant because Kotlin has no per-class logger."
+      "HttpRequestParseResult and HttpRequestParser lose their `private` modifier and become `internal`, matching the Swift struct/class that are no longer file-private.",
+      "query: Map<String, String> is added to HttpRequestParseResult, HttpServerRequest (constructor property in the same position as Swift) and the request built in HttpServerConnection.handleData.",
+      "The request target is split on the first \"?\" with split(\"?\", limit = 2) and empty parts filtered, mirroring Swift's split(maxSplits: 1) which omits empty subsequences; the path is the first part.",
+      "Query items are split on \"&\" and then on \"=\" (limit = 2, empty parts filtered) with the same name/value rules as Swift.",
+      "String.removingPercentEncoding() is a file-private helper (new Kotlin code, no platform equivalent exists): it scans the UTF-8 bytes, returns null on a malformed escape or on bytes that are not valid UTF-8, and never converts \"+\" to space, exactly like Swift.",
+      "The helper uses a strict UTF-8 CharsetDecoder, so it needs the java.nio.ByteBuffer and java.nio.charset.CodingErrorAction imports.",
+      "HttpServerStatus gains the serviceUnavailable entry (503 / \"Service Unavailable\") at the end of the enum and both when blocks.",
+      "Everything else (ServerSocket listener, NSD service registration, file sending) is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5866,
-    "tokens_out": 22933,
-    "seconds": 85.3,
-    "ported_at": "2026-09-22T13:06:49+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48785,
+    "tokens_out": 15681,
+    "seconds": 61.3,
+    "ported_at": "2026-10-11T23:15:21+00:00"
   },
   "Moblin/RemoteControl/RemoteControlStreamer.swift": {
     "status": "ok",
@@ -6083,51 +6084,45 @@
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
-    "sha256": "8f1facb4ed98e968f64ff013a128c826eb82de1900154923e19f7da244bf2bfd",
+    "sha256": "5d6a1e2af906f6336752dffdd335f0b05e94674445c772c495b484a001a3f50d",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlWeb.kt",
     "notes": [
-      "RemoteControlWebDelegate becomes a Kotlin interface; the Swift `weak` delegate is stored as a plain nullable property because Kotlin has no weak references for interfaces.",
-      "Network.framework NWListener/NWConnection is replaced with java.net.ServerSocket plus a hand-rolled RFC6455 WebSocket handshake and frame codec running on Dispatchers.IO; callbacks are dispatched back on a Dispatchers.Main scope.",
-      "NWListener.State update handling is reduced to a private `handleWebsocketStateUpdate(failed: Boolean)` helper that drives the same 1s retry timer.",
-      "UInt16 ports become Int (ServerSocket takes Int); string interpolation on the port value is preserved in config.mjs.",
-      "URL return of `remoteControlWebGetRecordingUrl` maps to java.net.URI; `[[String: String]]` recordings map to List<Map<String, String>>.",
-      "JSONSerialization is replaced with org.json.JSONArray and logger.info with android.util.Log.i using the class name as tag.",
-      "Sealed-class case names are assumed as RemoteControlRequest.*, RemoteControlResponse.*, RemoteControlMessageToAssistant.* and RemoteControlEvent.* (PascalCase, matching the Swift case labels).",
-      "@MainActor isolation is not reproduced; blocking socket work runs on Dispatchers.IO and UI-visible callbacks run on Dispatchers.Main."
+      "Added remoteControlWebTakeSnapshot(age, onComplete) to RemoteControlWebDelegate right after remoteControlWebDeleteRecording.",
+      "Added the /snapshot route next to /recordings.json in startServer.",
+      "Added handleSnapshot after handleRecordingsThumbnail, matching the Swift position.",
+      "HttpServerRequest in com.moblin.android.various.network has no query map, so the age parameter is read from the query part of request.path.",
+      "HttpServerStatus has no serviceUnavailable entry, so the unavailable responses use HttpServerStatus.notFound (same status the delegate-missing paths already use in this file).",
+      "resource.send is called directly inside the delegate callback, as in the Swift code; the HttpServer response keeps the connection open until then."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9176,
-    "tokens_out": 26760,
-    "seconds": 89.1,
-    "ported_at": "2026-09-22T13:07:26+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 54816,
+    "tokens_out": 12349,
+    "seconds": 43.7,
+    "ported_at": "2026-10-11T23:15:03+00:00"
   },
   "Moblin/Various/Model/ModelGameController.swift": {
     "status": "ok",
-    "sha256": "87ec2d5a6e836777175f3d34a92372cbea7719c147dccf9750bb88e1fe5df382",
+    "sha256": "28247f77527e7a27f69ae0f8017328c42229e117abc4bae08344f465475f230e",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelGameController.kt",
     "notes": [
-      "Model is declared in the same package, so this file holds top-level extension functions on Model; the Swift file-private `thumbStickDeadZone` became a private top-level `const val`.",
-      "GameController has no Android counterpart: GCController is replaced by android.view.InputDevice and the per-button `pressedChangedHandler` / `valueChangedHandler` wiring is gone because the Activity delivers KeyEvent/MotionEvent instead.",
-      "`handleGameControllerButton` and `handleGameControllerThumbStick` were private in Swift and are left public on purpose so the Activity layer can forward key and motion events into them.",
-      "`button.sfSymbolsName` is replaced by an explicit `buttonId: String` parameter; the Activity is expected to map KeyEvent key codes to the same ids stored in SettingsGameControllerButton.name.",
-      "`String(localized:)` became the top-level `localized()` function imported from com.moblin.android.",
-      "`Gimbal.shared?.animate(motion:)` keeps the `shared` accessor shape; the iOS 18 availability check is dropped since it does not exist on Android.",
-      "The `[weak self]` capture in the gimbal preset long-press timer is dropped; Kotlin lambdas capture strongly, so the timer must be stopped/removed to avoid retaining the Model.",
-      "SettingsQuickButtonType is not in the glossary and is assumed to live in com.moblin.android.various.settings; fix the import if the port placed it elsewhere."
+      "Only change: the .snapshot branch now calls takeSnapshot(age: 0.0, isChatBot: false, message: null) as on iOS.",
+      "Everything else, including the hand-written Android GCController wiring and the InputDevice typealias, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5086,
-    "tokens_out": 20157,
-    "seconds": 75.9,
-    "ported_at": "2026-09-22T13:08:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43677,
+    "tokens_out": 3060,
+    "seconds": 9.5,
+    "ported_at": "2026-10-11T23:14:29+00:00"
   },
   "Moblin/Integrations/GoPro/GoProDevice.swift": {
     "status": "ok",
@@ -7077,26 +7072,22 @@
   },
   "Moblin/Intents/SnapshotIntent.swift": {
     "status": "ok",
-    "sha256": "cd4f38d4b786512b063e9e31bafe4e43d0dda701b62b82f7238c707a12fb9dba",
-    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
-    "mode": "full",
+    "sha256": "4ed5350d26c68923e09b021f44a42a06533c994bc45f64698c75860be629e5a1",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/intents/SnapshotIntent.kt",
     "notes": [
-      "AppIntent maps to the AppIntents shim: SnapshotIntent is a plain class implementing AppIntent, with title/description/openAppWhenRun in its companion object.",
-      "@Dependency private var model: Model becomes `private val model: Model by Dependency<Model>()`, which resolves the model that was registered with AppDependencyManager.",
-      "@MainActor func perform() async throws -> some IntentResult becomes `override suspend fun perform(): IntentResult`; the TODO-free body calls the Model extension takeSnapshot() and returns IntentResult.result().",
-      "takeSnapshot() is the Model extension imported from com.moblin.android.various.model, not a member declared here.",
-      "LocalizedStringResource is a typealias of String in the shim, so the title and description strings are stored unchanged.",
-      "The declaration order of the Swift file (title, description, openAppWhenRun, perform, model) is preserved."
+      "Only the perform() call site changed: takeSnapshot now receives age, isChatBot and message, matching the new Swift call with Kotlin named arguments.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 36777,
-    "tokens_out": 988,
-    "seconds": 5.4,
-    "ported_at": "2026-09-25T23:00:20+00:00"
+    "tokens_in": 39051,
+    "tokens_out": 483,
+    "seconds": 2.9,
+    "ported_at": "2026-10-11T23:14:23+00:00"
   },
   "Moblin/Media/HaishinKit/Extension/CMVideoFormatDescription+Extension.swift": {
     "status": "ok",
@@ -9538,26 +9529,28 @@
   },
   "Moblin/Various/Model/ModelSnapshot.swift": {
     "status": "ok",
-    "sha256": "456e726505bf8af9e2d86d48bb6a39e7135e779a73b50defe1c798d7f372c7bd",
-    "moblin_commit": "9cdae30a02b72102eaeb96ef439b4fe09a0cc048",
+    "sha256": "54eb2d986786bc989b0a7581ba2f4abc685336741e1a24d2b9d99364ba557dfc",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSnapshot.kt",
     "notes": [
-      "The success toast moved out of takeSnapshot into the photo-library completion handler: it now only shows when the write succeeds, on the main thread via mainScope.launch.",
-      "The failure branch now calls Model.makeErrorToastMain(title = ..., subTitle = error.localizedMessage) instead of logging.",
-      "The old Log.i call was removed with the Swift logger.info line; the Log import and the private TAG constant are kept byte-identical as required for unchanged lines.",
-      "mainScope (CoroutineScope(Dispatchers.Main)) already exists in this file and stands in for DispatchQueue.main.async.",
-      "localized(...) keeps the same format strings, including the interpolated user name variants.",
-      "encodeSnapshotForPhotos still returns JPEG bytes; NSMutableData/CGImageDestination have no Android counterpart and keep their existing JPEG encoding."
+      "takeSnapshot now takes age/isChatBot/message; the estimatedViewerDelay computation moved to the callers.",
+      "SnapshotJob no longer stores isChatBot and instead carries the takeSnapshot closure that performs the delayed capture.",
+      "takeSnapshotWithCountdown loses its isChatPhone guard and its isChatBot parameter, and takes the takeSnapshot closure.",
+      "Added takeSnapshotWebRemoteControl, takeSnapshotHeic and the shared private handleSnapshot, inserted in the same declaration order as the Swift file.",
+      "saveSnapshotToPhotos is split in two: the Bitmap overload encodes and then hops to main, the ByteArray overload writes the asset to Photos.",
+      "The Discord live-only check moved out of tryUploadSnapshotToDiscord into the call site inside takeSnapshot, as in Swift.",
+      "request.timeoutInterval = 15 has no per-request OkHttp counterpart on Request.Builder, so it is dropped; the shared client's default timeouts apply.",
+      "URL(string:).appending(path:queryItems:) is built with java.net.URI (scheme/authority/path/query) since there is no direct Kotlin equivalent."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59226,
-    "tokens_out": 5250,
-    "seconds": 21.1,
-    "ported_at": "2026-10-10T23:00:21+00:00"
+    "tokens_in": 62483,
+    "tokens_out": 22134,
+    "seconds": 89.7,
+    "ported_at": "2026-10-11T23:15:50+00:00"
   },
   "Moblin/Various/Model/ModelSrtClient.swift": {
     "status": "ok",
@@ -11801,25 +11794,28 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "a12e7c1bb0921faace845a57832388af3acb8deee0408c721a18c32aa1001247",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "0c490ee646f63aa58d28d6e51da290c45a49e92150f70bdf6344ad0d04e082a9",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "Added the textToSpeechSayEmotes published property, its encode entry and its decode entry in SettingsChat.",
-      "The new property uses the Published delegate like the neighbouring textToSpeechSayUsername, so Settings views observe it directly.",
-      "The JSON key is textToSpeechSayEmotes in both directions, matching the Swift CodingKeys case.",
-      "Default is false in the property initializer and in the decode call, as in Swift.",
-      "No other declaration in the file changed."
+      "Added SettingsChatBotCommandSnapshotSource and SettingsChatBotCommandSnapshot after SettingsChatBotCustomCommand, matching the Swift declaration order.",
+      "SettingsChatBotCommandSnapshotSource keeps the Swift raw values (\"This device\", \"Web remote control\") and falls back to thisDevice when the decoded string is unknown, like SettingsVoiceType.",
+      "Its Serializer is referenced explicitly (SettingsChatBotCommandSnapshotSource.Serializer) so decoding does not depend on a generated serializer for an enum with a custom one.",
+      "SettingsChatBotCommandSnapshot exposes source and webRemoteControlUrl as Published delegates, so SwiftUI views observe them without collectAsState.",
+      "botCommandSnapshot was added to SettingsChat right after botCommandAi as a plain var, since Swift declares it without @Published.",
+      "Its encode/decode entry was inserted in the same position as in the Swift container, keyed \"botCommandSnapshot\".",
+      "Decoding uses the explicit SettingsChatBotCommandSnapshot.serializer() with SettingsChatBotCommandSnapshot() as default, mirroring the botCommandAi line.",
+      "No other line of the file was changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58943,
-    "tokens_out": 9261,
-    "seconds": 23.6,
-    "ported_at": "2026-10-09T00:00:23+00:00"
+    "tokens_in": 59818,
+    "tokens_out": 12916,
+    "seconds": 40.0,
+    "ported_at": "2026-10-11T23:15:00+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -14552,26 +14548,26 @@
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "a1345c5ad787fe37ff043a0e5d8eac06ee26a94c8bfa93d4ed4772f70465435c",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "3347f5e3e6722c8e0f51cbabdf1bfa67e0715723f6808a35a903ce851dafc739",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
     "notes": [
-      "Applied the diff only: added the ChatBotMainArgument.torch branch, the three torch handler functions, and the ChatBotTorchArgument import.",
-      "Everything else is byte-identical to the current Kotlin file.",
-      "database.chat.botCommandPermissions.torch is used exactly as the Swift code does; the SettingsChatBotPermissions declaration snippet in the request does not list a torch member, so that settings class must carry it (or be updated alongside) for this to compile.",
-      "setTorch(on =), updateTorch() and SettingsQuickButtonType.torch are Model/Settings members from other files, called by name.",
-      "database.torchLevel is a Float, so level.toFloat() / 100 matches Swift's Float(level) / 100.",
-      "command.popFirstInt(1..100) returns Int?; the early return replaces Swift's guard let."
+      "handleChatBotMessageSnapshot and handleChatBotMessageSnapshotWithMessage now route the snapshot through database.chat.botCommandSnapshot.source, using SettingsChatBotCommandSnapshotSource.thisDevice / .webRemoteControl (Swift case names) in a when.",
+      "Added import com.moblin.android.various.settings.SettingsChatBotCommandSnapshotSource, kept in the file's alphabetical import block.",
+      "stream is the MutableStateFlow<SettingsStream>, so estimatedViewerDelay is read as stream.value.estimatedViewerDelay and passed as age.",
+      "handleChatBotMessageSnapshot now builds a nullable message instead of branching on a second takeSnapshot overload; the same value is passed to both snapshot paths.",
+      "The countdown path now ends with a completion lambda that receives the message and picks the snapshot source with age 0.0, matching the new Swift trailing closure.",
+      "onNotAllowed bodies of both functions are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 65870,
-    "tokens_out": 9843,
-    "seconds": 27.3,
-    "ported_at": "2026-09-30T23:15:32+00:00"
+    "tokens_in": 66363,
+    "tokens_out": 11143,
+    "seconds": 32.9,
+    "ported_at": "2026-10-11T23:14:53+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -14923,23 +14919,22 @@
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
-    "sha256": "6f0998e1a6c94f20f7d8a36bd790bcdf802e6bb468602146e4650cb1de18fe83",
-    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
+    "sha256": "61693f0b889b4853b40dc373c3d0a2fbe295451120f5b514c48da77f350a0f00",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt",
     "notes": [
-      "photoShootAction() now only calls model.togglePhotoShoot(); the four removed Swift statements are deleted from Kotlin.",
-      "The now-unused imports of startPhotoShoot and stopPhotoShoot were removed, since they existed solely for the deleted lines.",
-      "Everything else in the file is unchanged, including the hand-written MinimumScaleText, SystemImage and AssetImage helpers."
+      "Single-line change: snapshotAction now calls takeSnapshot with explicit arguments.",
+      "All other declarations, imports and formatting are kept byte-identical to the current Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61386,
-    "tokens_out": 7556,
-    "seconds": 19.9,
-    "ported_at": "2026-10-09T23:36:21+00:00"
+    "tokens_in": 61279,
+    "tokens_out": 7507,
+    "seconds": 19.8,
+    "ported_at": "2026-10-11T23:14:44+00:00"
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
@@ -15841,28 +15836,23 @@
   },
   "Moblin/Various/Model/ModelMacros.swift": {
     "status": "ok",
-    "sha256": "7c6a8b6829926c7cd75177be508dab20cb37a663687fdd4f841e4abde863e502",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "de75c5262b402076757a18739010f4a170579137f2f0f4f5cc0c0e67f25ad1ac",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMacros.kt",
     "notes": [
-      "Adds the new .notification macro action: the flatMap filter in macrosTextFormatActions, the when in macrosActionTextFormat, and a new NOTIFICATION branch in executeNextAction.",
-      "New private extension Model.executeNotification builds a macro ChatPost, appends it to chatActivityFeed and quickButtonChatAlerts, and bumps chatPostId, inserted right after executeSendChatMessage as in Swift.",
-      "This change requires SettingsMacrosActionFunction.NOTIFICATION and SettingsMacrosAction.notificationMessage, which are not present in the currently declared Kotlin dependencies; they must be added in SettingsMacros.kt.",
-      "Added imports for ChatPost, ChatPostState, ChatHighlight, makeChatPostTextSegments (com.moblin.android.various) and java.time.Instant; all other imports are untouched.",
-      "Swift's .now for timestampTime becomes Instant.now().",
-      "Swift's default empty userBadges array becomes emptyList().",
-      "The diff's added `return true` in executeSendChatMessage already existed in the Kotlin file, so that function is unchanged.",
-      "chatActivityFeed/quickButtonChatAlerts calls keep the Swift label post: as the named argument post = post."
+      "Only the executeSnapshot body changed: takeSnapshot() now passes age, isChatBot and message.",
+      "Translated to the named-argument Kotlin call takeSnapshot(age = 0.0, isChatBot = false, message = null).",
+      "Nothing else in the file was touched; imports, declaration order and hand-written Android code (Log.i, CoroutineScope(Dispatchers.Main), mutableListOf, .value reads) stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 52925,
-    "tokens_out": 7491,
-    "seconds": 23.1,
-    "ported_at": "2026-10-02T23:59:53+00:00"
+    "tokens_in": 52767,
+    "tokens_out": 4588,
+    "seconds": 13.0,
+    "ported_at": "2026-10-11T23:14:42+00:00"
   },
   "Moblin/Various/Model/ModelMediaPlayer.swift": {
     "status": "ok",
@@ -16003,27 +15993,25 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "51848e88f4f32ada3ade7b4a60df5a9b9e73d98e54ccdda94a108045bc95ed0a",
+    "sha256": "494524dc3486607664096dab4a7e1eb731ae6690e244de576b71cf465f65d5aa",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "RemoteControl's @Published properties become `_name` MutableStateFlow backings (declared `internal` so the Model extension functions in this same file can write them) plus public `name: StateFlow`, so assignments read `remoteControl._scene.value = ...`.",
-      "The three `extension Model: ...Delegate` blocks are emitted as top-level extension functions; Kotlin cannot add interface conformance from another file, so `Model` itself must declare `RemoteControlStreamerDelegate`, `RemoteControlAssistantDelegate` and `RemoteControlWebDelegate` (imports of those interfaces are left to Model.kt).",
-      "UIKit/Foundation types mapped: UIImage -> android.graphics.Bitmap, Data -> ByteArray, Date -> java.time.Instant, UUID -> java.util.UUID, CLLocation -> android.location.Location, `URL(string:)` -> java.net.URI built in runCatching, file URLs -> java.io.File.",
-      "WeatherKit `.converted(to: .celsius)` / `.converted(to: .metersPerSecond)` are dropped: the Kotlin weather model is assumed to already expose temperature in Celsius and wind speed/gust in m/s.",
-      "`statusOther.thermalState` is assumed to be an Int matching android.os.PowerManager.THERMAL_STATUS_* constants (NONE/LIGHT -> white, MODERATE -> yellow, rest -> red).",
-      "AVFoundation AVURLAsset/AVAssetImageGenerator for recording thumbnails is replaced with android.media.MediaMetadataRetriever + Bitmap JPEG compression (quality 90, max 480x480).",
-      "Enum entries keep the Swift spelling in lowerCamelCase (RemoteControlAssistantPreviewUser.panel/.watch, RemoteControlFilter.movie, RemoteControlStatusGeneralFlame.white, ...) to stay readable next to the Swift source.",
-      "`SettingsQuickButtonType`, `SettingsWidgetType.scene` and `CameraPosition` are assumed to live in this same package (com.moblin.android.various.model) as in the Swift layout; `formatBytes` is assumed to be a numeric extension in com.moblin.android.common.various."
+      "Added Model.remoteControlWebTakeSnapshot(age, onComplete) directly between remoteControlWebDeleteRecording and remoteControlWebStartPreview, matching the Swift diff.",
+      "Data? becomes ByteArray? and the @MainActor completion handler becomes a plain Kotlin lambda (ByteArray?) -> Unit.",
+      "The body forwards to takeSnapshotHeic(age = age, onComplete = onComplete) with the Swift-shaped call.",
+      "RemoteControlWebDelegateAdapter is left untouched: the current Kotlin RemoteControlWebDelegate declaration does not include remoteControlWebTakeSnapshot, so adding an override would not compile.",
+      "Everything else in the file is unchanged, including the hand-written Android bodies."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 19573,
-    "tokens_out": 52169,
-    "seconds": 169.6,
-    "ported_at": "2026-09-22T14:05:41+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 88387,
+    "tokens_out": 19996,
+    "seconds": 60.9,
+    "ported_at": "2026-10-11T23:15:41+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
@@ -16493,25 +16481,26 @@
   },
   "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
     "status": "ok",
-    "sha256": "cb98972427720311e84450e94bb4e787d23faceb00770a42385289cc5f85eed8",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "33f06c4301e47106fd2d2f2dc60ae78a464224efc97b6c6cd9f0fd4f31d550ce",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatBotSettingsView.kt",
     "notes": [
-      "Applies only the three Swift diff hunks: TextFormatVariablesView now receives model, ChatBotCustomCommandsSettingsView takes model explicitly, and its call site passes model.",
-      "ChatBotCustomCommandsSettingsView keeps its existing hand-written `model: Model = LocalModel.current` parameter and platform hook, since the explicit Swift `let model` maps onto the same parameter.",
-      "The ChatBotCustomCommandsSettingsView call site in ChatBotSettingsView now passes model = model, matching the new Swift argument.",
-      "TextFormatVariablesView is called with model = model plus the widget/value/onChange arguments already in the file.",
-      "No other declaration, import, formatting or order changed."
+      "SnapshotPermissionsSettingsView now takes the SettingsChatBotCommandSnapshot and shows a Source picker with the conditional web remote control URL entry.",
+      "The ChatBotCommandsSettingsView call site passes database.chat.botCommandSnapshot.",
+      "The Source enum picker uses SettingsChatBotCommandSnapshotSource.entries with the default text lambda, so the enum's own toString() is displayed as in Swift's source.toString().",
+      "isValidHttpUrl and cleanUrl come from com.moblin.android.common.various and DefaultTcpPorts from com.moblin.android.various.network.",
+      "The Swift multiline footer string with a line continuation is a single-line Kotlin string split with +, matching the file's existing style.",
+      "The NavigationLink inside the Form is the real destination, never a string route."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58819,
-    "tokens_out": 7819,
-    "seconds": 21.7,
-    "ported_at": "2026-10-06T23:24:06+00:00"
+    "tokens_in": 62726,
+    "tokens_out": 13060,
+    "seconds": 44.9,
+    "ported_at": "2026-10-11T23:15:29+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift": {
     "status": "ok",
@@ -18379,5 +18368,29 @@
     "tokens_out": 4128,
     "seconds": 16.2,
     "ported_at": "2026-10-09T00:27:37+00:00"
+  },
+  "MoblinTests/Moblin/Various/Network/HttpServerSuite.swift": {
+    "status": "ok",
+    "sha256": "fe6c3d3665d516c5fbc4c2e38f96416eba5e65a1e05688814239a198c1a236dc",
+    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/network/HttpServerSuite.kt",
+    "notes": [
+      "HttpRequestParser and HttpRequestParseResult declarations were not supplied; their Swift shape (append(data:), parse() -> (Bool, HttpRequestParseResult?)) is translated positionally as append(ByteArray) and parse(): Pair<Boolean, HttpRequestParseResult?> and must be reconciled with the hand-written parser.",
+      "request.query is read as a Kotlin Map<String, String>, so dictionary literals become mapOf(...) and isEmpty() checks call query.isEmpty().",
+      "request.data is a ByteArray, so the Swift `request.data == \"hello\".utf8Data` becomes assertContentEquals(\"hello\".toByteArray(), request.data).",
+      "The header check uses any { it.name == ... && it.value == ... } inside a lambda, so SettingsHttpHeader does not need to be imported here.",
+      "try #require(result) becomes val request = assertNotNull(result), which returns the non-null value; the Swift `throws` markers disappear.",
+      "#expect(!done) becomes assertFalse(done) and #expect(result == nil) becomes assertNull(result).",
+      "The suite has no Swift init, so there is no @Before setUp; no locale or time zone setup is needed because the suite only parses ASCII request strings."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 30904,
+    "tokens_out": 4962,
+    "seconds": 19.4,
+    "ported_at": "2026-10-11T23:14:38+00:00"
   }
 }

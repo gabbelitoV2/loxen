@@ -429,7 +429,7 @@ fun QuickButtonsInnerView(
     }
 
     fun snapshotAction() {
-        model.takeSnapshot()
+        model.takeSnapshot(age = 0.0f, isChatBot = false, message = null)
     }
 
     fun widgetsAction() {
