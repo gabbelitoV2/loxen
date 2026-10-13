@@ -101,6 +101,13 @@ private fun makeMediaDelegate(): MediaDelegate =
         java.lang.reflect.InvocationHandler { _, _, _ -> null },
     ) as MediaDelegate
 
+private fun makeHapticsDelegate(): HapticsDelegate =
+    java.lang.reflect.Proxy.newProxyInstance(
+        HapticsDelegate::class.java.classLoader,
+        arrayOf(HapticsDelegate::class.java),
+        java.lang.reflect.InvocationHandler { _, _, _ -> null },
+    ) as HapticsDelegate
+
 private sealed class BackgroundRunLevel {
     data object Full : BackgroundRunLevel()
 
@@ -680,6 +687,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val vTuberStorage = VTuberStorage()
     val pngTuberStorage = PngTuberStorage()
     val reconnectTimer = MainTimer()
+    val haptics = Haptics()
     var logId = 1
     private var serversSpeed: Long = 0
     var adsEndDate: Instant? = null
@@ -1121,7 +1129,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setAllowHapticsAndSystemSoundsDuringRecording() {
-        runCatching { AVAudioSession.sharedInstance().setAllowHapticsAndSystemSoundsDuringRecording(database.vibrate) }
+        val allow = database.vibrate || haptics.isActive
+        runCatching {
+            AVAudioSession.sharedInstance().setAllowHapticsAndSystemSoundsDuringRecording(allow)
+        }
     }
 
     private fun removeUnusedKeychainItems() {
@@ -1230,6 +1241,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         })
         setupAppIntents()
         faxReceiver.delegate = this
+        haptics.delegate = makeHapticsDelegate()
         fixAlertMediasNoUpdate()
         setNativeLowLightBoost()
         setExternalCameraVideoRange()

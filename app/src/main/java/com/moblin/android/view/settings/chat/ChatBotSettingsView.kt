@@ -495,6 +495,31 @@ private fun TorchPermissionsSettingsView(
 }
 
 @Composable
+private fun VibratePermissionsSettingsView(
+    permissions: SettingsChatBotPermissionsCommand,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
+) {
+    Section(
+        footerContent = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "!moblin vibrate on [<seconds>] [<intensity>] [<sharpness>]")
+                Text(text = "Vibrate the phone. Until turned off if no seconds is given.")
+                Text(text = "Intensity and sharpness from 1 to 100, default 100 and 50.")
+                Text(text = "")
+                Text(text = "!moblin vibrate off")
+                Text(text = "Stop vibrating the phone.")
+            }
+        },
+    ) {
+        PermissionsSettingsView(
+            title = "!moblin vibrate ...",
+            permissions = permissions,
+            onNavigate = onNavigate
+        )
+    }
+}
+
+@Composable
 private fun TeslaPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
@@ -684,6 +709,10 @@ private fun ChatBotCommandsSettingsView(
         )
         TorchPermissionsSettingsView(
             permissions = permissions.torch,
+            onNavigate = onNavigate
+        )
+        VibratePermissionsSettingsView(
+            permissions = permissions.vibrate,
             onNavigate = onNavigate
         )
         SendPermissionsSettingsView(

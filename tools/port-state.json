@@ -4269,22 +4269,22 @@
   },
   "Moblin/Various/ChatBotCommand.swift": {
     "status": "ok",
-    "sha256": "873755742e1a24609911cf1d12791de094be0e95837f39212969053252b566b5",
-    "moblin_commit": "bcc9866a796351ef695776943fa703d57fb62022",
+    "sha256": "f745938e551ae6220e6009517a3cee7aae5ec698b733e4c716a8d529b647fa54",
+    "moblin_commit": "17233fcc544596fe264fddb9d360d1b0f4a246e4",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatBotCommand.kt",
     "notes": [
-      "Added the new `clear` case to `ChatBotMusicArgument`, matching the Swift diff; nothing else changed.",
-      "All other Kotlin lines, including the hand-written fuzzy-matching port and the Android-specific `ArrayDeque`-based `ChatBotCommand`, are byte-identical to the current file."
+      "Added the new `vibrate` entry to ChatBotMainArgument right after `torch`, matching the Swift enum order.",
+      "Everything else in the file is untouched and byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 39965,
-    "tokens_out": 3470,
-    "seconds": 12.3,
-    "ported_at": "2026-10-13T01:39:58+00:00"
+    "tokens_in": 39968,
+    "tokens_out": 3486,
+    "seconds": 11.3,
+    "ported_at": "2026-10-13T23:28:49+00:00"
   },
   "Moblin/Various/Model/ModelLog.swift": {
     "status": "ok",
@@ -11789,28 +11789,23 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "0c490ee646f63aa58d28d6e51da290c45a49e92150f70bdf6344ad0d04e082a9",
-    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "sha256": "0deb1b9518c19edd6d3840edbfad3d3f635f596f79e6299de0fc06a370feafc7",
+    "moblin_commit": "17233fcc544596fe264fddb9d360d1b0f4a246e4",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "Added SettingsChatBotCommandSnapshotSource and SettingsChatBotCommandSnapshot after SettingsChatBotCustomCommand, matching the Swift declaration order.",
-      "SettingsChatBotCommandSnapshotSource keeps the Swift raw values (\"This device\", \"Web remote control\") and falls back to thisDevice when the decoded string is unknown, like SettingsVoiceType.",
-      "Its Serializer is referenced explicitly (SettingsChatBotCommandSnapshotSource.Serializer) so decoding does not depend on a generated serializer for an enum with a custom one.",
-      "SettingsChatBotCommandSnapshot exposes source and webRemoteControlUrl as Published delegates, so SwiftUI views observe them without collectAsState.",
-      "botCommandSnapshot was added to SettingsChat right after botCommandAi as a plain var, since Swift declares it without @Published.",
-      "Its encode/decode entry was inserted in the same position as in the Swift container, keyed \"botCommandSnapshot\".",
-      "Decoding uses the explicit SettingsChatBotCommandSnapshot.serializer() with SettingsChatBotCommandSnapshot() as default, mirroring the botCommandAi line.",
-      "No other line of the file was changed."
+      "Added the vibrate permission command to SettingsChatBotPermissions: property, encode entry and decode entry, matching the Swift diff.",
+      "Kotlin has no CodingKeys enum; the JSON keys are string literals in encode() and decode(), so the Swift `case vibrate` has no direct Kotlin counterpart.",
+      "All other lines are byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59818,
-    "tokens_out": 12916,
-    "seconds": 40.0,
-    "ported_at": "2026-10-11T23:15:00+00:00"
+    "tokens_in": 59825,
+    "tokens_out": 9984,
+    "seconds": 28.7,
+    "ported_at": "2026-10-13T23:29:06+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -14543,23 +14538,25 @@
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "ec22117db844de904649d52760a9e0069507622d0b021a9390c7ee7929e18f53",
-    "moblin_commit": "bcc9866a796351ef695776943fa703d57fb62022",
+    "sha256": "2192547d5351ab6a18777d8dc9a79ab3c73913906e07f04c536629043eb73666",
+    "moblin_commit": "17233fcc544596fe264fddb9d360d1b0f4a246e4",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
     "notes": [
-      "The diff adds the ChatBotMusicArgument.clear branch and handleChatBotMessageMusicClear(), which calls the existing clearMusic().",
-      "ChatBotMusicArgument in com.moblin.android.various must expose a clear entry for the new branch to compile; the declared enum in the request only lists play, pause, add, next, previous and status, so ChatBotCommand.kt needs the matching new case.",
-      "Everything else in the file is unchanged and kept byte-identical, including the Android-specific shuffles such as stream.value, audio.muted.value and SettingsReaction.fromRawValue."
+      "Only the vibrate command was added, matching the Swift diff: a ChatBotMainArgument.vibrate branch in handleChatBotMessage and a new handleChatBotMessageVibrate.",
+      "ChatBotMainArgument.vibrate and SettingsChatBotPermissions.vibrate are not in the listed Kotlin declarations yet; they come from the same Swift change in ChatBotCommand.kt and SettingsChat.kt, so they are referenced as the Swift code does.",
+      "handleChatBotMessageVibrate calls Model.haptics.start(duration =, intensity =, sharpness =) and Model.haptics.stop() exactly like the Swift self.haptics calls; the Moblin Haptics port drives the Android Vibrator.",
+      "duration stays a nullable Double from popFirstDouble(0.1..3600.0), intensity and sharpness default to 100 and 50 and are divided by 100 into Floats.",
+      "Everything else in the file, including the hand-written music-result formatting and the subscription tier check, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66272,
-    "tokens_out": 10217,
-    "seconds": 34.1,
-    "ported_at": "2026-10-13T01:40:20+00:00"
+    "tokens_in": 66698,
+    "tokens_out": 15380,
+    "seconds": 59.5,
+    "ported_at": "2026-10-13T23:29:37+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -16409,27 +16406,25 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "a5f6a2d425119eb41aaf5e8c406c0622baa3220dde6acedf768e26cf96d48798",
-    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
+    "sha256": "1b923dd58c4cebf1651a122fc2d7567b50e6a088af93466bf3a2313a9e06e8f5",
+    "moblin_commit": "17233fcc544596fe264fddb9d360d1b0f4a246e4",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "PhotoShootProvider gained timer, flashTimer (MainTimer), the published nextPhotoTime (ContinuousClock.Instant?) and the plain var active.",
-      "Model lost photoShootTimer and photoShootFlashTimer, which now live on PhotoShootProvider as photoShoot.timer / photoShoot.flashTimer.",
-      "cameraPreviewView.setDevices lost its widgets argument in both attachCameraFinalize and attachBufferedCamera.",
-      "activatePhotoShoot() is now called at the end of the attachCameraFinalize onSuccess block, and attachBufferedCamera gained an onSuccess callback that calls it too.",
-      "nextPhotoTime keeps the Apple ContinuousClock.Instant type and is exposed as a MutableStateFlow so Compose observes it like SwiftUI.",
-      "attachBufferedCamera's onSuccess callback is written in Kotlin parameter syntax (onSuccess = { ... }) matching the other media.attach* call in this file.",
-      "All other lines, imports and declaration order are unchanged from the previous translation."
+      "Adds a Haptics instance to Model, used both as a delegate and for its isActive flag, matching the Swift change.",
+      "setAllowHapticsAndSystemSoundsDuringRecording now allows haptics while the vibrator is running (Haptics.isActive) in addition to database.vibrate.",
+      "Keep faxReceiver.delegate = this untouched; haptics.delegate = this is added right after it.",
+      "Model must implement HapticsDelegate (the Swift conformance lives outside this file); haptics.delegate = this assumes the delegate hooks are declared in ModelHaptics.kt, as for FaxReceiverDelegate.",
+      "Haptics and HapticsDelegate already resolve through the existing com.moblin.android.various.* import, so no new import is needed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 145856,
-    "tokens_out": 38331,
-    "seconds": 100.6,
-    "ported_at": "2026-10-09T23:37:48+00:00"
+    "tokens_in": 145551,
+    "tokens_out": 35236,
+    "seconds": 103.0,
+    "ported_at": "2026-10-13T23:30:23+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16473,23 +16468,28 @@
   },
   "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
     "status": "ok",
-    "sha256": "c788add20fb240e9242a06843bf5b27ff4a8bbeab8642fba0ce64b46cc389a2e",
-    "moblin_commit": "bcc9866a796351ef695776943fa703d57fb62022",
+    "sha256": "125e7d9ddfb108ed68f6025c5aac0380165cd806e9e591be1409acd3eff6fa34",
+    "moblin_commit": "17233fcc544596fe264fddb9d360d1b0f4a246e4",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatBotSettingsView.kt",
     "notes": [
-      "Only the AppleMusicPermissionsSettingsView footer gained three lines in the Swift diff.",
-      "Inserted the matching Compose Text lines after `Text(text = \"Show status.\")` in the same order.",
-      "Every other line of the Kotlin file is unchanged, including imports, handlers and platform hook calls."
+      "Added VibratePermissionsSettingsView as a private @Composable, copied from the Torch/Stream footer pattern: Section with PermissionsSettingsView plus a Column footer of Text rows.",
+      "The Swift footer VStack(alignment: .leading) maps to Column(verticalArrangement = Arrangement.spacedBy(8.dp)), matching the other multi-line footers in this file.",
+      "Text(String(\"...\")) in the footer is a plain, non-localized string, so it stays a raw Kotlin string literal; only the PermissionsSettingsView title (which Swift passes as a plain string too) stays literal as well.",
+      "Inserted the VibratePermissionsSettingsView(...) call in ChatBotCommandsSettingsView right after Torch and before Send, preserving the Swift command order.",
+      "The call forwards permissions.vibrate and the ambient onNavigate like its siblings, since SettingsChatBotPermissions declares the vibrate command permissions.",
+      "No new imports were needed; Column, Arrangement, dp, Text, Section and PermissionsSettingsView were already imported in this file.",
+      "Everything else in the file is untouched, including the hand-written onNavigate plumbing and ContextMenuDeleteButton wrappers.",
+      "declared_types is empty because this file only declares top-level composable functions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62592,
-    "tokens_out": 7324,
-    "seconds": 22.5,
-    "ported_at": "2026-10-13T01:40:08+00:00"
+    "tokens_in": 63074,
+    "tokens_out": 7775,
+    "seconds": 23.7,
+    "ported_at": "2026-10-13T23:29:01+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift": {
     "status": "ok",
@@ -18381,5 +18381,52 @@
     "tokens_out": 4962,
     "seconds": 19.4,
     "ported_at": "2026-10-11T23:14:38+00:00"
+  },
+  "Moblin/Various/Model/ModelHaptics.swift": {
+    "status": "ok",
+    "sha256": "56ae96d6a192edc0d2b5b7b7e6bf105fcfef38e258b5b15dc6ce0b59e4ef46ad",
+    "moblin_commit": "17233fcc544596fe264fddb9d360d1b0f4a246e4",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelHaptics.kt",
+    "notes": [
+      "Swift 'extension Model: HapticsDelegate' becomes a top-level extension function on Model; Kotlin has no way to add protocol conformance from another file, so Model itself must declare 'HapticsDelegate' in its own header (see Model.kt).",
+      "Model lives in the same package com.moblin.android.various.model, so no import for it is needed.",
+      "HapticsDelegate is not imported because the conformance is expressed in Model's class header, not in this file.",
+      "setAllowHapticsAndSystemSoundsDuringRecording() is a Model extension declared in the audio session file; it is called unchanged, matching the AVAudioSession shim's setAllowHapticsAndSystemSoundsDuringRecording(value).",
+      "No state, no coroutines and no Kotlin-specific workaround is required, the function is a one-line delegation."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 34864,
+    "tokens_out": 748,
+    "seconds": 5.2,
+    "ported_at": "2026-10-13T23:28:43+00:00"
+  },
+  "Moblin/Various/Haptics.swift": {
+    "status": "ok",
+    "sha256": "cce91cbeb80273d83d00a564a1f9f0bcb1d05df473fc31ca2441c0b57bb59c88",
+    "moblin_commit": "17233fcc544596fe264fddb9d360d1b0f4a246e4",
+    "mode": "full",
+    "tier": "platform",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/Haptics.kt",
+    "notes": [
+      "CoreHaptics has no Android framework equivalent: CHHapticEngine is replaced by android.os.Vibrator, so start() plays a looping 30 s waveform at the given intensity and stop() cancels it.",
+      "sharpness has no Android counterpart and is ignored; intensity only maps to the vibration amplitude on devices that report hasAmplitudeControl().",
+      "The engine (CHHapticEngine) and player (CHHapticAdvancedPatternPlayer) properties both hold the same Vibrator instance, because Android vibrates directly instead of building a haptic pattern player.",
+      "engine.stoppedHandler, engine.resetHandler, engine.playsHapticsOnly, CHHapticTimeImmediate and CHHapticPattern/CHHapticEvent are dropped, so the generation-guarded private stop(generation:) is kept but never called.",
+      "The vibrator comes from AppDelegate.context (VibratorManager on API 31+, Vibrator below); android.permission.VIBRATE must be declared in AndroidManifest.xml outside this file.",
+      "delegate is a strong reference: Kotlin has no weak references, so an owner must clear the delegate when it goes away.",
+      "@MainActor is dropped; like the rest of the port this class is expected to be driven from the main thread.",
+      "start() restarts the vibration with the Swift shape: stop() first, then isActive/delegate notification and, when duration is non-null, a MainTimer single shot that calls stop()."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 29406,
+    "tokens_out": 21146,
+    "seconds": 102.1,
+    "ported_at": "2026-10-13T23:30:19+00:00"
   }
 }

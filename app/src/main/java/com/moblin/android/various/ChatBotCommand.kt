@@ -199,6 +199,7 @@ enum class ChatBotMainArgument(override val rawValue: String) : ChatBotArgument 
     send("send"),
     music("music"),
     torch("torch"),
+    vibrate("vibrate"),
     custom("custom"),
 }
 

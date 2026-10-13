@@ -96,6 +96,7 @@ private fun Model.handleChatBotMessage(message: ChatBotMessage) {
         ChatBotMainArgument.send -> handleChatBotMessageSend(command = command)
         ChatBotMainArgument.music -> handleChatBotMessageMusic(command = command)
         ChatBotMainArgument.torch -> handleChatBotMessageTorch(command = command)
+        ChatBotMainArgument.vibrate -> handleChatBotMessageVibrate(command = command)
         ChatBotMainArgument.custom -> handleChatBotMessageCustom(command = command)
         else -> Unit
     }
@@ -395,6 +396,29 @@ private fun Model.handleChatBotMessageTorchLevel(command: ChatBotCommand) {
     val level = command.popFirstInt(1..100) ?: return
     database.torchLevel = level.toFloat() / 100
     updateTorch()
+}
+
+private fun Model.handleChatBotMessageVibrate(command: ChatBotCommand) {
+    executeIfUserAllowedToUseChatBot(
+        permissions = database.chat.botCommandPermissions.vibrate,
+        command = command,
+        onCompleted = {
+            when (command.popFirstArgument<ChatBotOnOffArgument>()) {
+                ChatBotOnOffArgument.on -> {
+                    val duration = command.popFirstDouble(0.1..3600.0)
+                    val intensity = command.popFirstInt(1..100) ?: 100
+                    val sharpness = command.popFirstInt(1..100) ?: 50
+                    haptics.start(
+                        duration = duration,
+                        intensity = intensity.toFloat() / 100,
+                        sharpness = sharpness.toFloat() / 100
+                    )
+                }
+                ChatBotOnOffArgument.off -> haptics.stop()
+                else -> Unit
+            }
+        }
+    )
 }
 
 private fun Model.handleChatBotMessageAi(command: ChatBotCommand) {

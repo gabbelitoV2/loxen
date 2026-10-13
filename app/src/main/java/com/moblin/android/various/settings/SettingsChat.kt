@@ -201,6 +201,7 @@ class SettingsChatBotPermissions {
     var send: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
     var music: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
     var torch: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
+    var vibrate: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
 
     fun encode(): JsonObject = encodeContainer {
         encode("tts", tts)
@@ -225,6 +226,7 @@ class SettingsChatBotPermissions {
         encode("send", send)
         encode("music", music)
         encode("torch", torch)
+        encode("vibrate", vibrate)
     }
 
     companion object {
@@ -257,6 +259,7 @@ class SettingsChatBotPermissions {
             permissions.send = container.decode("send", serializer, SettingsChatBotPermissionsCommand())
             permissions.music = container.decode("music", serializer, SettingsChatBotPermissionsCommand())
             permissions.torch = container.decode("torch", serializer, SettingsChatBotPermissionsCommand())
+            permissions.vibrate = container.decode("vibrate", serializer, SettingsChatBotPermissionsCommand())
             return permissions
         }
     }

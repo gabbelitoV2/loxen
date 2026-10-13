@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-13T01:39:37+00:00",
+  "generated": "2026-10-13T23:28:28+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -2768,6 +2768,28 @@
       "wave": 1
     },
     {
+      "path": "Moblin/Various/Haptics.swift",
+      "lines": 86,
+      "sha256": "cce91cbeb80273d83d00a564a1f9f0bcb1d05df473fc31ca2441c0b57bb59c88",
+      "imports": [
+        "CoreHaptics"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "HapticsDelegate",
+        "Haptics"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/Haptics.kt",
+      "deps": [
+        "Moblin/Various/MainTimer.swift"
+      ],
+      "wave": 1
+    },
+    {
       "path": "Moblin/Various/KeepSpeakerAlive.swift",
       "lines": 49,
       "sha256": "aed05df1c80e7a0fd3492d5744f5a3a2b83a730321b05b50443ea16f0af1c913",
@@ -4829,6 +4851,26 @@
       "kotlin_package": "com.moblin.android.various.model",
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelFaceBackgroundImage.kt",
       "deps": [
+        "Moblin/Various/Model/Model.swift"
+      ],
+      "wave": 5
+    },
+    {
+      "path": "Moblin/Various/Model/ModelHaptics.swift",
+      "lines": 8,
+      "sha256": "56ae96d6a192edc0d2b5b7b7e6bf105fcfef38e258b5b15dc6ce0b59e4ef46ad",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelHaptics.kt",
+      "deps": [
+        "Moblin/Various/Haptics.swift",
         "Moblin/Various/Model/Model.swift"
       ],
       "wave": 5
@@ -11012,8 +11054,8 @@
     },
     {
       "path": "Moblin/Various/ChatBotCommand.swift",
-      "lines": 283,
-      "sha256": "873755742e1a24609911cf1d12791de094be0e95837f39212969053252b566b5",
+      "lines": 284,
+      "sha256": "f745938e551ae6220e6009517a3cee7aae5ec698b733e4c716a8d529b647fa54",
       "imports": [
         "Collections",
         "FuzzyMatchingSwift"
@@ -12237,8 +12279,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsChat.swift",
-      "lines": 967,
-      "sha256": "0c490ee646f63aa58d28d6e51da290c45a49e92150f70bdf6344ad0d04e082a9",
+      "lines": 971,
+      "sha256": "0deb1b9518c19edd6d3840edbfad3d3f635f596f79e6299de0fc06a370feafc7",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -16928,8 +16970,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
-      "lines": 1062,
-      "sha256": "ec22117db844de904649d52760a9e0069507622d0b021a9390c7ee7929e18f53",
+      "lines": 1085,
+      "sha256": "2192547d5351ab6a18777d8dc9a79ab3c73913906e07f04c536629043eb73666",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -21334,8 +21376,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3490,
-      "sha256": "a5f6a2d425119eb41aaf5e8c406c0622baa3220dde6acedf768e26cf96d48798",
+      "lines": 3493,
+      "sha256": "1b923dd58c4cebf1651a122fc2d7567b50e6a088af93466bf3a2313a9e06e8f5",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -21474,6 +21516,7 @@
         "Moblin/Various/ChatTextToSpeech.swift",
         "Moblin/Various/FaxReceiver.swift",
         "Moblin/Various/Gimbal.swift",
+        "Moblin/Various/Haptics.swift",
         "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/MainTimer.swift",
         "Moblin/Various/Managers/GForceManager.swift",
@@ -21828,8 +21871,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
-      "lines": 819,
-      "sha256": "c788add20fb240e9242a06843bf5b27ff4a8bbeab8642fba0ce64b46cc389a2e",
+      "lines": 842,
+      "sha256": "125e7d9ddfb108ed68f6025c5aac0380165cd806e9e591be1409acd3eff6fa34",
       "imports": [
         "SwiftUI"
       ],
@@ -21855,6 +21898,7 @@
         "TwitchPermissionsSettingsView",
         "MuteUnmutePermissionsSettingsView",
         "TorchPermissionsSettingsView",
+        "VibratePermissionsSettingsView",
         "TeslaPermissionsSettingsView",
         "MacroPermissionsSettingsView",
         "SendPermissionsSettingsView",
@@ -21888,6 +21932,7 @@
         "TwitchPermissionsSettingsView",
         "MuteUnmutePermissionsSettingsView",
         "TorchPermissionsSettingsView",
+        "VibratePermissionsSettingsView",
         "TeslaPermissionsSettingsView",
         "MacroPermissionsSettingsView",
         "SendPermissionsSettingsView",
