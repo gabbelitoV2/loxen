@@ -252,6 +252,7 @@ enum class ChatBotMusicArgument(override val rawValue: String) : ChatBotArgument
     next("next"),
     previous("previous"),
     status("status"),
+    clear("clear"),
 }
 
 enum class ChatBotStreamArgument(override val rawValue: String) : ChatBotArgument {

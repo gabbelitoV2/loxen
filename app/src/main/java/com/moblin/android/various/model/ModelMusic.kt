@@ -20,6 +20,8 @@ private sealed class Action {
     data class Previous(val count: Int) : Action()
 
     data class Status(val onCompleted: (MusicStatus) -> Unit) : Action()
+
+    data object Clear : Action()
 }
 
 private val songs: MutableList<Any> = mutableListOf()
@@ -80,6 +82,11 @@ fun Model.statusMusic(onCompleted: (MusicStatus) -> Unit) {
     tryRunNextAction()
 }
 
+fun Model.clearMusic() {
+    actions.addLast(Action.Clear)
+    tryRunNextAction()
+}
+
 private fun Model.tryRunNextAction() {
     if (isActionRunning) {
         return
@@ -97,6 +104,7 @@ private fun Model.tryRunNextAction() {
                 is Action.Next -> model.nextAction(action.count)
                 is Action.Previous -> model.previousAction(action.count)
                 is Action.Status -> model.statusAction(action.onCompleted)
+                Action.Clear -> model.clearAction()
             }
         } catch (e: Throwable) {
             model.makeErrorToast(
@@ -128,6 +136,10 @@ private suspend fun Model.nextAction(count: Int) {
 }
 
 private suspend fun Model.previousAction(count: Int) {
+    Unit
+}
+
+private fun Model.clearAction() {
     Unit
 }
 

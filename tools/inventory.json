@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-11T23:14:08+00:00",
+  "generated": "2026-10-13T01:39:37+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4854,8 +4854,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMusic.swift",
-      "lines": 190,
-      "sha256": "3662c60a5f302ae9312e1077a0bef12a21f2984461846f1ebc9ca4a7c6fa360e",
+      "lines": 205,
+      "sha256": "20ec0c96a0aa0128fb3ffc882741d1ae7045876111feab20f3ee619552f2eb6f",
       "imports": [
         "Combine",
         "DequeModule",
@@ -11012,8 +11012,8 @@
     },
     {
       "path": "Moblin/Various/ChatBotCommand.swift",
-      "lines": 282,
-      "sha256": "7329de85425cb043a9dae65fcd2b7da4fec4d5b9d8b64672a2cbafb5c4dd790d",
+      "lines": 283,
+      "sha256": "873755742e1a24609911cf1d12791de094be0e95837f39212969053252b566b5",
       "imports": [
         "Collections",
         "FuzzyMatchingSwift"
@@ -16928,8 +16928,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
-      "lines": 1056,
-      "sha256": "3347f5e3e6722c8e0f51cbabdf1bfa67e0715723f6808a35a903ce851dafc739",
+      "lines": 1062,
+      "sha256": "ec22117db844de904649d52760a9e0069507622d0b021a9390c7ee7929e18f53",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -21828,8 +21828,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
-      "lines": 816,
-      "sha256": "33f06c4301e47106fd2d2f2dc60ae78a464224efc97b6c6cd9f0fd4f31d550ce",
+      "lines": 819,
+      "sha256": "c788add20fb240e9242a06843bf5b27ff4a8bbeab8642fba0ce64b46cc389a2e",
       "imports": [
         "SwiftUI"
       ],

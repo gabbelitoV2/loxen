@@ -580,6 +580,7 @@ private fun Model.handleChatBotMessageMusic(command: ChatBotCommand) {
                 ChatBotMusicArgument.next -> handleChatBotMessageMusicNext(command = command)
                 ChatBotMusicArgument.previous -> handleChatBotMessageMusicPrevious(command = command)
                 ChatBotMusicArgument.status -> handleChatBotMessageMusicStatus(command = command)
+                ChatBotMusicArgument.clear -> handleChatBotMessageMusicClear()
                 else -> Unit
             }
         }
@@ -624,6 +625,10 @@ private fun Model.handleChatBotMessageMusicNext(command: ChatBotCommand) {
 
 private fun Model.handleChatBotMessageMusicPrevious(command: ChatBotCommand) {
     previousMusic(count = command.popFirstInt(1..100) ?: 1)
+}
+
+private fun Model.handleChatBotMessageMusicClear() {
+    clearMusic()
 }
 
 private fun Model.handleChatBotMessageMusicStatus(command: ChatBotCommand) {

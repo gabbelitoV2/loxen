@@ -598,6 +598,9 @@ private fun AppleMusicPermissionsSettingsView(
                 Text(text = "")
                 Text(text = "!moblin music status")
                 Text(text = "Show status.")
+                Text(text = "")
+                Text(text = "!moblin music clear")
+                Text(text = "Clear the queue.")
             }
         },
     ) {

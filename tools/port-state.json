@@ -2385,33 +2385,29 @@
   },
   "Moblin/Various/Model/ModelMusic.swift": {
     "status": "ok",
-    "sha256": "3662c60a5f302ae9312e1077a0bef12a21f2984461846f1ebc9ca4a7c6fa360e",
+    "sha256": "20ec0c96a0aa0128fb3ffc882741d1ae7045876111feab20f3ee619552f2eb6f",
+    "moblin_commit": "bcc9866a796351ef695776943fa703d57fb62022",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMusic.kt",
     "notes": [
-      "MusicKit has no Android counterpart, so the seven private action helpers keep their Swift signatures and their bodies are TODO(\"no Android counterpart for MusicKit\"); the public queueing API (addMusic/playMusic/...) is translated in full.",
-      "The file-scope @MainActor state becomes private top-level vars; MusicKit's Song and ApplicationMusicPlayer cannot exist here, so `songs` is a MutableList<Any> and `musicPlayer` an Any? placeholder that only the TODO bodies would touch.",
-      "Swift's Deque<Action> maps to kotlin.collections.ArrayDeque and popFirst() to removeFirstOrNull().",
-      "Task { } becomes mainScope.launch { } on a private file-level CoroutineScope(Dispatchers.Main); the Model receiver is captured in a local `model` because the launch lambda rebinds `this` to the CoroutineScope.",
-      "The private Action enum becomes a private sealed class with Add/Next/Previous/Status data classes and Play/Pause data objects; the switch becomes an exhaustive when.",
-      "MusicAddResult becomes a sealed class with Added(song) and the SongNotFound data object, so callers write MusicAddResult.Added(...).",
-      "logger.debug maps to Log.d with the tag \"ModelMusic\"; String(localized:) maps to the top-level localized() from package com.moblin.android and error.localizedDescription to e.message ?: e.toString().",
-      "makeErrorToast(title = , subTitle = ) is assumed to exist on Model in package com.moblin.android.various.model, as used by the Swift original."
+      "Added the new Action.Clear case, the clearMusic() entry point, the clearAction() branch in the action runner and the private clearAction() helper, matching the Swift diff.",
+      "Everything else in the file is unchanged, including the Android TODO-less stubs for the MusicKit calls.",
+      "Action.Clear is dispatched exactly where the Swift switch had `case .clear`, and clearAction() sits between previousAction() and statusAction() to keep declaration order."
     ],
     "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 3498,
-    "tokens_out": 9980,
-    "seconds": 40.1,
-    "ported_at": "2026-09-22T12:43:24+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
     "apple_only": [
       "MusicKit MusicAuthorization.request()",
       "MusicKit MusicCatalogResourceRequest / MusicCatalogSearchRequest (Song lookup by URL id and search by term)",
       "MusicKit ApplicationMusicPlayer (queue assignment/insertion, play, pause, prepareToPlay, skipToNextEntry, skipToPreviousEntry, state.playbackStatus, isPreparedToPlay)",
       "MusicKit Song and MusicItemID types (findSong result type kept as placeholder Any?)"
-    ]
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 37616,
+    "tokens_out": 1234,
+    "seconds": 6.0,
+    "ported_at": "2026-10-13T01:39:51+00:00"
   },
   "Moblin/View/ControlBar/ControlBarUtils.swift": {
     "status": "ok",
@@ -4273,23 +4269,22 @@
   },
   "Moblin/Various/ChatBotCommand.swift": {
     "status": "ok",
-    "sha256": "7329de85425cb043a9dae65fcd2b7da4fec4d5b9d8b64672a2cbafb5c4dd790d",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "873755742e1a24609911cf1d12791de094be0e95837f39212969053252b566b5",
+    "moblin_commit": "bcc9866a796351ef695776943fa703d57fb62022",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatBotCommand.kt",
     "notes": [
-      "Added the torch entry to ChatBotMainArgument right after music, as in the Swift diff.",
-      "Declared ChatBotTorchArgument between ChatBotTeslaMediaArgument and ChatBotMessage, matching the Swift declaration order.",
-      "Everything else, including the hand-written FuzzyMatchingSwift port and the private constructor/invoke factory, is unchanged."
+      "Added the new `clear` case to `ChatBotMusicArgument`, matching the Swift diff; nothing else changed.",
+      "All other Kotlin lines, including the hand-written fuzzy-matching port and the Android-specific `ArrayDeque`-based `ChatBotCommand`, are byte-identical to the current file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 39895,
-    "tokens_out": 3510,
-    "seconds": 10.2,
-    "ported_at": "2026-09-30T23:15:00+00:00"
+    "tokens_in": 39965,
+    "tokens_out": 3470,
+    "seconds": 12.3,
+    "ported_at": "2026-10-13T01:39:58+00:00"
   },
   "Moblin/Various/Model/ModelLog.swift": {
     "status": "ok",
@@ -14548,26 +14543,23 @@
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "3347f5e3e6722c8e0f51cbabdf1bfa67e0715723f6808a35a903ce851dafc739",
-    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "sha256": "ec22117db844de904649d52760a9e0069507622d0b021a9390c7ee7929e18f53",
+    "moblin_commit": "bcc9866a796351ef695776943fa703d57fb62022",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
     "notes": [
-      "handleChatBotMessageSnapshot and handleChatBotMessageSnapshotWithMessage now route the snapshot through database.chat.botCommandSnapshot.source, using SettingsChatBotCommandSnapshotSource.thisDevice / .webRemoteControl (Swift case names) in a when.",
-      "Added import com.moblin.android.various.settings.SettingsChatBotCommandSnapshotSource, kept in the file's alphabetical import block.",
-      "stream is the MutableStateFlow<SettingsStream>, so estimatedViewerDelay is read as stream.value.estimatedViewerDelay and passed as age.",
-      "handleChatBotMessageSnapshot now builds a nullable message instead of branching on a second takeSnapshot overload; the same value is passed to both snapshot paths.",
-      "The countdown path now ends with a completion lambda that receives the message and picks the snapshot source with age 0.0, matching the new Swift trailing closure.",
-      "onNotAllowed bodies of both functions are unchanged."
+      "The diff adds the ChatBotMusicArgument.clear branch and handleChatBotMessageMusicClear(), which calls the existing clearMusic().",
+      "ChatBotMusicArgument in com.moblin.android.various must expose a clear entry for the new branch to compile; the declared enum in the request only lists play, pause, add, next, previous and status, so ChatBotCommand.kt needs the matching new case.",
+      "Everything else in the file is unchanged and kept byte-identical, including the Android-specific shuffles such as stream.value, audio.muted.value and SettingsReaction.fromRawValue."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66363,
-    "tokens_out": 11143,
-    "seconds": 32.9,
-    "ported_at": "2026-10-11T23:14:53+00:00"
+    "tokens_in": 66272,
+    "tokens_out": 10217,
+    "seconds": 34.1,
+    "ported_at": "2026-10-13T01:40:20+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -16481,26 +16473,23 @@
   },
   "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
     "status": "ok",
-    "sha256": "33f06c4301e47106fd2d2f2dc60ae78a464224efc97b6c6cd9f0fd4f31d550ce",
-    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "sha256": "c788add20fb240e9242a06843bf5b27ff4a8bbeab8642fba0ce64b46cc389a2e",
+    "moblin_commit": "bcc9866a796351ef695776943fa703d57fb62022",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatBotSettingsView.kt",
     "notes": [
-      "SnapshotPermissionsSettingsView now takes the SettingsChatBotCommandSnapshot and shows a Source picker with the conditional web remote control URL entry.",
-      "The ChatBotCommandsSettingsView call site passes database.chat.botCommandSnapshot.",
-      "The Source enum picker uses SettingsChatBotCommandSnapshotSource.entries with the default text lambda, so the enum's own toString() is displayed as in Swift's source.toString().",
-      "isValidHttpUrl and cleanUrl come from com.moblin.android.common.various and DefaultTcpPorts from com.moblin.android.various.network.",
-      "The Swift multiline footer string with a line continuation is a single-line Kotlin string split with +, matching the file's existing style.",
-      "The NavigationLink inside the Form is the real destination, never a string route."
+      "Only the AppleMusicPermissionsSettingsView footer gained three lines in the Swift diff.",
+      "Inserted the matching Compose Text lines after `Text(text = \"Show status.\")` in the same order.",
+      "Every other line of the Kotlin file is unchanged, including imports, handlers and platform hook calls."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62726,
-    "tokens_out": 13060,
-    "seconds": 44.9,
-    "ported_at": "2026-10-11T23:15:29+00:00"
+    "tokens_in": 62592,
+    "tokens_out": 7324,
+    "seconds": 22.5,
+    "ported_at": "2026-10-13T01:40:08+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift": {
     "status": "ok",
