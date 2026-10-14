@@ -348,6 +348,19 @@ class RemoteControlAssistant(
         performRequestNoResponseData(RemoteControlRequest.SendMessage(text = text), {})
     }
 
+    fun music(command: RemoteControlMusicCommand, onSuccess: (RemoteControlMusicStatus) -> Unit) {
+        performRequest(
+            data = RemoteControlRequest.Music(command = command),
+            onSuccess = { response ->
+                when (response) {
+                    is RemoteControlResponse.Music -> onSuccess(response.status)
+                    else -> {}
+                }
+            },
+            onError = { _ -> }
+        )
+    }
+
     private fun tryNextTwitchEventSubNotification() {
         if (twitchEventSubNotiticationWaitForResponse) {
             return

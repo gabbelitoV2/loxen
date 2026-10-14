@@ -15,6 +15,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.fail
 import com.moblin.android.integrations.workoutdevice.WorkoutDeviceRunningMetrics
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -48,6 +50,53 @@ class RemoteControlSuite {
     fun sendMessageRequest() {
         assertEquals("""{"sendMessage":{"text":"Hello"}}""",
                      encode(RemoteControlRequest.SendMessage(text = "Hello")))
+    }
+
+    @Test
+    fun musicRequests() {
+        assertEquals("""{"music":{"command":{"play":{}}}}""",
+                     encode(RemoteControlRequest.Music(command = RemoteControlMusicCommand.Play)))
+        assertEquals("""{"music":{"command":{"add":{"title":"Song"}}}}""",
+                     encode(RemoteControlRequest.Music(command = RemoteControlMusicCommand.Add(
+                         title = "Song",
+                         user = null,
+                         requestId = null
+                     ))))
+        assertEquals("""{"music":{"command":{"add":{"title":"Song","user":"Erik"}}}}""",
+                     encode(RemoteControlRequest.Music(command = RemoteControlMusicCommand.Add(
+                         title = "Song",
+                         user = "Erik",
+                         requestId = null
+                     ))))
+        assertEquals("""{"music":{"command":{"add":{"requestId":"ORDER1","title":"Song","user":"Erik"}}}}""",
+                     encode(RemoteControlRequest.Music(command = RemoteControlMusicCommand.Add(
+                         title = "Song",
+                         user = "Erik",
+                         requestId = "ORDER1"
+                     ))))
+        assertEquals("""{"music":{"command":{"find":{"title":"Song"}}}}""",
+                     encode(RemoteControlRequest.Music(command = RemoteControlMusicCommand.Find(title = "Song"))))
+        assertEquals("""{"music":{"command":{"remove":{"id":"1"}}}}""",
+                     encode(RemoteControlRequest.Music(command = RemoteControlMusicCommand.Remove(id = "1"))))
+        val request = RemoteControlRequest.fromJsonElement(
+            json.parseToJsonElement("""{"music":{"command":{"add":{"title":"Song","user":"Erik"}}}}""")
+        )
+        val add = (request as? RemoteControlRequest.Music)?.command as? RemoteControlMusicCommand.Add
+            ?: fail("not an add")
+        assertEquals("Song", add.title)
+        assertEquals("Erik", add.user)
+        assertNull(add.requestId)
+    }
+
+    @Test
+    fun musicResponses() {
+        val found = RemoteControlResponse.MusicFind(
+            song = RemoteControlMusicFoundSong(id = "1440818839", title = "Song", artist = "Band")
+        )
+        assertEquals("""{"musicFind":{"song":{"artist":"Band","id":"1440818839","title":"Song"}}}""",
+                     formatJson(found.toJsonElement(), prettyPrint = false))
+        assertEquals("""{"musicFind":{}}""",
+                     formatJson(RemoteControlResponse.MusicFind(song = null).toJsonElement(), prettyPrint = false))
     }
 
     @Test

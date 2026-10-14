@@ -78,6 +78,10 @@ interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerStartMacro(id: UUID)
     fun remoteControlStreamerStopMacro(id: UUID)
     fun remoteControlStreamerSendMessage(text: String)
+    fun remoteControlStreamerMusic(
+        command: RemoteControlMusicCommand,
+        onCompleted: (RemoteControlResult, RemoteControlResponse?) -> Unit,
+    )
 }
 
 private val idStorage = SimpleStringStorage("remoteControlStreamerId")
@@ -523,6 +527,11 @@ class RemoteControlStreamer(
             is RemoteControlRequest.SendMessage -> {
                 delegate.remoteControlStreamerSendMessage(data.text)
                 sendEmptyOkResponse(id)
+            }
+            is RemoteControlRequest.Music -> {
+                delegate.remoteControlStreamerMusic(data.command) { result, response ->
+                    send(RemoteControlMessageToAssistant.Response(id, result, response))
+                }
             }
         }
     }

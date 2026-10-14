@@ -18,12 +18,18 @@ import com.moblin.android.remotecontrol.RemoteControlChatMessage
 import com.moblin.android.remotecontrol.RemoteControlFilter
 import com.moblin.android.remotecontrol.RemoteControlGolfScoreboard
 import com.moblin.android.remotecontrol.RemoteControlMacro
+import com.moblin.android.remotecontrol.RemoteControlMusicCommand
+import com.moblin.android.remotecontrol.RemoteControlMusicFoundSong
+import com.moblin.android.remotecontrol.RemoteControlMusicSong
+import com.moblin.android.remotecontrol.RemoteControlMusicStatus
 import com.moblin.android.remotecontrol.RemoteControlReaction
 import com.moblin.android.remotecontrol.RemoteControlRelay
 import com.moblin.android.remotecontrol.RemoteControlRemoteSceneData
 import com.moblin.android.remotecontrol.RemoteControlRemoteSceneDataLocation
 import com.moblin.android.remotecontrol.RemoteControlRemoteSceneDataVariables
 import com.moblin.android.remotecontrol.RemoteControlRemoteSceneSettings
+import com.moblin.android.remotecontrol.RemoteControlResponse
+import com.moblin.android.remotecontrol.RemoteControlResult
 import com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig
 import com.moblin.android.remotecontrol.RemoteControlSettings
 import com.moblin.android.remotecontrol.RemoteControlSettingsAutoSceneSwitcher
@@ -113,6 +119,7 @@ class RemoteControl {
     val beauty = MutableStateFlow(false)
     val moblinInMouth = MutableStateFlow(false)
     val cameraMan = MutableStateFlow(false)
+    val musicStatus = MutableStateFlow<RemoteControlMusicStatus?>(null)
 }
 
 enum class RemoteControlAssistantPreviewUser {
@@ -384,6 +391,15 @@ fun Model.remoteControlAssistantSetFilter(filter: RemoteControlFilter, on: Boole
 
 fun Model.remoteControlAssistantSendMessage(text: String) {
     remoteControlAssistant?.sendMessage(text = text)
+}
+
+fun Model.remoteControlAssistantMusic(command: RemoteControlMusicCommand) {
+    remoteControlAssistant?.music(command = command) { status ->
+        if (status.songNotFound == true) {
+            makeErrorToast(title = localized("Song not found"))
+        }
+        remoteControl.musicStatus.value = status
+    }
 }
 
 fun Model.remoteControlAssistantStartPreview(user: RemoteControlAssistantPreviewUser) {
@@ -951,6 +967,68 @@ fun Model.remoteControlStreamerChatMessages(history: Boolean, messages: List<Rem
             live = live
         )
         remoteControlStreamerLatestReceivedChatMessageId = message.id
+    }
+}
+
+fun Model.remoteControlStreamerMusic(
+    command: RemoteControlMusicCommand,
+    onCompleted: (RemoteControlResult, RemoteControlResponse?) -> Unit
+) {
+    var songNotFound = false
+    var failed = false
+    when (command) {
+        is RemoteControlMusicCommand.Status -> {}
+        is RemoteControlMusicCommand.Play -> playMusic()
+        is RemoteControlMusicCommand.Pause -> pauseMusic()
+        is RemoteControlMusicCommand.Add -> {
+            addMusic(
+                title = command.title,
+                user = command.user ?: localized("Remote control assistant"),
+                requestId = command.requestId
+            ) { result ->
+                when (result) {
+                    else -> {}
+                }
+            }
+        }
+        is RemoteControlMusicCommand.Find -> {
+            findMusic(title = command.title) { song ->
+                onCompleted(
+                    RemoteControlResult.Ok,
+                    RemoteControlResponse.MusicFind(
+                        song = song.let { TODO("map found song") }
+                    )
+                )
+            }
+            return
+        }
+        is RemoteControlMusicCommand.Clear -> clearMusic()
+        is RemoteControlMusicCommand.Remove -> removeMusic(entryId = command.id)
+        is RemoteControlMusicCommand.Select -> selectMusic(entryId = command.id)
+    }
+    statusMusic { status ->
+        if (failed) {
+            onCompleted(RemoteControlResult.Error, null)
+            return@statusMusic
+        }
+        onCompleted(
+            RemoteControlResult.Ok,
+            RemoteControlResponse.Music(
+                status = RemoteControlMusicStatus(
+                    playing = status.playing,
+                    currentSongIndex = status.currentSongIndex,
+                    songs = status.songs.map {
+                        RemoteControlMusicSong(
+                            id = it.id,
+                            title = it.title,
+                            artist = it.artist,
+                            user = it.addedBy
+                        )
+                    },
+                    songNotFound = songNotFound
+                )
+            )
+        )
     }
 }
 
@@ -1740,6 +1818,13 @@ private class RemoteControlStreamerDelegateAdapter(
 
     override fun remoteControlStreamerSendMessage(text: String) {
         model.remoteControlStreamerSendMessage(text = text)
+    }
+
+    override fun remoteControlStreamerMusic(
+        command: RemoteControlMusicCommand,
+        onCompleted: (RemoteControlResult, RemoteControlResponse?) -> Unit
+    ) {
+        model.remoteControlStreamerMusic(command = command, onCompleted = onCompleted)
     }
 }
 

@@ -268,7 +268,7 @@ private fun Model.handleChatBotMessageSnapshot(command: ChatBotCommand) {
                 message = formatSnapshotTakenBy(user = user)
             }
             val age = stream.value.estimatedViewerDelay
-            when (database.chat.botCommandSnapshot.source) {
+            when (database.chat.botCommandSnapshot.effectiveSource(isLive = isLive.value)) {
                 SettingsChatBotCommandSnapshotSource.thisDevice -> takeSnapshot(
                     age = age,
                     isChatBot = true,
@@ -307,7 +307,7 @@ private fun Model.handleChatBotMessageSnapshotWithMessage(command: ChatBotComman
                 )
             }
             takeSnapshotWithCountdown(message = command.rest(), user = command.user()) { message ->
-                when (database.chat.botCommandSnapshot.source) {
+                when (database.chat.botCommandSnapshot.effectiveSource(isLive = isLive.value)) {
                     SettingsChatBotCommandSnapshotSource.thisDevice -> takeSnapshot(
                         age = 0.0f,
                         isChatBot = true,
@@ -626,13 +626,17 @@ private fun Model.handleChatBotMessageMusicAdd(command: ChatBotCommand) {
     }
     val platform = command.message.platform
     val user = command.user() ?: localized("Unknown")
-    addMusic(title = title) { result ->
+    addMusic(title = title, user = user) { result ->
         val resultDescription = result.toString()
         if (resultDescription.contains("SongNotFound")) {
             sendChatBotReply(
                 message = localized("$title requested by $user not found."),
                 platform = platform
             )
+        } else if (resultDescription.contains("AlreadyAdded") ||
+            resultDescription.contains("Failed")
+        ) {
+            Unit
         } else {
             val song = resultDescription.removePrefix("Added(song=").removeSuffix(")")
             sendChatBotReply(

@@ -32,6 +32,7 @@ import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatBotAlias
 import com.moblin.android.various.settings.SettingsChatBotCommandSnapshot
 import com.moblin.android.various.settings.SettingsChatBotCommandSnapshotSource
+import com.moblin.android.various.settings.SettingsChatBotCommandSnapshotWebRemoteControlMode
 import com.moblin.android.various.settings.SettingsChatBotCustomCommand
 import com.moblin.android.various.settings.SettingsChatBotPermissionsCommand
 import com.moblin.android.various.settings.SettingsOpenAi
@@ -182,6 +183,13 @@ private fun SnapshotPermissionsSettingsView(
                             snapshot.source = it
                         }
                         if (snapshot.source == SettingsChatBotCommandSnapshotSource.webRemoteControl) {
+                            Picker(
+                                title = "Use remote source",
+                                selection = snapshot.webRemoteControlMode,
+                                options = SettingsChatBotCommandSnapshotWebRemoteControlMode.entries,
+                            ) {
+                                snapshot.webRemoteControlMode = it
+                            }
                             TextEditNavigationView(
                                 title = localized("URL"),
                                 value = snapshot.webRemoteControlUrl,

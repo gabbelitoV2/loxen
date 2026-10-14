@@ -65,7 +65,9 @@ import com.moblin.android.common.various.yellowThresholdDb
 import com.moblin.android.common.various.zeroThresholdDb
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Button
 import com.moblin.android.platform.swiftui.ConfirmationDialog
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
@@ -81,6 +83,7 @@ import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.remotecontrol.RemoteControlFilter
 import com.moblin.android.remotecontrol.RemoteControlMacro
+import com.moblin.android.remotecontrol.RemoteControlMusicCommand
 import com.moblin.android.remotecontrol.RemoteControlSettingsSrt
 import com.moblin.android.remotecontrol.RemoteControlSettingsSrtConnectionPriority
 import com.moblin.android.remotecontrol.RemoteControlStatusGeneral
@@ -121,6 +124,8 @@ import com.moblin.android.various.model.updateRemoteControlAssistantStatus
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsRemoteControl
 import com.moblin.android.view.CloseButtonView
+import com.moblin.android.view.settings.applemusic.MusicAddedByView
+import com.moblin.android.view.settings.applemusic.MusicArtistView
 import com.moblin.android.view.settings.debug.DebugLogSettingsView
 import com.moblin.android.view.settings.remotecontrol.RemoteControlStreamersView
 import com.moblin.android.view.settings.streams.stream.srt.clampConnectionPriority
@@ -133,6 +138,7 @@ import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.moblin.android.various.model.remoteControlAssistantMusic
 
 @Composable
 private fun StatusItemView(icon: String, status: RemoteControlStatusItem?) {
@@ -924,6 +930,130 @@ private fun FiltersView(model: Model = LocalModel.current, remoteControl: Remote
 }
 
 @Composable
+private fun MusicView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
+    val palette = formPalette()
+    val musicStatus by remoteControl.musicStatus.collectAsState()
+    var title by remember { mutableStateOf("") }
+
+    fun add() {
+        val trimmed = title.trim()
+        if (trimmed.isEmpty()) {
+            return
+        }
+        model.remoteControlAssistantMusic(
+            command = RemoteControlMusicCommand.Add(title = trimmed, user = null, requestId = null),
+        )
+        title = ""
+    }
+
+    NavigationLink("Music") {
+        Form(title = "Music") {
+            Section {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.weight(1f))
+                    Button(
+                        action = {
+                            if (musicStatus?.playing == true) {
+                                model.remoteControlAssistantMusic(command = RemoteControlMusicCommand.Pause)
+                            } else {
+                                model.remoteControlAssistantMusic(command = RemoteControlMusicCommand.Play)
+                            }
+                        },
+                    ) {
+                        SystemImage(
+                            name = if (musicStatus?.playing == true) "pause.fill" else "play.fill",
+                            fontSize = 28.sp,
+                            tint = palette.accent,
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+            Section(footer = "Song title or Apple Music link.") {
+                BasicTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = formBodyStyle.copy(color = palette.label),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { add() }),
+                    singleLine = true,
+                    cursorBrush = SolidColor(palette.accent),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (title.isEmpty()) {
+                                Text(
+                                    text = localized("Song"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
+                )
+                TextButtonView("Add") {
+                    add()
+                }
+            }
+            Section(header = "Queue") {
+                val status = musicStatus
+                if (status != null && status.songs.isNotEmpty()) {
+                    val songs = status.songs
+                    ForEach(
+                        songs,
+                        id = { it.id },
+                        onDelete = { offsets ->
+                            offsets.forEach { offset ->
+                                val id = songs[offset].id
+                                model.remoteControlAssistantMusic(command = RemoteControlMusicCommand.Remove(id = id))
+                            }
+                        },
+                    ) { song ->
+                        val index = songs.indexOfFirst { it.id == song.id }
+                        FormRow(onClick = {
+                            model.remoteControlAssistantMusic(command = RemoteControlMusicCommand.Select(id = song.id))
+                        }) {
+                            Column(horizontalAlignment = Alignment.Start) {
+                                Text(song.title)
+                                val artist = song.artist
+                                if (artist != null) {
+                                    MusicArtistView(artist = artist)
+                                }
+                                val addedBy = song.user
+                                if (addedBy != null) {
+                                    MusicAddedByView(user = addedBy)
+                                }
+                            }
+                            Spacer(Modifier.weight(1f))
+                            if (index == status.currentSongIndex) {
+                                SystemImage(
+                                    name = if (status.playing) "play.fill" else "pause.fill",
+                                    fontSize = 17.sp,
+                                    tint = palette.label,
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    HCenter {
+                        Text(localized("Empty queue"))
+                    }
+                }
+            }
+            Section {
+                TextButtonView("Clear queue") {
+                    model.remoteControlAssistantMusic(command = RemoteControlMusicCommand.Clear)
+                }
+            }
+        }
+        LaunchedEffect(Unit) {
+            model.remoteControlAssistantMusic(command = RemoteControlMusicCommand.Status)
+        }
+    }
+}
+
+@Composable
 private fun SendMessageView(model: Model = LocalModel.current) {
     var text by remember { mutableStateOf("") }
 
@@ -1012,6 +1142,7 @@ private fun ControlBarRemoteControlAssistantControlView(
             GimbalPresetView(model = model, remoteControl = remoteControl)
             MacrosView(model = model, remoteControl = remoteControl)
             FiltersView(model = model, remoteControl = remoteControl)
+            MusicView(model = model, remoteControl = remoteControl)
             SendMessageView(model = model)
             DebugLoggingView(model = model, remoteControl = remoteControl)
         } else {

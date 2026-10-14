@@ -306,7 +306,7 @@ fun SettingsView(
                         Label("Media players", systemImage = "play.rectangle.on.rectangle")
                     }
                     NavigationLink(destination = {
-                        AppleMusicSettingsView(model = model)
+                        AppleMusicSettingsView(model = model, musicPlaylist = model.musicPlaylist)
                     }) {
                         Label("Apple Music", systemImage = "music.note")
                     }

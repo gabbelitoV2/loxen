@@ -591,6 +591,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val zoom = Zoom()
     val camera = CameraState()
     val mediaPlayerPlayer = MediaPlayerPlayer()
+    val musicPlaylist = MusicPlaylist()
     lateinit var media: Media
     val banners = Banners()
     val hypeTrain = HypeTrain()

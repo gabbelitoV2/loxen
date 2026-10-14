@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -12,6 +13,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -27,19 +30,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.MusicPlaylist
+import com.moblin.android.various.model.MusicQueueState
 import com.moblin.android.localized
 import com.moblin.android.various.model.addMusic
+import com.moblin.android.various.model.loadMusic
 import com.moblin.android.various.model.nextMusic
 import com.moblin.android.various.model.pauseMusic
 import com.moblin.android.various.model.playMusic
 import com.moblin.android.various.model.previousMusic
+import com.moblin.android.various.model.removeMusic
+import com.moblin.android.various.model.selectMusic
 
 private data class MusicPlayerState(val isPlaying: Boolean)
 
@@ -53,12 +63,102 @@ private data class MusicPlayerQueue(
 private data class MusicSubscriptionState(val canBecomeSubscriber: Boolean)
 
 @Composable
-fun AppleMusicSettingsView(model: Model = LocalModel.current) {
+fun MusicArtistView(artist: String) {
+    Text(
+        artist,
+        style = SwiftUIFonts.system(size = 15f).copy(color = formPalette().secondaryLabel),
+    )
+}
+
+@Composable
+fun MusicAddedByView(user: String) {
+    Text(
+        localized("Added by: $user"),
+        style = SwiftUIFonts.system(size = 15f),
+    )
+}
+
+@Composable
+private fun ControlsView(
+    model: Model = LocalModel.current,
+    playerState: MusicPlayerState,
+    isEmpty: Boolean,
+) {
+    Section {
+        FormRow(enabled = !isEmpty, highlight = false) {
+            Spacer(Modifier.weight(1f))
+            if (playerState.isPlaying) {
+                MusicControlButton(name = "pause", enabled = !isEmpty) {
+                    model.pauseMusic()
+                }
+            } else {
+                MusicControlButton(name = "play", enabled = !isEmpty) {
+                    model.playMusic()
+                }
+            }
+            Spacer(Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun PlaylistView(
+    model: Model = LocalModel.current,
+    musicPlaylist: MusicPlaylist,
+    queue: MusicPlayerQueue,
+) {
+    val songs = musicPlaylist.songs()
+    val currentIndex = musicPlaylist.currentIndex()
+    Section(header = "Playlist") {
+        ForEach(
+            items = songs.withIndex().toList(),
+            id = { it.value.id },
+            onDelete = { offsets ->
+                for (offset in offsets) {
+                    model.removeMusic(entryId = songs[offset].id)
+                }
+            },
+        ) { indexed ->
+            val song = indexed.value
+            val isPlaying = indexed.index == currentIndex
+            FormRow(onClick = { model.selectMusic(entryId = song.id) }, highlight = false) {
+                if (isPlaying) {
+                    SystemImage(
+                        name = "music.quarternote.3",
+                        fontSize = 17.sp,
+                        tint = formPalette().label,
+                    )
+                }
+                Column(horizontalAlignment = Alignment.Start) {
+                    if (isPlaying) {
+                        Text(
+                            song.title,
+                            style = formBodyStyle,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    } else {
+                        Text(song.title, style = formBodyStyle)
+                    }
+                    song.artist?.let { MusicArtistView(artist = it) }
+                    song.addedBy?.let { MusicAddedByView(user = it) }
+                }
+                Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+fun AppleMusicSettingsView(
+    model: Model = LocalModel.current,
+    musicPlaylist: MusicPlaylist,
+) {
     var searchText by remember { mutableStateOf("") }
     var isShowingSubscriptionOffer by remember { mutableStateOf(false) }
     var musicSubscription by remember { mutableStateOf<MusicSubscriptionState?>(null) }
     val playerState = rememberMusicPlayerState()
     val playerQueue = rememberMusicPlayerQueue()
+    val playlistState by musicPlaylist.state.collectAsState()
 
     Form(title = "Apple Music") {
         if (musicSubscription?.canBecomeSubscriber == true) {
@@ -68,36 +168,11 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                 }
             }
         }
-        Section {
-            val queueEnabled = playerQueue.entries.isNotEmpty()
-            FormRow(enabled = queueEnabled, highlight = false) {
-                Spacer(Modifier.weight(1f))
-                MusicControlButton(
-                    name = "arrow.backward.to.line",
-                    enabled = queueEnabled,
-                ) {
-                    model.previousMusic(1)
-                }
-                Spacer(Modifier.weight(1f))
-                if (playerState.isPlaying) {
-                    MusicControlButton(name = "pause", enabled = queueEnabled) {
-                        model.pauseMusic()
-                    }
-                } else {
-                    MusicControlButton(name = "play", enabled = queueEnabled) {
-                        model.playMusic()
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                MusicControlButton(
-                    name = "arrow.forward.to.line",
-                    enabled = queueEnabled,
-                ) {
-                    model.nextMusic(1)
-                }
-                Spacer(Modifier.weight(1f))
-            }
-        }
+        ControlsView(
+            model = model,
+            playerState = playerState,
+            isEmpty = playlistState != MusicQueueState.loaded,
+        )
         Section {
             FormRow(highlight = false) {
                 BasicTextField(
@@ -109,7 +184,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                     cursorBrush = SolidColor(formPalette().accent),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
-                        model.addMusic(searchText) { }
+                        model.addMusic(title = searchText, user = null) { }
                     }),
                     decorationBox = { content ->
                         Box {
@@ -126,21 +201,15 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                 )
             }
         }
-        Section(header = "Playlist") {
-            for (entry in playerQueue.entries) {
-                key(entry.id) {
-                    if (entry.id == playerQueue.currentEntryId) {
-                        Text(
-                            "• ${entry.title}",
-                            style = formBodyStyle,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    } else {
-                        Text(entry.title, style = formBodyStyle)
-                    }
-                }
-            }
-        }
+        PlaylistView(
+            model = model,
+            musicPlaylist = musicPlaylist,
+            queue = playerQueue,
+        )
+    }
+    DisposableEffect(Unit) {
+        model.loadMusic()
+        onDispose { }
     }
 }
 

@@ -372,14 +372,53 @@ enum class SettingsChatBotCommandSnapshotSource(val rawValue: String) {
     }
 }
 
+@Serializable(with = SettingsChatBotCommandSnapshotWebRemoteControlMode.Serializer::class)
+enum class SettingsChatBotCommandSnapshotWebRemoteControlMode(val rawValue: String) {
+    fallbackWhenNotLive("fallbackWhenNotLive"),
+    always("always");
+
+    override fun toString(): String {
+        return when (this) {
+            fallbackWhenNotLive -> localized("When not live")
+            always -> localized("Always")
+        }
+    }
+
+    companion object {
+        fun fromRawValue(rawValue: String): SettingsChatBotCommandSnapshotWebRemoteControlMode {
+            return entries.firstOrNull { it.rawValue == rawValue } ?: fallbackWhenNotLive
+        }
+    }
+
+    object Serializer : KSerializer<SettingsChatBotCommandSnapshotWebRemoteControlMode> {
+        override val descriptor: SerialDescriptor =
+            PrimitiveSerialDescriptor(
+                "com.moblin.android.various.settings.SettingsChatBotCommandSnapshotWebRemoteControlMode",
+                PrimitiveKind.STRING,
+            )
+
+        override fun serialize(encoder: Encoder, value: SettingsChatBotCommandSnapshotWebRemoteControlMode) {
+            encoder.encodeString(value.rawValue)
+        }
+
+        override fun deserialize(decoder: Decoder): SettingsChatBotCommandSnapshotWebRemoteControlMode {
+            return fromRawValue(decoder.decodeString())
+        }
+    }
+}
+
 @Serializable(with = SettingsChatBotCommandSnapshot.Serializer::class)
 class SettingsChatBotCommandSnapshot {
     var source: SettingsChatBotCommandSnapshotSource by Published(SettingsChatBotCommandSnapshotSource.thisDevice)
     var webRemoteControlUrl: String by Published("")
+    var webRemoteControlMode: SettingsChatBotCommandSnapshotWebRemoteControlMode by Published(
+        SettingsChatBotCommandSnapshotWebRemoteControlMode.fallbackWhenNotLive,
+    )
 
     fun encode(): JsonObject = encodeContainer {
         encode("source", source)
         encode("webRemoteControlUrl", webRemoteControlUrl)
+        encode("webRemoteControlMode", webRemoteControlMode)
     }
 
     companion object {
@@ -391,7 +430,28 @@ class SettingsChatBotCommandSnapshot {
                 SettingsChatBotCommandSnapshotSource.thisDevice,
             )
             snapshot.webRemoteControlUrl = container.decode("webRemoteControlUrl", "")
+            snapshot.webRemoteControlMode = container.decode(
+                "webRemoteControlMode",
+                SettingsChatBotCommandSnapshotWebRemoteControlMode.Serializer,
+                SettingsChatBotCommandSnapshotWebRemoteControlMode.fallbackWhenNotLive,
+            )
             return snapshot
+        }
+    }
+
+    fun effectiveSource(isLive: Boolean): SettingsChatBotCommandSnapshotSource {
+        return when (source) {
+            SettingsChatBotCommandSnapshotSource.thisDevice -> SettingsChatBotCommandSnapshotSource.thisDevice
+            SettingsChatBotCommandSnapshotSource.webRemoteControl -> when (webRemoteControlMode) {
+                SettingsChatBotCommandSnapshotWebRemoteControlMode.fallbackWhenNotLive ->
+                    if (isLive) {
+                        SettingsChatBotCommandSnapshotSource.thisDevice
+                    } else {
+                        SettingsChatBotCommandSnapshotSource.webRemoteControl
+                    }
+                SettingsChatBotCommandSnapshotWebRemoteControlMode.always ->
+                    SettingsChatBotCommandSnapshotSource.webRemoteControl
+            }
         }
     }
 

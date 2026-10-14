@@ -488,6 +488,14 @@ sealed class RemoteControlRequest {
         }
     }
 
+    data class Music(val command: RemoteControlMusicCommand) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("music") {
+                put("command", command.toJsonElement())
+            }
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlRequest =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -618,6 +626,9 @@ sealed class RemoteControlRequest {
                 "startMacro" -> StartMacro(id = UUID.fromString(params.getValue("id").jsonPrimitive.content))
                 "stopMacro" -> StopMacro(id = UUID.fromString(params.getValue("id").jsonPrimitive.content))
                 "sendMessage" -> SendMessage(text = params.getValue("text").jsonPrimitive.content)
+                "music" -> Music(
+                    command = RemoteControlMusicCommand.fromJsonElement(params.getValue("command")),
+                )
                 else -> throw SerializationException("Unknown request ${entry.key}")
             }
         }
@@ -688,6 +699,24 @@ sealed class RemoteControlResponse {
         }
     }
 
+    data class Music(val status: RemoteControlMusicStatus) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("music") { put("status", remoteControlJson.encodeToJsonElement(status)) }
+        }
+    }
+
+    data class MusicFind(val song: RemoteControlMusicFoundSong?) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("musicFind") {
+                if (song == null) {
+                    put("song", JsonNull)
+                } else {
+                    put("song", remoteControlJson.encodeToJsonElement(song))
+                }
+            }
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlResponse =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -717,6 +746,15 @@ sealed class RemoteControlResponse {
                 )
                 "getGolfScoreboard" -> GetGolfScoreboard(
                     data = remoteControlJson.decodeFromJsonElement(params.getValue("data")),
+                )
+                "music" -> Music(
+                    status = remoteControlJson.decodeFromJsonElement(params.getValue("status")),
+                )
+                "musicFind" -> MusicFind(
+                    song = params["song"]?.let {
+                        if (it is JsonNull) null
+                        else remoteControlJson.decodeFromJsonElement<RemoteControlMusicFoundSong>(it)
+                    },
                 )
                 else -> throw SerializationException("Unknown response ${entry.key}")
             }
@@ -975,6 +1013,129 @@ data class RemoteControlChatMessage(
     val isOwner: Boolean,
     val bits: String? = null,
     var highlight: RemoteControlChatHighlight? = null,
+)
+
+@Serializable(with = RemoteControlMusicCommandSerializer::class)
+sealed class RemoteControlMusicCommand {
+    abstract fun toJsonElement(): JsonObject
+
+    data object Status : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("status") {}
+        }
+    }
+
+    data object Play : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("play") {}
+        }
+    }
+
+    data object Pause : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("pause") {}
+        }
+    }
+
+    data class Add(val title: String, val user: String?, val requestId: String?) : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("add") {
+                put("title", title)
+                if (user == null) {
+                    put("user", JsonNull)
+                } else {
+                    put("user", user)
+                }
+                if (requestId == null) {
+                    put("requestId", JsonNull)
+                } else {
+                    put("requestId", requestId)
+                }
+            }
+        }
+    }
+
+    data class Find(val title: String) : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("find") { put("title", title) }
+        }
+    }
+
+    data object Clear : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("clear") {}
+        }
+    }
+
+    data class Remove(val id: String) : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("remove") { put("id", id) }
+        }
+    }
+
+    data class Select(val id: String) : RemoteControlMusicCommand() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("select") { put("id", id) }
+        }
+    }
+
+    companion object {
+        fun fromJsonElement(element: JsonElement): RemoteControlMusicCommand {
+            val entry = element.jsonObject.entries.first()
+            val params = entry.value.jsonObject
+            return when (entry.key) {
+                "status" -> Status
+                "play" -> Play
+                "pause" -> Pause
+                "add" -> Add(
+                    title = params.getValue("title").jsonPrimitive.content,
+                    user = params["user"]?.let { if (it is JsonNull) null else it.jsonPrimitive.content },
+                    requestId = params["requestId"]?.let { if (it is JsonNull) null else it.jsonPrimitive.content },
+                )
+                "find" -> Find(title = params.getValue("title").jsonPrimitive.content)
+                "clear" -> Clear
+                "remove" -> Remove(id = params.getValue("id").jsonPrimitive.content)
+                "select" -> Select(id = params.getValue("id").jsonPrimitive.content)
+                else -> throw SerializationException("Unknown music command ${entry.key}")
+            }
+        }
+    }
+}
+
+object RemoteControlMusicCommandSerializer : KSerializer<RemoteControlMusicCommand> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+
+    override fun serialize(encoder: Encoder, value: RemoteControlMusicCommand) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.toJsonElement())
+    }
+
+    override fun deserialize(decoder: Decoder): RemoteControlMusicCommand =
+        RemoteControlMusicCommand.fromJsonElement(
+            decoder.decodeSerializableValue(JsonElement.serializer()),
+        )
+}
+
+@Serializable
+data class RemoteControlMusicSong(
+    var id: String,
+    var title: String,
+    var artist: String? = null,
+    var user: String? = null,
+)
+
+@Serializable
+data class RemoteControlMusicFoundSong(
+    var id: String,
+    var title: String,
+    var artist: String? = null,
+)
+
+@Serializable
+data class RemoteControlMusicStatus(
+    var playing: Boolean,
+    var currentSongIndex: Int? = null,
+    var songs: List<RemoteControlMusicSong>,
+    var songNotFound: Boolean? = null,
 )
 
 @Serializable

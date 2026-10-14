@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-13T23:28:28+00:00",
+  "generated": "2026-10-14T22:42:31+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4895,36 +4895,6 @@
       "wave": 5
     },
     {
-      "path": "Moblin/Various/Model/ModelMusic.swift",
-      "lines": 205,
-      "sha256": "20ec0c96a0aa0128fb3ffc882741d1ae7045876111feab20f3ee619552f2eb6f",
-      "imports": [
-        "Combine",
-        "DequeModule",
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "Action",
-        "MusicStatusSong",
-        "MusicStatus",
-        "MusicAddResult"
-      ],
-      "private_types": [
-        "Action"
-      ],
-      "declared_functions": [],
-      "declared_globals": [
-        "musicPlayer"
-      ],
-      "kotlin_package": "com.moblin.android.various.model",
-      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMusic.kt",
-      "deps": [
-        "Moblin/Various/Model/Model.swift"
-      ],
-      "wave": 5
-    },
-    {
       "path": "Moblin/Various/Model/ModelPhotoShoot.swift",
       "lines": 54,
       "sha256": "63973f67c19f05d6af48303dc326398fc32ab7ecfda1e6fda376c0823067c8df",
@@ -6213,6 +6183,28 @@
       "wave": 5
     },
     {
+      "path": "MoblinTests/Moblin/Various/Model/ModelMusicSuite.swift",
+      "lines": 24,
+      "sha256": "805143589a41592eb9fd2504fb594755de3d6cd3e0ea5fb37328791915c24fc6",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "ModelMusicSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/model/ModelMusicSuite.kt",
+      "deps": [
+        "Moblin/Various/Model/ModelMusic.swift"
+      ],
+      "wave": 5
+    },
+    {
       "path": "MoblinTests/Moblin/Various/Network/HttpClientSuite.swift",
       "lines": 102,
       "sha256": "c4cddcfec2170fe3959bd4c64e50813bd5fdf851b98fe0be85762ff7baebc286",
@@ -7338,8 +7330,8 @@
     },
     {
       "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
-      "lines": 317,
-      "sha256": "0c3f5c652dc6541630652528409733ae46454a741865ef9961c663384c4a5b80",
+      "lines": 361,
+      "sha256": "8f9956861f4cd4e5feef29ce0cff7e47dc312e64e464acc811168c5e5595b121",
       "imports": [
         "Foundation",
         "Testing",
@@ -8980,6 +8972,48 @@
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelMoblink.swift",
         "Moblin/Various/Storages/RecordingsStorage.swift"
+      ],
+      "wave": 13
+    },
+    {
+      "path": "Moblin/Various/Model/ModelMusic.swift",
+      "lines": 505,
+      "sha256": "28a70a35235e7d35428d95c193a407cd2c255e5af4e5e86765cadd14287cc619",
+      "imports": [
+        "Combine",
+        "DequeModule",
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "Action",
+        "MusicMetadata",
+        "StoredMusicEntry",
+        "MusicQueueState",
+        "MusicPlaylistSong",
+        "MusicPlaylist",
+        "MusicStatusSong",
+        "MusicStatus",
+        "MusicAddResult"
+      ],
+      "private_types": [
+        "Action",
+        "MusicMetadata",
+        "StoredMusicEntry"
+      ],
+      "declared_functions": [
+        "appleMusicSongId"
+      ],
+      "declared_globals": [
+        "musicPlayer"
+      ],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMusic.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/OpenAi/OpenAi.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Storages/SimpleStorage.swift"
       ],
       "wave": 13
     },
@@ -12279,8 +12313,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsChat.swift",
-      "lines": 971,
-      "sha256": "0deb1b9518c19edd6d3840edbfad3d3f635f596f79e6299de0fc06a370feafc7",
+      "lines": 1013,
+      "sha256": "081bcd125162f3861dc2b8e205dda8b6cde328640da8c5cc221f4c5a9b931c82",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -12293,6 +12327,7 @@
         "SettingsChatBotAlias",
         "SettingsChatBotCustomCommand",
         "SettingsChatBotCommandSnapshotSource",
+        "SettingsChatBotCommandSnapshotWebRemoteControlMode",
         "SettingsChatBotCommandSnapshot",
         "SettingsChatPredefinedMessage",
         "SettingsChatPredefinedMessagesFilter",
@@ -13740,8 +13775,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
-      "lines": 786,
-      "sha256": "384a32f34fa6848d7b12369c8baf9b17baacb1410ed52e7ba7fd84129473e611",
+      "lines": 798,
+      "sha256": "6ca6105748be8fd7997e11975149b466e56bb1665ae498f8cfee19a91912ff8c",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -14062,17 +14097,24 @@
     },
     {
       "path": "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
-      "lines": 92,
-      "sha256": "a1a3415f97f2fffe414a858718096f621ef6defecc5740cd533846dd0301dd7c",
+      "lines": 149,
+      "sha256": "ce0fa764b6916b78f8cbf91057f632e6e5d24e6b618c4889d65e5bb8954367a1",
       "imports": [
         "MusicKit",
         "SwiftUI"
       ],
       "tier": "ui",
       "declared_types": [
+        "MusicArtistView",
+        "MusicAddedByView",
+        "ControlsView",
+        "PlaylistView",
         "AppleMusicSettingsView"
       ],
-      "private_types": [],
+      "private_types": [
+        "ControlsView",
+        "PlaylistView"
+      ],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.view.settings.applemusic",
@@ -14330,8 +14372,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
-      "lines": 455,
-      "sha256": "bb65debc5f4ce26b71278175d9538246b914538d5ce3afcb5f9c16d9ec76cf45",
+      "lines": 462,
+      "sha256": "59a6d497eac4cbe2a2bd90d1a0e1a84a7d32b370be16ec4942c988475c4e3e28",
       "imports": [
         "Foundation",
         "Network"
@@ -16970,8 +17012,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
-      "lines": 1085,
-      "sha256": "2192547d5351ab6a18777d8dc9a79ab3c73913906e07f04c536629043eb73666",
+      "lines": 1087,
+      "sha256": "1db0d356fb13c217541e89328219e746b6594141b9793f7cde91dde5dd385469",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -20335,8 +20377,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
-      "lines": 1174,
-      "sha256": "a9f6c6c18bfb7c7247ef1edba024c49be1be7b32c8cf7fb18fcbcb6870a21948",
+      "lines": 1208,
+      "sha256": "5295666fa3f9578255da30fde161751583ae1e99d5b69f9edc29e891231af632",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20354,6 +20396,10 @@
         "RemoteControlStats",
         "RemoteControlChatHighlight",
         "RemoteControlChatMessage",
+        "RemoteControlMusicCommand",
+        "RemoteControlMusicSong",
+        "RemoteControlMusicFoundSong",
+        "RemoteControlMusicStatus",
         "RemoteControlReaction",
         "RemoteControlFilter",
         "RemoteControlRemoteSceneSettings",
@@ -20734,8 +20780,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1485,
-      "sha256": "494524dc3486607664096dab4a7e1eb731ae6690e244de576b71cf465f65d5aa",
+      "lines": 1555,
+      "sha256": "9f049b962faee549f272ff0b3aa8b32a012c5fe905a28c7808f5835f5088c314",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21376,8 +21422,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3493,
-      "sha256": "1b923dd58c4cebf1651a122fc2d7567b50e6a088af93466bf3a2313a9e06e8f5",
+      "lines": 3494,
+      "sha256": "0cfdc246d7169b65b4409132adadfaaa69c6011b877ca856ad686959186889f9",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -21532,6 +21578,7 @@
         "Moblin/Various/Model/ModelLog.swift",
         "Moblin/Various/Model/ModelMediaPlayer.swift",
         "Moblin/Various/Model/ModelMoblink.swift",
+        "Moblin/Various/Model/ModelMusic.swift",
         "Moblin/Various/Model/ModelObs.swift",
         "Moblin/Various/Model/ModelRecording.swift",
         "Moblin/Various/Model/ModelRemoteControl.swift",
@@ -21871,8 +21918,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
-      "lines": 842,
-      "sha256": "125e7d9ddfb108ed68f6025c5aac0380165cd806e9e591be1409acd3eff6fa34",
+      "lines": 850,
+      "sha256": "2a3fbbe97609747bf9f9c9dc2e9e2f96289cac0a4b855ec283f602f7f31dd7e9",
       "imports": [
         "SwiftUI"
       ],
@@ -22050,8 +22097,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift",
-      "lines": 1024,
-      "sha256": "bc30870081294b2d8e5a498dcb5fb88b2d8ad8bc040848b6ca8aef1916c4ad5c",
+      "lines": 1125,
+      "sha256": "0a162203408aae0ef5a378dab834f4d94d79d84b29d333446ddcb61852c50af3",
       "imports": [
         "Collections",
         "SwiftUI"
@@ -22080,6 +22127,7 @@
         "FilterToggleView",
         "FiltersView",
         "SendMessageView",
+        "MusicView",
         "DebugLoggingView",
         "ControlBarRemoteControlAssistantControlView",
         "StreamerSelectionButtonView",
@@ -22112,6 +22160,7 @@
         "FilterToggleView",
         "FiltersView",
         "SendMessageView",
+        "MusicView",
         "DebugLoggingView",
         "ControlBarRemoteControlAssistantControlView",
         "StreamerSelectionButtonView",
@@ -22139,6 +22188,7 @@
         "Moblin/Various/Settings/SettingsRemoteControl.swift",
         "Moblin/Various/Storages/RecordingsStorage.swift",
         "Moblin/View/MainView.swift",
+        "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
         "Moblin/View/Settings/Debug/DebugLogSettingsView.swift",
         "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift",
@@ -23852,7 +23902,7 @@
     {
       "path": "Moblin/View/Settings/SettingsView.swift",
       "lines": 278,
-      "sha256": "6ff08cd2139f0bcb30518e9fcca479db7658cd0a530568bdaa224f4925da1e46",
+      "sha256": "aacc79e30dc7b50c12bfc9d5af19ff3c251f77ca56d8a961c5e651e9c7a4ba60",
       "imports": [
         "SwiftUI"
       ],
