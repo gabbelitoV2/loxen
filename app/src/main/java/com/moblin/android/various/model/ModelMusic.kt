@@ -67,6 +67,7 @@ private data class StoredMusicEntry(
     val songId: String,
     val title: String,
     val artist: String?,
+    val duration: Int?,
     val addedBy: String?,
     val requestId: String?,
 )
@@ -100,12 +101,15 @@ private fun storePlaylist(playlist: List<StoredMusicEntry>) {
 
 private fun makeSong(storedEntry: StoredMusicEntry): Any? = null
 
+fun musicDuration(song: Any?): Int? = null
+
 private fun musicSong(entry: Any?): Any? = null
 
 data class MusicPlaylistSong(
     val id: String,
     val title: String,
     val artist: String?,
+    val duration: Int?,
     val addedBy: String?,
 )
 
@@ -125,6 +129,7 @@ data class MusicStatusSong(
     val id: String,
     val title: String,
     val artist: String?,
+    val duration: Int?,
     val addedBy: String?,
 )
 
@@ -152,6 +157,10 @@ fun Model.addMusic(
 ) {
     actions.addLast(Action.Add(title, user, requestId, onCompleted))
     tryRunNextAction()
+}
+
+fun Model.makeMusicAddedMessage(song: String, user: String): String {
+    return localized("$song added to the queue by $user.")
 }
 
 fun Model.findMusic(title: String, onCompleted: (Any?) -> Unit) {
@@ -275,7 +284,7 @@ private suspend fun Model.addAction(
     Unit
 }
 
-private suspend fun Model.waitForMusicQueueResolved() {
+private suspend fun Model.workaroundAppleMusicTransientQueueEntriesBug() {
     Unit
 }
 
@@ -305,7 +314,7 @@ private fun Model.clearAction() {
     Unit
 }
 
-private fun Model.removeAction(entryId: String) {
+private suspend fun Model.removeAction(entryId: String) {
     Unit
 }
 

@@ -126,6 +126,7 @@ import com.moblin.android.various.settings.SettingsRemoteControl
 import com.moblin.android.view.CloseButtonView
 import com.moblin.android.view.settings.applemusic.MusicAddedByView
 import com.moblin.android.view.settings.applemusic.MusicArtistView
+import com.moblin.android.view.settings.applemusic.MusicDurationView
 import com.moblin.android.view.settings.debug.DebugLogSettingsView
 import com.moblin.android.view.settings.remotecontrol.RemoteControlStreamersView
 import com.moblin.android.view.settings.streams.stream.srt.clampConnectionPriority
@@ -1026,6 +1027,10 @@ private fun MusicView(model: Model = LocalModel.current, remoteControl: RemoteCo
                                 }
                             }
                             Spacer(Modifier.weight(1f))
+                            val duration = song.duration
+                            if (duration != null) {
+                                MusicDurationView(duration = duration)
+                            }
                             if (index == status.currentSongIndex) {
                                 SystemImage(
                                     name = if (status.playing) "play.fill" else "pause.fill",

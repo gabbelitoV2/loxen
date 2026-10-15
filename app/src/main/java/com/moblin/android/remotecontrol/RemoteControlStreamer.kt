@@ -9,7 +9,6 @@ import com.moblin.android.various.network.WebSocketClientDelegate
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.storages.SimpleStorageContext
-import com.moblin.android.various.storages.SimpleStringStorage
 import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -84,11 +83,10 @@ interface RemoteControlStreamerDelegate {
     )
 }
 
-private val idStorage = SimpleStringStorage("remoteControlStreamerId")
-
 class RemoteControlStreamer(
     private var clientUrl: String,
     private var password: String,
+    private val streamerId: String,
     delegate: RemoteControlStreamerDelegate,
 ) : WebSocketClientDelegate {
     private var delegate: RemoteControlStreamerDelegate? = delegate
@@ -104,9 +102,6 @@ class RemoteControlStreamer(
     init {
         encryption = RemoteControlEncryption(password)
         webSocket = WebSocketClient(SimpleStorageContext.applicationContext, clientUrl)
-        if (idStorage.get().isEmpty()) {
-            idStorage.set(UUID.randomUUID().toString())
-        }
     }
 
     fun start() {
@@ -128,7 +123,7 @@ class RemoteControlStreamer(
         webSocket.start()
     }
 
-    fun stopInternal() {
+    private fun stopInternal() {
         webSocket.delegate = null
         webSocket.stop()
         handleDisconnected()
@@ -253,7 +248,7 @@ class RemoteControlStreamer(
             authentication.salt,
             password,
         )
-        send(RemoteControlMessageToAssistant.Identify(idStorage.get(), hash))
+        send(RemoteControlMessageToAssistant.Identify(streamerId, hash))
     }
 
     private fun handleIdentified(result: RemoteControlResult): Boolean {

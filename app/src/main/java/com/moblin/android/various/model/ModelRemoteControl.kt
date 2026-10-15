@@ -11,6 +11,7 @@ import com.moblin.android.common.various.formatAudioLevel
 import com.moblin.android.common.various.formatAudioLevelChannels
 import com.moblin.android.common.various.formatBytes
 import com.moblin.android.common.various.noValue
+import com.moblin.android.platform.core.uuidString
 import com.moblin.android.remotecontrol.RemoteControlAssistant
 import com.moblin.android.remotecontrol.RemoteControlAssistantDelegate
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
@@ -66,6 +67,7 @@ import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetScoreboard
 import com.moblin.android.various.settings.SettingsWidgetType
+import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.utils.emojiFlag
 import com.moblin.android.view.settings.streams.stream.srt.clampConnectionPriority
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -122,6 +124,8 @@ class RemoteControl {
     val musicStatus = MutableStateFlow<RemoteControlMusicStatus?>(null)
 }
 
+private val remoteControlStreamerIdStorage = SimpleStringStorage(key = "remoteControlStreamerId")
+
 enum class RemoteControlAssistantPreviewUser {
     panel,
     watch,
@@ -156,9 +160,17 @@ fun Model.reloadRemoteControlStreamer() {
     remoteControlStreamer = RemoteControlStreamer(
         clientUrl = url.toString(),
         password = database.remoteControl.password,
+        streamerId = getRemoteControlStreamerId(),
         delegate = RemoteControlStreamerDelegateAdapter(this)
     )
     remoteControlStreamer?.start()
+}
+
+private fun Model.getRemoteControlStreamerId(): String {
+    if (remoteControlStreamerIdStorage.get().isEmpty()) {
+        remoteControlStreamerIdStorage.set(UUID.randomUUID().uuidString)
+    }
+    return remoteControlStreamerIdStorage.get()
 }
 
 private fun Model.remoteControlStreamerSendTwitchStart() {
@@ -981,13 +993,15 @@ fun Model.remoteControlStreamerMusic(
         is RemoteControlMusicCommand.Play -> playMusic()
         is RemoteControlMusicCommand.Pause -> pauseMusic()
         is RemoteControlMusicCommand.Add -> {
-            addMusic(
-                title = command.title,
-                user = command.user ?: localized("Remote control assistant"),
-                requestId = command.requestId
-            ) { result ->
+            val user = command.user ?: localized("Remote control assistant")
+            addMusic(title = command.title, user = user, requestId = command.requestId) { result ->
                 when (result) {
-                    else -> {}
+                    is MusicAddResult.Added -> {
+                        sendChatMessage(message = makeMusicAddedMessage(song = result.song, user = user))
+                    }
+                    is MusicAddResult.SongNotFound -> songNotFound = true
+                    is MusicAddResult.Failed -> failed = true
+                    is MusicAddResult.AlreadyAdded -> {}
                 }
             }
         }
@@ -1022,6 +1036,7 @@ fun Model.remoteControlStreamerMusic(
                             id = it.id,
                             title = it.title,
                             artist = it.artist,
+                            duration = it.duration,
                             user = it.addedBy
                         )
                     },

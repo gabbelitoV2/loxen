@@ -640,7 +640,7 @@ private fun Model.handleChatBotMessageMusicAdd(command: ChatBotCommand) {
         } else {
             val song = resultDescription.removePrefix("Added(song=").removeSuffix(")")
             sendChatBotReply(
-                message = localized("$song added to the queue by $user."),
+                message = makeMusicAddedMessage(song = song, user = user),
                 platform = platform
             )
         }

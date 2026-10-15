@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -38,8 +39,10 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.monospacedDigit
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.MusicPlaylist
+import com.moblin.android.various.model.MusicPlaylistSong
 import com.moblin.android.various.model.MusicQueueState
 import com.moblin.android.localized
 import com.moblin.android.various.model.addMusic
@@ -70,6 +73,31 @@ fun MusicArtistView(artist: String) {
     )
 }
 
+fun formatMusicDuration(duration: Int): String {
+    val seconds = (duration % 60).toString().padStart(2, '0')
+    if (duration < 3600) {
+        return "${duration / 60}:$seconds"
+    }
+    val minutes = (duration / 60 % 60).toString().padStart(2, '0')
+    return "${duration / 3600}:$minutes:$seconds"
+}
+
+@Composable
+fun MusicDurationView(duration: Int) {
+    Text(
+        formatMusicDuration(duration),
+        style = SwiftUIFonts.system(size = 15f).copy(color = formPalette().secondaryLabel).monospacedDigit(),
+    )
+}
+
+@Composable
+private fun PlaylistEndView(
+    musicPlaylist: MusicPlaylist,
+    queue: MusicPlayerQueue,
+) {
+    Unit
+}
+
 @Composable
 fun MusicAddedByView(user: String) {
     Text(
@@ -87,6 +115,10 @@ private fun ControlsView(
     Section {
         FormRow(enabled = !isEmpty, highlight = false) {
             Spacer(Modifier.weight(1f))
+            MusicControlButton(name = "arrow.backward.to.line", enabled = !isEmpty) {
+                model.previousMusic(count = 1)
+            }
+            Spacer(Modifier.weight(1f))
             if (playerState.isPlaying) {
                 MusicControlButton(name = "pause", enabled = !isEmpty) {
                     model.pauseMusic()
@@ -95,6 +127,10 @@ private fun ControlsView(
                 MusicControlButton(name = "play", enabled = !isEmpty) {
                     model.playMusic()
                 }
+            }
+            Spacer(Modifier.weight(1f))
+            MusicControlButton(name = "arrow.forward.to.line", enabled = !isEmpty) {
+                model.nextMusic(count = 1)
             }
             Spacer(Modifier.weight(1f))
         }
@@ -109,7 +145,16 @@ private fun PlaylistView(
 ) {
     val songs = musicPlaylist.songs()
     val currentIndex = musicPlaylist.currentIndex()
-    Section(header = "Playlist") {
+    Section(headerContent = {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(localized("Playlist"))
+            Spacer(Modifier.weight(1f))
+            PlaylistEndView(musicPlaylist = musicPlaylist, queue = queue)
+        }
+    }) {
         ForEach(
             items = songs.withIndex().toList(),
             id = { it.value.id },
@@ -143,6 +188,7 @@ private fun PlaylistView(
                     song.addedBy?.let { MusicAddedByView(user = it) }
                 }
                 Spacer(Modifier.weight(1f))
+                song.duration?.let { MusicDurationView(duration = it) }
             }
         }
     }
@@ -254,3 +300,6 @@ private fun rememberMusicPlayerState(): MusicPlayerState =
 @Composable
 private fun rememberMusicPlayerQueue(): MusicPlayerQueue =
     remember { MusicPlayerQueue(entries = emptyList(), currentEntryId = null) }
+
+private val MusicPlaylistSong.duration: Int?
+    get() = null

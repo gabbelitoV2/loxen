@@ -2385,24 +2385,22 @@
   },
   "Moblin/Various/Model/ModelMusic.swift": {
     "status": "ok",
-    "sha256": "28a70a35235e7d35428d95c193a407cd2c255e5af4e5e86765cadd14287cc619",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "0867ff1e0c323a466e8d31495122aecdb1ffbe61a656f0c60da5f72f8292acf6",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMusic.kt",
     "notes": [
-      "MusicKit has no Android counterpart: as in the previous revision of this file, every player/queue body stays a no-op stub (Unit, emptyList, null) and the player is kept as `Any?` so the file still compiles.",
-      "New top-level pure helper `appleMusicSongId` is fully translated using java.net.URI plus an inline query-string parse (no dictionaryFromQuery helper exists in Kotlin), so the Kotlin output changes nothing else.",
-      "New types added in Swift order: private MusicMetadata, private StoredMusicEntry, MusicQueueState, MusicPlaylistSong, MusicPlaylist, plus the new Action cases Add(user/requestId), Find, Remove, Select, Load.",
-      "MusicStatusSong gained id/artist/addedBy and MusicAddResult gained AlreadyAdded and Failed, exactly as in the diff.",
-      "Model gained findMusic/removeMusic/selectMusic/loadMusic and addMusic now takes user and requestId; setMusicQueue/storeMusicQueue/tryRunNextAction/action helpers were added or retargeted to the new Action cases.",
-      "statusAction is no longer async in Swift, so it is no longer a suspend function here; nextMusic/previousMusic now guard on the loaded state (kept as stubbed bodies).",
-      "playlistQueue (serial DispatchQueue) is mapped to CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher()) and playlistStorage to SimpleStringStorage(key = \"musicPlaylist\"); both are unused because the playlist code paths are MusicKit stubs.",
-      "All hand-written Android lines from the current file (TAG, mainScope, Log calls, makeErrorToast handling, existing Unit bodies) are preserved byte-identical."
+      "MusicKit has no Android counterpart, so the queue/player bodies stay as the stubs the previous translation used; only the declaration changes from the diff were applied.",
+      "StoredMusicEntry, MusicPlaylistSong and MusicStatusSong gained a `duration: Int?` field at the same position as in Swift.",
+      "makeSong, storeMusicQueue and statusAction are stubs, so the new duration plumbing inside them has no Kotlin code to add.",
+      "New top-level `musicDuration(song)` mirrors the Swift helper and is declared between makeSong and musicSong.",
+      "`makeMusicAddedMessage` is real logic and was added after `Model.addMusic` as a `Model` extension.",
+      "`waitForMusicQueueResolved` was renamed to `workaroundAppleMusicTransientQueueEntriesBug` in place.",
+      "`Model.removeAction` is now a suspend function, matching `await removeAction(entryId:)` in tryRunNextAction.",
+      "Only the changed declarations were touched; every other line is byte-identical to the previous Kotlin file."
     ],
-    "unsupported": [
-      "MusicKit (ApplicationMusicPlayer, MusicAuthorization, MusicCatalogResourceRequest, MusicCatalogSearchRequest, Song, MusicItemID, ApplicationMusicPlayer.Queue) has no Android counterpart, so every body that touches it is kept as a no-op stub"
-    ],
+    "unsupported": [],
     "apple_only": [
       "MusicKit MusicAuthorization.request()",
       "MusicKit MusicCatalogResourceRequest / MusicCatalogSearchRequest (Song lookup by URL id and search by term)",
@@ -2411,10 +2409,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53908,
-    "tokens_out": 23225,
-    "seconds": 114.4,
-    "ported_at": "2026-10-14T22:44:40+00:00"
+    "tokens_in": 51866,
+    "tokens_out": 4287,
+    "seconds": 18.6,
+    "ported_at": "2026-10-15T22:43:01+00:00"
   },
   "Moblin/View/ControlBar/ControlBarUtils.swift": {
     "status": "ok",
@@ -3302,27 +3300,23 @@
   },
   "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift": {
     "status": "ok",
-    "sha256": "8f9956861f4cd4e5feef29ce0cff7e47dc312e64e464acc811168c5e5595b121",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "6ed54af5df6485e6e0bc91daa772d6e295b61cc2e80f1547dbd897ff3b0a4d80",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt",
     "notes": [
-      "Only the two new Swift tests (musicRequests, musicResponses) were inserted between sendMessageRequest and remoteSceneDataVariables; every other Kotlin line is byte-identical to the current file.",
-      "Swift .music(command:) is translated as RemoteControlRequest.Music(command = ...) with RemoteControlMusicCommand.Play/Add/Find/Remove, the UpperCamelCase case names used by the rest of RemoteControl.kt.",
-      "The decoding part uses the hand-written decoder entry point RemoteControlRequest.fromJsonElement(json.parseToJsonElement(text)); check the exact name against RemoteControl.kt if it is spelled differently.",
-      "RemoteControlResponse.musicFind(song:) is RemoteControlResponse.MusicFind(song = ...) and is encoded through its hand-written toJsonElement(), run through the suite's formatJson so keys come out sorted like JSONEncoder with .sortedKeys.",
-      "Swift's guard/Issue.record(\"not an add\") plus return becomes an elvis on the cast whose right side is fail(\"not an add\"), so the test fails with the same message instead of hanging.",
-      "#expect(requestId == nil) becomes assertNull(add.requestId); assertNull and fail were added to the kotlin.test imports.",
-      "RemoteControlMusicFoundSong is constructed with the Swift argument labels id, title, artist as named Kotlin arguments; nil song is passed as null."
+      "Only the musicResponses test changed: RemoteControlMusicFoundSong now takes duration = 213 and the expected JSON gains a sorted \"duration\":213 entry.",
+      "The named parameter duration = 213 is added to the Kotlin constructor call; the formatJson helper sorts keys, so the new field lands between \"artist\" and \"id\" as in Swift.",
+      "Everything else is byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47648,
-    "tokens_out": 18667,
-    "seconds": 86.9,
-    "ported_at": "2026-10-14T22:44:13+00:00"
+    "tokens_in": 47758,
+    "tokens_out": 4833,
+    "seconds": 15.8,
+    "ported_at": "2026-10-15T22:42:58+00:00"
   },
   "Moblin/Integrations/Emotes/Bttv.swift": {
     "status": "ok",
@@ -6014,25 +6008,25 @@
   },
   "Moblin/RemoteControl/RemoteControlStreamer.swift": {
     "status": "ok",
-    "sha256": "59a6d497eac4cbe2a2bd90d1a0e1a84a7d32b370be16ec4942c988475c4e3e28",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "fd45851dcc58a7cb0e628aa58e9147abb4d4e4822ee67666c1ab17b1745780df",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
     "notes": [
-      "Incremental change: added the remoteControlStreamerMusic delegate method to the interface and the Music branch in handleRequest.",
-      "The Music branch forwards the delegate's result and response straight into the response message, matching the Swift closure.",
-      "Swift's @MainActor on the protocol is dropped; the class runs its WebSocket callbacks on mainScope as before.",
-      "Swift's weak delegate becomes a strong nullable var, as in the existing Kotlin port.",
-      "Everything else in the file is unchanged from the previous translation."
+      "Removed the file-level idStorage SimpleStringStorage and its imports; the streamer id is now injected through init.",
+      "Added a private val streamerId constructor parameter between password and delegate, matching the new Swift init order.",
+      "handleHello now sends Identify with the injected streamerId.",
+      "stopInternal is now private.",
+      "SimpleStorageContext import kept because WebSocketClient still needs the application context."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44359,
-    "tokens_out": 5144,
-    "seconds": 17.2,
-    "ported_at": "2026-10-14T22:43:03+00:00"
+    "tokens_in": 44502,
+    "tokens_out": 5321,
+    "seconds": 18.1,
+    "ported_at": "2026-10-15T22:43:00+00:00"
   },
   "Moblin/Various/Model/ModelMoblinWebsite.swift": {
     "status": "ok",
@@ -6064,26 +6058,23 @@
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
-    "sha256": "6ca6105748be8fd7997e11975149b466e56bb1665ae498f8cfee19a91912ff8c",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "92a0dd316edbcd59da32869fe14f6c462e2c11874cf104814d0735125ad5a407",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
     "notes": [
-      "Added RemoteControlAssistant.music(command, onSuccess) right after sendMessage, matching the Swift diff position.",
-      "The request is RemoteControlRequest.Music(command = command) and the reply is matched as RemoteControlResponse.Music with the status field, following the existing GetStatus/GetSettings pattern in this file.",
-      "Response matching uses a when with an empty else branch because Kotlin has no fallthrough default: break.",
-      "onError keeps an empty body as in Swift.",
-      "No new imports are needed: RemoteControlMusicCommand, RemoteControlMusicStatus, RemoteControlRequest and RemoteControlResponse all live in com.moblin.android.remotecontrol.",
-      "Everything else is byte-identical to the previous Kotlin file."
+      "Only the diff was applied: a wheelOfLuck branch was added to handleEvent.",
+      "The new branch maps to RemoteControlEvent.WheelOfLuck, an ignored event like Scoreboard and GolfScoreboard.",
+      "Everything else in the file, including the hand-written WebSocket server, stays byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 60619,
-    "tokens_out": 9165,
-    "seconds": 28.5,
-    "ported_at": "2026-10-14T22:43:14+00:00"
+    "tokens_in": 60666,
+    "tokens_out": 9168,
+    "seconds": 27.1,
+    "ported_at": "2026-10-15T22:43:10+00:00"
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
@@ -12708,24 +12699,22 @@
   },
   "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift": {
     "status": "ok",
-    "sha256": "ce0fa764b6916b78f8cbf91057f632e6e5d24e6b618c4889d65e5bb8954367a1",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "e919e9c94e4919bf12e6a07e1a6e04becd9cdcb21526fbae61b6adcd235e3c96",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/applemusic/AppleMusicSettingsView.kt",
     "notes": [
-      "MusicKit stays stubbed as in the current file: MusicSubscription -> MusicSubscriptionState, ApplicationMusicPlayer.State -> MusicPlayerState, ApplicationMusicPlayer.Queue -> MusicPlayerQueue.",
-      "AppleMusicSettingsView now takes musicPlaylist: MusicPlaylist (com.moblin.android.various.model); its state is read with collectAsState because the port's ObservableObject properties are MutableStateFlows, and isEmpty = playlistState != MusicQueueState.loaded replaces playerQueue.entries.isEmpty.",
-      "The Swift call model.addMusic(title:user:onCompleted:) has no user parameter in the declared Kotlin Model.addMusic(title, onCompleted), so the call stays model.addMusic(searchText) { } and the Swift user: nil is dropped.",
-      "PlaylistView keeps the Swift parameter list but receives the file's MusicPlayerQueue placeholder for queue, because the Swift object it observes (ApplicationMusicPlayer.Queue) is MusicKit-only and the parameter is never read in the body.",
-      "PlaylistView iterates songs.withIndex().toList() so the row knows its index (index == musicPlaylist.currentIndex()) while the ForEach still supplies onDelete offsets that index the same songs list.",
-      "The row is a FormRow with onClick for the Swift .contentShape(Rectangle()).onTapGesture { model.selectMusic(entryId: song.id) }, so it keeps iOS row insets and highlight.",
-      "MusicArtistView uses SwiftUIFonts.system(size = 15f) for .subheadline and formPalette().secondaryLabel for .foregroundStyle(.secondary).",
-      "The Swift Form modifiers .musicSubscriptionOffer and the .task MusicSubscription.subscriptionUpdates loop stay untranslated, the previous translation already dropped them."
+      "Applied the diff: formatMusicDuration, MusicDurationView and the private PlaylistEndView are added in the same order as the Swift file.",
+      "ControlsView now shows previous, play/pause and next buttons; the Swift ZStack of the two images is written as the existing if/else branch because the Compose button is a fixed, centred Box, so the result is the same.",
+      "PlaylistView's header is a Row with the Playlist text, a weight Spacer and PlaylistEndView, and each row renders the song duration after the Spacer.",
+      "The ported music model does not expose MusicPlaylistSong.duration, so a private extension property with a TODO keeps both Swift call sites (song.duration) unchanged; it is shadowed if the model ever adds the field.",
+      "PlaylistEndView depends on MusicKit's TimelineView and ApplicationMusicPlayer playback time, which have no Android counterpart.",
+      "Everything else, including the hand-written MusicPlayerState, MusicPlayerQueue and MusicSubscriptionState stubs and MusicControlButton, is byte-identical to the current Kotlin file."
     ],
     "unsupported": [
-      "MusicKit MusicSubscription.subscriptionUpdates (the .task loop)",
-      "MusicKit .musicSubscriptionOffer(isPresented:options:)"
+      "MusicKit TimelineView and ApplicationMusicPlayer.Queue playback time (PlaylistEndView)",
+      "MusicKit MusicPlaylistSong.duration, not exposed by the ported music model"
     ],
     "apple_only": [
       "MusicKit MusicSubscription.subscriptionUpdates",
@@ -12734,10 +12723,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41714,
-    "tokens_out": 40358,
-    "seconds": 199.7,
-    "ported_at": "2026-10-14T22:46:05+00:00"
+    "tokens_in": 44851,
+    "tokens_out": 26899,
+    "seconds": 125.8,
+    "ported_at": "2026-10-15T22:44:48+00:00"
   },
   "Moblin/VideoEffects/VideoSourceEffect.swift": {
     "status": "ok",
@@ -14554,24 +14543,24 @@
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "1db0d356fb13c217541e89328219e746b6594141b9793f7cde91dde5dd385469",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "e9f4b0cedde1f8b1c595eb54ee6d744176036d5d92141ad1aa42b72937b7ca98",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
     "notes": [
-      "The two snapshot handlers now read database.chat.botCommandSnapshot.effectiveSource(isLive = isLive.value) instead of .source; Model.isLive is the MutableStateFlow that stands in for Swift's @Published var isLive.",
-      "handleChatBotMessageMusicAdd now calls addMusic(title = title, user = user) and adds the .alreadyAdded / .failed branch, which the hand-written Kotlin result-to-string switch handles by doing nothing.",
-      "The hand-written result.toString() parsing in the music add callback is kept, only extended with the AlreadyAdded/Failed no-op case, so the Android behaviour is unchanged for the other cases.",
-      "SettingsChatBotCommandSnapshot.effectiveSource(isLive:) is expected to be declared in the settings file that owns the type; this file only calls it."
+      "Only handleChatBotMessageMusicAdd changed: the .added(song:) branch now formats its reply through makeMusicAddedMessage(song:user:) instead of an inline localized string.",
+      "The hand-written Android result parsing (result.toString(), \"Added(song=\") is kept as it was, because the Kotlin music result type is not declared in the provided dependencies; only the message construction follows the new Swift intent.",
+      "makeMusicAddedMessage is a Moblin Model music helper (ModelMusic.kt) and is called with the extracted song title and the user, matching the Swift call.",
+      "Everything else in the file is byte-identical to the previous Kotlin version."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 67020,
-    "tokens_out": 12158,
-    "seconds": 42.7,
-    "ported_at": "2026-10-14T22:43:29+00:00"
+    "tokens_in": 66831,
+    "tokens_out": 10818,
+    "seconds": 34.9,
+    "ported_at": "2026-10-15T22:43:18+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -15909,26 +15898,26 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "5295666fa3f9578255da30fde161751583ae1e99d5b69f9edc29e891231af632",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "eba7e87029b2ba3739a97f55541624bfa4196dbe2fcf7fc4c57fed75e0a59ae9",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
     "notes": [
-      "Diff applied: added RemoteControlRequest.Music(command:), RemoteControlResponse.Music(status:) and RemoteControlResponse.MusicFind(song:) plus the four new music types.",
-      "RemoteControlMusicCommand is a sealed class with a JsonObjectSerializer-style companion fromJsonElement and a custom KSerializer, matching the RemoteControlStatusTopRightAudioLevel pattern already in the file.",
-      "Wire format kept Swift-synthesized: {\"music\":{\"command\":{\"status\":{}}}} and {\"musicFind\":{\"song\":...}}; add() uses the labelled keys title/user/requestId, nulls written as JsonNull like the rest of the file.",
-      "RemoteControlMusicSong, RemoteControlMusicFoundSong and RemoteControlMusicStatus are @Serializable data classes reusing the file's remoteControlJson (encodeDefaults, explicitNulls=false).",
-      "Everything outside the diff (Android CryptoKit-free MessageDigest/Cipher based RemoteControlEncryption, custom date/measurement/filters serializers and request/response/event code) was left byte-identical.",
-      "All new cases were added to the matching fromJsonElement functions right after the previous last case."
+      "Adds RemoteControlEvent.WheelOfLuck, serialized as {\"wheelOfLuck\":{\"wheel\":...}} with a JSON null wheel, matching Swift's synthesized Codable for an optional associated value.",
+      "Adds RemoteControlWheelOfLuckOption and RemoteControlWheelOfLuck data classes immediately after RemoteControlEvent, at the same position as the Swift diff.",
+      "Adds duration: Int? to RemoteControlMusicSong between artist and user, and to RemoteControlMusicFoundSong after artist.",
+      "The new duration fields default to null so remoteControlJson (explicitNulls = false) omits them when absent, like Swift's encodeIfPresent.",
+      "RemoteControlEvent.fromJsonElement rejects an unknown wheelOfLuck payload the same way as the other event cases.",
+      "No other declaration, import or formatting in the file was touched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 85911,
-    "tokens_out": 29305,
-    "seconds": 95.8,
-    "ported_at": "2026-10-14T22:44:35+00:00"
+    "tokens_in": 87045,
+    "tokens_out": 23906,
+    "seconds": 68.4,
+    "ported_at": "2026-10-15T22:43:51+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -15997,28 +15986,28 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "9f049b962faee549f272ff0b3aa8b32a012c5fe905a28c7808f5835f5088c314",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "8856af842c4b7a90985de4319022bc184a19933a13e33999fba70986e2530eff",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "Adds RemoteControl.musicStatus as a MutableStateFlow<RemoteControlMusicStatus?> after cameraMan.",
-      "Adds Model.remoteControlAssistantMusic, forwarding to RemoteControlAssistant.music with a status callback that toasts and writes remoteControl.musicStatus.",
-      "Adds Model.remoteControlStreamerMusic, translated as a when over the sealed RemoteControlMusicCommand with is-branches, returning early for the Find case.",
-      "The Swift enum with associated values RemoteControlMusicCommand maps to capitalized Kotlin sealed-class entries (Status, Play, Pause, Add, Find, Clear, Remove, Select).",
-      "RemoteControlResult cases keep lowercase Kotlin enum entry names (ok, error, songNotFound, failed, added, alreadyAdded).",
-      "The Find result is built with song?.let so the nullable Swift song.map becomes a nullable Kotlin value.",
-      "statusMusic's guard !failed becomes an early return@statusMusic from the callback lambda.",
-      "Six new imports added under com.moblin.android.remotecontrol; no other lines changed."
+      "reloadRemoteControlStreamer now passes streamerId = getRemoteControlStreamerId() to RemoteControlStreamer; RemoteControlStreamer.kt gets the matching constructor parameter in its own change.",
+      "getRemoteControlStreamerId() is a private Model extension backed by the file-level SimpleStringStorage(key = \"remoteControlStreamerId\"); it writes UUID.randomUUID().uuidString (the uppercase uuidString from com.moblin.android.platform.core), matching Swift's UUID().uuidString.",
+      "The .add branch now sends a chat message on MusicAddResult.Added, calling the Model helpers makeMusicAddedMessage(song, user) and sendChatMessage(message) that live outside this file.",
+      "MusicAddResult is in this package, so the when-branches need no import; Added carries the song as a String in the Kotlin port.",
+      "duration = it.duration is passed to RemoteControlMusicSong and comes from MusicStatusSong.duration, which the parallel ModelMusic port adds, matching the Swift $0.duration.",
+      "The .find branch still cannot build a RemoteControlMusicFoundSong because findMusic's Kotlin callback hands over Any?, so the existing TODO(\"map found song\") is kept."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "map found song"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 89695,
-    "tokens_out": 22894,
-    "seconds": 76.9,
-    "ported_at": "2026-10-14T22:44:22+00:00"
+    "tokens_in": 91063,
+    "tokens_out": 30973,
+    "seconds": 115.5,
+    "ported_at": "2026-10-15T22:44:38+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
@@ -16222,28 +16211,24 @@
   },
   "Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift": {
     "status": "ok",
-    "sha256": "0a162203408aae0ef5a378dab834f4d94d79d84b29d333446ddcb61852c50af3",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "890ff359da09654a2fce679a800b87cf938b0f7b69d950f33617e72427af475d",
+    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/remotecontrolassistant/ControlBarRemoteControlAssistantView.kt",
     "notes": [
-      "Diff applied: MusicView added between FiltersView and SendMessageView, and MusicView(model = model, remoteControl = remoteControl) added to ControlBarRemoteControlAssistantControlView after FiltersView.",
-      "The Swift borderless Button with Image(systemName:) becomes the swiftui Button with a SystemImage at .title size (28.sp) in the accent tint, flanked by weight(1f) spacers as in the Swift HStack.",
-      "Queue rows (HStack + contentShape + onTapGesture) become ForEach(..., onDelete = ...) with a FormRow(onClick = ...) content, so the row taps and swipe-to-delete work like the Swift list.",
-      "Swift .onAppear on the form becomes LaunchedEffect(Unit) inside the NavigationLink destination, so .status is sent when the destination appears.",
-      "The playing row index is resolved with songs.indexOfFirst { it.id == song.id } because the Compose ForEach does not hand the enumerated index to the content lambda.",
-      "model.remoteControlAssistantMusic(command:), remoteControl.musicStatus (MutableStateFlow<RemoteControlMusicStatus?>) and the RemoteControlMusicCommand cases (parameterless ones as objects) are assumed to be declared in ModelRemoteControl.kt/RemoteControl.kt like the other remote control commands; RemoteControlMusicStatus/Song are untouched here.",
-      "New imports: Button, ForEach (platform.swiftui), RemoteControlMusicCommand (remotecontrol), MusicArtistView and MusicAddedByView (view.settings.applemusic).",
-      "The Song text field reuses the BasicTextField + ImeAction.Done pattern already used by SendMessageView."
+      "Added MusicDurationView beside the queue row's Spacer, matching the new Swift if let duration = song.duration block.",
+      "Imported MusicDurationView from com.moblin.android.view.settings.applemusic next to the other applemusic imports.",
+      "The duration is read into a local val before the null check, as Swift's if let does.",
+      "No other Kotlin line was touched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 70833,
-    "tokens_out": 26931,
-    "seconds": 110.6,
-    "ported_at": "2026-10-14T22:45:21+00:00"
+    "tokens_in": 71124,
+    "tokens_out": 12639,
+    "seconds": 36.9,
+    "ported_at": "2026-10-15T22:43:37+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift": {
     "status": "ok",

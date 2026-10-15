@@ -823,6 +823,18 @@ sealed class RemoteControlEvent {
         }
     }
 
+    data class WheelOfLuck(val wheel: RemoteControlWheelOfLuck?) : RemoteControlEvent() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("wheelOfLuck") {
+                if (wheel == null) {
+                    put("wheel", JsonNull)
+                } else {
+                    put("wheel", remoteControlJson.encodeToJsonElement(wheel))
+                }
+            }
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlEvent =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -854,11 +866,28 @@ sealed class RemoteControlEvent {
                     data = remoteControlJson.decodeFromJsonElement(params.getValue("data")),
                 )
                 "stats" -> Stats(data = remoteControlJson.decodeFromJsonElement(params.getValue("data")))
+                "wheelOfLuck" -> WheelOfLuck(
+                    wheel = params["wheel"]?.let {
+                        if (it is JsonNull) null
+                        else remoteControlJson.decodeFromJsonElement<RemoteControlWheelOfLuck>(it)
+                    },
+                )
                 else -> throw SerializationException("Unknown event ${entry.key}")
             }
         }
     }
 }
+
+@Serializable
+data class RemoteControlWheelOfLuckOption(
+    var text: String,
+    var weight: Int,
+)
+
+@Serializable
+data class RemoteControlWheelOfLuck(
+    var options: List<RemoteControlWheelOfLuckOption>,
+)
 
 object RemoteControlDateSerializer : KSerializer<Instant> {
     override val descriptor: SerialDescriptor =
@@ -1120,6 +1149,7 @@ data class RemoteControlMusicSong(
     var id: String,
     var title: String,
     var artist: String? = null,
+    var duration: Int? = null,
     var user: String? = null,
 )
 
@@ -1128,6 +1158,7 @@ data class RemoteControlMusicFoundSong(
     var id: String,
     var title: String,
     var artist: String? = null,
+    var duration: Int? = null,
 )
 
 @Serializable

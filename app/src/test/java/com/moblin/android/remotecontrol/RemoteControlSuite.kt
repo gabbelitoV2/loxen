@@ -91,9 +91,9 @@ class RemoteControlSuite {
     @Test
     fun musicResponses() {
         val found = RemoteControlResponse.MusicFind(
-            song = RemoteControlMusicFoundSong(id = "1440818839", title = "Song", artist = "Band")
+            song = RemoteControlMusicFoundSong(id = "1440818839", title = "Song", artist = "Band", duration = 213)
         )
-        assertEquals("""{"musicFind":{"song":{"artist":"Band","id":"1440818839","title":"Song"}}}""",
+        assertEquals("""{"musicFind":{"song":{"artist":"Band","duration":213,"id":"1440818839","title":"Song"}}}""",
                      formatJson(found.toJsonElement(), prettyPrint = false))
         assertEquals("""{"musicFind":{}}""",
                      formatJson(RemoteControlResponse.MusicFind(song = null).toJsonElement(), prettyPrint = false))
