@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,11 +19,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.common.various.formatDate
 import com.moblin.android.common.various.iconWidth
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
@@ -35,14 +38,17 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.platform.swiftui.moving
 import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.getWheelOfLuckEffect
+import com.moblin.android.various.model.updateWheelOfLuckEffect
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuck
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuckOption
 import com.moblin.android.videoeffects.WheelOfLuckEffect
+import com.moblin.android.videoeffects.WheelOfLuckSpinResult
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
@@ -99,7 +105,7 @@ private fun WheelOfLuckWidgetView(
         Spacer(modifier = Modifier.weight(1f))
         SymbolButton(systemImage = "shuffle", fontSize = 28.sp) {
             widget.wheelOfLuck.shuffle()
-            model.getWheelOfLuckEffect(widget.id)?.setSettings(widget.wheelOfLuck)
+            model.updateWheelOfLuckEffect(widget = widget)
         }
         SymbolButton(systemImage = "play", fontSize = 28.sp) {
             effect.spin()
@@ -116,7 +122,7 @@ private fun OptionView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun updateEffect() {
-        model.getWheelOfLuckEffect(widget.id)?.setSettings(wheelOfLuck)
+        model.updateWheelOfLuckEffect(widget = widget)
     }
 
     fun calcPercent(): Int {
@@ -156,6 +162,30 @@ private fun OptionView(
             Text(options.text)
             Spacer(modifier = Modifier.weight(1f))
             Text("${calcPercent()}%")
+        }
+    }
+}
+
+@Composable
+private fun ResultView(result: WheelOfLuckSpinResult) {
+    val palette = formPalette()
+    Column(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(result.text, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            Text(formatDate(result.date), color = palette.secondaryLabel)
+        }
+        if (result.name.isNotEmpty()) {
+            Text(result.name)
+        }
+        if (result.message.isNotEmpty()) {
+            Text(result.message, color = palette.secondaryLabel)
         }
     }
 }
@@ -210,7 +240,7 @@ fun WidgetWheelOfLuckSettingsView(
     val text = wheelOfLuck.text
 
     fun updateEffect() {
-        model.getWheelOfLuckEffect(widget.id)?.setSettings(wheelOfLuck)
+        model.updateWheelOfLuckEffect(widget = widget)
     }
 
     fun deleteOption(offsets: IndexSet) {
@@ -286,6 +316,26 @@ fun WidgetWheelOfLuckSettingsView(
                 effect = effect,
                 indented = false,
             )
+        }
+    }
+    Section(header = "Results") {
+        ForEach(
+            wheelOfLuck.results,
+            id = { it.id },
+            onDelete = { offsets ->
+                wheelOfLuck.results = wheelOfLuck.results.removing(atOffsets = offsets)
+            },
+        ) { result ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = wheelOfLuck.results.indexOfFirst { it.id == result.id }
+                    if (offset != -1) {
+                        wheelOfLuck.results = wheelOfLuck.results.removing(atOffsets = setOf(offset))
+                    }
+                },
+            ) {
+                ResultView(result = result)
+            }
         }
     }
 }

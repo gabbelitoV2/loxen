@@ -728,6 +728,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var relaxedBitrate = false
     var remoteControlAssistantStreamerState = RemoteControlAssistantStreamerState()
     var remoteControlStreamer: RemoteControlStreamer? = null
+    var remoteControlHandledRequestIds: MutableList<String> = mutableListOf()
     var remoteControlAssistant: RemoteControlAssistant? = null
     var remoteControlRelay: RemoteControlRelay? = null
     var remoteControlWeb: RemoteControlWeb? = null

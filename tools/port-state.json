@@ -2999,26 +2999,25 @@
   },
   "Moblin/Various/Settings/SettingsRemoteControl.swift": {
     "status": "ok",
-    "sha256": "ec2d758550fa3e8d826edd8e0853ff7350b11aa54ace2c973f1636c8b1853204",
+    "sha256": "f4ec2b002c1f4414c5f3bdd696c0fbf9343dcbb13e1fe323bbf661c3f7ddbcaa",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsRemoteControl.kt",
     "notes": [
-      "Hand-written Codable encode/init(from:) become @Serializable classes; Swift coding keys equal the Kotlin property names except assistant -> \"client\" and streamer -> \"server\", which use @SerialName.",
-      "@Published/ObservableObject/Identifiable are not reproduced: properties stay plain mutable vars so kotlinx.serialization can still persist them. Wrap the whole SettingsRemoteControl object in a StateFlow at the settings-store level if observation is needed.",
-      "java.util.UUID has no built-in kotlinx serializer, so file-private UUID and nullable-UUID serializers are declared at the bottom of the file and used via @Serializable(with = ...).",
-      "port: UInt16 became Int; SettingsRemoteControlWeb.port defaults to DefaultTcpPorts.remoteControlWeb (assumed Int, like the rest of the network ports).",
-      "kotlinx.serialization uses the property default when a JSON key is missing, so SettingsRemoteControlServerRelay.enabled keeps Swift's in-memory default true rather than the decoder fallback of false.",
-      "Same for hasMigratedAssistant = true: a decoded payload that explicitly contains false still runs the assistant -> streamers migration in the init block, a payload without the key does not.",
-      "The migration block shadows the streamer property with a local val, exactly like the Swift init(from:); getSelectedStreamerName() uses firstOrNull."
+      "Added wheelOfLuckWidgetId as a constructor parameter, constructor property and decode entry in SettingsRemoteControlStreamer, after savedUrls, matching the Swift diff.",
+      "Kept the Published delegate for the new nullable UUID property so SwiftUI-style observation still works.",
+      "The Swift container.encode of an optional key with nil is mirrored with the string-key encode call, and decoding uses the same explicit UUID? decode form as selectedStreamer.",
+      "No imports change; java.util.UUID is already imported.",
+      "Everything else in the file is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3865,
-    "tokens_out": 35455,
-    "seconds": 154.4,
-    "ported_at": "2026-09-22T12:45:32+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40209,
+    "tokens_out": 4638,
+    "seconds": 19.6,
+    "ported_at": "2026-10-16T22:15:19+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Media/Video/BufferedVideoSuite.swift": {
     "status": "ok",
@@ -6008,25 +6007,26 @@
   },
   "Moblin/RemoteControl/RemoteControlStreamer.swift": {
     "status": "ok",
-    "sha256": "fd45851dcc58a7cb0e628aa58e9147abb4d4e4822ee67666c1ab17b1745780df",
-    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
+    "sha256": "19f86b20ad1c0c0a80837dfeeab37c82189e9494a6a43a05833a225d608a07ee",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
     "notes": [
-      "Removed the file-level idStorage SimpleStringStorage and its imports; the streamer id is now injected through init.",
-      "Added a private val streamerId constructor parameter between password and delegate, matching the new Swift init order.",
-      "handleHello now sends Identify with the injected streamerId.",
-      "stopInternal is now private.",
-      "SimpleStorageContext import kept because WebSocketClient still needs the application context."
+      "Added the two new delegate requirements remoteControlStreamerSpinWheelOfLuck and remoteControlStreamerTip at the end of the delegate interface, matching the Swift order.",
+      "Added sendWheelOfLuck after sendStats, sending RemoteControlEvent.WheelOfLuck inside an Event message, with the same connected guard as the Swift code.",
+      "Added the SpinWheelOfLuck and Tip request branches at the end of the when in handleRequest, after Music, each replying with sendEmptyOkResponse like Swift.",
+      "Request case names follow the Swift case names in UpperCamelCase, as every other case in this file does (SendMessage, Music, StartMacro, ...).",
+      "requestId stays String? for spinWheelOfLuck and non-null String for tip, as in Swift.",
+      "No import changes were needed: RemoteControlWheelOfLuck, RemoteControlEvent and RemoteControlRequest already come from the same package."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44502,
-    "tokens_out": 5321,
-    "seconds": 18.1,
-    "ported_at": "2026-10-15T22:43:00+00:00"
+    "tokens_in": 44762,
+    "tokens_out": 6007,
+    "seconds": 18.9,
+    "ported_at": "2026-10-16T22:15:19+00:00"
   },
   "Moblin/Various/Model/ModelMoblinWebsite.swift": {
     "status": "ok",
@@ -13289,23 +13289,27 @@
   },
   "Moblin/VideoEffects/WheelOfLuckEffect.swift": {
     "status": "ok",
-    "sha256": "011d3aebd4f65f26a40813e9d7deb98bda693821b11ec9a8d54dcb7bddaff664",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "fcc4b6876373faaf4cf41877e24dfc8f28ff586420262ce5174aef3f869e6c2d",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt",
     "notes": [
-      "Only the position calculation in executeMetalPetal changed: metalPetalLayerPosition(...) is replaced by layoutCenter(...), which lives in the same package (EffectUtils.kt), so no import is added.",
-      "layoutCenter keeps the same named arguments (layout, size, streamSize) and returns a CGPoint, so the following MTILayer positions are unchanged.",
-      "Everything else, including the Compose Size constructor parameter, the SwiftUI layout DSL views and the ImageRenderer usage, stays byte-identical."
+      "Added WheelOfLuckSpinResult (id UUID, date java.time.Instant) and the file-private PendingSpin data class.",
+      "CaptionView became a ViewBuilder extension rendering the SwiftUI layout DSL, using the same builder API as WheelView/ArrowView.",
+      "WheelOfLuckEffect now takes an onResult: (WheelOfLuckSpinResult) -> Unit constructor parameter (Swift's @MainActor closure).",
+      "spin() enqueues PendingSpin entries on processorPipelineQueue instead of arming a NaN start timestamp; a new spin(name:message:count:) renders the caption on Main first.",
+      "updateAngle now starts a queued spin, reports a result after spinTime and clears the caption after spinTime + 5; reportResult picks the option by arrow angle.",
+      "Angles stay Double; Swift's truncatingRemainder(dividingBy: 360) became Kotlin's % on Double.",
+      "New DSL imports (TextAlignment, background, bold, multilineTextAlignment, padding) plus java.time.Instant were added."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61377,
-    "tokens_out": 2726,
-    "seconds": 8.4,
-    "ported_at": "2026-10-02T23:58:15+00:00"
+    "tokens_in": 64742,
+    "tokens_out": 13068,
+    "seconds": 51.2,
+    "ported_at": "2026-10-16T22:15:50+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift": {
     "status": "ok",
@@ -14268,27 +14272,27 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift": {
     "status": "ok",
-    "sha256": "d712f382c8243789946d7e2bcc6d1bb3a130a5596b44d87613847f65c74a78c4",
+    "sha256": "2a0ff547eb7051c509f0502e453a1d49758801bd61f6d0d9a69ffd6c680b459e",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wheelofluck/WidgetWheelOfLuckSettingsView.kt",
     "notes": [
-      "State objects (SettingsWidgetWheelOfLuck, SettingsWidgetWheelOfLuckOption) are observed with collectAsState() and mutated through their public MutableStateFlow .value, following the port's ObservableObject convention.",
-      "NavigationLink becomes the onNavigate callback: OptionView calls onNavigate(\"Option\") and additionally shows the inline destination form in a ModalBottomSheet so the editor stays reachable.",
-      "The weight Picker becomes a Row with an ExposedDropdownMenuBox writing options.weight and calling updateTotalWeight()/updateEffect().",
-      ".contextMenuDeleteButton(disabled:) becomes a trailing delete IconButton with enabled = !deleteDisabled; .onDelete/.deleteDisabled are folded into that button.",
-      "onMove reordering has no Compose counterpart, so the logic is kept as the local helper moveOptions() (not attached to a drag gesture).",
-      "@FocusState editingText is kept as remember state but the .focused() modifier is dropped; MultiLineTextFieldView is expected to own its focus.",
-      "Section is rendered as a header Text followed by its items inside a Column, since a Form/LazyColumn is owned by the parent screen.",
-      "widget.wheelOfLuck is treated as a plain (non-Flow) property of SettingsWidget; user-visible literals use localized()."
+      "Applied the three getWheelOfLuckEffect/setSettings call sites to model.updateWheelOfLuckEffect(widget = widget).",
+      "Added the new private ResultView composable between OptionView and WidgetWheelOfLuckQuickButtonControlsView.",
+      "Added the Results Section with a ForEach over wheelOfLuck.results, ContextMenuDeleteButton and onDelete, mirroring the options list.",
+      "The delete action uses indexOfFirst on the id and an assignment through removing(atOffsets = ...), matching the hand-written style already used for wheelOfLuck.options in this file.",
+      "Added imports for updateWheelOfLuckEffect, WheelOfLuckSpinResult, Column, FontWeight, formatDate and formPalette.",
+      "getWheelOfLuckEffect stays imported because WidgetWheelOfLuckQuickButtonControlsView and the effect Section still use it.",
+      "result.date is a java.time.Instant and is formatted with formatDate(date: Instant)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7447,
-    "tokens_out": 27200,
-    "seconds": 106.0,
-    "ported_at": "2026-09-22T13:51:27+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 53992,
+    "tokens_out": 8952,
+    "seconds": 38.0,
+    "ported_at": "2026-10-16T22:15:38+00:00"
   },
   "Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerSettingsView.swift": {
     "status": "ok",
@@ -14543,24 +14547,22 @@
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "e9f4b0cedde1f8b1c595eb54ee6d744176036d5d92141ad1aa42b72937b7ca98",
-    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
+    "sha256": "af282d6e4b0510a530b502fe5d9a2413c83ab6f97117ada4156a74a3c01bd696",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
     "notes": [
-      "Only handleChatBotMessageMusicAdd changed: the .added(song:) branch now formats its reply through makeMusicAddedMessage(song:user:) instead of an inline localized string.",
-      "The hand-written Android result parsing (result.toString(), \"Added(song=\") is kept as it was, because the Kotlin music result type is not declared in the provided dependencies; only the message construction follows the new Swift intent.",
-      "makeMusicAddedMessage is a Moblin Model music helper (ModelMusic.kt) and is called with the extracted song title and the user, matching the Swift call.",
-      "Everything else in the file is byte-identical to the previous Kotlin version."
+      "Only the .options branch of handleChatBotMessageWidgetWheelOfLuck changed: it now calls updateWheelOfLuckEffect(widget = widget) instead of re-fetching the effect and calling setSettings.",
+      "The unused `effect` local stays because the .spin branch still uses it."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66831,
-    "tokens_out": 10818,
-    "seconds": 34.9,
-    "ported_at": "2026-10-15T22:43:18+00:00"
+    "tokens_in": 66770,
+    "tokens_out": 9248,
+    "seconds": 26.7,
+    "ported_at": "2026-10-16T22:15:27+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -15225,23 +15227,25 @@
   },
   "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift": {
     "status": "ok",
-    "sha256": "c9827c821fc4a18a438b92c4806df6df16ded0bbd6bd1ceaf348e0822ae15cce",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "d549ae437c28f6f175594f92c6851fda6576cfe5fc36a4a7917fbf46b71821e9",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/remotecontrol/RemoteControlSettingsView.kt",
     "notes": [
-      "The Swift diff only makes StreamerView's model a stored `let` instead of an `@EnvironmentObject`; Kotlin already declares `model: Model = LocalModel.current` and the caller already passes `model = model`, so the Kotlin file needs no change and stays byte-identical.",
-      "File is returned unchanged because the call site's `model = model,` and the signature's model parameter already match the new Swift shape, exactly as other `let model: Model` views in this package (UrlSettingsInnerView, RemoteControlSettingsStreamerView, RemoteControlSettingsWebView) are translated.",
-      "No declarations were added, removed, renamed or moved, so imports, formatting and declaration order are untouched."
+      "Added the 'Wheel of luck' Section with a Picker bound to streamer.wheelOfLuckWidgetId between the 'Reliable chat and events' Section and the 'Preview FPS' Section.",
+      "The Picker follows the 'Current streamer' Picker pattern: options are listOf(null) plus the wheel-of-luck widget ids, and the label falls back to localized(\"None\").",
+      "The Swift .onChange action is the assignment plus model.remoteControlStreamerSendWheelOfLuck(), like the other pickers in this file.",
+      "Added imports for com.moblin.android.various.settings.SettingsWidgetType and com.moblin.android.various.model.remoteControlStreamerSendWheelOfLuck.",
+      "SettingsRemoteControlStreamer.wheelOfLuckWidgetId is assumed to exist in the settings port, as the Swift source uses it."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 67581,
-    "tokens_out": 8560,
-    "seconds": 24.5,
-    "ported_at": "2026-10-06T23:23:40+00:00"
+    "tokens_in": 67951,
+    "tokens_out": 9590,
+    "seconds": 32.6,
+    "ported_at": "2026-10-16T22:15:33+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardGolfFullScorecardSettingsView.swift": {
     "status": "ok",
@@ -15898,26 +15902,26 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "eba7e87029b2ba3739a97f55541624bfa4196dbe2fcf7fc4c57fed75e0a59ae9",
-    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
+    "sha256": "c312f294e910dd2468761c620b4b43454387baef9d335333258f4ff7482746e1",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
     "notes": [
-      "Adds RemoteControlEvent.WheelOfLuck, serialized as {\"wheelOfLuck\":{\"wheel\":...}} with a JSON null wheel, matching Swift's synthesized Codable for an optional associated value.",
-      "Adds RemoteControlWheelOfLuckOption and RemoteControlWheelOfLuck data classes immediately after RemoteControlEvent, at the same position as the Swift diff.",
-      "Adds duration: Int? to RemoteControlMusicSong between artist and user, and to RemoteControlMusicFoundSong after artist.",
-      "The new duration fields default to null so remoteControlJson (explicitNulls = false) omits them when absent, like Swift's encodeIfPresent.",
-      "RemoteControlEvent.fromJsonElement rejects an unknown wheelOfLuck payload the same way as the other event cases.",
-      "No other declaration, import or formatting in the file was touched."
+      "Only the two new RemoteControlRequest cases from the diff were added: SpinWheelOfLuck and Tip, plus their toJsonElement and fromJsonElement branches.",
+      "Everything else in the file is unchanged and byte-identical to the previous translation.",
+      "spinWheelOfLuck.requestId is optional in Swift, so it is written as JsonNull when absent and as a string otherwise.",
+      "tip.requestId is non-optional in Swift, so it is read with getValue and always emitted.",
+      "The Swift file also declares wheelOfLuck event, RemoteControlWheelOfLuck and RemoteControlWheelOfLuckOption, which already exist in the current Kotlin file, so they were not re-added.",
+      "remoteControlJson (encodeDefaults/ignoreUnknownKeys/explicitNulls=false) is reused for both new cases."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 87045,
-    "tokens_out": 23906,
-    "seconds": 68.4,
-    "ported_at": "2026-10-15T22:43:51+00:00"
+    "tokens_in": 87178,
+    "tokens_out": 22402,
+    "seconds": 61.6,
+    "ported_at": "2026-10-16T22:16:02+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -15986,28 +15990,28 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "8856af842c4b7a90985de4319022bc184a19933a13e33999fba70986e2530eff",
-    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
+    "sha256": "21cb06534b6af2b4f173c7dccd92752ccfc3cd86941bbb06ace86b4f227d18d0",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "reloadRemoteControlStreamer now passes streamerId = getRemoteControlStreamerId() to RemoteControlStreamer; RemoteControlStreamer.kt gets the matching constructor parameter in its own change.",
-      "getRemoteControlStreamerId() is a private Model extension backed by the file-level SimpleStringStorage(key = \"remoteControlStreamerId\"); it writes UUID.randomUUID().uuidString (the uppercase uuidString from com.moblin.android.platform.core), matching Swift's UUID().uuidString.",
-      "The .add branch now sends a chat message on MusicAddResult.Added, calling the Model helpers makeMusicAddedMessage(song, user) and sendChatMessage(message) that live outside this file.",
-      "MusicAddResult is in this package, so the when-branches need no import; Added carries the song as a String in the Kotlin port.",
-      "duration = it.duration is passed to RemoteControlMusicSong and comes from MusicStatusSong.duration, which the parallel ModelMusic port adds, matching the Swift $0.duration.",
-      "The .find branch still cannot build a RemoteControlMusicFoundSong because findMusic's Kotlin callback hands over Any?, so the existing TODO(\"map found song\") is kept."
+      "Adds the Wheel of Luck remote-control helpers: getRemoteControlWheelOfLuckWidget, isRemoteControlWheelOfLuckWidget, remoteControlStreamerSendWheelOfLuck, isRemoteControlRequestAlreadyHandled, remoteControlStreamerSpinWheelOfLuck and remoteControlStreamerTip, inserted at the same positions as the Swift diff.",
+      "remoteControlStreamerConnected now calls remoteControlStreamerSendWheelOfLuck() right after remoteControlStateChanged(...), as in Swift.",
+      "The new logger.debug call becomes Log.d(TAG, ...) with a file-local private const val TAG = \"ModelRemoteControl\" and import android.util.Log, matching the logging shim.",
+      "RemoteControlWheelOfLuck and RemoteControlWheelOfLuckOption are imported from com.moblin.android.remotecontrol, like the other remote control models.",
+      "remoteControlStreamer?.sendWheelOfLuck(wheel = wheel) and getWheelOfLuckEffect(id = ...)?.spin(...) are called exactly as the new Swift code does; their Kotlin declarations live in the parallel RemoteControlStreamer and Wheel of Luck effect files.",
+      "appendChatMessage in remoteControlStreamerTip mirrors the existing remoteControlStreamerSendMessage call (timestamp = statusOther.digitalClock.value, timestampTime = Instant.now(), ChatHighlight.makeRemoteControlAssistant()).",
+      "String(localized:) uses the existing localized() helper; min(max(count, 1), 10) becomes minOf(maxOf(count, 1), 10).",
+      "remoteControlHandledRequestIds is used as a MutableList<String> property of Model (contains/add/size/removeFirst) as declared on the Swift Model."
     ],
-    "unsupported": [
-      "map found song"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 91063,
-    "tokens_out": 30973,
-    "seconds": 115.5,
-    "ported_at": "2026-10-15T22:44:38+00:00"
+    "tokens_in": 92579,
+    "tokens_out": 25166,
+    "seconds": 105.4,
+    "ported_at": "2026-10-16T22:16:46+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
@@ -16030,28 +16034,28 @@
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
-    "sha256": "439ffd5a6912aa0617bff191abd3caf152543699f4eae791d15f95f740449f33",
-    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
+    "sha256": "c24a3c266c79eb45129567d854ffbbf16735bf5734a53691e14fac5233472a6f",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
     "notes": [
-      "Only the diff was applied: getCameraPreviewDeviceIds now collects ids into a Set from getQuickSwitchScenes, and getCameraPreviewWidgetDeviceIds was deleted.",
-      "The two new Swift private helpers became private Model extension functions, placed right after getCameraPreviewDeviceIds at the same position as in Swift.",
-      "Swift's Set.formUnion(x.map(\\.id)) is written as deviceIds.addAll(x.map { it.id }); Array(set) is deviceIds.toList().",
-      "getQuickSwitchScenes uses return@filter true for Swift's inner return true, and compares the UUID sets with ==.",
-      "The private Kotlin helpers getBuiltinCameraDevices(videoSource:devices:) and getBuiltinCameraDevicesInScene already exist later in this file and are reused unchanged.",
-      "The camera preview widget construction still uses makeCaptureDevice and the AVCaptureDevice.withUniqueID Android hook, untouched by this diff.",
-      "Everything else in the file, including formatting, imports and declaration order, is byte-identical to the previous Kotlin file.",
-      "No new iOS API without a counterpart is used by this diff."
+      "Diff applied in two places: new Model.updateWheelOfLuckEffect after getWheelOfLuckEffect, and the spin-result callback added to WheelOfLuckEffect in resetWheelOfLuckEffects.",
+      "The Swift `[weak widget]` capture becomes a plain Kotlin capture of the per-iteration loop variable; Kotlin for-loop variables are fresh per iteration, so the callback appends to the same widget instance.",
+      "The callback is passed as a Kotlin trailing lambda to WheelOfLuckEffect's second parameter, matching Swift's unlabeled second argument.",
+      "WidgetInScene's computed `id` stays a getter returning widget.id.",
+      "Model extensions stay top-level extension functions in com.moblin.android.various.model, unchanged except for the two diffed members.",
+      "The `canvasSize(...)` helper and `media.getCanvasSize()` conversion to Compose Size are unchanged Android-side adaptations.",
+      "re-inlined updateNeeds*, updateTimers, updateStopwatches, updateCheckboxes, updateRatings, updateLapTimes bodies are untouched as the diff does not reach them.",
+      "File-private helpers keep their Android naming; no new types were introduced by the diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 98528,
-    "tokens_out": 19232,
-    "seconds": 48.6,
-    "ported_at": "2026-10-09T23:36:53+00:00"
+    "tokens_in": 98396,
+    "tokens_out": 18948,
+    "seconds": 55.1,
+    "ported_at": "2026-10-16T22:16:19+00:00"
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",
@@ -16321,23 +16325,26 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "e4bbfd0aad5e5ac186f8886d384f153f86c6b58f9a129d4e49be1158366fab0f",
-    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "sha256": "ff2b368ec103d7c4ca3b1069ea8342884abdb074d1fbf02d3abba5684e9a7296",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "Removed the deprecated width2/height2/migrated/migrated2 members of SettingsSceneWidget, their JSON keys and their encode/decode/clone handling.",
-      "SettingsSceneWidget.decode now reads size with a plain container.decode(\"size\", 100.0) instead of the width/height fallback.",
-      "Everything else in the file is byte-identical to the previous translation."
+      "The Swift diff only adds a runtime-only @Published results array and appendResult(result:) to SettingsWidgetWheelOfLuck.",
+      "results is not part of CodingKeys in Swift, so it stays out of encode()/decode() and no serializer change is needed.",
+      "Results is a Kotlin List with by Published(emptyList()) following this file's convention (SettingsWidgetBingoCard.squares), with whole-list reassignment standing in for Swift's in-place insert/removeLast.",
+      "WheelOfLuckSpinResult is imported from com.moblin.android.videoeffects, inserted in alphabetical order before WhirlpoolEffect.",
+      "Everything else in the file is unchanged, byte for byte.",
+      "appendResult keeps the Swift 100-entry cap: newest first, then drop the last element."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 140720,
-    "tokens_out": 44636,
-    "seconds": 106.3,
-    "ported_at": "2026-10-04T22:51:58+00:00"
+    "tokens_in": 140308,
+    "tokens_out": 45288,
+    "seconds": 123.1,
+    "ported_at": "2026-10-16T22:17:29+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",
@@ -16410,24 +16417,22 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "0cfdc246d7169b65b4409132adadfaaa69c6011b877ca856ad686959186889f9",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "caf49fd773c388518a7a00a161c8983a78703aa62fa23eaa69f8eea9baae8424",
+    "moblin_commit": "76babb388cd4e08e5e841a5924e7f4b52005dca9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "The Swift diff only adds `let musicPlaylist = MusicPlaylist()` to Model's stored properties.",
-      "MusicPlaylist lives in com.moblin.android.various.model (same package as Model), so no new import is needed.",
-      "Added `val musicPlaylist = MusicPlaylist()` directly after `val mediaPlayerPlayer = MediaPlayerPlayer()`, matching the Swift declaration order.",
-      "Nothing else in the file changed; all previously hand-written Android behaviour is kept byte-identical."
+      "Added remoteControlHandledRequestIds as a MutableList<String> between remoteControlStreamer and remoteControlAssistant, matching the Swift property order.",
+      "The rest of the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 145658,
-    "tokens_out": 33626,
-    "seconds": 97.3,
-    "ported_at": "2026-10-14T22:44:55+00:00"
+    "tokens_in": 145768,
+    "tokens_out": 33503,
+    "seconds": 91.2,
+    "ported_at": "2026-10-16T22:17:02+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",

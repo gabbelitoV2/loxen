@@ -45,6 +45,7 @@ import com.moblin.android.videoeffects.SepiaEffect
 import com.moblin.android.videoeffects.ShapeEffect
 import com.moblin.android.videoeffects.ShapeEffectSettings
 import com.moblin.android.videoeffects.VideoSourceEffectSettings
+import com.moblin.android.videoeffects.WheelOfLuckSpinResult
 import com.moblin.android.videoeffects.WhirlpoolEffect
 import com.moblin.android.videoeffects.dewarp360.Dewarp360Effect
 import com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings
@@ -2595,6 +2596,7 @@ class SettingsWidgetWheelOfLuck(
     var totalWeight: Int by Published(1)
     var options: List<SettingsWidgetWheelOfLuckOption> by Published(options)
     var text: String by Published("")
+    var results: List<WheelOfLuckSpinResult> by Published(emptyList())
 
     init {
         updateTotalWeight()
@@ -2629,6 +2631,13 @@ class SettingsWidgetWheelOfLuck(
 
     fun updateTotalWeight() {
         totalWeight = maxOf(options.sumOf { it.weight }, 1)
+    }
+
+    fun appendResult(result: WheelOfLuckSpinResult) {
+        results = listOf(result) + results
+        if (results.size > 100) {
+            results = results.dropLast(1)
+        }
     }
 
     fun updateText() {

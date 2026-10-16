@@ -856,7 +856,7 @@ private fun Model.handleChatBotMessageWidgetWheelOfLuck(
         ChatBotWidgetWheelOfLuckArgument.options -> {
             val options = command.popAll()
             widget.wheelOfLuck.optionsFromText(text = options.joinToString("\n"))
-            getWheelOfLuckEffect(id = widget.id)?.setSettings(settings = widget.wheelOfLuck)
+            updateWheelOfLuckEffect(widget = widget)
         }
         else -> Unit
     }

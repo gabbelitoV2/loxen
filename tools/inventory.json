@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-15T22:42:27+00:00",
+  "generated": "2026-10-16T22:14:43+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -5130,8 +5130,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsRemoteControl.swift",
-      "lines": 227,
-      "sha256": "ec2d758550fa3e8d826edd8e0853ff7350b11aa54ace2c973f1636c8b1853204",
+      "lines": 231,
+      "sha256": "f4ec2b002c1f4414c5f3bdd696c0fbf9343dcbb13e1fe323bbf661c3f7ddbcaa",
       "imports": [
         "Foundation"
       ],
@@ -14379,8 +14379,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
-      "lines": 463,
-      "sha256": "fd45851dcc58a7cb0e628aa58e9147abb4d4e4822ee67666c1ab17b1745780df",
+      "lines": 493,
+      "sha256": "19f86b20ad1c0c0a80837dfeeab37c82189e9494a6a43a05833a225d608a07ee",
       "imports": [
         "Foundation",
         "Network"
@@ -17019,7 +17019,7 @@
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
       "lines": 1085,
-      "sha256": "e9f4b0cedde1f8b1c595eb54ee6d744176036d5d92141ad1aa42b72937b7ca98",
+      "sha256": "af282d6e4b0510a530b502fe5d9a2413c83ab6f97117ada4156a74a3c01bd696",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -17841,8 +17841,8 @@
     },
     {
       "path": "Moblin/VideoEffects/WheelOfLuckEffect.swift",
-      "lines": 182,
-      "sha256": "011d3aebd4f65f26a40813e9d7deb98bda693821b11ec9a8d54dcb7bddaff664",
+      "lines": 310,
+      "sha256": "fcc4b6876373faaf4cf41877e24dfc8f28ff586420262ce5174aef3f869e6c2d",
       "imports": [
         "Charts",
         "CoreImage",
@@ -17852,13 +17852,18 @@
       "tier": "media",
       "declared_types": [
         "WheelOfLuckEffectOption",
+        "WheelOfLuckSpinResult",
+        "PendingSpin",
         "WheelView",
         "ArrowView",
+        "CaptionView",
         "WheelOfLuckEffect"
       ],
       "private_types": [
+        "PendingSpin",
         "WheelView",
-        "ArrowView"
+        "ArrowView",
+        "CaptionView"
       ],
       "declared_functions": [],
       "declared_globals": [],
@@ -18465,8 +18470,8 @@
     },
     {
       "path": "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift",
-      "lines": 656,
-      "sha256": "c9827c821fc4a18a438b92c4806df6df16ded0bbd6bd1ceaf348e0822ae15cce",
+      "lines": 671,
+      "sha256": "d549ae437c28f6f175594f92c6851fda6576cfe5fc36a4a7917fbf46b71821e9",
       "imports": [
         "SwiftUI"
       ],
@@ -19028,8 +19033,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift",
-      "lines": 171,
-      "sha256": "d712f382c8243789946d7e2bcc6d1bb3a130a5596b44d87613847f65c74a78c4",
+      "lines": 209,
+      "sha256": "2a0ff547eb7051c509f0502e453a1d49758801bd61f6d0d9a69ffd6c680b459e",
       "imports": [
         "SwiftUI"
       ],
@@ -19037,13 +19042,15 @@
       "declared_types": [
         "WheelOfLuckWidgetView",
         "OptionView",
+        "ResultView",
         "WidgetWheelOfLuckQuickButtonControlsView",
         "WheelOfLuckWidgetOptionsView",
         "WidgetWheelOfLuckSettingsView"
       ],
       "private_types": [
         "WheelOfLuckWidgetView",
-        "OptionView"
+        "OptionView",
+        "ResultView"
       ],
       "declared_functions": [],
       "declared_globals": [
@@ -20383,8 +20390,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
-      "lines": 1220,
-      "sha256": "eba7e87029b2ba3739a97f55541624bfa4196dbe2fcf7fc4c57fed75e0a59ae9",
+      "lines": 1222,
+      "sha256": "c312f294e910dd2468761c620b4b43454387baef9d335333258f4ff7482746e1",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20788,8 +20795,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1569,
-      "sha256": "8856af842c4b7a90985de4319022bc184a19933a13e33999fba70986e2530eff",
+      "lines": 1647,
+      "sha256": "21cb06534b6af2b4f173c7dccd92752ccfc3cd86941bbb06ace86b4f227d18d0",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20808,6 +20815,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/OpenAi/OpenAi.swift",
         "Moblin/RemoteControl/RemoteControl.swift",
         "Moblin/RemoteControl/RemoteControlAssistant.swift",
         "Moblin/RemoteControl/RemoteControlRelay.swift",
@@ -20828,8 +20836,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
-      "lines": 1753,
-      "sha256": "439ffd5a6912aa0617bff191abd3caf152543699f4eae791d15f95f740449f33",
+      "lines": 1764,
+      "sha256": "c24a3c266c79eb45129567d854ffbbf16735bf5734a53691e14fac5233472a6f",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20906,8 +20914,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsScene.swift",
-      "lines": 4232,
-      "sha256": "e4bbfd0aad5e5ac186f8886d384f153f86c6b58f9a129d4e49be1158366fab0f",
+      "lines": 4240,
+      "sha256": "ff2b368ec103d7c4ca3b1069ea8342884abdb074d1fbf02d3abba5684e9a7296",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -21040,6 +21048,7 @@
         "Moblin/VideoEffects/SepiaEffect.swift",
         "Moblin/VideoEffects/ShapeEffect.swift",
         "Moblin/VideoEffects/VideoSourceEffect.swift",
+        "Moblin/VideoEffects/WheelOfLuckEffect.swift",
         "Moblin/VideoEffects/WhirlpoolEffect.swift",
         "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift",
         "Moblin/View/Utils/FontPickerViews.swift"
@@ -21432,8 +21441,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3494,
-      "sha256": "0cfdc246d7169b65b4409132adadfaaa69c6011b877ca856ad686959186889f9",
+      "lines": 3495,
+      "sha256": "caf49fd773c388518a7a00a161c8983a78703aa62fa23eaa69f8eea9baae8424",
       "imports": [
         "AVKit",
         "ActivityKit",

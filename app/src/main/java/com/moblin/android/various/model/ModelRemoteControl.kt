@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.location.Location
 import android.media.MediaMetadataRetriever
 import android.os.PowerManager
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.formatAudioLevel
@@ -56,6 +57,8 @@ import com.moblin.android.remotecontrol.RemoteControlStreamer
 import com.moblin.android.remotecontrol.RemoteControlStreamerDelegate
 import com.moblin.android.remotecontrol.RemoteControlWeb
 import com.moblin.android.remotecontrol.RemoteControlWebDelegate
+import com.moblin.android.remotecontrol.RemoteControlWheelOfLuck
+import com.moblin.android.remotecontrol.RemoteControlWheelOfLuckOption
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
 import com.moblin.android.remotecontrol.remoteControlStartStatsFilterAllEnabled
 import com.moblin.android.various.ChatHighlight
@@ -125,6 +128,8 @@ class RemoteControl {
 }
 
 private val remoteControlStreamerIdStorage = SimpleStringStorage(key = "remoteControlStreamerId")
+
+private const val TAG = "ModelRemoteControl"
 
 enum class RemoteControlAssistantPreviewUser {
     panel,
@@ -719,6 +724,26 @@ fun Model.remoteControlScoreboardUpdate(scoreboard: SettingsWidgetScoreboard) {
     remoteControlWeb?.sendScoreboardUpdate(config = config)
 }
 
+private fun Model.getRemoteControlWheelOfLuckWidget(): SettingsWidget? {
+    val id = database.remoteControl.streamer.wheelOfLuckWidgetId ?: return null
+    return database.widgets.firstOrNull { it.id == id && it.type == SettingsWidgetType.wheelOfLuck }
+}
+
+fun Model.isRemoteControlWheelOfLuckWidget(widget: SettingsWidget): Boolean {
+    return widget.id == database.remoteControl.streamer.wheelOfLuckWidgetId
+}
+
+fun Model.remoteControlStreamerSendWheelOfLuck() {
+    val wheel = getRemoteControlWheelOfLuckWidget()?.let { widget ->
+        RemoteControlWheelOfLuck(
+            options = widget.wheelOfLuck.options.map { option ->
+                RemoteControlWheelOfLuckOption(text = option.text, weight = option.weight)
+            }
+        )
+    }
+    remoteControlStreamer?.sendWheelOfLuck(wheel = wheel)
+}
+
 fun Model.reloadRemoteControlWeb() {
     remoteControlWeb?.stop()
     remoteControlWeb = null
@@ -810,6 +835,7 @@ fun Model.remoteControlStreamerConnected() {
     setLowFpsImage()
     updateRemoteControlStatus()
     remoteControlStateChanged(state = createRemoteControlStateChanged())
+    remoteControlStreamerSendWheelOfLuck()
 }
 
 fun Model.remoteControlStreamerDisconnected() {
@@ -1154,6 +1180,73 @@ fun Model.remoteControlStreamerStartMacro(id: UUID) {
 
 fun Model.remoteControlStreamerStopMacro(id: UUID) {
     stopMacro(id = id)
+}
+
+private fun Model.isRemoteControlRequestAlreadyHandled(requestId: String?): Boolean {
+    if (requestId == null) {
+        return false
+    }
+    if (remoteControlHandledRequestIds.contains(requestId)) {
+        Log.d(TAG, "remote-control-streamer: Request $requestId already handled")
+        return true
+    }
+    remoteControlHandledRequestIds.add(requestId)
+    if (remoteControlHandledRequestIds.size > 1000) {
+        remoteControlHandledRequestIds.removeFirst()
+    }
+    return false
+}
+
+fun Model.remoteControlStreamerSpinWheelOfLuck(
+    name: String,
+    message: String,
+    count: Int,
+    requestId: String?
+) {
+    if (isRemoteControlRequestAlreadyHandled(requestId = requestId)) {
+        return
+    }
+    val widget = getRemoteControlWheelOfLuckWidget() ?: return
+    getWheelOfLuckEffect(id = widget.id)?.spin(
+        name = name,
+        message = message,
+        count = minOf(maxOf(count, 1), 10)
+    )
+}
+
+fun Model.remoteControlStreamerTip(
+    name: String,
+    message: String,
+    amount: String,
+    currency: String,
+    requestId: String
+) {
+    if (isRemoteControlRequestAlreadyHandled(requestId = requestId)) {
+        return
+    }
+    var text = localized("Tipped $amount $currency")
+    if (message.isNotEmpty()) {
+        text += ": $message"
+    }
+    appendChatMessage(
+        platform = null,
+        messageId = null,
+        displayName = name,
+        user = name,
+        userId = null,
+        userColor = RgbColor(red = 0x2F, green = 0xF5, blue = 0x2C),
+        userBadges = emptyList(),
+        segments = makeChatPostTextSegments(text = text),
+        timestamp = statusOther.digitalClock.value,
+        timestampTime = Instant.now(),
+        isAction = false,
+        isSubscriber = false,
+        isModerator = false,
+        isOwner = false,
+        bits = null,
+        highlight = ChatHighlight.makeRemoteControlAssistant(),
+        live = true
+    )
 }
 
 fun Model.remoteControlStreamerGetScoreboardSports(): List<String> {
@@ -1840,6 +1933,36 @@ private class RemoteControlStreamerDelegateAdapter(
         onCompleted: (RemoteControlResult, RemoteControlResponse?) -> Unit
     ) {
         model.remoteControlStreamerMusic(command = command, onCompleted = onCompleted)
+    }
+
+    override fun remoteControlStreamerSpinWheelOfLuck(
+        name: String,
+        message: String,
+        count: Int,
+        requestId: String?
+    ) {
+        model.remoteControlStreamerSpinWheelOfLuck(
+            name = name,
+            message = message,
+            count = count,
+            requestId = requestId
+        )
+    }
+
+    override fun remoteControlStreamerTip(
+        name: String,
+        message: String,
+        amount: String,
+        currency: String,
+        requestId: String
+    ) {
+        model.remoteControlStreamerTip(
+            name = name,
+            message = message,
+            amount = amount,
+            currency = currency,
+            requestId = requestId
+        )
     }
 }
 

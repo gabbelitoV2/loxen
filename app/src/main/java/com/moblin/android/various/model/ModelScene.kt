@@ -181,6 +181,13 @@ fun Model.getWheelOfLuckEffect(id: UUID): WheelOfLuckEffect? {
     return wheelOfLuckEffects[id]
 }
 
+fun Model.updateWheelOfLuckEffect(widget: SettingsWidget) {
+    getWheelOfLuckEffect(id = widget.id)?.setSettings(settings = widget.wheelOfLuck)
+    if (isRemoteControlWheelOfLuckWidget(widget = widget)) {
+        remoteControlStreamerSendWheelOfLuck()
+    }
+}
+
 fun Model.getBingoCardEffect(id: UUID): BingoCardEffect? {
     return bingoCardEffects[id]
 }
@@ -1131,7 +1138,11 @@ private fun Model.resetWheelOfLuckEffects(widgets: List<SettingsWidget>) {
         if (widget.type != SettingsWidgetType.wheelOfLuck) {
             continue
         }
-        wheelOfLuckEffects[widget.id] = WheelOfLuckEffect(canvasSize = canvasSize(media.getCanvasSize()))
+        wheelOfLuckEffects[widget.id] = WheelOfLuckEffect(
+            canvasSize = canvasSize(media.getCanvasSize())
+        ) { result ->
+            widget.wheelOfLuck.appendResult(result = result)
+        }
     }
 }
 

@@ -496,6 +496,44 @@ sealed class RemoteControlRequest {
         }
     }
 
+    data class SpinWheelOfLuck(
+        val name: String,
+        val message: String,
+        val count: Int,
+        val requestId: String?,
+    ) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("spinWheelOfLuck") {
+                put("name", name)
+                put("message", message)
+                put("count", count)
+                if (requestId == null) {
+                    put("requestId", JsonNull)
+                } else {
+                    put("requestId", requestId)
+                }
+            }
+        }
+    }
+
+    data class Tip(
+        val name: String,
+        val message: String,
+        val amount: String,
+        val currency: String,
+        val requestId: String,
+    ) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("tip") {
+                put("name", name)
+                put("message", message)
+                put("amount", amount)
+                put("currency", currency)
+                put("requestId", requestId)
+            }
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlRequest =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -628,6 +666,21 @@ sealed class RemoteControlRequest {
                 "sendMessage" -> SendMessage(text = params.getValue("text").jsonPrimitive.content)
                 "music" -> Music(
                     command = RemoteControlMusicCommand.fromJsonElement(params.getValue("command")),
+                )
+                "spinWheelOfLuck" -> SpinWheelOfLuck(
+                    name = params.getValue("name").jsonPrimitive.content,
+                    message = params.getValue("message").jsonPrimitive.content,
+                    count = params.getValue("count").jsonPrimitive.int,
+                    requestId = params["requestId"]?.let {
+                        if (it is JsonNull) null else it.jsonPrimitive.content
+                    },
+                )
+                "tip" -> Tip(
+                    name = params.getValue("name").jsonPrimitive.content,
+                    message = params.getValue("message").jsonPrimitive.content,
+                    amount = params.getValue("amount").jsonPrimitive.content,
+                    currency = params.getValue("currency").jsonPrimitive.content,
+                    requestId = params.getValue("requestId").jsonPrimitive.content,
                 )
                 else -> throw SerializationException("Unknown request ${entry.key}")
             }
