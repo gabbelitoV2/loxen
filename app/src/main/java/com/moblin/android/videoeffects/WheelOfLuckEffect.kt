@@ -139,6 +139,8 @@ class WheelOfLuckEffect(
     private var angle: Double = 0.0
     private val spinTime: Double = 12.0
     private val pauseBetweenSpins: Double = 3.0
+    private val showBeforeSpin: Double = 1.5
+    private var onlyShowWhenSpinning = false
     private var sceneWidget: SettingsSceneWidget = SettingsSceneWidget(widgetId = UUID.randomUUID())
     private val canvasSize: CGSize = canvasSize.toCGSize()
 
@@ -164,6 +166,10 @@ class WheelOfLuckEffect(
                     textAngle = textAngle,
                 ),
             )
+        }
+        val onlyShowWhenSpinning = settings.onlyShowWhenSpinning
+        processorPipelineQueue.launch {
+            this@WheelOfLuckEffect.onlyShowWhenSpinning = onlyShowWhenSpinning
         }
         render(size = getSize(), options = options)
     }
@@ -260,11 +266,17 @@ class WheelOfLuckEffect(
         return filter.outputImage ?: image
     }
 
+    override fun isEnabled(): Boolean =
+        !onlyShowWhenSpinning || !startPresentationTimeStamp.isInfinite() || pendingSpins.isNotEmpty()
+
     private fun updateAngle(presentationTimeStamp: Double) {
         if (!startPresentationTimeStamp.isInfinite()) {
             val elapsedSinceStart = presentationTimeStamp - startPresentationTimeStamp
-            val ratio = maxOf(1 - elapsedSinceStart / spinTime, 0.0)
-            angle += -speed * ratio * (presentationTimeStamp - previousPresentationTimeStamp)
+            if (elapsedSinceStart > 0) {
+                val ratio = maxOf(1 - elapsedSinceStart / spinTime, 0.0)
+                val previous = maxOf(previousPresentationTimeStamp, startPresentationTimeStamp)
+                angle += -speed * ratio * (presentationTimeStamp - previous)
+            }
             previousPresentationTimeStamp = presentationTimeStamp
             val currentSpin = this.currentSpin
             if (elapsedSinceStart >= spinTime && currentSpin != null) {
@@ -282,11 +294,16 @@ class WheelOfLuckEffect(
                     presentationTimeStamp - startPresentationTimeStamp >= spinTime + pauseBetweenSpins
                 )
         ) {
+            val delay = if (onlyShowWhenSpinning && startPresentationTimeStamp.isInfinite()) {
+                showBeforeSpin
+            } else {
+                0.0
+            }
             val spin = pendingSpins.removeAt(0)
             currentSpin = spin
             caption = spin.caption
             speed = Random.nextDouble(8.0, 15.0)
-            startPresentationTimeStamp = presentationTimeStamp
+            startPresentationTimeStamp = presentationTimeStamp + delay
             previousPresentationTimeStamp = presentationTimeStamp
         }
     }

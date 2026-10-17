@@ -144,12 +144,13 @@ class RemoteControlStreamer(
 
     private fun handleDisconnected() {
         stopKeepAlive()
-        if (connected) {
-            delegate?.remoteControlStreamerDisconnected()
-        }
+        val wasConnected = connected
         connected = false
         if (!wrongPassword) {
             connectionErrorMessage = localized("Disconnected")
+        }
+        if (wasConnected) {
+            delegate?.remoteControlStreamerDisconnected()
         }
     }
 
@@ -187,6 +188,13 @@ class RemoteControlStreamer(
             return
         }
         send(RemoteControlMessageToAssistant.Event(RemoteControlEvent.WheelOfLuck(wheel)))
+    }
+
+    fun sendSongRequests(enabled: Boolean) {
+        if (!connected) {
+            return
+        }
+        send(RemoteControlMessageToAssistant.Event(RemoteControlEvent.SongRequests(enabled)))
     }
 
     fun sendPreview(preview: ByteArray) {

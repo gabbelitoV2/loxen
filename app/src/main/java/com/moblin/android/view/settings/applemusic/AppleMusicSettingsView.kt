@@ -25,8 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
@@ -37,6 +40,7 @@ import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.SwiftUIFonts
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.platform.swiftui.monospacedDigit
@@ -47,12 +51,14 @@ import com.moblin.android.various.model.MusicQueueState
 import com.moblin.android.localized
 import com.moblin.android.various.model.addMusic
 import com.moblin.android.various.model.loadMusic
+import com.moblin.android.various.model.moblinCloudSendSongRequests
 import com.moblin.android.various.model.nextMusic
 import com.moblin.android.various.model.pauseMusic
 import com.moblin.android.various.model.playMusic
 import com.moblin.android.various.model.previousMusic
 import com.moblin.android.various.model.removeMusic
 import com.moblin.android.various.model.selectMusic
+import com.moblin.android.various.settings.SettingsMoblinCloud
 
 private data class MusicPlayerState(val isPlaying: Boolean)
 
@@ -100,9 +106,15 @@ private fun PlaylistEndView(
 
 @Composable
 fun MusicAddedByView(user: String) {
+    val text = buildAnnotatedString {
+        append(localized("added by "))
+        withStyle(SpanStyle(color = formPalette().label, fontWeight = FontWeight.Medium)) {
+            append(user)
+        }
+    }
     Text(
-        localized("Added by: $user"),
-        style = SwiftUIFonts.system(size = 15f),
+        text,
+        style = SwiftUIFonts.system(size = 15f).copy(color = formPalette().gray),
     )
 }
 
@@ -195,6 +207,21 @@ private fun PlaylistView(
 }
 
 @Composable
+private fun SongRequestsView(
+    model: Model = LocalModel.current,
+    moblinCloud: SettingsMoblinCloud,
+) {
+    if (moblinCloud.enabled) {
+        Section(header = "Moblin Cloud") {
+            Toggle("Song requests", isOn = moblinCloud.songRequests) { newValue ->
+                moblinCloud.songRequests = newValue
+                model.moblinCloudSendSongRequests()
+            }
+        }
+    }
+}
+
+@Composable
 fun AppleMusicSettingsView(
     model: Model = LocalModel.current,
     musicPlaylist: MusicPlaylist,
@@ -247,6 +274,7 @@ fun AppleMusicSettingsView(
                 )
             }
         }
+        SongRequestsView(model = model, moblinCloud = model.database.moblinCloud)
         PlaylistView(
             model = model,
             musicPlaylist = musicPlaylist,

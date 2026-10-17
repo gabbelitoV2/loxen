@@ -2590,9 +2590,11 @@ class SettingsWidgetWheelOfLuckOption(
 @Serializable(with = SettingsWidgetWheelOfLuck.Serializer::class)
 class SettingsWidgetWheelOfLuck(
     advanced: Boolean = false,
+    onlyShowWhenSpinning: Boolean = false,
     options: List<SettingsWidgetWheelOfLuckOption> = emptyList()
 ) {
     var advanced: Boolean by Published(advanced)
+    var onlyShowWhenSpinning: Boolean by Published(onlyShowWhenSpinning)
     var totalWeight: Int by Published(1)
     var options: List<SettingsWidgetWheelOfLuckOption> by Published(options)
     var text: String by Published("")
@@ -2605,6 +2607,7 @@ class SettingsWidgetWheelOfLuck(
 
     fun encode(): JsonObject = encodeContainer {
         encode("advanced", advanced)
+        encode("onlyShowWhenSpinning", onlyShowWhenSpinning)
         encode("options", options, ListSerializer(SettingsWidgetWheelOfLuckOption.serializer()))
     }
 
@@ -2612,6 +2615,7 @@ class SettingsWidgetWheelOfLuck(
         fun decode(container: JsonObject): SettingsWidgetWheelOfLuck {
             val wheelOfLuck = SettingsWidgetWheelOfLuck()
             wheelOfLuck.advanced = container.decode("advanced", false)
+            wheelOfLuck.onlyShowWhenSpinning = container.decode("onlyShowWhenSpinning", false)
             wheelOfLuck.options = container.decode(
                 "options",
                 ListSerializer(SettingsWidgetWheelOfLuckOption.serializer()),

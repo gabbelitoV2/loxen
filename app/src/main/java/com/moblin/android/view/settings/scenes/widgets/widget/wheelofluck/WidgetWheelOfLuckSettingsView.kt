@@ -309,6 +309,16 @@ fun WidgetWheelOfLuckSettingsView(
         Toggle("Advanced", isOn = advanced)
     }
     Section {
+        Toggle(
+            title = "Only show when spinning",
+            isOn = wheelOfLuck.onlyShowWhenSpinning,
+            onChange = { newValue ->
+                wheelOfLuck.onlyShowWhenSpinning = newValue
+                updateEffect()
+            },
+        )
+    }
+    Section {
         model.getWheelOfLuckEffect(widget.id)?.let { effect ->
             WheelOfLuckWidgetView(
                 model = model,

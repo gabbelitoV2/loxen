@@ -26,6 +26,7 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
     val ingests = binding({ show.ingests }, { show.ingests = it })
     val moblink = binding({ show.moblink }, { show.moblink = it })
     val remoteControl = binding({ show.remoteControl }, { show.remoteControl = it })
+    val moblinCloud = binding({ show.moblinCloud }, { show.moblinCloud = it })
     val djiDevices = binding({ show.djiDevices }, { show.djiDevices = it })
     val gameController = binding({ show.gameController }, { show.gameController = it })
     val speed = binding({ show.speed }, { show.speed = it })
@@ -136,6 +137,13 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
                 Label(
                     "Remote control",
                     systemImage = "appletvremote.gen1",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = moblinCloud.value, onChange = { moblinCloud.value = it }) {
+                Label(
+                    "Moblin Cloud",
+                    systemImage = "cloud",
                     modifier = Modifier.weight(1f),
                 )
             }

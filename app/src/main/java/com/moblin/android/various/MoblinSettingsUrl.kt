@@ -119,11 +119,18 @@ class MoblinSettingsRemoteControl(
 )
 
 @Serializable
+class MoblinSettingsMoblinCloud(
+    var enabled: Boolean,
+    var key: String,
+)
+
+@Serializable
 class MoblinSettingsUrl {
     var streams: List<MoblinSettingsUrlStream>? = null
     var quickButtons: MoblinQuickButtons? = null
     var webBrowser: MoblinSettingsWebBrowser? = null
     var remoteControl: MoblinSettingsRemoteControl? = null
+    var moblinCloud: MoblinSettingsMoblinCloud? = null
 
     override fun toString(): String {
         val element = moblinSettingsUrlJson.encodeToJsonElement(MoblinSettingsUrl.serializer(), this)

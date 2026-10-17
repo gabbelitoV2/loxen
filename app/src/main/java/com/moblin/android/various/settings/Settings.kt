@@ -251,6 +251,7 @@ class SettingsShow(
     gameController: Boolean = true,
     location: Boolean = false,
     remoteControl: Boolean = true,
+    moblinCloud: Boolean = true,
     browserWidgets: Boolean = true,
     bonding: Boolean = true,
     events: Boolean = true,
@@ -277,6 +278,7 @@ class SettingsShow(
     var gameController: Boolean by Published(gameController)
     var location: Boolean by Published(location)
     var remoteControl: Boolean by Published(remoteControl)
+    var moblinCloud: Boolean by Published(moblinCloud)
     var browserWidgets: Boolean by Published(browserWidgets)
     var bonding: Boolean by Published(bonding)
     var events: Boolean by Published(events)
@@ -304,6 +306,7 @@ class SettingsShow(
         encode("gameController", gameController)
         encode("location", location)
         encode("remoteControl", remoteControl)
+        encode("moblinCloud", moblinCloud)
         encode("browserWidgets", browserWidgets)
         encode("bonding", bonding)
         encode("events", events)
@@ -334,6 +337,7 @@ class SettingsShow(
             show.gameController = container.decode("gameController", true)
             show.location = container.decode("location", false)
             show.remoteControl = container.decode("remoteControl", true)
+            show.moblinCloud = container.decode("moblinCloud", true)
             show.browserWidgets = container.decode("browserWidgets", true)
             show.bonding = container.decode("bonding", true)
             show.events = container.decode("events", true)
@@ -1552,6 +1556,43 @@ class SettingsWiFi(
     )
 }
 
+@Serializable(with = SettingsMoblinCloud.Serializer::class)
+class SettingsMoblinCloud(
+    enabled: Boolean = false,
+    key: String = "",
+    wheelOfLuckWidgetId: UUID? = null,
+    songRequests: Boolean = true,
+) {
+    var enabled: Boolean by Published(enabled)
+    var key: String by Published(key)
+    var wheelOfLuckWidgetId: UUID? by Published(wheelOfLuckWidgetId)
+    var songRequests: Boolean by Published(songRequests)
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("key", key)
+        encode("wheelOfLuckWidgetId", wheelOfLuckWidgetId)
+        encode("songRequests", songRequests)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsMoblinCloud {
+            val moblinCloud = SettingsMoblinCloud()
+            moblinCloud.enabled = container.decode("enabled", false)
+            moblinCloud.key = container.decode("key", "")
+            moblinCloud.wheelOfLuckWidgetId = container.decode<UUID?>("wheelOfLuckWidgetId", null)
+            moblinCloud.songRequests = container.decode("songRequests", true)
+            return moblinCloud
+        }
+    }
+
+    object Serializer : KSerializer<SettingsMoblinCloud> by JsonObjectSerializer(
+        "SettingsMoblinCloud",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
 private fun normalizeWatchSettingsChat(container: JsonObject): JsonObject = encodeContainer {
     encode("fontSize", container.decode("fontSize", 17.0f))
     encode("timestampEnabled", container.decode("timestampEnabled", true))
@@ -1597,6 +1638,7 @@ class Database(
     gameControllers: MutableList<SettingsGameController> =
         mutableListOf(SettingsGameController()),
     var remoteControl: SettingsRemoteControl = SettingsRemoteControl(),
+    var moblinCloud: SettingsMoblinCloud = SettingsMoblinCloud(),
     startStopRecordingConfirmations: Boolean = true,
     var color: SettingsColor = SettingsColor(),
     mirrorFrontCameraOnStream: Boolean = true,
@@ -1749,6 +1791,7 @@ class Database(
         encode("vibrate", vibrate)
         encode("gameControllers", gameControllers, ListSerializer(SettingsGameController.serializer()))
         encode("remoteControl", remoteControl, SettingsRemoteControl.serializer())
+        encode("moblinCloud", moblinCloud, SettingsMoblinCloud.serializer())
         encode("startStopRecordingConfirmations", startStopRecordingConfirmations)
         encode("color", color, SettingsColor.serializer())
         encode("mirrorFrontCameraOnStream", mirrorFrontCameraOnStream)
@@ -1873,6 +1916,11 @@ class Database(
                 "remoteControl",
                 SettingsRemoteControl.serializer(),
                 SettingsRemoteControl(),
+            )
+            database.moblinCloud = container.decode(
+                "moblinCloud",
+                SettingsMoblinCloud.serializer(),
+                SettingsMoblinCloud(),
             )
             database.startStopRecordingConfirmations = container.decode("startStopRecordingConfirmations", true)
             database.color = container.decode("color", SettingsColor.serializer(), SettingsColor())

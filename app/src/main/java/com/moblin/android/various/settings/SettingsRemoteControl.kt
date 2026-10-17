@@ -99,7 +99,6 @@ class SettingsRemoteControlStreamer(
     previewFps: Float = 1.0f,
     reliableChatAndEvents: Boolean = false,
     savedUrls: List<SettingsRemoteControlStreamerUrl> = emptyList(),
-    wheelOfLuckWidgetId: UUID? = null,
 ) {
     var enabled: Boolean by Published(enabled)
     var name: String by Published(name)
@@ -107,7 +106,6 @@ class SettingsRemoteControlStreamer(
     var previewFps: Float by Published(previewFps)
     var reliableChatAndEvents: Boolean by Published(reliableChatAndEvents)
     var savedUrls: List<SettingsRemoteControlStreamerUrl> by Published(savedUrls)
-    var wheelOfLuckWidgetId: UUID? by Published(wheelOfLuckWidgetId)
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
@@ -116,7 +114,6 @@ class SettingsRemoteControlStreamer(
         encode("previewFps", previewFps)
         encode("reliableChatAndEvents", reliableChatAndEvents)
         encode("savedUrls", savedUrls)
-        encode("wheelOfLuckWidgetId", wheelOfLuckWidgetId)
     }
 
     companion object {
@@ -132,7 +129,6 @@ class SettingsRemoteControlStreamer(
                 ListSerializer(SettingsRemoteControlStreamerUrl.serializer()),
                 emptyList(),
             )
-            streamer.wheelOfLuckWidgetId = container.decode<UUID?>("wheelOfLuckWidgetId", null)
             return streamer
         }
     }

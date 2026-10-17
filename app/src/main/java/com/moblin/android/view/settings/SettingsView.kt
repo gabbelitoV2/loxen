@@ -125,6 +125,7 @@ import com.moblin.android.view.settings.keyboard.KeyboardSettingsView
 import com.moblin.android.view.settings.location.LocationSettingsView
 import com.moblin.android.view.settings.macros.MacrosSettingsView
 import com.moblin.android.view.settings.mediaplayer.MediaPlayersSettingsView
+import com.moblin.android.view.settings.moblincloud.MoblinCloudSettingsView
 import com.moblin.android.view.settings.moblink.MoblinkSettingsView
 import com.moblin.android.view.settings.recordings.RecordingsSettingsView
 import com.moblin.android.view.settings.remotecontrol.RemoteControlSettingsView
@@ -355,6 +356,15 @@ fun SettingsView(
                         )
                     }) {
                         Label("Remote control", systemImage = "appletvremote.gen1")
+                    }
+                    NavigationLink(destination = {
+                        MoblinCloudSettingsView(
+                            model = model,
+                            database = database,
+                            moblinCloud = database.moblinCloud,
+                        )
+                    }) {
+                        Label("Moblin Cloud", systemImage = "cloud")
                     }
                 }
                 Section {

@@ -194,6 +194,13 @@ private fun Model.handleSettingsUrlsDefaultRemoteControl(settings: MoblinSetting
     reloadRemoteControlRelay()
 }
 
+private fun Model.handleSettingsUrlsDefaultMoblinCloud(settings: MoblinSettingsUrl) {
+    val moblinCloud = settings.moblinCloud ?: return
+    database.moblinCloud.enabled = moblinCloud.enabled
+    database.moblinCloud.key = moblinCloud.key.trim()
+    reloadMoblinCloud()
+}
+
 private fun Model.handleSettingsUrlsDefault(settings: MoblinSettingsUrl) {
     val collisions = findCollidingStreamNames(streams = settings.streams ?: emptyList())
     if (collisions.isEmpty()) {
@@ -224,6 +231,7 @@ private fun Model.handleSettingsUrlsDefaultStreamCollisions(
     handleSettingsUrlsDefaultQuickButtons(settings = settings)
     handleSettingsUrlsDefaultWebBrowser(settings = settings)
     handleSettingsUrlsDefaultRemoteControl(settings = settings)
+    handleSettingsUrlsDefaultMoblinCloud(settings = settings)
     makeToast(title = localized("URL import successful"))
     updateQuickButtonPairs()
 }

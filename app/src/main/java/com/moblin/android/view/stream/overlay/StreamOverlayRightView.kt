@@ -53,6 +53,7 @@ import com.moblin.android.various.model.isAnyWorkoutDeviceConfigured
 import com.moblin.android.various.model.isMoblinkRelayConfigured
 import com.moblin.android.various.model.isShowingStatusGameController
 import com.moblin.android.various.model.isShowingStatusLocation
+import com.moblin.android.various.model.isShowingStatusMoblinCloud
 import com.moblin.android.various.model.isShowingStatusRecording
 import com.moblin.android.various.model.isShowingStatusRemoteControl
 import com.moblin.android.various.model.isStreaming
@@ -61,6 +62,7 @@ import com.moblin.android.various.settings.SettingsAppMode
 import com.moblin.android.various.settings.SettingsAutoSceneSwitcher
 import com.moblin.android.various.settings.SettingsAutoSceneSwitchers
 import com.moblin.android.various.settings.SettingsLocation
+import com.moblin.android.various.settings.SettingsMoblinCloud
 import com.moblin.android.various.settings.SettingsMoblinkRelay
 import com.moblin.android.various.settings.SettingsMoblinkStreamer
 import com.moblin.android.various.settings.SettingsRemoteControlAssistant
@@ -433,6 +435,26 @@ private fun RemoteControlStatusView(
 }
 
 @Composable
+private fun MoblinCloudStatusView(
+    model: Model = LocalModel.current,
+    show: SettingsShow,
+    status: StatusTopRight,
+    moblinCloud: SettingsMoblinCloud,
+    textPlacement: StreamOverlayIconAndTextPlacement,
+) {
+    val moblinCloudOk by status.moblinCloudOk.collectAsState()
+    val moblinCloudStatus by status.moblinCloudStatus.collectAsState()
+    if (model.isShowingStatusMoblinCloud()) {
+        StreamOverlayIconAndTextView(
+            icon = "cloud",
+            text = moblinCloudStatus,
+            textPlacement = textPlacement,
+            color = if (moblinCloudOk) Color.White else Color.Red,
+        )
+    }
+}
+
+@Composable
 private fun DjiDevicesStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
@@ -689,6 +711,13 @@ private fun StatusesView(
         status = model.statusTopRight,
         streamer = model.database.remoteControl.streamer,
         assistant = model.database.remoteControl.assistant,
+        textPlacement = textPlacement,
+    )
+    MoblinCloudStatusView(
+        model = model,
+        show = model.database.show,
+        status = model.statusTopRight,
+        moblinCloud = model.database.moblinCloud,
         textPlacement = textPlacement,
     )
     DjiDevicesStatusView(

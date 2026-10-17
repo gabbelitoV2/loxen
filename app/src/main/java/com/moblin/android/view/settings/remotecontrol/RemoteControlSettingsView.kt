@@ -71,7 +71,6 @@ import com.moblin.android.various.settings.SettingsRemoteControlStreamer
 import com.moblin.android.various.settings.SettingsRemoteControlStreamerUrl
 import com.moblin.android.various.settings.SettingsRemoteControlWeb
 import com.moblin.android.various.settings.SettingsStream
-import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.model.obsWebSocketEnabledUpdated
@@ -79,7 +78,6 @@ import com.moblin.android.various.model.reloadRemoteControlAssistant
 import com.moblin.android.various.model.reloadRemoteControlRelay
 import com.moblin.android.various.model.reloadRemoteControlStreamer
 import com.moblin.android.various.model.reloadRemoteControlWeb
-import com.moblin.android.various.model.remoteControlStreamerSendWheelOfLuck
 
 @Composable
 private fun PasswordView(
@@ -272,27 +270,6 @@ private fun RemoteControlSettingsStreamerView(
                 streamer.reliableChatAndEvents = enabled
                 model.reloadRemoteControlStreamer()
                 model.reloadConnections()
-            },
-        )
-    }
-    Section(
-        footerContent = {
-            Text(localized("Wheel of luck widget the assistant can see and spin."))
-        },
-    ) {
-        Picker(
-            title = localized("Wheel of luck"),
-            selection = streamer.wheelOfLuckWidgetId,
-            options = listOf(null) +
-                model.database.widgets
-                    .filter { it.type == SettingsWidgetType.wheelOfLuck }
-                    .map { it.id },
-            text = { id ->
-                model.database.widgets.firstOrNull { it.id == id }?.name ?: localized("None")
-            },
-            onChange = { id ->
-                streamer.wheelOfLuckWidgetId = id
-                model.remoteControlStreamerSendWheelOfLuck()
             },
         )
     }

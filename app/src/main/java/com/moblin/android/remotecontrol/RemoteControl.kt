@@ -888,6 +888,12 @@ sealed class RemoteControlEvent {
         }
     }
 
+    data class SongRequests(val enabled: Boolean) : RemoteControlEvent() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("songRequests") { put("enabled", enabled) }
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlEvent =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -924,6 +930,9 @@ sealed class RemoteControlEvent {
                         if (it is JsonNull) null
                         else remoteControlJson.decodeFromJsonElement<RemoteControlWheelOfLuck>(it)
                     },
+                )
+                "songRequests" -> SongRequests(
+                    enabled = params.getValue("enabled").jsonPrimitive.boolean,
                 )
                 else -> throw SerializationException("Unknown event ${entry.key}")
             }

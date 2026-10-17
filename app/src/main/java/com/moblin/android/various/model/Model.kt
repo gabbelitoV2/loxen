@@ -361,6 +361,8 @@ class StatusTopRight {
     val browserWidgetsStatusChanged = MutableStateFlow(false)
     val remoteControlOk = MutableStateFlow(false)
     val remoteControlStatus = MutableStateFlow(noValue)
+    val moblinCloudOk = MutableStateFlow(false)
+    val moblinCloudStatus = MutableStateFlow(noValue)
     val djiDevicesStatus = MutableStateFlow(noValue)
     val browserWidgetsStatus = MutableStateFlow(noValue)
     val catPrinterStatus = MutableStateFlow(noValue)
@@ -732,6 +734,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var remoteControlAssistant: RemoteControlAssistant? = null
     var remoteControlRelay: RemoteControlRelay? = null
     var remoteControlWeb: RemoteControlWeb? = null
+    var moblinCloud: MoblinCloud? = null
     var isRemoteControlAssistantRequestingPreview = false
     var isRemoteControlAssistantRequestingStatus = false
     var isRemoteControlAssistantRequestingStats = false
@@ -1835,6 +1838,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         stopCatPrinters()
         stopWorkoutDevices()
         stopRemoteControlAssistant()
+        stopMoblinCloud()
         stopHttpProxyServer()
         fixedHorizonEffect.stop()
         cameraLevel.stop()
@@ -2039,6 +2043,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         media.logStatistics()
         updateObsStatus()
         updateRemoteControlStatus()
+        updateMoblinCloudStatus()
         if (stream.value.enabled && database.debug.videoBitrateChange.value) {
             media.updateVideoStreamBitrate(bitrate = stream.value.bitrate)
         }
@@ -2496,6 +2501,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         reloadRemoteControlAssistant()
         reloadRemoteControlRelay()
         reloadRemoteControlWeb()
+        reloadMoblinCloud()
         reloadKickViewers()
         reloadSoopPlatformStatus()
         reloadNtpClient()

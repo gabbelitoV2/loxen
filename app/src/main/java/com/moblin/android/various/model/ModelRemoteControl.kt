@@ -57,8 +57,6 @@ import com.moblin.android.remotecontrol.RemoteControlStreamer
 import com.moblin.android.remotecontrol.RemoteControlStreamerDelegate
 import com.moblin.android.remotecontrol.RemoteControlWeb
 import com.moblin.android.remotecontrol.RemoteControlWebDelegate
-import com.moblin.android.remotecontrol.RemoteControlWheelOfLuck
-import com.moblin.android.remotecontrol.RemoteControlWheelOfLuckOption
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
 import com.moblin.android.remotecontrol.remoteControlStartStatsFilterAllEnabled
 import com.moblin.android.various.ChatHighlight
@@ -171,7 +169,7 @@ fun Model.reloadRemoteControlStreamer() {
     remoteControlStreamer?.start()
 }
 
-private fun Model.getRemoteControlStreamerId(): String {
+fun Model.getRemoteControlStreamerId(): String {
     if (remoteControlStreamerIdStorage.get().isEmpty()) {
         remoteControlStreamerIdStorage.set(UUID.randomUUID().uuidString)
     }
@@ -724,26 +722,6 @@ fun Model.remoteControlScoreboardUpdate(scoreboard: SettingsWidgetScoreboard) {
     remoteControlWeb?.sendScoreboardUpdate(config = config)
 }
 
-private fun Model.getRemoteControlWheelOfLuckWidget(): SettingsWidget? {
-    val id = database.remoteControl.streamer.wheelOfLuckWidgetId ?: return null
-    return database.widgets.firstOrNull { it.id == id && it.type == SettingsWidgetType.wheelOfLuck }
-}
-
-fun Model.isRemoteControlWheelOfLuckWidget(widget: SettingsWidget): Boolean {
-    return widget.id == database.remoteControl.streamer.wheelOfLuckWidgetId
-}
-
-fun Model.remoteControlStreamerSendWheelOfLuck() {
-    val wheel = getRemoteControlWheelOfLuckWidget()?.let { widget ->
-        RemoteControlWheelOfLuck(
-            options = widget.wheelOfLuck.options.map { option ->
-                RemoteControlWheelOfLuckOption(text = option.text, weight = option.weight)
-            }
-        )
-    }
-    remoteControlStreamer?.sendWheelOfLuck(wheel = wheel)
-}
-
 fun Model.reloadRemoteControlWeb() {
     remoteControlWeb?.stop()
     remoteControlWeb = null
@@ -835,7 +813,6 @@ fun Model.remoteControlStreamerConnected() {
     setLowFpsImage()
     updateRemoteControlStatus()
     remoteControlStateChanged(state = createRemoteControlStateChanged())
-    remoteControlStreamerSendWheelOfLuck()
 }
 
 fun Model.remoteControlStreamerDisconnected() {
@@ -1182,7 +1159,7 @@ fun Model.remoteControlStreamerStopMacro(id: UUID) {
     stopMacro(id = id)
 }
 
-private fun Model.isRemoteControlRequestAlreadyHandled(requestId: String?): Boolean {
+fun Model.isRemoteControlRequestAlreadyHandled(requestId: String?): Boolean {
     if (requestId == null) {
         return false
     }
@@ -1203,15 +1180,6 @@ fun Model.remoteControlStreamerSpinWheelOfLuck(
     count: Int,
     requestId: String?
 ) {
-    if (isRemoteControlRequestAlreadyHandled(requestId = requestId)) {
-        return
-    }
-    val widget = getRemoteControlWheelOfLuckWidget() ?: return
-    getWheelOfLuckEffect(id = widget.id)?.spin(
-        name = name,
-        message = message,
-        count = minOf(maxOf(count, 1), 10)
-    )
 }
 
 fun Model.remoteControlStreamerTip(

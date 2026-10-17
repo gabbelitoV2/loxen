@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-16T22:14:43+00:00",
+  "generated": "2026-10-17T21:47:24+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -5130,8 +5130,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsRemoteControl.swift",
-      "lines": 231,
-      "sha256": "f4ec2b002c1f4414c5f3bdd696c0fbf9343dcbb13e1fe323bbf661c3f7ddbcaa",
+      "lines": 227,
+      "sha256": "ec2d758550fa3e8d826edd8e0853ff7350b11aa54ace2c973f1636c8b1853204",
       "imports": [
         "Foundation"
       ],
@@ -9932,6 +9932,29 @@
       "wave": 13
     },
     {
+      "path": "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift",
+      "lines": 62,
+      "sha256": "9d698368ba257b00118e75d7c63906e404fd6b09178e182b2d0a127d14001bd8",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "MoblinCloudSettingsView"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings.moblincloud",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/moblincloud/MoblinCloudSettingsView.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/View/Utils/TextEditNavigationView.swift"
+      ],
+      "wave": 13
+    },
+    {
       "path": "Moblin/View/Settings/SaveReset/SettingsResetView.swift",
       "lines": 30,
       "sha256": "19835dc11a52344cee65ee935f6d769bf089e96c76af2d37452441d0aa9aa385",
@@ -13776,8 +13799,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
-      "lines": 800,
-      "sha256": "92a0dd316edbcd59da32869fe14f6c462e2c11874cf104814d0735125ad5a407",
+      "lines": 802,
+      "sha256": "328bc65269d65e2c891b22f8e15aec8fe614ee0d613884ae9b997e234d989cc3",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -14061,7 +14084,7 @@
     {
       "path": "Moblin/Various/Model/ModelMoblinWebsite.swift",
       "lines": 213,
-      "sha256": "3168dbf2f0f3892874a84ba3b1dace599377de7711b06e5ed649453c0a992e93",
+      "sha256": "a5b0d9c60b4c40a31aaa657a8c4e5232ed389c9a90cecf61c09812d72ceaa669",
       "imports": [
         "CryptoKit",
         "DeviceCheck",
@@ -14083,7 +14106,9 @@
         "MoblinWebsiteError"
       ],
       "declared_functions": [],
-      "declared_globals": [],
+      "declared_globals": [
+        "moblinWebsiteApiUrl"
+      ],
       "kotlin_package": "com.moblin.android.various.model",
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinWebsite.kt",
       "deps": [
@@ -14093,44 +14118,6 @@
         "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/Various/Storages/SimpleStorage.swift",
         "Moblin/Various/Utils/UiUtils.swift"
-      ],
-      "wave": 23
-    },
-    {
-      "path": "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
-      "lines": 209,
-      "sha256": "e919e9c94e4919bf12e6a07e1a6e04becd9cdcb21526fbae61b6adcd235e3c96",
-      "imports": [
-        "MusicKit",
-        "SwiftUI"
-      ],
-      "tier": "ui",
-      "declared_types": [
-        "MusicArtistView",
-        "MusicDurationView",
-        "PlaylistEndView",
-        "MusicAddedByView",
-        "ControlsView",
-        "PlaylistView",
-        "AppleMusicSettingsView"
-      ],
-      "private_types": [
-        "PlaylistEndView",
-        "ControlsView",
-        "PlaylistView"
-      ],
-      "declared_functions": [
-        "formatMusicDuration"
-      ],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.view.settings.applemusic",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/applemusic/AppleMusicSettingsView.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
-        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
-        "Moblin/Various/Model/Model.swift",
-        "Moblin/Various/Model/ModelMusic.swift"
       ],
       "wave": 23
     },
@@ -14379,8 +14366,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
-      "lines": 493,
-      "sha256": "19f86b20ad1c0c0a80837dfeeab37c82189e9494a6a43a05833a225d608a07ee",
+      "lines": 501,
+      "sha256": "4e733c0d3ffc1e5af1fc5a75ec1a89385f87c0d902f925cf3a977767f55d3cdb",
       "imports": [
         "Foundation",
         "Network"
@@ -14464,8 +14451,8 @@
     },
     {
       "path": "Moblin/Various/MoblinSettingsUrl.swift",
-      "lines": 156,
-      "sha256": "21decbc1cec403c2e53e78ae1ca77cee20e95429ead367f7ad575431b84b1e26",
+      "lines": 162,
+      "sha256": "fe8e539df92cd4a727c1a854ceeebff73be34b35121f59067022c21b38f2af9e",
       "imports": [
         "Foundation"
       ],
@@ -14485,6 +14472,7 @@
         "MoblinSettingsRemoteControlAssistant",
         "MoblinSettingsRemoteControlStreamer",
         "MoblinSettingsRemoteControl",
+        "MoblinSettingsMoblinCloud",
         "MoblinSettingsUrl"
       ],
       "private_types": [],
@@ -14548,8 +14536,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSettingsUrl.swift",
-      "lines": 251,
-      "sha256": "17c43a941f721dfef49d5c6d7d12a87fcfb6d5d5e94859f73a5146f8968010a8",
+      "lines": 261,
+      "sha256": "ff4c485678729a7c4e31e46a84b634ff86442249102550b4fb943f4d6def01ba",
       "imports": [
         "SwiftUI"
       ],
@@ -14912,6 +14900,47 @@
         "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift",
         "Moblin/View/Utils/TextItemView.swift"
+      ],
+      "wave": 25
+    },
+    {
+      "path": "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
+      "lines": 229,
+      "sha256": "3515c6bdbff5e75437d780067d403ebf994fe62758b7b4ddb8442f9500f63d1a",
+      "imports": [
+        "MusicKit",
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "MusicArtistView",
+        "MusicDurationView",
+        "PlaylistEndView",
+        "MusicAddedByView",
+        "ControlsView",
+        "PlaylistView",
+        "SongRequestsView",
+        "AppleMusicSettingsView"
+      ],
+      "private_types": [
+        "PlaylistEndView",
+        "ControlsView",
+        "PlaylistView",
+        "SongRequestsView"
+      ],
+      "declared_functions": [
+        "formatMusicDuration"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings.applemusic",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/applemusic/AppleMusicSettingsView.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelMusic.swift",
+        "Moblin/Various/Settings/Settings.swift"
       ],
       "wave": 25
     },
@@ -17841,8 +17870,8 @@
     },
     {
       "path": "Moblin/VideoEffects/WheelOfLuckEffect.swift",
-      "lines": 310,
-      "sha256": "fcc4b6876373faaf4cf41877e24dfc8f28ff586420262ce5174aef3f869e6c2d",
+      "lines": 324,
+      "sha256": "41dcad8e991aae8f586cd6bdba2f61fa89f10cbc4455fe2fce189652d6c3c774",
       "imports": [
         "Charts",
         "CoreImage",
@@ -18470,8 +18499,8 @@
     },
     {
       "path": "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift",
-      "lines": 671,
-      "sha256": "d549ae437c28f6f175594f92c6851fda6576cfe5fc36a4a7917fbf46b71821e9",
+      "lines": 656,
+      "sha256": "c9827c821fc4a18a438b92c4806df6df16ded0bbd6bd1ceaf348e0822ae15cce",
       "imports": [
         "SwiftUI"
       ],
@@ -19033,8 +19062,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift",
-      "lines": 209,
-      "sha256": "2a0ff547eb7051c509f0502e453a1d49758801bd61f6d0d9a69ffd6c680b459e",
+      "lines": 215,
+      "sha256": "6af4ea7528eb5c318828aa88ea492f4a7f114e22a30320b9aed5801cf9f220fd",
       "imports": [
         "SwiftUI"
       ],
@@ -20311,8 +20340,8 @@
     },
     {
       "path": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift",
-      "lines": 143,
-      "sha256": "1bcfd4a65ad8ac04a62273407c7bdf5a25becbe7d8976baa9845a4e03358ece1",
+      "lines": 148,
+      "sha256": "6825f18af8aa9de743dcd1a0032f637de1fe2fb26f9d37b8db68c44a8e894676",
       "imports": [
         "SwiftUI"
       ],
@@ -20390,8 +20419,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
-      "lines": 1222,
-      "sha256": "c312f294e910dd2468761c620b4b43454387baef9d335333258f4ff7482746e1",
+      "lines": 1223,
+      "sha256": "81f101ea80d243f6a44c8ddc16922e68438c813895ed7f0659e33838e8d10f37",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20493,8 +20522,8 @@
     },
     {
       "path": "Moblin/Various/Settings/Settings.swift",
-      "lines": 2447,
-      "sha256": "3902e5858c39acf7ebea5ee04b3b0909ed649708dcb2d4c294a1aaaa38c89e4d",
+      "lines": 2487,
+      "sha256": "9f280dd5fa23c598e6806cc6d13e7fc1757247d8cfd2d33c74a98c230e9ad267",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -20541,6 +20570,7 @@
         "SettingsBeautySettings",
         "SettingsBeauty",
         "SettingsWiFi",
+        "SettingsMoblinCloud",
         "Database",
         "Settings"
       ],
@@ -20794,9 +20824,37 @@
       "wave": 37
     },
     {
+      "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
+      "lines": 302,
+      "sha256": "bd36e97cde898847bad0715a89c11bab60df528a32f962e4a6031b4a5d51736c",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "MoblinCloud"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/RemoteControl/RemoteControl.swift",
+        "Moblin/RemoteControl/RemoteControlStreamer.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelMoblinWebsite.swift",
+        "Moblin/Various/Settings/SettingsGameController.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Settings/SettingsStream.swift"
+      ],
+      "wave": 38
+    },
+    {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1647,
-      "sha256": "21cb06534b6af2b4f173c7dccd92752ccfc3cd86941bbb06ace86b4f227d18d0",
+      "lines": 1623,
+      "sha256": "6bed2402e6984ea18f454b46959be85dae8e322ddec880b664c467ceb4f458fc",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20837,7 +20895,7 @@
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
       "lines": 1764,
-      "sha256": "c24a3c266c79eb45129567d854ffbbf16735bf5734a53691e14fac5233472a6f",
+      "sha256": "5af86c8bbd69b83e17b374303ca76b03b3a97a7fe3636e5a3c2526d6ea6b0a9c",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20914,8 +20972,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsScene.swift",
-      "lines": 4240,
-      "sha256": "ff2b368ec103d7c4ca3b1069ea8342884abdb074d1fbf02d3abba5684e9a7296",
+      "lines": 4244,
+      "sha256": "c4c3690491d0e7c9812766d67c23cbdefc2943c320f93c47d6af7610247ca814",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -21337,8 +21395,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
-      "lines": 809,
-      "sha256": "3ee1a6238304f20223c336d4c36451ebfaefed806b6c16d00b3dd826e7f3ab56",
+      "lines": 833,
+      "sha256": "129d3decbfc3fd8cec1c9a8af6c2a1463cfc5a31d859235ac64d972390f75b3c",
       "imports": [
         "Charts",
         "SwiftUI"
@@ -21356,6 +21414,7 @@
         "CpuStatusView",
         "MoblinkStatusView",
         "RemoteControlStatusView",
+        "MoblinCloudStatusView",
         "DjiDevicesStatusView",
         "GameControllersStatusView",
         "IngestsStatusView",
@@ -21387,6 +21446,7 @@
         "CpuStatusView",
         "MoblinkStatusView",
         "RemoteControlStatusView",
+        "MoblinCloudStatusView",
         "DjiDevicesStatusView",
         "GameControllersStatusView",
         "IngestsStatusView",
@@ -21441,8 +21501,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3495,
-      "sha256": "caf49fd773c388518a7a00a161c8983a78703aa62fa23eaa69f8eea9baae8424",
+      "lines": 3501,
+      "sha256": "8046c23985f6af8ff10e0ef7d3346f2cca0266fed4b66a46dd71ecdf167e3ad7",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -21596,6 +21656,7 @@
         "Moblin/Various/Model/ModelCamera.swift",
         "Moblin/Various/Model/ModelLog.swift",
         "Moblin/Various/Model/ModelMediaPlayer.swift",
+        "Moblin/Various/Model/ModelMoblinCloud.swift",
         "Moblin/Various/Model/ModelMoblink.swift",
         "Moblin/Various/Model/ModelMusic.swift",
         "Moblin/Various/Model/ModelObs.swift",
@@ -23920,8 +23981,8 @@
     },
     {
       "path": "Moblin/View/Settings/SettingsView.swift",
-      "lines": 278,
-      "sha256": "aacc79e30dc7b50c12bfc9d5af19ff3c251f77ca56d8a961c5e651e9c7a4ba60",
+      "lines": 287,
+      "sha256": "a8fe0977c401a008d8510daba1936cf99ecdc4fb31c1a1c800f20aa07868600a",
       "imports": [
         "SwiftUI"
       ],
@@ -23975,6 +24036,7 @@
         "Moblin/View/Settings/Location/LocationSettingsView.swift",
         "Moblin/View/Settings/Macros/MacrosSettingsView.swift",
         "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift",
+        "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift",
         "Moblin/View/Settings/Moblink/MoblinkSettingsView.swift",
         "Moblin/View/Settings/Recordings/RecordingsSettingsView.swift",
         "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift",

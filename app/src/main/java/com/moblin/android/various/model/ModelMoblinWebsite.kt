@@ -22,9 +22,9 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import com.moblin.android.various.network.NetworkResponse
 
-private val baseUrl: String = ""
-private val liveUrl = URI("$baseUrl/streamers/live")
-private val challengeUrl = URI("$baseUrl/streamers/live/challenge")
+val moblinWebsiteApiUrl: String = ""
+private val liveUrl = URI("$moblinWebsiteApiUrl/streamers/live")
+private val challengeUrl = URI("$moblinWebsiteApiUrl/streamers/live/challenge")
 private val appAttestStorage = SimpleStringStorage("moblinWebsiteAppAttest")
 
 private val json = Json { ignoreUnknownKeys = true }
