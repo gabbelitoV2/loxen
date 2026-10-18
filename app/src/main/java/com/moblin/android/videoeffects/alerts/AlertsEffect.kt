@@ -59,6 +59,7 @@ import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
 import com.moblin.android.various.settings.SettingsWidgetAlertsChatBotCommandImageType
 import com.moblin.android.various.settings.SettingsWidgetAlertsCheerBitsAlertOperator
 import com.moblin.android.various.settings.SettingsWidgetAlertsKick
+import com.moblin.android.various.settings.SettingsWidgetAlertsMoblinCloud
 import com.moblin.android.various.settings.SettingsWidgetAlertsTwitch
 import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.various.storages.AlertMediaStorage
@@ -116,6 +117,13 @@ sealed class AlertsEffectAlert {
     data class KickReward(val event: KickPusherRewardRedeemedEvent) : AlertsEffectAlert()
 
     data class KickKicks(val event: KickPusherKicksGiftedEvent) : AlertsEffectAlert()
+
+    data class MoblinCloudTip(
+        val name: String,
+        val message: String,
+        val amount: String,
+        val currency: String,
+    ) : AlertsEffectAlert()
 
     data class ChatBotCommand(val command: String, val name: String) : AlertsEffectAlert()
 
@@ -179,6 +187,7 @@ class AlertsEffect(
     private var kickHostMedia = AlertsEffectMedia()
     private var kickRewardMedia = AlertsEffectMedia()
     private var kickGiftsMedias: MutableList<AlertsEffectMedia> = mutableListOf()
+    private var moblinCloudTipMedia = AlertsEffectMedia()
     private var chatBotCommandsMedias: MutableList<AlertsEffectMedia> = mutableListOf()
     private var speechToTextStringsMedias: MutableList<AlertsEffectMedia> = mutableListOf()
     private var quickButtonMedias = AlertsEffectMedia()
@@ -251,6 +260,7 @@ class AlertsEffect(
     fun setSettings(settings: SettingsWidgetAlerts) {
         setTwitchSettings(twitch = settings.twitch)
         setKickSettings(kick = settings.kick)
+        setMoblinCloudSettings(moblinCloud = settings.moblinCloud)
         setChatBotSettings(settings = settings)
         setSpeechToTextSettings(settings = settings)
         setQuickButtonSettings(alert = settings.quickButton)
@@ -323,6 +333,13 @@ class AlertsEffect(
             is AlertsEffectAlert.KickHost -> playKickHost(event = alert.event)
             is AlertsEffectAlert.KickReward -> playKickReward(event = alert.event)
             is AlertsEffectAlert.KickKicks -> playKickKicks(event = alert.event)
+            is AlertsEffectAlert.MoblinCloudTip ->
+                playMoblinCloudTip(
+                    name = alert.name,
+                    message = alert.message,
+                    amount = alert.amount,
+                    currency = alert.currency,
+                )
             is AlertsEffectAlert.ChatBotCommand ->
                 playChatBotCommand(command = alert.command, name = alert.name)
             is AlertsEffectAlert.SpeechToTextString -> playSpeechToTextString(id = alert.id)
@@ -1102,6 +1119,31 @@ class AlertsEffect(
             )
             break
         }
+    }
+
+    private fun setMoblinCloudSettings(moblinCloud: SettingsWidgetAlertsMoblinCloud) {
+        moblinCloudTipMedia.update(moblinCloud.tips, mediaStorage, bundledImages, bundledSounds)
+    }
+
+    private fun playMoblinCloudTip(
+        name: String,
+        message: String,
+        amount: String,
+        currency: String,
+    ) {
+        if (!settings.moblinCloud.tips.enabled) {
+            return
+        }
+        var text = localized("tipped $amount $currency!")
+        if (message.isNotEmpty()) {
+            text += " $message"
+        }
+        play(
+            media = moblinCloudTipMedia,
+            username = name,
+            message = text,
+            settings = settings.moblinCloud.tips,
+        )
     }
 
     private fun setQuickButtonSettings(alert: SettingsWidgetAlertsAlert) {

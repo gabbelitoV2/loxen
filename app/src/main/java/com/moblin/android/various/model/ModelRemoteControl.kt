@@ -1215,6 +1215,7 @@ fun Model.remoteControlStreamerTip(
         highlight = ChatHighlight.makeRemoteControlAssistant(),
         live = true
     )
+    moblinCloudPlayTipAlert(name = name, message = message, amount = amount, currency = currency)
 }
 
 fun Model.remoteControlStreamerGetScoreboardSports(): List<String> {

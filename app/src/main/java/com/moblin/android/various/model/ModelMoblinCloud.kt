@@ -28,6 +28,7 @@ import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
+import com.moblin.android.videoeffects.alerts.AlertsEffectAlert
 import java.net.URI
 import java.util.UUID
 import com.moblin.android.various.utils.add
@@ -116,6 +117,22 @@ fun Model.moblinCloudSendWheelOfLuck() {
         )
     }
     moblinCloud?.sendWheelOfLuck(wheel = wheel)
+}
+
+fun Model.moblinCloudPlayTipAlert(name: String, message: String, amount: String, currency: String) {
+    val id = database.moblinCloud.alertsWidgetId ?: return
+    val effect = getAlertsEffect(id = id) ?: return
+    if (!enabledAlertsEffects.any { it === effect }) {
+        return
+    }
+    effect.play(
+        alert = AlertsEffectAlert.MoblinCloudTip(
+            name = name,
+            message = message,
+            amount = amount,
+            currency = currency,
+        ),
+    )
 }
 
 fun Model.moblinCloudSendSongRequests() {

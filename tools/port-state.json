@@ -14634,28 +14634,23 @@
   },
   "Moblin/VideoEffects/Alerts/AlertsEffect.swift": {
     "status": "ok",
-    "sha256": "35d7a80a4c20a227198212bc7b30d40994e6fb45ac824b141e466acab17d0dd6",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "9ff63e57164bfd389d121a24276cb865bd5f52c1769b243044125e543b93d300",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt",
     "notes": [
-      "AlertsEffectAlert (sealed class with the same case names, keeping the 'TwitchSubscrptionGift' typo) and AlertsEffectDelegate (interface) are declared in this file.",
-      "Swift's 'private weak let delegate' becomes a plain strong property: Kotlin has no weak properties; switch to java.lang.ref.WeakReference if a Model->effect->Model cycle shows up.",
-      "The private Pipeline struct becomes a private class so the pipeline thread (getImage) and the main thread (play) mutate one shared instance, exactly as Swift's struct property does.",
-      "Swift's labelled tuple return of calcFacePlacement becomes the private data class FacePlacement(center, height, rotation).",
-      "createSpeechSynthesizer() is translated as AVSpeechSynthesizer().also { it.usesApplicationAudioSession = false }; the Kotlin helper of that name returns TextToSpeech and is only for chat text-to-speech.",
-      "settings.fontWeight.toFontWeight() and settings.fontDesign.toFontDesign() are assumed names for the settings -> Compose FontWeight/FontDesign conversions (like RgbColor.color()); verify against the settings port.",
-      "AudioPlayer(contentsOf = soundUrl) mirrors Swift's failable AudioPlayer(contentsOf:); verify the constructor signature of the Kotlin AudioPlayer.",
-      "settings.textToSpeechLanguageVoices[language]?.apple?.voice is assumed for the language voice table; verify the Kotlin settings type."
+      "Added the MoblinCloudTip alert case, its media slot, settings wiring and the play/set functions for Moblin Cloud tips.",
+      "MoblinCloud tip amount and currency arrive preformatted as Strings, so the message text is built directly with the localized template.",
+      "setMoblinCloudSettings/playMoblinCloudTip are placed just before the quick button helpers to mirror the Swift declaration order."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 67125,
-    "tokens_out": 57347,
-    "seconds": 202.4,
-    "ported_at": "2026-09-23T20:08:17+00:00"
+    "tokens_in": 88784,
+    "tokens_out": 11365,
+    "seconds": 29.1,
+    "ported_at": "2026-10-18T21:57:42+00:00"
   },
   "Moblin/View/Settings/Camera/CameraControls/CameraControlsView.swift": {
     "status": "ok",
@@ -15957,25 +15952,22 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "6bed2402e6984ea18f454b46959be85dae8e322ddec880b664c467ceb4f458fc",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "e3b774623989b543c0e0ce8b5913ce0c84343193d3214300e99bc4da23d6b151",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "Made Model.getRemoteControlStreamerId and Model.isRemoteControlRequestAlreadyHandled public (dropped the private modifier) to match the Swift change.",
-      "Removed getRemoteControlWheelOfLuckWidget, isRemoteControlWheelOfLuckWidget and remoteControlStreamerSendWheelOfLuck together with their unused imports RemoteControlWheelOfLuck and RemoteControlWheelOfLuckOption.",
-      "Removed the remoteControlStreamerSendWheelOfLuck() call from remoteControlStreamerConnected.",
-      "remoteControlStreamerSpinWheelOfLuck is now an empty function that keeps its parameter list; the delegate adapter still forwards to it unchanged.",
-      "Everything else in the file is byte-identical to the previous Kotlin version."
+      "Added the moblinCloudPlayTipAlert(name, message, amount, currency) call at the end of remoteControlStreamerTip, mirroring the Swift change.",
+      "No other lines were touched; the rest of the file is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 93063,
-    "tokens_out": 18712,
-    "seconds": 45.4,
-    "ported_at": "2026-10-17T21:48:42+00:00"
+    "tokens_in": 92181,
+    "tokens_out": 18211,
+    "seconds": 44.1,
+    "ported_at": "2026-10-18T21:57:57+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
@@ -16106,24 +16098,23 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "9f280dd5fa23c598e6806cc6d13e7fc1757247d8cfd2d33c74a98c230e9ad267",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "01ab3e08f28f3dcdefb10e7080787e2283054e7191cc6741fef1cb7ccb5575f4",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Added SettingsMoblinCloud settings class and Database/SettingsShow wiring exactly as the Swift diff does.",
-      "SettingsShow.moblinCloud is a Published property encoded and decoded under the key \"moblinCloud\" between remoteControl and browserWidgets.",
-      "Database.moblinCloud is a plain (non-Published) constructor property, matching the Swift `var moblinCloud`, encoded under \"moblinCloud\".",
-      "Optionals decode with the generic `container.decode<UUID?>(\"wheelOfLuckWidgetId\", null)` form already used by SettingsTesla."
+      "Only SettingsMoblinCloud changed: added the alertsWidgetId property, its encode entry and its decode line.",
+      "alertsWidgetId is an optional UUID serialized with the same decode<UUID?> pattern as wheelOfLuckWidgetId.",
+      "Everything else in the file is untouched, including the Android-specific hooks (upperCaseMicIds, Cameras.backCameraSwitchOverZoomFactors, Zip handling, Build.MODEL)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 116251,
-    "tokens_out": 28654,
-    "seconds": 69.2,
-    "ported_at": "2026-10-17T21:49:05+00:00"
+    "tokens_in": 115920,
+    "tokens_out": 28138,
+    "seconds": 67.3,
+    "ported_at": "2026-10-18T21:58:23+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -16283,23 +16274,24 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "c4c3690491d0e7c9812766d67c23cbdefc2943c320f93c47d6af7610247ca814",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "06ae570f9fa9e077fb9730e73dd14a9a108d5be910df83375df20fde4e2d3d2b",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "Adds the onlyShowWhenSpinning flag to SettingsWidgetWheelOfLuck, wired through the constructor, the Published delegate, encode and decode.",
-      "The new key sits between advanced and options in both encode() and decode() to mirror the Swift CodingKeys order.",
-      "Default is false so settings saved before this change decode unchanged."
+      "Added SettingsWidgetAlertsMoblinCloud class translating Swift's Codable + clone/disableAll, following the existing JsonObjectSerializer pattern of the sibling alert classes.",
+      "SettingsWidgetAlerts gains the moblinCloud property together with its encode/decode/clone/disableAll entries at the same positions as the Swift CodingKeys order.",
+      "Swift's tips is a plain stored property holding a class, so it stays a plain var (no Published delegate), matching the kick/twitch siblings.",
+      "Wire format keeps the 'moblinCloud' JSON key byte-identical to iOS."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 140593,
-    "tokens_out": 43552,
-    "seconds": 102.3,
-    "ported_at": "2026-10-17T21:49:44+00:00"
+    "tokens_in": 141499,
+    "tokens_out": 44807,
+    "seconds": 105.9,
+    "ported_at": "2026-10-18T21:59:03+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",
@@ -18413,49 +18405,46 @@
   },
   "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift": {
     "status": "ok",
-    "sha256": "9d698368ba257b00118e75d7c63906e404fd6b09178e182b2d0a127d14001bd8",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
-    "mode": "full",
+    "sha256": "27af0d8e6ed3db36df37aea2d8e6fc0702bce12da6b1042760a09a4af1325338",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/moblincloud/MoblinCloudSettingsView.kt",
     "notes": [
-      "Translated the SwiftUI Form into the platform Form with the navigation title.",
-      "Wheel of luck picker options are nil plus the ids of wheelOfLuck widgets.",
-      "Toggle and Picker side effects call the Model extension functions after updating SettingsMoblinCloud.",
-      "TextEditNavigationView is reused with sensitive=true.",
-      "Literal body and footer text use localized()."
+      "Added a new Section with a \"Tips\" picker bound to moblinCloud.alertsWidgetId, placed before the wheel of luck section, mirroring the existing Picker translation pattern.",
+      "The alerts picker has no onChange in Swift, so onChange only assigns the new value back to moblinCloud.alertsWidgetId.",
+      "Both pickers' nil option label changed from \"None\" to \"-- None --\".",
+      "The widget list is filtered to SettingsWidgetType.alerts and mapped to a List<UUID?> with null first, exactly like the wheel of luck options.",
+      "No new imports were required; all names used were already imported."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 39643,
-    "tokens_out": 6367,
-    "seconds": 26.2,
-    "ported_at": "2026-10-17T21:48:02+00:00"
+    "tokens_in": 41016,
+    "tokens_out": 1730,
+    "seconds": 7.4,
+    "ported_at": "2026-10-18T21:57:18+00:00"
   },
   "Moblin/Various/Model/ModelMoblinCloud.swift": {
     "status": "ok",
-    "sha256": "bd36e97cde898847bad0715a89c11bab60df528a32f962e4a6031b4a5d51736c",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
-    "mode": "full",
+    "sha256": "8dcee2214f07d45e6bf7ce61f4bea3d104976e757e7a31bab3ee729dc9cd7f30",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
     "notes": [
-      "URLComponents-based URL building is translated with java.net.URI plus the platform percent-encoding helper.",
-      "The weak Model reference is represented as a nullable property because Android has no ARC weak semantics in this port.",
-      "The RemoteControlStreamerDelegate implementation keeps every stub from Swift, returning the same empty/default responses.",
-      "RemoteControlSettings uses the Kotlin constructor names for streams, scenes, autoSceneSwitchers, bitratePresets, mics and srt.",
-      "Music commands forward status/find/add to the existing Model extension and answer error for all other commands.",
-      "The Moblin Cloud widget lookup uses SettingsWidgetType.wheelOfLuck and the existing wheel-of-luck effect lookup.",
-      "Status text is compared and updated through statusTopRight.moblinCloudStatus and moblinCloudOk as in Swift.",
-      "No Apple framework API from this file needs an Android TODO replacement."
+      "Added the new Model extension moblinCloudPlayTipAlert right after moblinCloudSendWheelOfLuck, matching the Swift declaration order.",
+      "Reference identity check `enabledAlertsEffects.contains(where: { $0 === effect })` becomes `enabledAlertsEffects.any { it === effect }` since AlertsEffect is a Kotlin class.",
+      "The Swift guard chain is written as early returns for the optional widget id, the optional effect, and the not-enabled check.",
+      "The tip alert is posted as AlertsEffectAlert.MoblinCloudTip with the same Swift argument labels.",
+      "Everything else in the file is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49504,
-    "tokens_out": 18093,
-    "seconds": 70.8,
-    "ported_at": "2026-10-17T21:49:06+00:00"
+    "tokens_in": 53095,
+    "tokens_out": 4656,
+    "seconds": 15.6,
+    "ported_at": "2026-10-18T21:57:27+00:00"
   }
 }

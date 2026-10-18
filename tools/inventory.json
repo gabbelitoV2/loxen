@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-17T21:47:24+00:00",
+  "generated": "2026-10-18T21:56:56+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -9933,8 +9933,8 @@
     },
     {
       "path": "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift",
-      "lines": 62,
-      "sha256": "9d698368ba257b00118e75d7c63906e404fd6b09178e182b2d0a127d14001bd8",
+      "lines": 74,
+      "sha256": "27af0d8e6ed3db36df37aea2d8e6fc0702bce12da6b1042760a09a4af1325338",
       "imports": [
         "SwiftUI"
       ],
@@ -18693,6 +18693,34 @@
       "wave": 29
     },
     {
+      "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift",
+      "lines": 62,
+      "sha256": "5ee67d36d233e7b06ad45e28d04e0210f3bf9582c50a39b15e6e7d49a770d69f",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "MoblinCloudTipsView",
+        "WidgetAlertsMoblinCloudSettingsView"
+      ],
+      "private_types": [
+        "MoblinCloudTipsView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings.scenes.widgets.widget.alerts",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsMoblinCloudSettingsView.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsTextSettingsView.swift",
+        "Moblin/View/Utils/ButtonView.swift"
+      ],
+      "wave": 29
+    },
+    {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSpeechToTextSettingsView.swift",
       "lines": 90,
       "sha256": "6d61524e2643336d34e18c14ce61222d0378c8acfe5848a72842057cdd0713aa",
@@ -20254,8 +20282,8 @@
     },
     {
       "path": "Moblin/VideoEffects/Alerts/AlertsEffect.swift",
-      "lines": 955,
-      "sha256": "35d7a80a4c20a227198212bc7b30d40994e6fb45ac824b141e466acab17d0dd6",
+      "lines": 981,
+      "sha256": "9ff63e57164bfd389d121a24276cb865bd5f52c1769b243044125e543b93d300",
       "imports": [
         "AVFoundation",
         "Collections",
@@ -20522,8 +20550,8 @@
     },
     {
       "path": "Moblin/Various/Settings/Settings.swift",
-      "lines": 2487,
-      "sha256": "9f280dd5fa23c598e6806cc6d13e7fc1757247d8cfd2d33c74a98c230e9ad267",
+      "lines": 2491,
+      "sha256": "01ab3e08f28f3dcdefb10e7080787e2283054e7191cc6741fef1cb7ccb5575f4",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -20825,8 +20853,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
-      "lines": 302,
-      "sha256": "bd36e97cde898847bad0715a89c11bab60df528a32f962e4a6031b4a5d51736c",
+      "lines": 312,
+      "sha256": "8dcee2214f07d45e6bf7ce61f4bea3d104976e757e7a31bab3ee729dc9cd7f30",
       "imports": [
         "Foundation"
       ],
@@ -20853,8 +20881,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1623,
-      "sha256": "6bed2402e6984ea18f454b46959be85dae8e322ddec880b664c467ceb4f458fc",
+      "lines": 1624,
+      "sha256": "e3b774623989b543c0e0ce8b5913ce0c84343193d3214300e99bc4da23d6b151",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20972,8 +21000,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsScene.swift",
-      "lines": 4244,
-      "sha256": "c4c3690491d0e7c9812766d67c23cbdefc2943c320f93c47d6af7610247ca814",
+      "lines": 4280,
+      "sha256": "06ae570f9fa9e077fb9730e73dd14a9a108d5be910df83375df20fde4e2d3d2b",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -21019,6 +21047,7 @@
         "SettingsWidgetAlertsKickGiftsAlert",
         "SettingsWidgetAlertsTwitch",
         "SettingsWidgetAlertsKick",
+        "SettingsWidgetAlertsMoblinCloud",
         "SettingsWidgetAlertsChatBotCommandImageType",
         "SettingsWidgetAlertsChatBotCommand",
         "SettingsWidgetAlertsChatBot",
@@ -23203,8 +23232,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift",
-      "lines": 380,
-      "sha256": "ab3a9648b7ca8885f11a31969be5cc8dce17669ed160925482713dc0766ca719",
+      "lines": 385,
+      "sha256": "0327bec80b85fdea619f59ffec18fa0727baea458560e5cad65da2f364dab222",
       "imports": [
         "AVFAudio",
         "PhotosUI",
@@ -23249,6 +23278,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsChatBotSettingsView.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsImageSettingsView.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsKickSettingsView.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSpeechToTextSettingsView.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsTwitchSettingsView.swift",

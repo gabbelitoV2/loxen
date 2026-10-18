@@ -1561,17 +1561,20 @@ class SettingsMoblinCloud(
     enabled: Boolean = false,
     key: String = "",
     wheelOfLuckWidgetId: UUID? = null,
+    alertsWidgetId: UUID? = null,
     songRequests: Boolean = true,
 ) {
     var enabled: Boolean by Published(enabled)
     var key: String by Published(key)
     var wheelOfLuckWidgetId: UUID? by Published(wheelOfLuckWidgetId)
+    var alertsWidgetId: UUID? by Published(alertsWidgetId)
     var songRequests: Boolean by Published(songRequests)
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
         encode("key", key)
         encode("wheelOfLuckWidgetId", wheelOfLuckWidgetId)
+        encode("alertsWidgetId", alertsWidgetId)
         encode("songRequests", songRequests)
     }
 
@@ -1581,6 +1584,7 @@ class SettingsMoblinCloud(
             moblinCloud.enabled = container.decode("enabled", false)
             moblinCloud.key = container.decode("key", "")
             moblinCloud.wheelOfLuckWidgetId = container.decode<UUID?>("wheelOfLuckWidgetId", null)
+            moblinCloud.alertsWidgetId = container.decode<UUID?>("alertsWidgetId", null)
             moblinCloud.songRequests = container.decode("songRequests", true)
             return moblinCloud
         }

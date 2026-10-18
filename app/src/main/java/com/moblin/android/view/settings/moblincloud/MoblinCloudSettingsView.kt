@@ -48,6 +48,25 @@ fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Databas
                 sensitive = true
             )
         }
+        val alertsWidgets = database.widgets.filter { it.type == SettingsWidgetType.alerts }
+        val alertsOptions: List<UUID?> = listOf<UUID?>(null) + alertsWidgets.map { it.id }
+        Section(footer = localized("Alerts widget that shows tips.")) {
+            Picker(
+                title = "Tips",
+                selection = moblinCloud.alertsWidgetId,
+                options = alertsOptions,
+                text = { id ->
+                    if (id == null) {
+                        localized("-- None --")
+                    } else {
+                        database.widgets.firstOrNull { it.id == id }?.name ?: ""
+                    }
+                },
+                onChange = { id ->
+                    moblinCloud.alertsWidgetId = id
+                }
+            )
+        }
         val wheelOfLuckWidgets = database.widgets.filter { it.type == SettingsWidgetType.wheelOfLuck }
         val wheelOfLuckOptions: List<UUID?> = listOf<UUID?>(null) + wheelOfLuckWidgets.map { it.id }
         Section(footer = localized("Wheel of luck widget viewers can spin.")) {
@@ -57,7 +76,7 @@ fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Databas
                 options = wheelOfLuckOptions,
                 text = { id ->
                     if (id == null) {
-                        localized("None")
+                        localized("-- None --")
                     } else {
                         database.widgets.firstOrNull { it.id == id }?.name ?: ""
                     }

@@ -1832,6 +1832,39 @@ class SettingsWidgetAlertsKick(
     }
 }
 
+@Serializable(with = SettingsWidgetAlertsMoblinCloud.Serializer::class)
+class SettingsWidgetAlertsMoblinCloud(
+    var tips: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert()
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("tips", tips, SettingsWidgetAlertsAlert.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsMoblinCloud {
+            val moblinCloud = SettingsWidgetAlertsMoblinCloud()
+            moblinCloud.tips = container.decode("tips", SettingsWidgetAlertsAlert.serializer(), SettingsWidgetAlertsAlert())
+            return moblinCloud
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsMoblinCloud> by JsonObjectSerializer(
+        "SettingsWidgetAlertsMoblinCloud",
+        { it.encode() },
+        { decode(it) },
+    )
+
+    fun clone(): SettingsWidgetAlertsMoblinCloud {
+        val new = SettingsWidgetAlertsMoblinCloud()
+        new.tips = tips.clone()
+        return new
+    }
+
+    fun disableAll() {
+        tips.enabled = false
+    }
+}
+
 @Serializable
 enum class SettingsWidgetAlertsChatBotCommandImageType(val rawValue: String) {
     @SerialName("File") file("File");
@@ -2041,6 +2074,7 @@ class SettingsTtsMonster(
 class SettingsWidgetAlerts(
     var twitch: SettingsWidgetAlertsTwitch = SettingsWidgetAlertsTwitch(),
     var kick: SettingsWidgetAlertsKick = SettingsWidgetAlertsKick(),
+    var moblinCloud: SettingsWidgetAlertsMoblinCloud = SettingsWidgetAlertsMoblinCloud(),
     var chatBot: SettingsWidgetAlertsChatBot = SettingsWidgetAlertsChatBot(),
     var speechToText: SettingsWidgetAlertsSpeechToText = SettingsWidgetAlertsSpeechToText(),
     var needsSubtitles: Boolean = false,
@@ -2054,6 +2088,7 @@ class SettingsWidgetAlerts(
     fun encode(): JsonObject = encodeContainer {
         encode("twitch", twitch, SettingsWidgetAlertsTwitch.serializer())
         encode("kick", kick, SettingsWidgetAlertsKick.serializer())
+        encode("moblinCloud", moblinCloud, SettingsWidgetAlertsMoblinCloud.serializer())
         encode("chatBot", chatBot, SettingsWidgetAlertsChatBot.serializer())
         encode("speechToText", speechToText, SettingsWidgetAlertsSpeechToText.serializer())
         encode("needsSubtitles", needsSubtitles)
@@ -2070,6 +2105,11 @@ class SettingsWidgetAlerts(
             val alerts = SettingsWidgetAlerts()
             alerts.twitch = container.decode("twitch", SettingsWidgetAlertsTwitch.serializer(), SettingsWidgetAlertsTwitch())
             alerts.kick = container.decode("kick", SettingsWidgetAlertsKick.serializer(), SettingsWidgetAlertsKick())
+            alerts.moblinCloud = container.decode(
+                "moblinCloud",
+                SettingsWidgetAlertsMoblinCloud.serializer(),
+                SettingsWidgetAlertsMoblinCloud()
+            )
             alerts.chatBot = container.decode(
                 "chatBot",
                 SettingsWidgetAlertsChatBot.serializer(),
@@ -2102,6 +2142,7 @@ class SettingsWidgetAlerts(
         val new = SettingsWidgetAlerts()
         new.twitch = twitch.clone()
         new.kick = kick.clone()
+        new.moblinCloud = moblinCloud.clone()
         new.chatBot = chatBot.clone()
         new.speechToText = speechToText.clone()
         new.needsSubtitles = needsSubtitles
@@ -2114,6 +2155,7 @@ class SettingsWidgetAlerts(
     fun disableAll() {
         twitch.disableAll()
         kick.disableAll()
+        moblinCloud.disableAll()
         chatBot.disableAll()
         speechToText.disableAll()
         quickButton.enabled = false
