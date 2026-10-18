@@ -17045,24 +17045,23 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift": {
     "status": "ok",
-    "sha256": "ab3a9648b7ca8885f11a31969be5cc8dce17669ed160925482713dc0766ca719",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "0327bec80b85fdea619f59ffec18fa0727baea458560e5cad65da2f364dab222",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsSettingsView.kt",
     "notes": [
-      "Incremental change only: the two NavigationLink destinations now pass model explicitly, matching the new Swift call sites.",
-      "AlertPickerView, AlertPositionFaceView and AlertPositionView keep their Kotlin 'model: Model = LocalModel.current' parameter, which already covers the Swift move from @EnvironmentObject to a stored let.",
-      "No other line of the file was touched; imports, formatting and declaration order are unchanged.",
-      "AiResponseView, AlertMediaView, VideoView and AlertPositionFaceView already received model explicitly in Kotlin, so the Swift diff is a no-op there."
+      "Added the new Moblin Cloud NavigationLink between the Kick and Chat bot rows, with the iOS Label component and the 'cloud' symbol.",
+      "Imported com.moblin.android.platform.swiftui.Label for the new row label.",
+      "WidgetAlertsMoblinCloudSettingsView lives in the same package, so no import was added for it."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62909,
-    "tokens_out": 5289,
-    "seconds": 15.8,
-    "ported_at": "2026-10-06T23:24:25+00:00"
+    "tokens_in": 62998,
+    "tokens_out": 4584,
+    "seconds": 12.4,
+    "ported_at": "2026-10-18T22:13:44+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSrtSettingsView.swift": {
     "status": "ok",
@@ -18446,5 +18445,28 @@
     "tokens_out": 4656,
     "seconds": 15.6,
     "ported_at": "2026-10-18T21:57:27+00:00"
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift": {
+    "status": "ok",
+    "sha256": "5ee67d36d233e7b06ad45e28d04e0210f3bf9582c50a39b15e6e7d49a770d69f",
+    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsMoblinCloudSettingsView.kt",
+    "notes": [
+      "MoblinCloudTipsView stays a private @Composable with the same name, placed before WidgetAlertsMoblinCloudSettingsView.",
+      "Form(title = \"Tips\") / Form(title = \"Moblin Cloud\") replace Form + .navigationTitle, including in the pushed destination.",
+      "The Toggle uses the titled overload and writes alert.enabled then calls model.updateAlertsSettings() in onChange, as the Swift Binding setter does.",
+      "AlertTextToSpeechView has no ttsDelay parameter in Kotlin (it keeps its own state), so only model and alert are passed.",
+      "alertTestNames.randomElement()! is alertTestNames.random() and Int.random(in: 1 ... 100) is (1..100).random().",
+      "The test alert is built as AlertsEffectAlert.MoblinCloudTip and passed to Model.testAlert as the instructions require."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 41152,
+    "tokens_out": 3858,
+    "seconds": 15.5,
+    "ported_at": "2026-10-18T22:18:09+00:00"
   }
 }

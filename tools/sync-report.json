@@ -3,29 +3,7 @@
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [
-    {
-      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift",
-      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsMoblinCloudSettingsView.kt",
-      "reason": "compile",
-      "ported_from": null,
-      "errors": [
-        "12: Unresolved reference 'AlertEvent'.",
-        "49: Unresolved reference 'AlertEvent'."
-      ],
-      "hooks": []
-    },
-    {
-      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift",
-      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsSettingsView.kt",
-      "reason": "compile",
-      "ported_from": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
-      "errors": [
-        "456: Unresolved reference 'WidgetAlertsMoblinCloudSettingsView'."
-      ],
-      "hooks": []
-    }
-  ],
+  "held_back": [],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

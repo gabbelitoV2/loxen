@@ -112,3 +112,4 @@ Menus open the iOS pull-down menu anchored to the control, animate like iOS and 
 - Before writing TODO or Unit for a call into the model, look up the Kotlin extension function (fun Model.x in various/model) and call it. Port every call of a sequence.
 - Private helpers that already exist in another file are imported, not stubbed.
 - PhotosPicker is rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()).
+- `model.testAlert(alert: .moblinCloudTip(...))` and other `.xxx(...)` alert cases -> `model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.MoblinCloudTip(...))`; the sealed class is `AlertsEffectAlert`, never `Alert`. `testAlert` and `updateAlertsSettings` are members of Model: call them as `model.x()` without importing them.

@@ -38,6 +38,7 @@ import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
@@ -451,6 +452,9 @@ fun WidgetAlertsSettingsView(
         }
         NavigationLink(destination = { WidgetAlertsKickSettingsView(kick = widget.alerts.kick) }) {
             KickLogoAndNameView()
+        }
+        NavigationLink(destination = { WidgetAlertsMoblinCloudSettingsView(moblinCloud = widget.alerts.moblinCloud) }) {
+            Label(title = "Moblin Cloud", systemImage = "cloud")
         }
         NavigationLink(destination = { WidgetAlertsChatBotSettingsView(model = model, chatBot = widget.alerts.chatBot) }) {
             Text("Chat bot")
