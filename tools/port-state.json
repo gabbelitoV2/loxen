@@ -14448,27 +14448,26 @@
   },
   "Moblin/Various/Model/ModelZoom.swift": {
     "status": "ok",
-    "sha256": "52f4f5b3b60e3cdbbd2424131c00e754ec53e1f2da4a286244c157d829725ac9",
+    "sha256": "a7a9538ca031af122162cab0e5373b13a817a80d7e76933c6130927fddb771c9",
+    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelZoom.kt",
     "notes": [
-      "Zoom's @Published properties become public MutableStateFlow fields (same names), so the Model extensions can write them with .value; Compose reads them with collectAsState().",
-      "AVCaptureDevice.Position is mapped to an assumed CameraPosition enum in com.moblin.android.media with BACK, FRONT and the iOS low-energy variants; if the port uses CameraSelector.LENS_FACING_* ints instead, replace those constants.",
-      "getMinMaxZoomX assumes preferredCamera(position) returns androidx.camera.core.Camera? and reads camera.cameraInfo.zoomState.value.minZoomRatio/maxZoomRatio.",
-      "Model members used here (cameraPosition, cameraDevice, database, media, zoom, getSelectedScene, remoteControlStateChanged, isWatchLocal, sendZoomToWatch, sendZoomPresetsToWatch, attachBack*LowEnergyCamera, cameraZoomLevelToXScale, cameraZoomXMinimum/Maximum, isChatPhone) live in other Model+*.kt files in this package.",
-      "media.setCameraZoomLevel / media.stopCameraZoomLevel are the Media-layer counterparts of the AVCaptureDevice zoom calls and are called with positional arguments.",
-      "String(format:) is replaced by String.format(Locale.US, ...); UUID by java.util.UUID; noBackZoomPresetId/noFrontZoomPresetId stay file-private top-level vals.",
-      "The low-energy camera branches only re-attach iOS low-energy camera configurations; the calls are kept unchanged for the media layer to implement on Android.",
-      "Watch helpers are kept as calls although WatchConnectivity itself has no Android counterpart in this port."
+      "The macCatalyst-only MacZoomRamp class and its uses in setCameraZoomX/stopCameraZoom are wrapped in #if targetEnvironment(macCatalyst); they are excluded from the Android port like any other platform-conditional code, so no Kotlin declaration exists for them.",
+      "Zoom gains speedActive (plain var, since the Swift property is not @Published) and speedTimer (MainTimer).",
+      "setZoomSpeed/stopZoomSpeed/updateZoomXFromCamera are translated as Model extension functions right after commitZoomX, matching the Swift declaration order.",
+      "pow(abs(speed), 2) becomes abs(speed).pow(2) with kotlin.math.pow; abs likewise from kotlin.math.",
+      "MainTimer.startPeriodic(interval = 0.1) drives the periodic camera-to-x sync, and stopZoomSpeed stops that timer before applying the clamped zoom level back to x.",
+      "The zoom level returned by stopCameraZoom already comes through cameraZoomLevelToX, so it is fed straight into setZoomXWhenInRange as in Swift."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7923,
-    "tokens_out": 17011,
-    "seconds": 65.5,
-    "ported_at": "2026-09-22T13:53:31+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 58384,
+    "tokens_out": 3825,
+    "seconds": 12.8,
+    "ported_at": "2026-10-19T23:08:57+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffect.swift": {
     "status": "ok",
@@ -15623,23 +15622,23 @@
   },
   "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift": {
     "status": "ok",
-    "sha256": "6825f18af8aa9de743dcd1a0032f637de1fe2fb26f9d37b8db68c44a8e894676",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "ee789e89c271fbe8140b51477f89377ec6a56fa4667f1770243da24a09297a73",
+    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysSettingsView.kt",
     "notes": [
-      "Added the new 'Moblin Cloud' toggle bound to show.moblinCloud between Remote control and DJI devices.",
-      "Added the matching moblinCloud binding val in the same declaration order as the Swift row order.",
-      "Everything else kept byte-identical, including the Form title, Section headers and footer content."
+      "Adds a 'Zoom slider' toggle in the Bottom right section, bound to show.zoomSlider.",
+      "SettingsShow.zoomSlider is not yet in the listed declarations; the binding assumes it is added to SettingsShow like the other overlay flags.",
+      "Existing bindings, section order and android-specific Label/Modifier.weight(1f) usage are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49805,
-    "tokens_out": 2285,
-    "seconds": 7.1,
-    "ported_at": "2026-10-17T21:47:53+00:00"
+    "tokens_in": 50017,
+    "tokens_out": 2365,
+    "seconds": 8.2,
+    "ported_at": "2026-10-19T23:08:53+00:00"
   },
   "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift": {
     "status": "ok",
@@ -16098,23 +16097,24 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "01ab3e08f28f3dcdefb10e7080787e2283054e7191cc6741fef1cb7ccb5575f4",
-    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "sha256": "0374d9f6849eebf7a9daf742fc9693d6acf3c4536090455ebc676c837bc24c55",
+    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Only SettingsMoblinCloud changed: added the alertsWidgetId property, its encode entry and its decode line.",
-      "alertsWidgetId is an optional UUID serialized with the same decode<UUID?> pattern as wheelOfLuckWidgetId.",
-      "Everything else in the file is untouched, including the Android-specific hooks (upperCaseMicIds, Cameras.backCameraSwitchOverZoomFactors, Zip handling, Build.MODEL)."
+      "Only SettingsShow changed: a new persisted `zoomSlider` boolean was added after `zoomPresets`.",
+      "Added `zoomSlider` as a constructor parameter, as a `Published` property, and to both the encode and decode paths in JSON order matching the Swift CodingKeys.",
+      "Swift CodingKeys enum has no Kotlin counterpart because serialization uses explicit key strings; the new case is therefore only reflected in the encode/decode key names.",
+      "Everything else in the file is byte-identical to the previous port."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 115920,
-    "tokens_out": 28138,
-    "seconds": 67.3,
-    "ported_at": "2026-10-18T21:58:23+00:00"
+    "tokens_in": 116069,
+    "tokens_out": 27786,
+    "seconds": 66.6,
+    "ported_at": "2026-10-19T23:09:52+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -16319,25 +16319,25 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift": {
     "status": "ok",
-    "sha256": "129d3decbfc3fd8cec1c9a8af6c2a1463cfc5a31d859235ac64d972390f75b3c",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "356b3e4757bf69846a844b6ff4b9906180220fdeb882e2ee26e9f34e56c97ec7",
+    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt",
     "notes": [
-      "Added a new private composable MoblinCloudStatusView after RemoteControlStatusView, mirroring the Swift struct order.",
-      "Registered the new call in StatusesView between RemoteControlStatusView and DjiDevicesStatusView, reading model.database.moblinCloud.",
-      "status.moblinCloudOk and status.moblinCloudStatus are read with collectAsState() following the pattern of the other StatusTopRight fields in this file, so the composable recomposes like @ObservedObject.",
-      "The model.isShowingStatusMoblinCloud() predicate is imported from com.moblin.android.various.model like the other isShowingStatus* helpers; the SettingsMoblinCloud parameter type comes from com.moblin.android.various.settings.",
-      "No other line of the existing Kotlin file changed."
+      "Added the zoom slider checks (show.zoomSlider && hasZoom) in the vertical, horizontal and video preview branches, matching the Swift diff.",
+      "Zoom slider state is read with the already collected `hasZoom` flow and the plain `show.zoomSlider` settings property, like the existing zoomPresets checks.",
+      "Imported StreamOverlayRightZoomSliderView from com.moblin.android.view.stream.overlay.right; no other lines changed.",
+      "In the vertical branch the slider goes inside the trailing Column after the torch view; in the horizontal branch it goes after the torch view before the zoom presets.",
+      "In the video preview branch the slider is emitted before the zoom preset selector and the scene selector."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 70722,
-    "tokens_out": 9799,
-    "seconds": 25.3,
-    "ported_at": "2026-10-17T21:48:29+00:00"
+    "tokens_in": 71200,
+    "tokens_out": 9151,
+    "seconds": 23.9,
+    "ported_at": "2026-10-19T23:09:09+00:00"
   },
   "Moblin/View/Settings/Audio/AudioSettingsView.swift": {
     "status": "ok",
@@ -18468,5 +18468,30 @@
     "tokens_out": 3858,
     "seconds": 15.5,
     "ported_at": "2026-10-18T22:18:09+00:00"
+  },
+  "Moblin/View/Stream/Overlay/Right/ZoomSliderView.swift": {
+    "status": "ok",
+    "sha256": "e4ea59162e4da9ed534df54464cfeda9b485643119fce1bcebe033d5a061a133",
+    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/ZoomSliderView.kt",
+    "notes": [
+      "GeometryReader becomes BoxWithConstraints; the drag half-width is computed once in pixels so the gesture and the knob offset share a unit (the ratio passed to setZoomSpeed is unchanged).",
+      "The DragGesture(minimumDistance: 0) is detectDragGestures; the offset accumulates drag deltas and is clamped with the existing Float.clamped helper.",
+      "The knob's animated return to 0 (`withAnimation(.spring)`) runs an `animate(...)` call in a remembered scope; the job is cancelled when a new drag starts or the view leaves composition.",
+      "Modifiers are reversed: bottom padding, 1dp rounded border (overlay stroke), clip, background, fixed 250x40 frame, then the inner horizontal/vertical padding.",
+      "`.foregroundStyle(.white)` only affected the two SF Symbols, so each SystemImage gets tint = Color.White at the default 17.sp body size.",
+      "`onDisappear { model.stopZoomSpeed() }` is a DisposableEffect that also cancels the pending spring animation.",
+      "The Capsule/Circle shapes are plain Boxes with RoundedCornerShape(percent = 50) / CircleShape backgrounds and a 2dp shadow on the knob.",
+      "model.setZoomSpeed / model.stopZoomSpeed are called as Model extensions from com.moblin.android.various.model; the model defaults to LocalModel.current."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 41085,
+    "tokens_out": 11941,
+    "seconds": 46.2,
+    "ported_at": "2026-10-19T23:09:30+00:00"
   }
 }

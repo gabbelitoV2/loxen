@@ -87,6 +87,7 @@ import com.moblin.android.view.stream.overlay.right.StreamOverlayRightVideoPrevi
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightWhirlpoolView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetSelctorView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetVSelctorView
+import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomSliderView
 import kotlinx.coroutines.flow.StateFlow
 
 private val hidePlacement: StreamOverlayIconAndTextPlacement = StreamOverlayIconAndTextPlacement.Hide
@@ -908,6 +909,9 @@ private fun RightOverlayBottomVerticalView(
                 if (isTorchOn && !isFrontCameraSelected) {
                     StreamOverlayRightTorchView(model = model, database = database)
                 }
+                if (show.zoomSlider && hasZoom) {
+                    StreamOverlayRightZoomSliderView(model = model)
+                }
             }
             if (show.zoomPresets && hasZoom) {
                 StreamOverlayRightZoomPresetVSelctorView(
@@ -965,6 +969,9 @@ private fun RightOverlayBottomHorizontalView(
         if (isTorchOn && !isFrontCameraSelected) {
             StreamOverlayRightTorchView(model = model, database = database)
         }
+        if (show.zoomSlider && hasZoom) {
+            StreamOverlayRightZoomSliderView(model = model)
+        }
         if (show.zoomPresets && hasZoom) {
             StreamOverlayRightZoomPresetSelctorView(
                 model = model,
@@ -1009,6 +1016,9 @@ fun RightOverlayBottomView(
             } else if (showingBeauty) {
                 StreamOverlayRightBeautyView(model = model, beauty = database.beauty)
             } else if (showingVideoPreview) {
+                if (show.zoomSlider && hasZoom) {
+                    StreamOverlayRightZoomSliderView(model = model)
+                }
                 if (show.zoomPresets && hasZoom) {
                     StreamOverlayRightZoomPresetSelctorView(
                         model = model,

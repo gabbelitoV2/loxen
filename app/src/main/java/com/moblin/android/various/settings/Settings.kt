@@ -243,6 +243,7 @@ class SettingsShow(
     audioLevel: Boolean = true,
     zoom: Boolean = false,
     zoomPresets: Boolean = true,
+    zoomSlider: Boolean = false,
     microphone: Boolean = false,
     audioBar: Boolean = true,
     cameras: Boolean = false,
@@ -270,6 +271,7 @@ class SettingsShow(
     var audioLevel: Boolean by Published(audioLevel)
     var zoom: Boolean by Published(zoom)
     var zoomPresets: Boolean by Published(zoomPresets)
+    var zoomSlider: Boolean by Published(zoomSlider)
     var microphone: Boolean by Published(microphone)
     var audioBar: Boolean by Published(audioBar)
     var cameras: Boolean by Published(cameras)
@@ -298,6 +300,7 @@ class SettingsShow(
         encode("audioLevel", audioLevel)
         encode("zoom", zoom)
         encode("zoomPresets", zoomPresets)
+        encode("zoomSlider", zoomSlider)
         encode("microphone", microphone)
         encode("audioBar", audioBar)
         encode("cameras", cameras)
@@ -329,6 +332,7 @@ class SettingsShow(
             show.audioLevel = container.decode("audioLevel", true)
             show.zoom = container.decode("zoom", false)
             show.zoomPresets = container.decode("zoomPresets", true)
+            show.zoomSlider = container.decode("zoomSlider", false)
             show.microphone = container.decode("microphone", false)
             show.audioBar = container.decode("audioBar", true)
             show.cameras = container.decode("cameras", false)

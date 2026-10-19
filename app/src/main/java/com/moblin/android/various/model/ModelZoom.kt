@@ -2,6 +2,7 @@ package com.moblin.android.various.model
 
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
+import com.moblin.android.various.MainTimer
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import com.moblin.android.various.settings.SettingsZoomPreset
 import com.moblin.android.platform.avfoundation.AVCaptureDevice
@@ -9,6 +10,8 @@ import com.moblin.android.various.utils.hasUltraWideBackCamera
 import com.moblin.android.various.utils.hasUltraWideFrontCamera
 import java.util.Locale
 import java.util.UUID
+import kotlin.math.abs
+import kotlin.math.pow
 import kotlinx.coroutines.flow.MutableStateFlow
 
 private val noBackZoomPresetId = UUID.randomUUID()
@@ -18,6 +21,8 @@ class Zoom {
     var xPinch: Float = 1.0f
     var backX: Float = 0.5f
     var frontX: Float = 0.5f
+    var speedActive = false
+    val speedTimer = MainTimer()
     val backPresetId = MutableStateFlow(UUID.randomUUID())
     val frontPresetId = MutableStateFlow(UUID.randomUUID())
     val x = MutableStateFlow(1.0f)
@@ -89,6 +94,44 @@ fun Model.commitZoomX(amount: Float, rate: Float? = null) {
         return
     }
     setZoomX(zoom.xPinch * amount, rate)
+}
+
+fun Model.setZoomSpeed(speed: Float) {
+    if (!zoom.hasZoom.value) {
+        return
+    }
+    if (abs(speed) < 0.05f) {
+        stopCameraZoom()
+        return
+    }
+    if (!zoom.speedActive) {
+        zoom.speedActive = true
+        clearZoomPresetId()
+        zoom.speedTimer.startPeriodic(interval = 0.1) {
+            updateZoomXFromCamera()
+        }
+    }
+    val x = if (speed > 0) cameraZoomXMaximum else cameraZoomXMinimum
+    setCameraZoomX(x, 0.05f + 3 * abs(speed).pow(2))
+}
+
+fun Model.stopZoomSpeed() {
+    if (!zoom.speedActive) {
+        return
+    }
+    zoom.speedActive = false
+    zoom.speedTimer.stop()
+    val x = stopCameraZoom()
+    if (x != null) {
+        setZoomXWhenInRange(x)
+    }
+}
+
+private fun Model.updateZoomXFromCamera() {
+    val device = cameraDevice as? AVCaptureDevice
+    if (device != null) {
+        zoom.x.value = device.videoZoomFactor * cameraZoomLevelToXScale
+    }
 }
 
 private fun Model.clearZoomPresetId() {

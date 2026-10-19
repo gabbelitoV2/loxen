@@ -37,6 +37,7 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
     val catPrinter = binding({ show.catPrinter }, { show.catPrinter = it })
     val workoutDevice = binding({ show.workoutDevice }, { show.workoutDevice = it })
     val zoomPresets = binding({ show.zoomPresets }, { show.zoomPresets = it })
+    val zoomSlider = binding({ show.zoomSlider }, { show.zoomSlider = it })
 
     Form(title = "Local overlays") {
         Section(header = "Top left") {
@@ -222,6 +223,13 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
                 Label(
                     "Zoom presets",
                     systemImage = "magnifyingglass",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = zoomSlider.value, onChange = { zoomSlider.value = it }) {
+                Label(
+                    "Zoom slider",
+                    systemImage = "plus.magnifyingglass",
                     modifier = Modifier.weight(1f),
                 )
             }
