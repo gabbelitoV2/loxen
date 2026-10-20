@@ -296,9 +296,15 @@ private suspend fun Model.findSong(title: String): Any? =
     Unit
 private suspend fun Model.playAction() {
     Unit
+    waitForPlaybackStatus(playing = true)
 }
 
-private fun Model.pauseAction() {
+private suspend fun Model.pauseAction() {
+    Unit
+    waitForPlaybackStatus(playing = false)
+}
+
+private suspend fun Model.waitForPlaybackStatus(playing: Boolean) {
     Unit
 }
 
@@ -320,6 +326,7 @@ private suspend fun Model.removeAction(entryId: String) {
 
 private suspend fun Model.selectAction(entryId: String) {
     Unit
+    waitForPlaybackStatus(playing = true)
 }
 
 private fun Model.statusAction(onCompleted: (MusicStatus) -> Unit) {

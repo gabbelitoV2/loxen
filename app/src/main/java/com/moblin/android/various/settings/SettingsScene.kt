@@ -2596,10 +2596,14 @@ class SettingsWidgetSlideshow(
 class SettingsWidgetWheelOfLuckOption(
     var id: UUID = UUID.randomUUID(),
     text: String = "",
-    weight: Int = 1
+    weight: Int = 1,
+    function: SettingsControllerFunction = SettingsControllerFunction.UNUSED,
+    functionData: SettingsControllerFunctionData = SettingsControllerFunctionData()
 ) {
     var text: String by Published(text)
     var weight: Int by Published(weight)
+    var function: SettingsControllerFunction by Published(function)
+    var functionData: SettingsControllerFunctionData by Published(functionData)
 
     override fun equals(other: Any?): Boolean =
         other is SettingsWidgetWheelOfLuckOption && id == other.id
@@ -2610,6 +2614,13 @@ class SettingsWidgetWheelOfLuckOption(
         encode("id", id)
         encode("text", text)
         encode("weight", weight)
+        encode("function", function)
+        encode("sceneId", functionData.sceneId)
+        encode("widgetId", functionData.widgetId)
+        encode("gimbalPresetId", functionData.gimbalPresetId)
+        encode("gimbalMotion", functionData.gimbalMotion)
+        encode("macroId", functionData.macroId)
+        encode("streamDeckLayoutId", functionData.streamDeckLayoutId)
     }
 
     companion object {
@@ -2618,6 +2629,15 @@ class SettingsWidgetWheelOfLuckOption(
             option.id = container.decode("id", UUID.randomUUID())
             option.text = container.decode("text", "")
             option.weight = container.decode("weight", 1)
+            option.function = container.decode("function", SettingsControllerFunction.UNUSED)
+            option.functionData = option.functionData.copy(
+                sceneId = container.decode<UUID?>("sceneId", null),
+                widgetId = container.decode<UUID?>("widgetId", null),
+                gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null),
+                gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("macroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null),
+            )
             return option
         }
     }

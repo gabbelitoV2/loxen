@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-19T23:08:35+00:00",
+  "generated": "2026-10-20T22:44:21+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -8977,8 +8977,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMusic.swift",
-      "lines": 527,
-      "sha256": "0867ff1e0c323a466e8d31495122aecdb1ffbe61a656f0c60da5f72f8292acf6",
+      "lines": 537,
+      "sha256": "224bae816700aad25e1ce8e9201c5c812f9ea5812d960ea65db6bada60652597",
       "imports": [
         "Combine",
         "DequeModule",
@@ -17869,8 +17869,8 @@
     },
     {
       "path": "Moblin/VideoEffects/WheelOfLuckEffect.swift",
-      "lines": 324,
-      "sha256": "41dcad8e991aae8f586cd6bdba2f61fa89f10cbc4455fe2fce189652d6c3c774",
+      "lines": 330,
+      "sha256": "bdad14b9fba6475206a42d7ef9ff158e89d5a5e0ae84f872ebc6aac8d80cdad1",
       "imports": [
         "Charts",
         "CoreImage",
@@ -19084,47 +19084,6 @@
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift"
-      ],
-      "wave": 29
-    },
-    {
-      "path": "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift",
-      "lines": 215,
-      "sha256": "6af4ea7528eb5c318828aa88ea492f4a7f114e22a30320b9aed5801cf9f220fd",
-      "imports": [
-        "SwiftUI"
-      ],
-      "tier": "ui",
-      "declared_types": [
-        "WheelOfLuckWidgetView",
-        "OptionView",
-        "ResultView",
-        "WidgetWheelOfLuckQuickButtonControlsView",
-        "WheelOfLuckWidgetOptionsView",
-        "WidgetWheelOfLuckSettingsView"
-      ],
-      "private_types": [
-        "WheelOfLuckWidgetView",
-        "OptionView",
-        "ResultView"
-      ],
-      "declared_functions": [],
-      "declared_globals": [
-        "wheelOfLuckOptionWeights"
-      ],
-      "kotlin_package": "com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wheelofluck/WidgetWheelOfLuckSettingsView.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
-        "Moblin/Various/Model/Model.swift",
-        "Moblin/Various/Settings/SettingsScene.swift",
-        "Moblin/Various/Utils/UiUtils.swift",
-        "Moblin/VideoEffects/WheelOfLuckEffect.swift",
-        "Moblin/View/Utils/CreateButtonView.swift",
-        "Moblin/View/Utils/DraggableItemPrefixView.swift",
-        "Moblin/View/Utils/MultiLineTextFieldView.swift",
-        "Moblin/View/Utils/TextEditNavigationView.swift"
       ],
       "wave": 29
     },
@@ -20934,8 +20893,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
-      "lines": 312,
-      "sha256": "8dcee2214f07d45e6bf7ce61f4bea3d104976e757e7a31bab3ee729dc9cd7f30",
+      "lines": 307,
+      "sha256": "038e462f8db12ce2eda6786dc57cceb814f68af3e3b8452b2a5dabfb45f05cd0",
       "imports": [
         "Foundation"
       ],
@@ -21003,8 +20962,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
-      "lines": 1764,
-      "sha256": "5af86c8bbd69b83e17b374303ca76b03b3a97a7fe3636e5a3c2526d6ea6b0a9c",
+      "lines": 1778,
+      "sha256": "b48d30fba7d8c80759454dcc76243e9364d2a733e9bcec555633ba584c3e2c2d",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21081,8 +21040,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsScene.swift",
-      "lines": 4280,
-      "sha256": "06ae570f9fa9e077fb9730e73dd14a9a108d5be910df83375df20fde4e2d3d2b",
+      "lines": 4303,
+      "sha256": "eab153a968effd70a51b4397086355c01147cfac985674ea7f489c44160fe4c6",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -21202,6 +21161,7 @@
         "Moblin/Various/Model/ModelScene.swift",
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
+        "Moblin/Various/Settings/SettingsGameController.swift",
         "Moblin/Various/Utils/CameraUtils.swift",
         "Moblin/Various/Utils/Utils.swift",
         "Moblin/VideoEffects/AnamorphicLensEffect.swift",
@@ -22838,6 +22798,49 @@
       "wave": 43
     },
     {
+      "path": "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift",
+      "lines": 234,
+      "sha256": "3f93637eab9d7d37618200134eef9fc5c2b184cf4c32c5d475a7aef593beadb0",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "WheelOfLuckWidgetView",
+        "OptionView",
+        "ResultView",
+        "WidgetWheelOfLuckQuickButtonControlsView",
+        "WheelOfLuckWidgetOptionsView",
+        "WidgetWheelOfLuckSettingsView"
+      ],
+      "private_types": [
+        "WheelOfLuckWidgetView",
+        "OptionView",
+        "ResultView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [
+        "wheelOfLuckOptionWeights"
+      ],
+      "kotlin_package": "com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wheelofluck/WidgetWheelOfLuckSettingsView.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/SettingsGameController.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Utils/UiUtils.swift",
+        "Moblin/VideoEffects/WheelOfLuckEffect.swift",
+        "Moblin/View/Settings/GameControllers/GameControllersControllerButtonSettingsView.swift",
+        "Moblin/View/Utils/CreateButtonView.swift",
+        "Moblin/View/Utils/DraggableItemPrefixView.swift",
+        "Moblin/View/Utils/MultiLineTextFieldView.swift",
+        "Moblin/View/Utils/TextEditNavigationView.swift"
+      ],
+      "wave": 43
+    },
+    {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardBingoCardSettingsView.swift",
       "lines": 27,
       "sha256": "3d7b5eb536c7cc60ffa676913e424babc7919844b58ce37af85f030aee15c62d",
@@ -23056,33 +23059,6 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift",
         "Moblin/View/Utils/InlinePickerView.swift"
-      ],
-      "wave": 43
-    },
-    {
-      "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift",
-      "lines": 28,
-      "sha256": "653805343557aef528fa1ad8f8e71b315c46c2690d40d930e12e8dd4a0d84e28",
-      "imports": [
-        "SwiftUI"
-      ],
-      "tier": "ui",
-      "declared_types": [
-        "WidgetWizardWheelOfLuckSettingsView"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.view.settings.scenes.widgets.widget.wizard",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardWheelOfLuckSettingsView.kt",
-      "deps": [
-        "Moblin/Various/Model/Model.swift",
-        "Moblin/Various/Model/ModelScene.swift",
-        "Moblin/Various/Settings/Settings.swift",
-        "Moblin/Various/Settings/SettingsScene.swift",
-        "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift",
-        "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
-        "Moblin/View/Utils/CloseToolbarView.swift"
       ],
       "wave": 43
     },
@@ -23653,6 +23629,33 @@
         "Moblin/View/Utils/InlinePickerView.swift",
         "Moblin/View/Utils/NameEditView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
+      ],
+      "wave": 46
+    },
+    {
+      "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift",
+      "lines": 28,
+      "sha256": "653805343557aef528fa1ad8f8e71b315c46c2690d40d930e12e8dd4a0d84e28",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "WidgetWizardWheelOfLuckSettingsView"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings.scenes.widgets.widget.wizard",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardWheelOfLuckSettingsView.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelScene.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
+        "Moblin/View/Utils/CloseToolbarView.swift"
       ],
       "wave": 46
     },

@@ -2385,20 +2385,17 @@
   },
   "Moblin/Various/Model/ModelMusic.swift": {
     "status": "ok",
-    "sha256": "0867ff1e0c323a466e8d31495122aecdb1ffbe61a656f0c60da5f72f8292acf6",
-    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
+    "sha256": "224bae816700aad25e1ce8e9201c5c812f9ea5812d960ea65db6bada60652597",
+    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMusic.kt",
     "notes": [
-      "MusicKit has no Android counterpart, so the queue/player bodies stay as the stubs the previous translation used; only the declaration changes from the diff were applied.",
-      "StoredMusicEntry, MusicPlaylistSong and MusicStatusSong gained a `duration: Int?` field at the same position as in Swift.",
-      "makeSong, storeMusicQueue and statusAction are stubs, so the new duration plumbing inside them has no Kotlin code to add.",
-      "New top-level `musicDuration(song)` mirrors the Swift helper and is declared between makeSong and musicSong.",
-      "`makeMusicAddedMessage` is real logic and was added after `Model.addMusic` as a `Model` extension.",
-      "`waitForMusicQueueResolved` was renamed to `workaroundAppleMusicTransientQueueEntriesBug` in place.",
-      "`Model.removeAction` is now a suspend function, matching `await removeAction(entryId:)` in tryRunNextAction.",
-      "Only the changed declarations were touched; every other line is byte-identical to the previous Kotlin file."
+      "pauseAction is now a suspend function; the call site in tryRunNextAction stays unchanged because it already runs inside a coroutine.",
+      "playAction, pauseAction and selectAction each gained a waitForPlaybackStatus call after the playback change, mirroring the Swift waits.",
+      "New private suspend waitForPlaybackStatus(playing) extension added between pauseAction and nextAction, keeping the Swift declaration order.",
+      "The file's MusicKit bodies remain hand-written stubs (Unit), so the added waits are placed after the existing stub statement.",
+      "MusicKit itself has no Android counterpart, so the player object and all real playback logic stay stubbed as before."
     ],
     "unsupported": [],
     "apple_only": [
@@ -2409,10 +2406,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51866,
-    "tokens_out": 4287,
-    "seconds": 18.6,
-    "ported_at": "2026-10-15T22:43:01+00:00"
+    "tokens_in": 51198,
+    "tokens_out": 3361,
+    "seconds": 12.7,
+    "ported_at": "2026-10-20T22:44:40+00:00"
   },
   "Moblin/View/ControlBar/ControlBarUtils.swift": {
     "status": "ok",
@@ -14251,23 +14248,24 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift": {
     "status": "ok",
-    "sha256": "6af4ea7528eb5c318828aa88ea492f4a7f114e22a30320b9aed5801cf9f220fd",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "3f93637eab9d7d37618200134eef9fc5c2b184cf4c32c5d475a7aef593beadb0",
+    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wheelofluck/WidgetWheelOfLuckSettingsView.kt",
     "notes": [
-      "Added a new Section with the \"Only show when spinning\" Toggle between the Advanced section and the live effect preview, matching the Swift insertion point.",
-      "The Toggle uses the isOn + onChange overload so updateEffect() runs right after onlyShowWhenSpinning is assigned, like .onChange(of:).",
-      "The rest of the file is unchanged, including the hand-written SymbolButton helper and the LocalModel/LocalOnNavigate defaults."
+      "OptionView gains a private functions() helper that filters SettingsControllerFunction.entries, excluding the zoom and gimbal functions as the Swift does.",
+      "The text and weight rows are now wrapped in a Section, and a new Section with the Action header/footer adds ControllerButtonView bound to the option's function and functionData.",
+      "ControllerButtonView in Kotlin takes plain function/functionData values plus onFunctionChange/onFunctionDataChange callbacks instead of Swift bindings.",
+      "Everything else in the file, including the hand-written SymbolButton and the Android-specific option/results handling, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54075,
-    "tokens_out": 3106,
-    "seconds": 9.5,
-    "ported_at": "2026-10-17T21:47:55+00:00"
+    "tokens_in": 56356,
+    "tokens_out": 4535,
+    "seconds": 14.9,
+    "ported_at": "2026-10-20T22:44:42+00:00"
   },
   "Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerSettingsView.swift": {
     "status": "ok",
@@ -16274,24 +16272,25 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "06ae570f9fa9e077fb9730e73dd14a9a108d5be910df83375df20fde4e2d3d2b",
-    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "sha256": "eab153a968effd70a51b4397086355c01147cfac985674ea7f489c44160fe4c6",
+    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "Added SettingsWidgetAlertsMoblinCloud class translating Swift's Codable + clone/disableAll, following the existing JsonObjectSerializer pattern of the sibling alert classes.",
-      "SettingsWidgetAlerts gains the moblinCloud property together with its encode/decode/clone/disableAll entries at the same positions as the Swift CodingKeys order.",
-      "Swift's tips is a plain stored property holding a class, so it stays a plain var (no Published delegate), matching the kick/twitch siblings.",
-      "Wire format keeps the 'moblinCloud' JSON key byte-identical to iOS."
+      "Only SettingsWidgetWheelOfLuckOption changed: added published function/functionData plus their coding keys, encode and decode entries.",
+      "Swift's CodingKeys sceneId/widgetId/gimbalPresetId/gimbalMotion/macroId/streamDeckLayoutId are encoded as flat keys taken from functionData, exactly as on iOS.",
+      "functionData is a settings struct (data class with val fields), so decode builds one copy with all six decoded values instead of mutating it field by field.",
+      "SettingsControllerFunction.UNUSED and SettingsGimbalMotion.KAPOW are the Kotlin counterparts of .unused and .kapow.",
+      "Everything else in the file is unchanged and byte-identical, including the hand-written Android decoding helpers and platform calls."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 141499,
-    "tokens_out": 44807,
-    "seconds": 105.9,
-    "ported_at": "2026-10-18T21:59:03+00:00"
+    "tokens_in": 141803,
+    "tokens_out": 47324,
+    "seconds": 116.6,
+    "ported_at": "2026-10-20T22:46:26+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",
@@ -18426,25 +18425,26 @@
   },
   "Moblin/Various/Model/ModelMoblinCloud.swift": {
     "status": "ok",
-    "sha256": "8dcee2214f07d45e6bf7ce61f4bea3d104976e757e7a31bab3ee729dc9cd7f30",
-    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "sha256": "038e462f8db12ce2eda6786dc57cceb814f68af3e3b8452b2a5dabfb45f05cd0",
+    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
     "notes": [
-      "Added the new Model extension moblinCloudPlayTipAlert right after moblinCloudSendWheelOfLuck, matching the Swift declaration order.",
-      "Reference identity check `enabledAlertsEffects.contains(where: { $0 === effect })` becomes `enabledAlertsEffects.any { it === effect }` since AlertsEffect is a Kotlin class.",
-      "The Swift guard chain is written as early returns for the optional widget id, the optional effect, and the not-enabled check.",
-      "The tip alert is posted as AlertsEffectAlert.MoblinCloudTip with the same Swift argument labels.",
-      "Everything else in the file is unchanged from the previous translation."
+      "The Swift diff only unifies remoteControlStreamerMusic into a single guard-then-forward body; the existing Kotlin override already had that exact shape, so no Kotlin lines change.",
+      "remoteControlStreamerMusic still reports failure with TODO(\"RemoteControlResult.error\") because the Kotlin RemoteControlResult enum entries are not part of this file's declared dependencies; kept byte-identical as a pre-existing Android deviation.",
+      "makeMoblinCloudUrl keeps the hand-written URI/percent-encoding build with CharacterSet.urlPathAllowed.",
+      "All com.moblin.android.platform and local imports are untouched."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "RemoteControlResult.error (still TODO(\"RemoteControlResult.error\") in remoteControlStreamerMusic)"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53095,
-    "tokens_out": 4656,
-    "seconds": 15.6,
-    "ported_at": "2026-10-18T21:57:27+00:00"
+    "tokens_in": 53219,
+    "tokens_out": 3676,
+    "seconds": 10.8,
+    "ported_at": "2026-10-20T22:44:39+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift": {
     "status": "ok",

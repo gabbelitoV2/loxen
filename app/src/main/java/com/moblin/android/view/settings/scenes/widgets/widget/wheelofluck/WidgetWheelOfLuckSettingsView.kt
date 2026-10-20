@@ -44,11 +44,13 @@ import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.getWheelOfLuckEffect
 import com.moblin.android.various.model.updateWheelOfLuckEffect
+import com.moblin.android.various.settings.SettingsControllerFunction
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuck
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuckOption
 import com.moblin.android.videoeffects.WheelOfLuckEffect
 import com.moblin.android.videoeffects.WheelOfLuckSpinResult
+import com.moblin.android.view.settings.gamecontrollers.ControllerButtonView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
@@ -129,28 +131,56 @@ private fun OptionView(
         return 100 * options.weight / wheelOfLuck.totalWeight
     }
 
+    fun functions(): List<SettingsControllerFunction> {
+        val excluded = listOf(
+            SettingsControllerFunction.ZOOM_IN,
+            SettingsControllerFunction.ZOOM_OUT,
+            SettingsControllerFunction.GIMBAL_UP,
+            SettingsControllerFunction.GIMBAL_DOWN,
+            SettingsControllerFunction.GIMBAL_LEFT,
+            SettingsControllerFunction.GIMBAL_RIGHT,
+            SettingsControllerFunction.GIMBAL_PRESET,
+        )
+        return SettingsControllerFunction.entries.filter { it !in excluded }
+    }
+
     NavigationLink(
         destination = {
             Form(title = "Option") {
-                TextEditNavigationView(
-                    title = localized("Text"),
-                    value = options.text,
-                    onSubmit = {
-                        options.text = it
-                        updateEffect()
-                    },
-                )
-                Picker(
-                    title = "Weight",
-                    selection = options.weight,
-                    options = wheelOfLuckOptionWeights,
-                    text = { it.toString() },
-                    onChange = { weight ->
-                        options.weight = weight
-                        wheelOfLuck.updateTotalWeight()
-                        updateEffect()
-                    },
-                )
+                Section {
+                    TextEditNavigationView(
+                        title = localized("Text"),
+                        value = options.text,
+                        onSubmit = {
+                            options.text = it
+                            updateEffect()
+                        },
+                    )
+                    Picker(
+                        title = "Weight",
+                        selection = options.weight,
+                        options = wheelOfLuckOptionWeights,
+                        text = { it.toString() },
+                        onChange = { weight ->
+                            options.weight = weight
+                            wheelOfLuck.updateTotalWeight()
+                            updateEffect()
+                        },
+                    )
+                }
+                Section(
+                    header = "Action",
+                    footer = "Executed when the wheel stops on this option.",
+                ) {
+                    ControllerButtonView(
+                        model = model,
+                        functions = functions(),
+                        function = options.function,
+                        onFunctionChange = { options.function = it },
+                        functionData = options.functionData,
+                        onFunctionDataChange = { options.functionData = it },
+                    )
+                }
             }
         },
     ) {
