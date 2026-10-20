@@ -532,9 +532,9 @@ class RootCodableSuite {
     @Test
     fun show() {
         val keys = listOf(
-            "chat", "viewers", "uptime", "stream", "speed", "audioLevel", "zoom", "zoomPresets", "microphone",
+            "chat", "viewers", "uptime", "stream", "speed", "audioLevel", "zoom", "zoomPresets", "zoomSlider", "microphone",
             "audioBar", "cameras", "obsStatus", "rtmpSpeed", "gameController", "location", "remoteControl",
-            "browserWidgets", "bonding", "events", "djiDevices", "bondingRtts", "moblink", "catPrinter",
+            "moblinCloud", "browserWidgets", "bonding", "events", "djiDevices", "bondingRtts", "moblink", "catPrinter",
             "heartRateDevice", "cpu",
         )
         assertDefaults(SettingsShow.serializer(), SettingsShow(), keys)

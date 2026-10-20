@@ -25,7 +25,7 @@ private val swiftTopLevelKeys = listOf(
     "streams", "scenes", "widgets", "show", "zoom", "tapToFocus", "bitratePresets", "iconImage",
     "videoStabilizationMode", "chat", "mic", "mics", "debug", "quickButtons", "globalButtons", "rtmpServer",
     "networkInterfaceNames", "lowBitrateWarning", "vibrate", "gameControllers", "remoteControl",
-    "startStopRecordingConfirmations", "color", "mirrorFrontCameraOnStream", "streamButtonColor", "location",
+    "moblinCloud", "startStopRecordingConfirmations", "color", "mirrorFrontCameraOnStream", "streamButtonColor", "location",
     "watch", "audio", "macros", "webBrowser", "deepLinkCreator", "srtlaServer", "mediaPlayers", "showAllSettings",
     "portrait", "djiDevices", "alertsMediaGallery", "catPrinters", "verboseStatuses", "scoreboardPlayers",
     "keyboard", "tesla", "srtlaRelay", "pixellateStrength", "moblink", "sceneSwitchTransition",

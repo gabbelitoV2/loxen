@@ -239,9 +239,9 @@ class SwiftUIWidgetRenderSuite {
             PollView(state = state)
         }
         val options = listOf(
-            WheelOfLuckEffectOption(id = 0, weight = 1, text = "One", textAngle = 45.0 - 90),
-            WheelOfLuckEffectOption(id = 1, weight = 2, text = "Two is longer", textAngle = 90.0 + 90 - 90),
-            WheelOfLuckEffectOption(id = 2, weight = 1, text = "Three", textAngle = 315.0 - 90),
+            WheelOfLuckEffectOption(id = 0, optionId = java.util.UUID.randomUUID(), weight = 1, text = "One", textAngle = 45.0 - 90),
+            WheelOfLuckEffectOption(id = 1, optionId = java.util.UUID.randomUUID(), weight = 2, text = "Two is longer", textAngle = 90.0 + 90 - 90),
+            WheelOfLuckEffectOption(id = 2, optionId = java.util.UUID.randomUUID(), weight = 1, text = "Three", textAngle = 315.0 - 90),
         )
         val wheel = render("wheel") {
             WheelView(size = 400.0, options = options)

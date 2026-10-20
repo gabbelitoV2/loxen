@@ -53,6 +53,7 @@ private val optionColors: List<Color> = listOf(
 
 data class WheelOfLuckEffectOption(
     val id: Int,
+    val optionId: UUID,
     val weight: Int,
     val text: String,
     val textAngle: Double,
@@ -61,6 +62,7 @@ data class WheelOfLuckEffectOption(
 data class WheelOfLuckSpinResult(
     val id: UUID = UUID.randomUUID(),
     val date: Instant = Instant.now(),
+    val optionId: UUID?,
     val text: String,
     val name: String,
     val message: String,
@@ -161,6 +163,7 @@ class WheelOfLuckEffect(
             options.add(
                 WheelOfLuckEffectOption(
                     id = index,
+                    optionId = inputOption.id,
                     weight = inputOption.weight,
                     text = inputOption.text,
                     textAngle = textAngle,
@@ -318,15 +321,20 @@ class WheelOfLuckEffect(
             arrowAngle += 360
         }
         var endAngle = 0.0
-        var text = options.lastOrNull()?.text ?: ""
+        var resultOption = options.lastOrNull()
         for (option in options) {
             endAngle += 360 * option.weight.toDouble() / totalWeight
             if (arrowAngle < endAngle) {
-                text = option.text
+                resultOption = option
                 break
             }
         }
-        val result = WheelOfLuckSpinResult(text = text, name = spin.name, message = spin.message)
+        val result = WheelOfLuckSpinResult(
+            optionId = resultOption?.optionId,
+            text = resultOption?.text ?: "",
+            name = spin.name,
+            message = spin.message,
+        )
         CoroutineScope(Dispatchers.Main).launch {
             this@WheelOfLuckEffect.onResult(result)
         }

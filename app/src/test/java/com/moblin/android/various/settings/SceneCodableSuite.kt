@@ -129,7 +129,7 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
     "SettingsWidgetAlertsSpeechToText" to listOf("strings"),
     "SettingsTtsMonster" to listOf("apiToken"),
     "SettingsWidgetAlerts" to listOf(
-        "twitch", "kick", "chatBot", "speechToText", "needsSubtitles", "ai", "aiEnabled", "ttsMonster",
+        "twitch", "kick", "moblinCloud", "chatBot", "speechToText", "needsSubtitles", "ai", "aiEnabled", "ttsMonster",
     ),
     "SettingsSensitivity" to listOf("mouth", "eyes"),
     "SettingsWidgetVTuber" to listOf(
@@ -152,8 +152,11 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
     ),
     "SettingsWidgetSlideshowSlide" to listOf("id", "widgetId", "time"),
     "SettingsWidgetSlideshow" to listOf("id", "slides"),
-    "SettingsWidgetWheelOfLuckOption" to listOf("id", "text", "weight"),
-    "SettingsWidgetWheelOfLuck" to listOf("advanced", "options"),
+    "SettingsWidgetWheelOfLuckOption" to listOf(
+        "id", "text", "weight", "function", "sceneId", "widgetId", "gimbalPresetId", "gimbalMotion", "macroId",
+        "streamDeckLayoutId",
+    ),
+    "SettingsWidgetWheelOfLuck" to listOf("advanced", "onlyShowWhenSpinning", "options"),
     "SettingsBingoCardSquare" to listOf("id", "text", "checked"),
     "SettingsWidgetBingoCard" to listOf("backgroundColor", "foregroundColor", "squares"),
     "SettingsWidgetPomodoroTimer" to listOf(

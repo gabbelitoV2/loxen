@@ -1004,7 +1004,7 @@ class StreamCodableSuite {
             SettingsChatBotPermissions.serializer(),
             SettingsChatBotPermissions(),
             "tts fix map alert fax snapshot filter zoom tesla audio reaction scene stream widget location ai " +
-                "twitch gimbal macro send music torch",
+                "twitch gimbal macro send music torch vibrate",
         )
         assertKeys(SettingsChatBotAlias.serializer(), SettingsChatBotAlias(), "alias replacement")
         assertKeys(
@@ -1039,7 +1039,7 @@ class StreamCodableSuite {
             textToSpeechDefaultLanguage textToSpeechDetectLanguagePerMessage textToSpeechSayUsername textToSpeechSayEmotes textToSpeechRate
             textToSpeechSayVolume textToSpeechLanguageVoices textToSpeechSubscribersOnly textToSpeechFilter
             textToSpeechFilterMentions textToSpeechBluetoothSpeakerOnly ttsMonster mirrored botEnabled
-            botCommandPermissions botSendLowBatteryWarning botCommandAi badges showFirstTimeChatterMessage
+            botCommandPermissions botSendLowBatteryWarning botCommandAi botCommandSnapshot badges showFirstTimeChatterMessage
             showNewFollowerMessage bottomPoints newMessagesAtTop textToSpeechPauseBetweenMessages showDeletedMessages
             aliases customCommands predefinedMessages predefinedMessagesFilter nicknames displayStyle background
             sharedChatIcons bigGifScale compactEvents
@@ -1463,7 +1463,7 @@ class StreamCodableSuite {
     fun swiftEncodedChatRoundTripsUnchanged() {
         val commandNames = listOf(
             "tts", "fix", "map", "alert", "fax", "snapshot", "filter", "zoom", "tesla", "audio", "reaction",
-            "scene", "stream", "widget", "location", "ai", "twitch", "gimbal", "macro", "send", "music", "torch",
+            "scene", "stream", "widget", "location", "ai", "twitch", "gimbal", "macro", "send", "music", "torch", "vibrate",
         )
         val permissions = commandNames.mapIndexed { index, name ->
             "\"$name\":{\"moderatorsEnabled\":${index % 2 == 0},\"subscribersEnabled\":${index % 2 == 1}," +
@@ -1531,6 +1531,7 @@ class StreamCodableSuite {
               "botCommandPermissions": $permissions,
               "botSendLowBatteryWarning": true,
               "botCommandAi": {"baseUrl": "https:\/\/ai", "apiKey": "k", "model": "m", "role": "Be nice"},
+              "botCommandSnapshot": {"source": "This device", "webRemoteControlUrl": "", "webRemoteControlMode": "fallbackWhenNotLive"},
               "badges": false,
               "showFirstTimeChatterMessage": false,
               "showNewFollowerMessage": false,

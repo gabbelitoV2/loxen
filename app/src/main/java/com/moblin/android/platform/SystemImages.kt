@@ -352,6 +352,7 @@ private val symbols: Map<String, ImageVector> = controllerSymbols + mapOf(
     "info.circle.fill" to Icons.Filled.Info,
     "square" to Icons.Filled.CropSquare,
     "music.note" to Icons.Filled.MusicNote,
+    "music.quarternote.3" to Icons.Filled.MusicNote,
     "pip" to Icons.Filled.PictureInPicture,
     "pip.enter" to Icons.Filled.PictureInPicture,
     "applewatch" to Icons.Filled.Watch,

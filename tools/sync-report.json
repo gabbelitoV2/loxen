@@ -3,26 +3,7 @@
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [
-    {
-      "swift": "Moblin/Various/Model/ModelScene.swift",
-      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
-      "reason": "compile",
-      "ported_from": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
-      "errors": [
-        "1155: Unresolved reference 'optionId'."
-      ],
-      "hooks": []
-    },
-    {
-      "swift": "Moblin/VideoEffects/WheelOfLuckEffect.swift",
-      "kotlin": "app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt",
-      "reason": "dependency",
-      "ported_from": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
-      "errors": [],
-      "hooks": []
-    }
-  ],
+  "held_back": [],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

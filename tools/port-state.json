@@ -13266,26 +13266,24 @@
   },
   "Moblin/VideoEffects/WheelOfLuckEffect.swift": {
     "status": "ok",
-    "sha256": "41dcad8e991aae8f586cd6bdba2f61fa89f10cbc4455fe2fce189652d6c3c774",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "bdad14b9fba6475206a42d7ef9ff158e89d5a5e0ae84f872ebc6aac8d80cdad1",
+    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt",
     "notes": [
-      "Added the showBeforeSpin constant and onlyShowWhenSpinning flag, mirrored into the effect on the pipeline queue like sceneWidget.",
-      "setSettings now reads settings.onlyShowWhenSpinning before rendering, matching the Swift change.",
-      "New isEnabled() override hides the effect until a spin is pending or running, as in Swift.",
-      "updateAngle now only integrates while elapsedSinceStart > 0 and clamps the previous timestamp to the start timestamp so the pre-spin delay contributes no rotation.",
-      "New spins set startPresentationTimeStamp to the current timestamp plus showBeforeSpin when the wheel is hidden between spins.",
-      "onlyShowWhenSpinning is written and read on processorPipelineQueue only, so no extra synchronization is needed."
+      "WheelOfLuckEffectOption gains an optionId UUID placed after id, matching the Swift memberwise order.",
+      "WheelOfLuckSpinResult gains a nullable optionId after date; it is passed by name at the single construction site in reportResult.",
+      "reportResult now tracks the whole WheelOfLuckEffectOption (resultOption) instead of just its text, so the winning option's id can be reported.",
+      "Everything else (rendering, spin timing, Core Image and MetalPetal paths) is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 64394,
-    "tokens_out": 4451,
-    "seconds": 13.1,
-    "ported_at": "2026-10-17T21:47:57+00:00"
+    "tokens_in": 64415,
+    "tokens_out": 4607,
+    "seconds": 13.4,
+    "ported_at": "2026-10-20T22:56:57+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift": {
     "status": "ok",
@@ -15987,24 +15985,24 @@
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
-    "sha256": "5af86c8bbd69b83e17b374303ca76b03b3a97a7fe3636e5a3c2526d6ea6b0a9c",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "b48d30fba7d8c80759454dcc76243e9364d2a733e9bcec555633ba584c3e2c2d",
+    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
     "notes": [
-      "Only the wheel-of-luck notification call changed: isRemoteControlWheelOfLuckWidget/remoteControlStreamerSendWheelOfLuck became isMoblinCloudWheelOfLuckWidget/moblinCloudSendWheelOfLuck, matching the Moblin Cloud relay replacing remote control streamer.",
-      "The new callees live on Model in other files (Moblin Cloud), so no import changes were needed here.",
-      "Everything else in the file, including the Android hand-written Canvas/Size helpers, camera preview widget construction and ContinuousClock usage, is byte-identical to the previous translation.",
-      "Model extension functions keep the Swift names and order; the boolean inout needsSpeechToText stays a BooleanArray(1) carrier."
+      "Added Model.executeWheelOfLuckOptionFunction mirroring the new private Swift helper, placed between getWheelOfLuckEffect and updateWheelOfLuckEffect.",
+      "The wheel-of-luck spin callback now also forwards the result's optionId to executeWheelOfLuckOptionFunction after appending the result, as in the new Swift closure.",
+      "Swift's [weak self, weak widget] capture list has no Kotlin equivalent; the closure keeps referencing widget and calls the Model extension directly.",
+      "optionId is nullable in the signature to match the Swift UUID? parameter, and the option lookup uses firstOrNull with an early return on null."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 98329,
-    "tokens_out": 17770,
-    "seconds": 43.7,
-    "ported_at": "2026-10-17T21:48:42+00:00"
+    "tokens_in": 98669,
+    "tokens_out": 18435,
+    "seconds": 45.0,
+    "ported_at": "2026-10-20T22:54:42+00:00"
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",

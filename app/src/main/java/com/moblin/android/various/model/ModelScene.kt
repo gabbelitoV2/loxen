@@ -181,6 +181,16 @@ fun Model.getWheelOfLuckEffect(id: UUID): WheelOfLuckEffect? {
     return wheelOfLuckEffects[id]
 }
 
+private fun Model.executeWheelOfLuckOptionFunction(widget: SettingsWidget, optionId: UUID?) {
+    val option = widget.wheelOfLuck.options.firstOrNull { it.id == optionId } ?: return
+    handleControllerFunction(
+        buttonId = "wol:${option.id}",
+        function = option.function,
+        functionData = option.functionData,
+        pressed = false
+    )
+}
+
 fun Model.updateWheelOfLuckEffect(widget: SettingsWidget) {
     getWheelOfLuckEffect(id = widget.id)?.setSettings(settings = widget.wheelOfLuck)
     if (isMoblinCloudWheelOfLuckWidget(widget = widget)) {
@@ -1142,6 +1152,7 @@ private fun Model.resetWheelOfLuckEffects(widgets: List<SettingsWidget>) {
             canvasSize = canvasSize(media.getCanvasSize())
         ) { result ->
             widget.wheelOfLuck.appendResult(result = result)
+            executeWheelOfLuckOptionFunction(widget = widget, optionId = result.optionId)
         }
     }
 }

@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-10-20T22:49:36+00:00
+Generated 2026-10-20T23:14:29+00:00
 
 ## Summary
 
@@ -9,7 +9,7 @@ Generated 2026-10-20T22:49:36+00:00
 | logic | 154 | 0 | 0 | 0 | 0 |
 | platform | 56 | 0 | 0 | 0 | 0 |
 | test | 70 | 0 | 0 | 0 | 0 |
-| media | 159 | 0 | 2 | 0 | 0 |
+| media | 161 | 0 | 0 | 0 | 0 |
 | ui | 364 | 0 | 0 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
@@ -367,7 +367,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Model/ModelRistServer.swift | app/src/main/java/com/moblin/android/various/model/ModelRistServer.kt | deepseek-flash | 10.7 |
 | Moblin/Various/Model/ModelRtmpServer.swift | app/src/main/java/com/moblin/android/various/model/ModelRtmpServer.kt | deepseek-flash | 6.5 |
 | Moblin/Various/Model/ModelRtspClient.swift | app/src/main/java/com/moblin/android/various/model/ModelRtspClient.kt | deepseek-flash | 4.5 |
-| Moblin/Various/Model/ModelScene.swift | app/src/main/java/com/moblin/android/various/model/ModelScene.kt | deepseek-flash | 43.7 |
+| Moblin/Various/Model/ModelScene.swift | app/src/main/java/com/moblin/android/various/model/ModelScene.kt | deepseek-flash | 45.0 |
 | Moblin/Various/Model/ModelScoreboard.swift | app/src/main/java/com/moblin/android/various/model/ModelScoreboard.kt | deepseek-flash | 104.6 |
 | Moblin/Various/Model/ModelScreenCapture.swift | app/src/main/java/com/moblin/android/various/model/ModelScreenCapture.kt | deepseek-flash | 45.0 |
 | Moblin/Various/Model/ModelSettingsImportExport.swift | app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt | deepseek-flash | 3.8 |
@@ -512,7 +512,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/VideoEffects/VTuber/VTuberLive2DEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt | deepseek-flash | 50.0 |
 | Moblin/VideoEffects/VTuber/VTuberVrmEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberVrmEffect.kt | deepseek-flash | 38.7 |
 | Moblin/VideoEffects/VideoSourceEffect.swift | app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt | deepseek-flash | 16.4 |
-| Moblin/VideoEffects/WheelOfLuckEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt | deepseek-flash | 13.1 |
+| Moblin/VideoEffects/WheelOfLuckEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt | deepseek-flash | 13.4 |
 | Moblin/VideoEffects/WhirlpoolEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WhirlpoolEffect.kt | deepseek-flash | 12.5 |
 | Moblin/View/ControlBar/BatteryView.swift | app/src/main/java/com/moblin/android/view/controlbar/BatteryView.kt | deepseek-flash | 20.0 |
 | Moblin/View/ControlBar/ControlBarBackgroundView.swift | app/src/main/java/com/moblin/android/view/controlbar/ControlBarBackgroundView.kt | deepseek-flash | 10.2 |

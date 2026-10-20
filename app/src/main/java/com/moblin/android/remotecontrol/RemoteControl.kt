@@ -180,9 +180,7 @@ sealed class RemoteControlRequest {
     data class SetAutoSceneSwitcher(val id: UUID?) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("setAutoSceneSwitcher") {
-                if (id == null) {
-                    put("id", JsonNull)
-                } else {
+                if (id != null) {
                     put("id", id.toString())
                 }
             }
@@ -455,9 +453,7 @@ sealed class RemoteControlRequest {
     data class StartStats(val filter: RemoteControlStartStatsFilter?) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("startStats") {
-                if (filter == null) {
-                    put("filter", JsonNull)
-                } else {
+                if (filter != null) {
                     put("filter", remoteControlJson.encodeToJsonElement(filter))
                 }
             }
@@ -507,9 +503,7 @@ sealed class RemoteControlRequest {
                 put("name", name)
                 put("message", message)
                 put("count", count)
-                if (requestId == null) {
-                    put("requestId", JsonNull)
-                } else {
+                if (requestId != null) {
                     put("requestId", requestId)
                 }
             }
@@ -700,9 +694,7 @@ sealed class RemoteControlResponse {
     ) : RemoteControlResponse() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("getStatus") {
-                if (general == null) {
-                    put("general", JsonNull)
-                } else {
+                if (general != null) {
                     put("general", remoteControlJson.encodeToJsonElement(general))
                 }
                 put("topLeft", remoteControlJson.encodeToJsonElement(topLeft))
@@ -761,9 +753,7 @@ sealed class RemoteControlResponse {
     data class MusicFind(val song: RemoteControlMusicFoundSong?) : RemoteControlResponse() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("musicFind") {
-                if (song == null) {
-                    put("song", JsonNull)
-                } else {
+                if (song != null) {
                     put("song", remoteControlJson.encodeToJsonElement(song))
                 }
             }
@@ -839,19 +829,13 @@ sealed class RemoteControlEvent {
     ) : RemoteControlEvent() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("status") {
-                if (general == null) {
-                    put("general", JsonNull)
-                } else {
+                if (general != null) {
                     put("general", remoteControlJson.encodeToJsonElement(general))
                 }
-                if (topLeft == null) {
-                    put("topLeft", JsonNull)
-                } else {
+                if (topLeft != null) {
                     put("topLeft", remoteControlJson.encodeToJsonElement(topLeft))
                 }
-                if (topRight == null) {
-                    put("topRight", JsonNull)
-                } else {
+                if (topRight != null) {
                     put("topRight", remoteControlJson.encodeToJsonElement(topRight))
                 }
             }
@@ -879,9 +863,7 @@ sealed class RemoteControlEvent {
     data class WheelOfLuck(val wheel: RemoteControlWheelOfLuck?) : RemoteControlEvent() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("wheelOfLuck") {
-                if (wheel == null) {
-                    put("wheel", JsonNull)
-                } else {
+                if (wheel != null) {
                     put("wheel", remoteControlJson.encodeToJsonElement(wheel))
                 }
             }
@@ -1132,14 +1114,10 @@ sealed class RemoteControlMusicCommand {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("add") {
                 put("title", title)
-                if (user == null) {
-                    put("user", JsonNull)
-                } else {
+                if (user != null) {
                     put("user", user)
                 }
-                if (requestId == null) {
-                    put("requestId", JsonNull)
-                } else {
+                if (requestId != null) {
                     put("requestId", requestId)
                 }
             }
@@ -2343,9 +2321,7 @@ sealed class RemoteControlMessageToAssistant {
     data class Identify(val streamerId: String?, val authentication: String) : RemoteControlMessageToAssistant() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("identify") {
-                if (streamerId == null) {
-                    put("streamerId", JsonNull)
-                } else {
+                if (streamerId != null) {
                     put("streamerId", streamerId)
                 }
                 put("authentication", authentication)
@@ -2362,9 +2338,7 @@ sealed class RemoteControlMessageToAssistant {
             putJsonObject("response") {
                 put("id", id)
                 put("result", swiftCase(result.wireName))
-                if (data == null) {
-                    put("data", JsonNull)
-                } else {
+                if (data != null) {
                     put("data", data.toJsonElement())
                 }
             }
@@ -2396,9 +2370,7 @@ sealed class RemoteControlMessageToAssistant {
     data class TwitchStart(val channelName: String?, val channelId: String, val accessToken: String) : RemoteControlMessageToAssistant() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("twitchStart") {
-                if (channelName == null) {
-                    put("channelName", JsonNull)
-                } else {
+                if (channelName != null) {
                     put("channelName", channelName)
                 }
                 put("channelId", channelId)

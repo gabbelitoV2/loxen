@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.layout.LayoutInfo
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.hasAnySibling
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.moblin.android.LocalModel
@@ -35,8 +37,10 @@ class WidgetWizardSelectScenesSuite {
         return painters + children.sumOf { images(it as LayoutInfo) }
     }
 
+    private fun sceneNode(sceneName: String) = rule.onNode(hasText(sceneName) and hasAnySibling(hasText("PiP")))
+
     private fun checkmarks(sceneName: String): Int {
-        return images(rule.onNodeWithText(sceneName).fetchSemanticsNode().layoutInfo)
+        return images(sceneNode(sceneName).fetchSemanticsNode().layoutInfo)
     }
 
     private fun setContent(content: @Composable (Model) -> Unit): Model {
@@ -71,10 +75,10 @@ class WidgetWizardSelectScenesSuite {
     private fun assertSelectedSceneIsCheckedAndTapToggles() {
         assertEquals(1, checkmarks("Front"))
         assertEquals(0, checkmarks("Rear"))
-        rule.onNodeWithText("Rear").performClick()
+        sceneNode("Rear").performClick()
         rule.waitForIdle()
         assertEquals(1, checkmarks("Rear"))
-        rule.onNodeWithText("Front").performClick()
+        sceneNode("Front").performClick()
         rule.waitForIdle()
         assertEquals(0, checkmarks("Front"))
     }
@@ -121,8 +125,8 @@ class WidgetWizardSelectScenesSuite {
         model.media = Media(delegate = mediaDelegate())
         rule.onNodeWithText("Next").performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Rear").performClick()
-        rule.onNodeWithText("Front").performClick()
+        sceneNode("Rear").performClick()
+        sceneNode("Front").performClick()
         rule.waitForIdle()
         rule.onNodeWithText("Create").performClick()
         rule.waitForIdle()
