@@ -58,12 +58,7 @@ private sealed class Action {
     data object Load : Action()
 }
 
-internal data class MusicMetadata(
-    val addedBy: String?,
-    val requestId: String?,
-)
-
-private data class StoredMusicEntry(
+internal data class MusicEntry(
     val songId: String,
     val title: String,
     val artist: String?,
@@ -93,15 +88,17 @@ private val playlistStorage = SimpleStringStorage(key = "musicPlaylist")
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
-private suspend fun loadPlaylist(): List<StoredMusicEntry> = emptyList()
+private suspend fun loadPlaylist(): List<MusicEntry> = emptyList()
 
-private fun storePlaylist(playlist: List<StoredMusicEntry>) {
+private fun storePlaylist(playlist: List<MusicEntry>) {
     Unit
 }
 
-private fun makeSong(storedEntry: StoredMusicEntry): Any? = null
+private fun makeSong(storedEntry: MusicEntry): Any? = null
 
 fun musicDuration(song: Any?): Int? = null
+
+private fun makeMusicEntry(song: Any?, addedBy: String?, requestId: String?): MusicEntry? = null
 
 private fun musicSong(entry: Any?): Any? = null
 
@@ -118,7 +115,7 @@ open class MusicPlaylist {
 
     open val state: MutableStateFlow<MusicQueueState> = MutableStateFlow(MusicQueueState.notLoaded)
 
-    internal var metadata: MutableMap<String, MusicMetadata> = mutableMapOf()
+    internal var entries: MutableList<MusicEntry> = mutableListOf()
 
     open fun songs(): List<MusicPlaylistSong> = emptyList()
 

@@ -1,7 +1,5 @@
 package com.moblin.android.view.utils
 
-import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalOnNavigate
@@ -33,19 +32,22 @@ import com.moblin.android.integrations.ttsmonster.TtsMonster
 import com.moblin.android.integrations.ttsmonster.TtsMonsterVoicesResponse
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.avfoundation.AVSpeechSynthesisVoice
+import com.moblin.android.platform.avfoundation.AVSpeechUtterance
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.AudioPlayer
-import com.moblin.android.various.KeepSpeakerAlivePlayer
+import com.moblin.android.various.SpeechSynthesizer
 import com.moblin.android.various.settings.SettingsVoice
 import com.moblin.android.various.settings.SettingsVoiceType
-import com.moblin.android.various.utils.createSpeechSynthesizer
 import com.moblin.android.various.utils.emojiFlag
 import com.moblin.android.view.settings.chat.textToSpeechLanguages
 import com.moblin.android.view.settings.chat.textToSpeechLocalize
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private fun getVoice(
@@ -177,7 +179,7 @@ private fun VoiceView(
     voiceItem: VoicePickerItem,
     appleVoices: List<android.speech.tts.Voice>,
     languageCode: String,
-    synthesizer: TextToSpeech,
+    synthesizer: SpeechSynthesizer,
     rate: Float,
     volume: Float,
     ttsMonsterApiToken: String,
@@ -189,21 +191,15 @@ private fun VoiceView(
     val palette = formPalette()
 
     fun playAppleTestMessage(languageCode: String, identifier: String) {
-        synthesizer.setSpeechRate(rate)
-        synthesizer.setPitch(0.8f)
-        val params = Bundle()
-        params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
-        val voice = getVoice(appleVoices, languageCode, identifier)
-        if (voice != null) {
-            synthesizer.setVoice(voice)
-        }
-        synthesizer.speak(
-            getTestMessage(languageCode),
-            TextToSpeech.QUEUE_FLUSH,
-            params,
-            identifier,
-        )
-        KeepSpeakerAlivePlayer.shared.audioPlayed()
+        val utterance = AVSpeechUtterance(getTestMessage(languageCode))
+        utterance.rate = rate
+        utterance.pitchMultiplier = 0.8f
+        utterance.voice = getVoice(
+            appleVoices = appleVoices,
+            languageCode = languageCode,
+            identifier = identifier,
+        )?.let { AVSpeechSynthesisVoice(identifier = it.name) }
+        synthesizer.speak(utterance = utterance, volume = volume)
     }
 
     fun playTtsMonsterTestMessage(voiceId: String) {
@@ -313,7 +309,7 @@ private fun LanguageView(
     initialSelectedVoice: VoicePickerItem?,
     onVoiceChange: (String, SettingsVoice) -> Unit,
     onLanguageReset: (String) -> Unit,
-    synthesizer: TextToSpeech,
+    synthesizer: SpeechSynthesizer,
     rate: Float,
     volume: Float,
     ttsMonsterApiToken: String,
@@ -406,7 +402,7 @@ fun VoicesView(
     volume: Float,
     ttsMonsterApiToken: String,
 ) {
-    val synthesizer = remember { createSpeechSynthesizer() }
+    val synthesizer = remember { SpeechSynthesizer(queue = CoroutineScope(Dispatchers.Main)) }
     var appleVoices by remember { mutableStateOf<List<android.speech.tts.Voice>>(emptyList()) }
     var ttsMonsterVoices by remember { mutableStateOf<TtsMonsterVoicesResponse?>(null) }
     val palette = formPalette()
@@ -464,8 +460,11 @@ fun VoicesView(
         }
     }
 
+    val context = LocalContext.current
+    val textToSpeech = remember { android.speech.tts.TextToSpeech(context) {} }
+
     LaunchedEffect(Unit) {
-        appleVoices = synthesizer.voices?.toList() ?: emptyList()
+        appleVoices = textToSpeech.voices?.toList() ?: emptyList()
     }
 
     LaunchedEffect(Unit) {

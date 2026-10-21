@@ -12,7 +12,6 @@ import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
-import com.moblin.android.platform.avfoundation.AVSpeechSynthesizer
 import com.moblin.android.platform.avfoundation.AVSpeechSynthesisVoice
 import com.moblin.android.platform.avfoundation.AVSpeechUtterance
 import com.moblin.android.platform.coregraphics.CGAffineTransform
@@ -43,7 +42,6 @@ import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationCh
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionMessageEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionUpgradeEvent
 import com.moblin.android.various.ChatPostSegment
-import com.moblin.android.various.KeepSpeakerAlivePlayer
 import com.moblin.android.various.calcBoundingBox
 import com.moblin.android.various.calcFaceAngle
 import com.moblin.android.various.makeChatPostTextSegments
@@ -77,6 +75,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.moblin.android.various.AudioPlayer
+import com.moblin.android.various.SpeechSynthesizer
 import com.moblin.android.videoeffects.scaled
 import com.moblin.android.videoeffects.translated
 import com.moblin.android.common.various.uiColor
@@ -172,7 +171,7 @@ class AlertsEffect(
     private var audioPlayer: AudioPlayer? = null
     private var rate: Float = 0.4f
     private var volume: Float = 1.0f
-    private val synthesizer = AVSpeechSynthesizer().also { it.usesApplicationAudioSession = false }
+    private val synthesizer = SpeechSynthesizer(queue = CoroutineScope(Dispatchers.Main))
     private var alertsQueue: ArrayDeque<AlertsEffectAlert> = ArrayDeque()
     private val delegate: AlertsEffectDelegate? = delegate
     private var isPlaying: Boolean = false
@@ -472,12 +471,10 @@ class AlertsEffect(
         val utterance = AVSpeechUtterance(string = "$username $message")
         utterance.rate = rate
         utterance.pitchMultiplier = 0.8f
-        utterance.volume = volume
         utterance.voice = voice
         CoroutineScope(Dispatchers.Main.immediate).launch {
             delay((settings.textToSpeechDelay * 1000.0).toLong())
-            synthesizer.speak(utterance)
-            KeepSpeakerAlivePlayer.shared.audioPlayed()
+            synthesizer.speak(utterance = utterance, volume = volume)
         }
     }
 

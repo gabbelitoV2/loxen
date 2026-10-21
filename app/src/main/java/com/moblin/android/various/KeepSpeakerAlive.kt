@@ -53,6 +53,10 @@ open class AudioPlayer {
         }
     }
 
+    open fun setVolume(volume: Float) {
+        player.setVolume(volume, volume)
+    }
+
     open fun play() {
         KeepSpeakerAlivePlayer.shared.audioPlayed()
         player.start()

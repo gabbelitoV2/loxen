@@ -264,8 +264,6 @@ fun <T> sortedBySearchPrefix(items: List<T>, searchText: String, name: (T) -> St
     return matches + others
 }
 
-fun createSpeechSynthesizer(): TextToSpeech = TextToSpeech(AppDelegate.context) { }
-
 fun makeRecordingPath(recordingPath: ByteArray): String? =
     com.moblin.android.platform.Bookmark.path(recordingPath)
 fun zoomToFieldOfView(zoom: Float, zoomOne: Float = (PI / 2).toFloat()): Float =

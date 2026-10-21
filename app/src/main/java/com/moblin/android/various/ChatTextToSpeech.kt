@@ -1,14 +1,11 @@
 package com.moblin.android.various
 
-import android.os.Bundle
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
 import com.moblin.android.integrations.ttsmonster.TtsMonster
+import com.moblin.android.platform.avfoundation.AVSpeechSynthesisVoice
+import com.moblin.android.platform.avfoundation.AVSpeechUtterance
 import com.moblin.android.various.settings.SettingsVoice
 import com.moblin.android.various.settings.SettingsVoiceType
-import com.moblin.android.various.utils.createSpeechSynthesizer
 import java.util.Locale
-import java.util.UUID
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -68,7 +65,7 @@ private val saysByLanguage = mapOf(
 )
 
 private sealed class Voice {
-    data class Apple(val voice: android.speech.tts.Voice?) : Voice()
+    data class Apple(val voice: AVSpeechSynthesisVoice?) : Voice()
 
     data class TtsMonster(val voiceId: String) : Voice()
 }
@@ -82,7 +79,7 @@ class ChatTextToSpeech {
     private var pauseBetweenMessages: Double = 0.5
     private var voices: Map<String, SettingsVoice> = emptyMap()
     private var messageQueue: ArrayDeque<TextToSpeechMessage> = ArrayDeque()
-    private var synthesizer: TextToSpeech = createSpeechSynthesizer()
+    private val synthesizer = SpeechSynthesizer(queue = CoroutineScope(textToSpeechDispatchQueue))
     private var latestUserThatSaidSomething: String? = null
     private var sayLatestUserThatSaidSomethingAgain: Long = System.nanoTime()
     private var filterEnabled: Boolean = true
@@ -97,23 +94,6 @@ class ChatTextToSpeech {
     private var isPausingBetweenMessages: Boolean = false
     private val pauseBetweenMessagesTimer = SimpleTimer(queue = textToSpeechDispatchQueue)
     private val scope = CoroutineScope(textToSpeechDispatchQueue)
-    private val synthesizerDelegate = object : UtteranceProgressListener() {
-        override fun onStart(utteranceId: String?) {}
-
-        override fun onDone(utteranceId: String?) {
-            sayFinished()
-        }
-
-        override fun onError(utteranceId: String?) {
-            sayFinished()
-        }
-
-        override fun onStop(utteranceId: String?, interrupted: Boolean) {}
-    }
-
-    init {
-        synthesizer.setOnUtteranceProgressListener(synthesizerDelegate)
-    }
 
     fun say(messageId: String?, user: String, userId: String?, message: String, isRedemption: Boolean) {
         scope.launch {
@@ -251,8 +231,6 @@ class ChatTextToSpeech {
             currentlyPlayingMessage = null
             latestUserThatSaidSomething = null
             messageQueue.clear()
-            synthesizer = createSpeechSynthesizer()
-            synthesizer.setOnUtteranceProgressListener(synthesizerDelegate)
         }
     }
 
@@ -281,8 +259,6 @@ class ChatTextToSpeech {
 
     private fun skipCurrentMessageInternal() {
         synthesizer.stop()
-        synthesizer = createSpeechSynthesizer()
-        synthesizer.setOnUtteranceProgressListener(synthesizerDelegate)
         audioPlayer?.stop()
         isSpeaking = false
         currentlyPlayingMessage = null
@@ -383,16 +359,18 @@ class ChatTextToSpeech {
         val voice = voices[resolvedLanguage]
         val appleVoice = voice?.apple?.voice
         if (voice?.type == SettingsVoiceType.apple && appleVoice != null) {
-            val found = synthesizer.voices?.firstOrNull { it.name == appleVoice }
-            return Voice.Apple(voice = found) to getSays(resolvedLanguage)
+            return Voice.Apple(voice = AVSpeechSynthesisVoice(appleVoice)) to getSays(resolvedLanguage)
         }
         val ttsMonsterVoiceId = voice?.ttsMonster?.voiceId
         if (voice?.type == SettingsVoiceType.ttsMonster && ttsMonsterVoiceId != null) {
             return Voice.TtsMonster(voiceId = ttsMonsterVoiceId) to getSays(resolvedLanguage)
         }
-        val fallbackVoice = synthesizer.voices?.firstOrNull { it.locale.language.startsWith(resolvedLanguage) }
+        val fallbackVoice = AVSpeechSynthesisVoice.speechVoices()
+            .filter { it.language.startsWith(resolvedLanguage) }
+            .firstOrNull()
         if (fallbackVoice != null) {
-            return Voice.Apple(voice = fallbackVoice) to getSays(resolvedLanguage)
+            return Voice.Apple(voice = AVSpeechSynthesisVoice(fallbackVoice.identifier)) to
+                getSays(resolvedLanguage)
         }
         return null
     }
@@ -433,17 +411,13 @@ class ChatTextToSpeech {
         }
     }
 
-    private fun utterApple(voice: android.speech.tts.Voice?, text: String) {
-        scope.launch {
-            if (voice != null) {
-                synthesizer.voice = voice
-            }
-            val params = Bundle()
-            params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
-            synthesizer.setSpeechRate(rate)
-            synthesizer.setPitch(0.8f)
-            synthesizer.speak(text, TextToSpeech.QUEUE_FLUSH, params, UUID.randomUUID().toString())
-            KeepSpeakerAlivePlayer.shared.audioPlayed()
+    private fun utterApple(voice: AVSpeechSynthesisVoice?, text: String) {
+        val utterance = AVSpeechUtterance(text)
+        utterance.rate = rate
+        utterance.pitchMultiplier = 0.8f
+        utterance.voice = voice
+        synthesizer.speak(utterance = utterance, volume = volume) {
+            sayFinished()
         }
     }
 

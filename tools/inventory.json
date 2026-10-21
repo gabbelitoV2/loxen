@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-20T22:53:30+00:00",
+  "generated": "2026-10-21T22:49:45+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -2791,8 +2791,8 @@
     },
     {
       "path": "Moblin/Various/KeepSpeakerAlive.swift",
-      "lines": 49,
-      "sha256": "aed05df1c80e7a0fd3492d5744f5a3a2b83a730321b05b50443ea16f0af1c913",
+      "lines": 53,
+      "sha256": "a37ad96663546589085fb8c34974c1616023f515d4a1df01f29f3cff9f5ae01b",
       "imports": [
         "AVFoundation"
       ],
@@ -5177,6 +5177,26 @@
       "wave": 5
     },
     {
+      "path": "Moblin/Various/SpeechSynthesizer.swift",
+      "lines": 106,
+      "sha256": "51779034721d33fd1c5c1be29ecd634cf084e218407b834f9783c0cfc7b03776",
+      "imports": [],
+      "tier": "logic",
+      "declared_types": [
+        "SpeechSynthesizer"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/SpeechSynthesizer.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Various/KeepSpeakerAlive.swift"
+      ],
+      "wave": 5
+    },
+    {
       "path": "Moblin/Various/Storages/LogsStorage.swift",
       "lines": 105,
       "sha256": "83d4904e9db1d94ef7f8accbfbf123ffb91f1945e6427fbc660a2695f9e34cf0",
@@ -6982,6 +7002,38 @@
       "wave": 8
     },
     {
+      "path": "Moblin/Various/ChatTextToSpeech.swift",
+      "lines": 448,
+      "sha256": "ba3e1f463d121dc119a2a11ba8fc3e10b6708ab57dae74762391dc4f2f0cdb7d",
+      "imports": [
+        "AVFAudio",
+        "Collections",
+        "NaturalLanguage"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "TextToSpeechMessage",
+        "Voice",
+        "ChatTextToSpeech"
+      ],
+      "private_types": [
+        "TextToSpeechMessage",
+        "Voice"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt",
+      "deps": [
+        "Moblin/Integrations/TtsMonster/TtsMonster.swift",
+        "Moblin/Various/KeepSpeakerAlive.swift",
+        "Moblin/Various/Settings/SettingsChat.swift",
+        "Moblin/Various/SimpleTimer.swift",
+        "Moblin/Various/SpeechSynthesizer.swift"
+      ],
+      "wave": 8
+    },
+    {
       "path": "Moblin/Various/Model/ModelLocation.swift",
       "lines": 174,
       "sha256": "a2d2216d9e497d5ae3bf4ee832578ebafaac2429f2d20c9d60972c0f00d55270",
@@ -7445,8 +7497,8 @@
     },
     {
       "path": "Moblin/Various/Utils/Utils.swift",
-      "lines": 508,
-      "sha256": "43bc8c656b48fc1b7a934c299b8744e26e63fa84e9b5cbef9a2a6b97427beb5e",
+      "lines": 500,
+      "sha256": "03c51f791b1e74e8a584ce9c59ea760e3aeaedda051c0e6baf36e0de9f0b0508",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -7473,7 +7525,6 @@
         "tryGetToastSubTitle",
         "makeUniqueName",
         "sortedBySearchPrefix",
-        "createSpeechSynthesizer",
         "makeRecordingPath",
         "zoomToFieldOfView",
         "fieldOfViewToZoom",
@@ -7640,38 +7691,6 @@
         "Moblin/RemoteControl/RemoteControl.swift",
         "Moblin/Various/MainTimer.swift",
         "Moblin/Various/Storages/SimpleStorage.swift",
-        "Moblin/Various/Utils/Utils.swift"
-      ],
-      "wave": 11
-    },
-    {
-      "path": "Moblin/Various/ChatTextToSpeech.swift",
-      "lines": 458,
-      "sha256": "1d81da2dfcafdfdda34204ad0612184aa95a62ada5ef77d36daaeeec40c4751b",
-      "imports": [
-        "AVFAudio",
-        "Collections",
-        "NaturalLanguage"
-      ],
-      "tier": "platform",
-      "declared_types": [
-        "TextToSpeechMessage",
-        "Voice",
-        "ChatTextToSpeech"
-      ],
-      "private_types": [
-        "TextToSpeechMessage",
-        "Voice"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.various",
-      "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt",
-      "deps": [
-        "Moblin/Integrations/TtsMonster/TtsMonster.swift",
-        "Moblin/Various/KeepSpeakerAlive.swift",
-        "Moblin/Various/Settings/SettingsChat.swift",
-        "Moblin/Various/SimpleTimer.swift",
         "Moblin/Various/Utils/Utils.swift"
       ],
       "wave": 11
@@ -8977,8 +8996,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMusic.swift",
-      "lines": 537,
-      "sha256": "224bae816700aad25e1ce8e9201c5c812f9ea5812d960ea65db6bada60652597",
+      "lines": 536,
+      "sha256": "606e09b294d2b808d7cb91de8ae866fed4eab943e73d3ebc19dffbd92501ecb8",
       "imports": [
         "Combine",
         "DequeModule",
@@ -8987,8 +9006,7 @@
       "tier": "logic",
       "declared_types": [
         "Action",
-        "MusicMetadata",
-        "StoredMusicEntry",
+        "MusicEntry",
         "MusicQueueState",
         "MusicPlaylistSong",
         "MusicPlaylist",
@@ -8998,8 +9016,7 @@
       ],
       "private_types": [
         "Action",
-        "MusicMetadata",
-        "StoredMusicEntry"
+        "MusicEntry"
       ],
       "declared_functions": [
         "appleMusicSongId",
@@ -15776,8 +15793,8 @@
     },
     {
       "path": "Moblin/View/Utils/VoicesView.swift",
-      "lines": 340,
-      "sha256": "81f49dce66185c351d5bea6cde3bcc1b9dfb10fafa86f293312ed81800a6cf22",
+      "lines": 338,
+      "sha256": "58ad8c45179c554de4f80abe920e44cb41886ab29989bb16bb2e413601fa40e3",
       "imports": [
         "AVFAudio",
         "SwiftUI"
@@ -15809,6 +15826,7 @@
         "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
+        "Moblin/Various/SpeechSynthesizer.swift",
         "Moblin/Various/Utils/Utils.swift",
         "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift"
@@ -20098,8 +20116,8 @@
     },
     {
       "path": "Moblin/VideoEffects/Alerts/AlertsEffect.swift",
-      "lines": 981,
-      "sha256": "9ff63e57164bfd389d121a24276cb865bd5f52c1769b243044125e543b93d300",
+      "lines": 979,
+      "sha256": "43db26e4504e1dcfa61c634998c4af9c6e1268c3a1e84d5007ac0e09227d4ae1",
       "imports": [
         "AVFoundation",
         "Collections",
@@ -20133,8 +20151,8 @@
         "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/SpeechSynthesizer.swift",
         "Moblin/Various/Storages/AlertMediaStorage.swift",
-        "Moblin/Various/Utils/Utils.swift",
         "Moblin/VideoEffects/Alerts/AlertsEffectFace.swift",
         "Moblin/VideoEffects/Alerts/AlertsEffectMedia.swift",
         "Moblin/VideoEffects/EffectUtils.swift",

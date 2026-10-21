@@ -2385,17 +2385,20 @@
   },
   "Moblin/Various/Model/ModelMusic.swift": {
     "status": "ok",
-    "sha256": "224bae816700aad25e1ce8e9201c5c812f9ea5812d960ea65db6bada60652597",
-    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
+    "sha256": "606e09b294d2b808d7cb91de8ae866fed4eab943e73d3ebc19dffbd92501ecb8",
+    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMusic.kt",
     "notes": [
-      "pauseAction is now a suspend function; the call site in tryRunNextAction stays unchanged because it already runs inside a coroutine.",
-      "playAction, pauseAction and selectAction each gained a waitForPlaybackStatus call after the playback change, mirroring the Swift waits.",
-      "New private suspend waitForPlaybackStatus(playing) extension added between pauseAction and nextAction, keeping the Swift declaration order.",
-      "The file's MusicKit bodies remain hand-written stubs (Unit), so the added waits are placed after the existing stub statement.",
-      "MusicKit itself has no Android counterpart, so the player object and all real playback logic stay stubbed as before."
+      "MusicKit has no Android counterpart, so every API-touching body stays the hand-written stub (Unit / null / emptyList) that the previous port used; the diff is applied at the type and member level.",
+      "StoredMusicEntry is renamed to MusicEntry and the separate MusicMetadata struct is deleted, matching the Swift consolidation.",
+      "MusicPlaylist.metadata (map keyed by song id) is replaced by MusicPlaylist.entries (MutableList<MusicEntry>), matching Swift's new single source of truth.",
+      "MusicEntry is internal rather than private because it is exposed by MusicPlaylist.entries, which Kotlin would reject on a private type.",
+      "New private helper makeMusicEntry(song, addedBy, requestId) was added at the same position as in Swift; its MusicKit Song parameter is typed Any? like makeSong/musicSong and the body is a stub returning null.",
+      "loadPlaylist, storePlaylist and makeSong signatures now take/return MusicEntry.",
+      "songs(), storeMusicQueue(), loadQueueIfNeeded(), addAction(), clearAction() and removeAction() keep their existing stubbed bodies because they need MusicKit's ApplicationMusicPlayer queue and catalog APIs.",
+      "No behaviour outside the renamed/added declarations changed."
     ],
     "unsupported": [],
     "apple_only": [
@@ -2406,10 +2409,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51198,
-    "tokens_out": 3361,
-    "seconds": 12.7,
-    "ported_at": "2026-10-20T22:44:40+00:00"
+    "tokens_in": 53221,
+    "tokens_out": 5601,
+    "seconds": 21.1,
+    "ported_at": "2026-10-21T22:50:19+00:00"
   },
   "Moblin/View/ControlBar/ControlBarUtils.swift": {
     "status": "ok",
@@ -5576,27 +5579,27 @@
   },
   "Moblin/Various/ChatTextToSpeech.swift": {
     "status": "ok",
-    "sha256": "1d81da2dfcafdfdda34204ad0612184aa95a62ada5ef77d36daaeeec40c4751b",
-    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "sha256": "ba3e1f463d121dc119a2a11ba8fc3e10b6708ab57dae74762391dc4f2f0cdb7d",
+    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt",
     "notes": [
-      "pauseBetweenMessages default changed from 0.0 to 0.5.",
-      "Added isPausingBetweenMessages and a SimpleTimer on textToSpeechDispatchQueue that gates trySayNextMessage, mirroring AVSpeechUtterance.preUtteranceDelay removal.",
-      "skipCurrentMessageInternal now waits 0.5 s before the next message; sayFinished waits pauseBetweenMessages.",
-      "reset() also stops the pause timer via stopPauseBetweenMessages().",
-      "The Android-only delay that emulated preUtteranceDelay inside utterApple is removed because the pause is now scheduled centrally.",
-      "NLLanguageRecognizer has no Android port, so dominantLanguage/languageProbability stay as local stubs; the filter keeps its 0.7 threshold.",
-      "deleteByUserId keeps the previous Kotlin name for Swift delete(userId:)."
+      "Switched the speech engine to the shared Moblin type SpeechSynthesizer(queue = textToSpeechDispatchQueue), which now owns the volume/finish handling and the KeepSpeakerAlivePlayer call, so the local TextToSpeech instance, its UtteranceProgressListener and the re-creation code in reset()/skipCurrentMessageInternal() are gone.",
+      "utterApple now builds an AVSpeechUtterance from com.moblin.android.platform.avfoundation (rate, pitchMultiplier, voice) and calls synthesizer.speak(utterance = utterance, volume = volume) { sayFinished() }, mirroring the new Swift call.",
+      "Voice.Apple now carries an AVSpeechSynthesisVoice? obtained from AVSpeechSynthesisVoice(identifier) / speechVoices(), matching the Swift lookup; the old android.speech.tts.Voice lookups through synthesizer.voices no longer apply because SpeechSynthesizer does not expose the engine voice list.",
+      "The AVSpeechSynthesizerDelegate extension is gone, so the UtteranceProgressListener delegate object and the init block are removed; sayFinished() is now driven by the speak completion and by audioPlayerDidFinishPlaying.",
+      "Imports for android.os.Bundle, android.speech.tts.TextToSpeech, UtteranceProgressListener, java.util.UUID and utils.createSpeechSynthesizer were dropped with the code that used them.",
+      "dominantLanguage/languageProbability remain the existing Android stubs for NLLanguageRecognizer and were not touched by this change.",
+      "SpeechSynthesizer.speak(utterance, volume, completion) is assumed to keep the Swift parameter names; only its queue constructor argument is passed explicitly."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 37944,
-    "tokens_out": 4822,
-    "seconds": 15.2,
-    "ported_at": "2026-09-25T06:41:05+00:00"
+    "tokens_in": 39013,
+    "tokens_out": 8331,
+    "seconds": 27.7,
+    "ported_at": "2026-10-21T22:50:25+00:00"
   },
   "Moblin/Media/WiFiAware/WiFiAwareReceiver.swift": {
     "status": "ok",
@@ -6935,27 +6938,22 @@
   },
   "Moblin/Various/KeepSpeakerAlive.swift": {
     "status": "ok",
-    "sha256": "aed05df1c80e7a0fd3492d5744f5a3a2b83a730321b05b50443ea16f0af1c913",
-    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
-    "mode": "full",
+    "sha256": "a37ad96663546589085fb8c34974c1616023f515d4a1df01f29f3cff9f5ae01b",
+    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/KeepSpeakerAlive.kt",
     "notes": [
-      "AudioPlayer is translated against android.media.MediaPlayer as the platform shim prescribes: constructor(contentsOf: String) uses the asset path returned by Bundle.url, constructor(data: ByteArray) plays through a MediaDataSource kept in a field.",
-      "The MediaDataSource subclass overrides the abstract readAt(position, buffer, offset, size) (the newer read(long, byte[], int, int) delegates to it), so the file also works on API 26.",
-      "ContinuousClock.Instant becomes java.time.Instant and duration(to:) becomes Duration.between(latestPlayTime.value, now).seconds, keeping the guard that only plays after more than 5 * 60 seconds of silence.",
-      "latestPlayTime is Atomic<Instant> from com.moblin.android.media.haishinkit.util and is updated with latestPlayTime.mutate { it.value = Instant.now() } as the shim states.",
-      "try? AudioPlayer(contentsOf: soundUrl) is runCatching { ... }.getOrNull(), and the previous player is simply replaced exactly like Swift's optional assignment.",
-      "setDelegate stores the delegate as Any and fires the ported audioPlayerDidFinishPlaying(successfully = true) from the MediaPlayer completion listener, per the speaker keep-alive shim; the delegate is the ChatTextToSpeech instance declared alongside this file's package.",
-      "KeepSpeakerAlivePlayer.shared is a companion object val, standing in for nonisolated(unsafe) static let shared."
+      "Added AudioPlayer.setVolume mapping to MediaPlayer.setVolume(volume, volume) so both channels follow the single Swift volume value.",
+      "No other lines changed; all existing Android hand-written behaviour (MediaDataSource construction, completion listener cast to ChatTextToSpeech, Bundle.url asset lookup) is preserved."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 28969,
-    "tokens_out": 15331,
-    "seconds": 61.1,
-    "ported_at": "2026-09-25T22:45:23+00:00"
+    "tokens_in": 31883,
+    "tokens_out": 856,
+    "seconds": 4.1,
+    "ported_at": "2026-10-21T22:50:01+00:00"
   },
   "Common/View/StreamOverlayTextView.swift": {
     "status": "ok",
@@ -8801,24 +8799,23 @@
   },
   "Moblin/Various/Utils/Utils.swift": {
     "status": "ok",
-    "sha256": "43bc8c656b48fc1b7a934c299b8744e26e63fa84e9b5cbef9a2a6b97427beb5e",
-    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "sha256": "03c51f791b1e74e8a584ce9c59ea760e3aeaedda051c0e6baf36e0de9f0b0508",
+    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/Utils.kt",
     "notes": [
-      "Only the new sortedBySearchPrefix helper was added after makeUniqueName, before createSpeechSynthesizer.",
-      "Everything else stays byte-identical to the current Kotlin file.",
-      "Swift hasPrefix/lowercased map to Kotlin startsWith/lowercase on the String name, matching the stable part of a search string.",
-      "The name closure keeps the same generic shape as the Swift trailing/parameter closure."
+      "Removed createSpeechSynthesizer(), the Android TextToSpeech equivalent of the deleted AVSpeechSynthesizer factory.",
+      "The now unused android.speech.tts.TextToSpeech import is kept so every untouched line stays byte-identical, as the incremental rules require.",
+      "No other Kotlin declaration in Utils.kt maps to a line in the diff, so everything else is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53373,
-    "tokens_out": 4523,
-    "seconds": 13.5,
-    "ported_at": "2026-09-25T13:02:53+00:00"
+    "tokens_in": 53659,
+    "tokens_out": 4678,
+    "seconds": 13.3,
+    "ported_at": "2026-10-21T22:50:11+00:00"
   },
   "Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift": {
     "status": "ok",
@@ -13836,27 +13833,26 @@
   },
   "Moblin/View/Utils/VoicesView.swift": {
     "status": "ok",
-    "sha256": "81f49dce66185c351d5bea6cde3bcc1b9dfb10fafa86f293312ed81800a6cf22",
+    "sha256": "58ad8c45179c554de4f80abe920e44cb41886ab29989bb16bb2e413601fa40e3",
+    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/VoicesView.kt",
     "notes": [
-      "AVSpeechSynthesisVoice and AVSpeechSynthesizer are mapped to android.speech.tts.Voice and android.speech.tts.TextToSpeech; getVoice() compares Voice.locale.language and Voice.name (the Swift identifier).",
-      "createSpeechSynthesizer() is assumed to return android.speech.tts.TextToSpeech and textToSpeechLanguages(appleVoices) to take List<Voice> and return items exposing name/code; both come from other Moblin files.",
-      "SettingsVoiceType entries are assumed to be SettingsVoiceType.APPLE and SettingsVoiceType.TTS_MONSTER, and SettingsVoice is a mutable class exposing apple.voice and ttsMonster.name/voiceId.",
-      "Image(\"TtsMonster\") becomes painterResource(id = R.drawable.ttsmonster); verify the drawable name in the Android resources.",
-      "There is no Material apple.logo icon, Icons.Default.Phone is used as the closest core icon for Apple voices.",
-      "@Binding rate and volume are only read in these views, so they are plain Float parameters instead of value/onChange pairs.",
-      "The parent-provided @State selectedVoice becomes an initialSelectedVoice parameter plus remember { mutableStateOf(...) } inside LanguageView; selection writes go through onVoiceChange as before.",
-      "NavigationLink becomes an onNavigate: (String) -> Unit callback carrying language.code, and TextButtonView is called with a positional title plus a trailing onClick lambda."
+      "The synthesizer is now the Moblin SpeechSynthesizer (com.moblin.android.various) constructed with Dispatchers.Main for Swift's `.main` queue, as the Swift diff requires.",
+      "playAppleTestMessage builds an AVSpeechUtterance and calls synthesizer.speak(utterance = utterance, volume = volume); utterance.volume and KeepSpeakerAlivePlayer.shared.audioPlayed() are gone, as in the new Swift.",
+      "The Apple voice list stays List<android.speech.tts.Voice> because textToSpeechLanguages and the pickers are declared against that type; the utterance voice is resolved from the matching Android voice name through AVSpeechSynthesisVoice(identifier).",
+      "The VoiceView and LanguageView synthesizer parameters are typed SpeechSynthesizer; the result of the call is unchanged for callers.",
+      "VoicesView still enumerates installed voices with createSpeechSynthesizer() (the Swift AVSpeechSynthesisVoice.speechVoices()), since SpeechSynthesizer exposes no voice list.",
+      "android.os.Bundle, android.speech.tts.TextToSpeech and KeepSpeakerAlivePlayer imports were dropped because nothing references them any more."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7412,
-    "tokens_out": 24465,
-    "seconds": 90.3,
-    "ported_at": "2026-09-22T13:49:25+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50906,
+    "tokens_out": 14068,
+    "seconds": 50.4,
+    "ported_at": "2026-10-21T22:50:48+00:00"
   },
   "Moblin/View/Settings/Ingests/RistServer/RistServerStreamSettingsView.swift": {
     "status": "ok",
@@ -14629,23 +14625,24 @@
   },
   "Moblin/VideoEffects/Alerts/AlertsEffect.swift": {
     "status": "ok",
-    "sha256": "9ff63e57164bfd389d121a24276cb865bd5f52c1769b243044125e543b93d300",
-    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "sha256": "43db26e4504e1dcfa61c634998c4af9c6e1268c3a1e84d5007ac0e09227d4ae1",
+    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt",
     "notes": [
-      "Added the MoblinCloudTip alert case, its media slot, settings wiring and the play/set functions for Moblin Cloud tips.",
-      "MoblinCloud tip amount and currency arrive preformatted as Strings, so the message text is built directly with the localized template.",
-      "setMoblinCloudSettings/playMoblinCloudTip are placed just before the quick button helpers to mirror the Swift declaration order."
+      "The speech synthesizer field now uses Moblin's own SpeechSynthesizer from com.moblin.android.various, constructed with Dispatchers.Main as the main queue, instead of the AVSpeechSynthesizer shim.",
+      "utterance.volume is gone; the level travels with the call as synthesizer.speak(utterance = utterance, volume = volume), so the volume field stays and is read at speak time.",
+      "KeepSpeakerAlivePlayer.shared.audioPlayed() was dropped together with that Swift line, and its now unused import was removed along with the AVSpeechSynthesizer import.",
+      "Everything else (pipeline, media selection, face/scene placement, Twitch/Kick/Moblin Cloud/Chat Bot/Speech To Text/Quick Button playback) is unchanged and byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88784,
-    "tokens_out": 11365,
-    "seconds": 29.1,
-    "ported_at": "2026-10-18T21:57:42+00:00"
+    "tokens_in": 87073,
+    "tokens_out": 12800,
+    "seconds": 34.6,
+    "ported_at": "2026-10-21T22:50:33+00:00"
   },
   "Moblin/View/Settings/Camera/CameraControls/CameraControlsView.swift": {
     "status": "ok",
@@ -18491,5 +18488,28 @@
     "tokens_out": 11941,
     "seconds": 46.2,
     "ported_at": "2026-10-19T23:09:30+00:00"
+  },
+  "Moblin/Various/SpeechSynthesizer.swift": {
+    "status": "ok",
+    "sha256": "51779034721d33fd1c5c1be29ecd634cf084e218407b834f9783c0cfc7b03776",
+    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/SpeechSynthesizer.kt",
+    "notes": [
+      "The AVSpeechSynthesizer shim has no `write(utterance:)` buffer callback, so the AVAudioFile/AVAudioPlayer PCM capture path is replaced by speaking the utterance directly and passing the volume through the shim's `AVSpeechUtterance.volume`.",
+      "AVAudioFile, FileManager temp-file handling and AudioPlayer are no longer used, because there is no synthesized PCM buffer to write and replay on Android.",
+      "The DispatchQueue parameter becomes a CoroutineScope (`queue`); delegate callbacks hop onto it with `queue.launch { }`, matching the Swift `queue.async { }`.",
+      "`generation` is expressed through the identity of the last utterance (`current`), so late didFinish/didCancel callbacks for a stopped utterance do not fire the new `onFinished`.",
+      "`usesApplicationAudioSession = false` is set once in init so speech does not fight the capture audio session, as intended on iOS.",
+      "No TODO() markers are needed; the only iOS-only parts (buffer write, temp CAF file) are dropped rather than stubbed."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 31726,
+    "tokens_out": 5557,
+    "seconds": 23.3,
+    "ported_at": "2026-10-21T22:50:20+00:00"
   }
 }
