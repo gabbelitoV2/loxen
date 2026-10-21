@@ -95,6 +95,16 @@
       "owner": "E6",
       "milestone": "ME5",
       "note": "Intended: the view is a ViewBuilder extension like the Swift view builder; its only outside reference is E6's SwiftUIWidgetRenderSuite."
+    },
+    {
+      "check": "members",
+      "name": "AVSpeechSynthesizer.write",
+      "files": [
+        "Moblin/Various/SpeechSynthesizer.swift"
+      ],
+      "owner": "E5",
+      "milestone": "none",
+      "note": "Android TextToSpeech has no PCM buffer callback; SpeechSynthesizer speaks the utterance directly through AVSpeechSynthesizer.speak with the volume on the utterance, so the AVAudioFile and AudioPlayer replay path is not needed."
     }
   ]
 }

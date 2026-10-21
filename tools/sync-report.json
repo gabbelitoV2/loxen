@@ -7,10 +7,5 @@
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],
-  "effects": [
-    "check_effects_api.py: members: 1 findings",
-    "check_effects_api.py:   AVSpeechSynthesizer.write: no member or extension with this name (Moblin/Various/SpeechSynthesizer.swift)",
-    "check_effects_api.py: known gaps: 18 findings are listed in effects_known_gaps.json",
-    "check_effects_api.py: check_effects_api: 1 open findings, 18 known gaps"
-  ]
+  "effects": []
 }
