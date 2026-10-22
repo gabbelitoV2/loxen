@@ -98,15 +98,6 @@
       "occurrence": 1
     },
     {
-      "id": "H11.12",
-      "file": "various/model/ModelScene.kt",
-      "scope": "fun getBuiltinCameraDevices(\n    videoSource",
-      "op": "replace",
-      "old": "    if (devices.none { it.device == device }) {",
-      "new": "    if (devices.none { it.device == device.device }) {",
-      "occurrence": 1
-    },
-    {
       "id": "H11.13",
       "file": "various/model/ModelStream.kt",
       "scope": "fun setStreamCodec",
@@ -496,15 +487,6 @@
       "scope": "fun Model.resetBrowserVideoEffects",
       "op": "delete",
       "old": "            context = AppDelegate.context",
-      "occurrence": 1
-    },
-    {
-      "id": "R11.10",
-      "file": "various/model/Model.kt",
-      "scope": "fun updateBrowserWidgetStatus",
-      "op": "replace",
-      "old": "                    System.nanoTime() < browser.browserEffect.startLoadingTime + 5_000_000_000L",
-      "new": "                    com.moblin.android.platform.core.ContinuousClock.now < browser.browserEffect.startLoadingTime.advanced(bySeconds = 5.0)",
       "occurrence": 1
     },
     {

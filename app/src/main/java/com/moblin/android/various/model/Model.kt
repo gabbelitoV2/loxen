@@ -2594,12 +2594,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             val progress = browser.browserEffect.progress
             if (browser.browserEffect.isLoaded) {
                 messages.add("${browser.browserEffect.host}: $progress%")
-                if (progress != 100 ||
-                    com.moblin.android.platform.core.ContinuousClock.now < browser.browserEffect.startLoadingTime.advanced(bySeconds = 5.0)
+                if ((progress != 100 ||
+                        com.moblin.android.platform.core.ContinuousClock.now < browser.browserEffect.startLoadingTime.advanced(bySeconds = 5.0)) &&
+                    !statusTopRight.browserWidgetsStatusChanged.value
                 ) {
-                    if (!statusTopRight.browserWidgetsStatusChanged.value) {
-                        statusTopRight.browserWidgetsStatusChanged.value = true
-                    }
+                    statusTopRight.browserWidgetsStatusChanged.value = true
                 }
             }
         }

@@ -863,8 +863,9 @@ private fun Model.registerGlobalVideoEffects(scene: SettingsScene): List<VideoEf
 
 private fun Model.registerGlobalVideoEffectsOnTop(): List<VideoEffect> {
     val effects = mutableListOf<VideoEffect>()
-    if (isQuickButtonOn(SettingsQuickButtonType.poll)) {
-        pollEffect?.let { effects.add(it) }
+    val effect = pollEffect
+    if (isQuickButtonOn(SettingsQuickButtonType.poll) && effect != null) {
+        effects.add(effect)
     }
     return effects
 }
@@ -1247,10 +1248,10 @@ private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
         effects.add(lutEffect)
     }
     for (lut in database.color.allLuts()) {
-        if (!lut.enabled) {
+        val lutEffect = lutEffects[lut.id]
+        if (!lut.enabled || lutEffect == null) {
             continue
         }
-        val lutEffect = lutEffects[lut.id] ?: continue
         effects.add(lutEffect)
     }
     effects.addAll(registerGlobalVideoEffects(scene = scene))
@@ -1326,8 +1327,8 @@ private fun Model.addSceneEffects(
     }
     addedScenes.add(scene)
     for (sceneWidget in scene.widgets) {
-        val widget = findWidget(id = sceneWidget.widgetId) ?: continue
-        if (!widget.enabled) {
+        val widget = findWidget(id = sceneWidget.widgetId)
+        if (widget == null || !widget.enabled) {
             continue
         }
         when (widget.type) {
@@ -1748,8 +1749,8 @@ private fun Model.getSceneWidgetsInternal(
 ): List<WidgetInScene> {
     val widgets = mutableListOf<WidgetInScene>()
     for (sceneWidget in scene.widgets) {
-        val widget = findWidget(id = sceneWidget.widgetId) ?: continue
-        if (onlyEnabled && !widget.enabled) {
+        val widget = findWidget(id = sceneWidget.widgetId)
+        if (widget == null || (onlyEnabled && !widget.enabled)) {
             continue
         }
         if (widget.type == SettingsWidgetType.scene) {
@@ -1854,9 +1855,10 @@ private fun Model.getBuiltinCameraDevices(
 ) {
     val cameraId = videoSource.getCaptureDeviceCameraId() ?: return
     val device: CaptureDevice = CaptureDevice(device = com.moblin.android.platform.avfoundation.AVCaptureDevice.withUniqueID(cameraId) ?: return, id = UUID.randomUUID(), isVideoMirrored = false)
-    if (devices.none { it.device == device.device }) {
-        devices.add(makeCaptureDevice(device = device))
+    if (devices.any { it.device == device.device }) {
+        return
     }
+    devices.add(makeCaptureDevice(device = device))
 }
 
 private fun Model.getBuiltinCameraDevicesForSceneWidget(
