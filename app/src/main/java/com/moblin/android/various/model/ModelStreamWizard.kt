@@ -166,20 +166,19 @@ fun Model.createStreamFromWizard() {
     stream.backgroundStreaming = createStreamWizard.backgroundStreaming
     stream.autoGoLive = createStreamWizard.autoGoLive
     stream.goLiveNotificationMoblinWebsite = createStreamWizard.goLiveNotificationMoblinWebsite
-    if (createStreamWizard.platform != WizardPlatform.custom) {
-        if (createStreamWizard.networkSetup != WizardNetworkSetup.direct) {
-            if (createStreamWizard.obsRemoteControlEnabled) {
-                val url = cleanUrl(value = createStreamWizard.obsRemoteControlUrl.trim())
-                if (isValidWebSocketUrl(value = url) == null) {
-                    stream.obsWebSocketEnabled = true
-                    stream.obsWebSocketUrl = url
-                    stream.obsWebSocketPassword = createStreamWizard.obsRemoteControlPassword.trim()
-                    stream.obsSourceName = createStreamWizard.obsRemoteControlSourceName.trim()
-                    stream.obsMainScene = createStreamWizard.obsRemoteControlMainScene.trim()
-                    stream.obsBrbScene = createStreamWizard.obsRemoteControlBrbScene.trim()
-                    stream.streamingDirectlyToObs = createStreamWizard.networkSetup == WizardNetworkSetup.obs
-                }
-            }
+    if (createStreamWizard.platform != WizardPlatform.custom &&
+        createStreamWizard.networkSetup != WizardNetworkSetup.direct &&
+        createStreamWizard.obsRemoteControlEnabled
+    ) {
+        val url = cleanUrl(value = createStreamWizard.obsRemoteControlUrl.trim())
+        if (isValidWebSocketUrl(value = url) == null) {
+            stream.obsWebSocketEnabled = true
+            stream.obsWebSocketUrl = url
+            stream.obsWebSocketPassword = createStreamWizard.obsRemoteControlPassword.trim()
+            stream.obsSourceName = createStreamWizard.obsRemoteControlSourceName.trim()
+            stream.obsMainScene = createStreamWizard.obsRemoteControlMainScene.trim()
+            stream.obsBrbScene = createStreamWizard.obsRemoteControlBrbScene.trim()
+            stream.streamingDirectlyToObs = createStreamWizard.networkSetup == WizardNetworkSetup.obs
         }
     }
     when (createStreamWizard.platform) {

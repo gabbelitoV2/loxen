@@ -107,7 +107,7 @@ class ADTSReaderIterator(private val data: ByteArray) : Iterator<Int> {
     }
 
     override fun next(): Int {
-        val header = if (cursor < data.size) AdtsHeader(data, cursor) else null
+        val header = AdtsHeader(data, cursor)
         if (header == null) {
             throw NoSuchElementException()
         }

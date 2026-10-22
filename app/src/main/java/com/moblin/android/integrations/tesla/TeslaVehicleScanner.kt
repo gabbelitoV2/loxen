@@ -33,11 +33,11 @@ open class TeslaVehicleScanner : CBCentralManagerDelegate {
         advertisementData: Map<String, Any>,
         rssi: Int,
     ) {
-        val localName = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?: return
-        if (!Regex("S[0-9a-f]{16}C").matches(localName)) {
-            return
-        }
-        if (discoveredPeripherals.value.any { it == peripheral }) {
+        val localName = advertisementData[CBAdvertisementDataLocalNameKey] as? String
+        if (localName == null ||
+            !Regex("S[0-9a-f]{16}C").matches(localName) ||
+            discoveredPeripherals.value.any { it == peripheral }
+        ) {
             return
         }
         discoveredPeripherals.value = discoveredPeripherals.value + peripheral

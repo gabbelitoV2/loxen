@@ -650,11 +650,9 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             Log.i("Media", "Setting SRT latency to $latency")
             builder.appendQueryParameter("latency", latency.toString())
         }
-        if (!queryContains(parsed, "maxbw")) {
-            if (maximumBandwidthFollowInput) {
-                Log.i("Media", "Setting SRT maxbw to 0 (follows input)")
-                builder.appendQueryParameter("maxbw", "0")
-            }
+        if (!queryContains(parsed, "maxbw") && maximumBandwidthFollowInput) {
+            Log.i("Media", "Setting SRT maxbw to 0 (follows input)")
+            builder.appendQueryParameter("maxbw", "0")
         }
         if (!queryContains(parsed, "oheadbw")) {
             Log.i("Media", "Setting SRT oheadbw to $overheadBandwidth")

@@ -362,11 +362,8 @@ class RemoteControlAssistant(
     }
 
     private fun tryNextTwitchEventSubNotification() {
-        if (twitchEventSubNotiticationWaitForResponse) {
-            return
-        }
         val message = twitchEventSubNotitications.firstOrNull()
-        if (message == null) {
+        if (twitchEventSubNotiticationWaitForResponse || message == null) {
             return
         }
         twitchEventSubNotiticationWaitForResponse = true

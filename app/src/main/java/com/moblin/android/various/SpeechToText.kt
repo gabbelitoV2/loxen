@@ -81,11 +81,9 @@ class SpeechToText : SFSpeechRecognizerDelegate {
             running = false
             recognitionRequest.endAudio()
         }
-        if (now - latestResultTime > 5_000_000_000L) {
-            if (frozenText.isNotEmpty()) {
-                clearFrozenText()
-                delegate?.speechToTextClear()
-            }
+        if (now - latestResultTime > 5_000_000_000L && frozenText.isNotEmpty()) {
+            clearFrozenText()
+            delegate?.speechToTextClear()
         }
     }
 

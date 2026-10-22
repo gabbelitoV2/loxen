@@ -241,10 +241,8 @@ class RemoteConnection(
     }
 
     fun handleSrtlaAckSn(sn: UInt) {
-        if (packetsInFlight.remove(sn)) {
-            if (packetsInFlight.size * windowMultiply > windowSize) {
-                windowSize += windowIncrement - 1
-            }
+        if (packetsInFlight.remove(sn) && packetsInFlight.size * windowMultiply > windowSize) {
+            windowSize += windowIncrement - 1
         }
         windowSize = minOf(windowSize + 1, windowMaximum * windowMultiply)
     }

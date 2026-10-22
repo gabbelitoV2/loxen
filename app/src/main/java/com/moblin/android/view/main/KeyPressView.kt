@@ -44,11 +44,7 @@ open class KeyPressUIView(context: Context = AppDelegate.context) : UIView(conte
     }
 
     private fun claimFocus() {
-        if (!isAttachedToWindow) {
-            reclaimFocusTimer.stop()
-            return
-        }
-        if (hasFocus()) {
+        if (!isAttachedToWindow || hasFocus()) {
             reclaimFocusTimer.stop()
             return
         }

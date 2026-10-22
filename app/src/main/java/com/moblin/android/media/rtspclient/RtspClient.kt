@@ -416,10 +416,7 @@ private class RtpProcessorVideoH264(
     }
 
     private fun decodeFrame() {
-        if (data.size <= 4) {
-            return
-        }
-        if (!AvcNalUnitType.isPicture((data[4].toInt() and 0x1F).toUByte())) {
+        if (data.size <= 4 || !AvcNalUnitType.isPicture((data[4].toInt() and 0x1F).toUByte())) {
             return
         }
         tryDecodeFrame()
@@ -487,10 +484,7 @@ private class RtpProcessorVideoH265(
     }
 
     private fun decodeFrame() {
-        if (data.size <= 4) {
-            return
-        }
-        if (!HevcNalUnitType.isPicture(((data[4].toInt() and 0xFF) shr 1 and 0x3F).toUByte())) {
+        if (data.size <= 4 || !HevcNalUnitType.isPicture(((data[4].toInt() and 0xFF) shr 1 and 0x3F).toUByte())) {
             return
         }
         tryDecodeFrame()

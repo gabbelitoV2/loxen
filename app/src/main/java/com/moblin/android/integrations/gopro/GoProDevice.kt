@@ -237,11 +237,7 @@ class GoProDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
 
     private fun connectToScannedWifi() {
         val scanMatch = scanMatch
-        if (scanMatch == null) {
-            fail(state = GoProDeviceState.wifiSetupFailed)
-            return
-        }
-        if (scanMatch.isUnsupportedType()) {
+        if (scanMatch == null || scanMatch.isUnsupportedType()) {
             fail(state = GoProDeviceState.wifiSetupFailed)
             return
         }
@@ -390,8 +386,8 @@ class GoProDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
     private fun processScanningNotification(payload: ByteArray) {
         val notification = runCatching {
             OpenGopro_NotifStartScanning(serializedBytes = payload)
-        }.getOrNull() ?: return
-        if (state != GoProDeviceState.settingUpWifi) {
+        }.getOrNull()
+        if (notification == null || state != GoProDeviceState.settingUpWifi) {
             return
         }
         when (notification.scanningState) {
@@ -421,8 +417,8 @@ class GoProDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
     private fun processGetApEntriesResponse(payload: ByteArray) {
         val response = runCatching {
             OpenGopro_ResponseGetApEntries(serializedBytes = payload)
-        }.getOrNull() ?: return
-        if (state != GoProDeviceState.settingUpWifi || scanId == null) {
+        }.getOrNull()
+        if (response == null || state != GoProDeviceState.settingUpWifi || scanId == null) {
             return
         }
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {

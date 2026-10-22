@@ -62,8 +62,11 @@ fun Model.executeChatBotMessage() {
 }
 
 private fun Model.handleChatBotMessage(message: ChatBotMessage) {
-    val command = ChatBotCommand(message = message, aliases = database.chat.aliases) ?: return
-    val mainCommand = command.popFirstArgument<ChatBotMainArgument>() ?: return
+    val command = ChatBotCommand(message = message, aliases = database.chat.aliases)
+    val mainCommand = command?.popFirstArgument<ChatBotMainArgument>()
+    if (command == null || mainCommand == null) {
+        return
+    }
     when (mainCommand) {
         ChatBotMainArgument.help -> handleChatBotMessageHelp(platform = message.platform)
         ChatBotMainArgument.tts -> handleChatBotMessageTts(command = command)
@@ -506,10 +509,15 @@ private fun Model.handleChatBotMessageGimbal(command: ChatBotCommand) {
 }
 
 private fun Model.handleChatBotMessageGimbalPreset(command: ChatBotCommand) {
-    val presetName = command.popFirstLowerCased() ?: return
-    val preset = database.gimbal.presets.firstOrNull {
-        it.name.lowercase() == presetName
-    } ?: return
+    val presetName = command.popFirstLowerCased()
+    val preset = presetName?.let { name ->
+        database.gimbal.presets.firstOrNull {
+            it.name.lowercase() == name
+        }
+    }
+    if (presetName == null || preset == null) {
+        return
+    }
     moveToGimbalPreset(id = preset.id)
 }
 
@@ -788,23 +796,22 @@ private fun Model.handleChatBotMessageWidget(command: ChatBotCommand) {
         command = command,
         onCompleted = {
             val name = command.popFirst()
-            if (name != null) {
-                val widget = findWidget(name = name)
-                if (widget != null) {
-                    when (command.popFirstArgument<ChatBotWidgetArgument>()) {
-                        ChatBotWidgetArgument.enable -> handleChatBotMessageWidgetEnable(widget = widget)
-                        ChatBotWidgetArgument.disable -> handleChatBotMessageWidgetDisable(widget = widget)
-                        ChatBotWidgetArgument.timer -> handleChatBotMessageWidgetTimer(
-                            command = command,
-                            widget = widget
-                        )
-                        ChatBotWidgetArgument.wheelOfLuck -> handleChatBotMessageWidgetWheelOfLuck(
-                            command = command,
-                            widget = widget
-                        )
-                        else -> Unit
-                    }
-                }
+            val widget = name?.let { findWidget(name = it) }
+            if (name == null || widget == null) {
+                return@executeIfUserAllowedToUseChatBot
+            }
+            when (command.popFirstArgument<ChatBotWidgetArgument>()) {
+                ChatBotWidgetArgument.enable -> handleChatBotMessageWidgetEnable(widget = widget)
+                ChatBotWidgetArgument.disable -> handleChatBotMessageWidgetDisable(widget = widget)
+                ChatBotWidgetArgument.timer -> handleChatBotMessageWidgetTimer(
+                    command = command,
+                    widget = widget
+                )
+                ChatBotWidgetArgument.wheelOfLuck -> handleChatBotMessageWidgetWheelOfLuck(
+                    command = command,
+                    widget = widget
+                )
+                else -> Unit
             }
         }
     )
@@ -824,10 +831,7 @@ private fun Model.handleChatBotMessageWidgetDisable(widget: SettingsWidget) {
 
 private fun Model.handleChatBotMessageWidgetTimer(command: ChatBotCommand, widget: SettingsWidget) {
     val effects = getTextEffects(id = widget.id)
-    if (effects.isEmpty()) {
-        return
-    }
-    if (widget.text.timers.isEmpty()) {
+    if (effects.isEmpty() || widget.text.timers.isEmpty()) {
         return
     }
     val number = command.popFirstInt(1..widget.text.timers.size) ?: return

@@ -54,8 +54,7 @@ class MoblinkScanner(
         val streamers = mutableListOf<MoblinkScannerStreamer>()
         for (service in services) {
             val metadata = service.service.attributes ?: continue
-            val nameData = metadata["name"] ?: continue
-            val name = String(nameData, Charsets.UTF_8)
+            val name = metadata["name"]?.let { String(it, Charsets.UTF_8) } ?: continue
             streamers.add(MoblinkScannerStreamer(name = name, urls = service.urls.toList()))
         }
         val listener = delegate ?: return

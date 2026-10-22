@@ -14,10 +14,9 @@ class BufferedStats {
     }
 
     fun getStats(presentationTimeStamp: Double): Pair<Int, Int>? {
-        if (presentationTimeStamp <= latestPresentationTimeStamp + outputInterval) {
-            return null
-        }
-        if (numberOfDuplicated <= 0 && numberOfDropped <= 0) {
+        if (presentationTimeStamp <= latestPresentationTimeStamp + outputInterval ||
+            (numberOfDuplicated <= 0 && numberOfDropped <= 0)
+        ) {
             return null
         }
         val result = numberOfDuplicated to numberOfDropped

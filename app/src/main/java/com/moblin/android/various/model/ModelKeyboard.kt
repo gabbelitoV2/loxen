@@ -19,13 +19,14 @@ fun Model.handleKeyPresses(presses: Set<KeyEvent>, pressed: Boolean): Boolean {
     var handled = false
     for (press in presses) {
         val pressCharacters = characters(press)
-        if (pressCharacters.isEmpty()) {
+        val keyboardKey = database.keyboard.keys.firstOrNull { it.key == pressCharacters }
+        if (pressCharacters.isEmpty() ||
+            press.isCtrlPressed ||
+            press.isMetaPressed ||
+            keyboardKey == null
+        ) {
             continue
         }
-        if (press.isCtrlPressed || press.isMetaPressed) {
-            continue
-        }
-        val keyboardKey = database.keyboard.keys.firstOrNull { it.key == pressCharacters } ?: continue
         mainScope.launch {
             handleControllerFunction(
                 buttonId = "kb:${keyboardKey.key}",

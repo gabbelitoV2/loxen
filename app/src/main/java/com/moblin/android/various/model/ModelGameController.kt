@@ -259,10 +259,7 @@ fun Model.handleGameControllerThumbStick(
 
 private fun Model.getGameControllerIndex(gameController: InputDevice): Int? {
     val index = gameControllers.indexOf(gameController)
-    if (index < 0) {
-        return null
-    }
-    if (index >= database.gameControllers.size) {
+    if (index < 0 || index >= database.gameControllers.size) {
         return null
     }
     return index

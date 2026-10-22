@@ -133,13 +133,14 @@ class AdaptiveBitrateSrtFight(
             pifSpikeDiff = settings.packetsInFlight
         }
         val pifDiffThing = settings.packetsInFlight - pifSpikeDiff
-        if (smoothPif < settings.packetsInFlight.toDouble() && fastRtt <= avgRtt + allowedRttJitter) {
-            if (stats.packetsInFlight - smoothPif < allowedPifJitter) {
-                currentMaximumBitrate +=
-                    (settings.pifDiffIncreaseFactor * pifDiffThing) / settings.packetsInFlight
-                if (currentMaximumBitrate > targetBitrate) {
-                    currentMaximumBitrate = targetBitrate
-                }
+        if (smoothPif < settings.packetsInFlight.toDouble() &&
+            fastRtt <= avgRtt + allowedRttJitter &&
+            stats.packetsInFlight - smoothPif < allowedPifJitter
+        ) {
+            currentMaximumBitrate +=
+                (settings.pifDiffIncreaseFactor * pifDiffThing) / settings.packetsInFlight
+            if (currentMaximumBitrate > targetBitrate) {
+                currentMaximumBitrate = targetBitrate
             }
         }
     }

@@ -114,8 +114,9 @@ class VideoSourceEffect : VideoEffect() {
             var anyFaceUsed = false
             for (faceDetection in faceDetections) {
                 val boundingBox = faceDetection.stableBoundingBox(imageSize = videoSourceImageSize)
-                    ?: continue
-                if (!shouldUseFace(boundingBox, biggestBoundingBox, videoSourceImageSize)) {
+                if (boundingBox == null ||
+                    !shouldUseFace(boundingBox, biggestBoundingBox, videoSourceImageSize)
+                ) {
                     continue
                 }
                 left = minOf(left, boundingBox.minX)

@@ -73,10 +73,7 @@ fun Model.suspendRecording() {
 }
 
 fun Model.startRecorderIfNeeded() {
-    if (isRecorderRecording) {
-        return
-    }
-    if (!(isRecording.value || stream.value.replay.enabled)) {
+    if (isRecorderRecording || (!isRecording.value && !stream.value.replay.enabled)) {
         return
     }
     isRecorderRecording = true

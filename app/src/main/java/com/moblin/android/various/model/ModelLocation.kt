@@ -174,10 +174,7 @@ private fun Model.resetSplitAltitude() {
 }
 
 private fun Model.handleLocationUpdate(location: Location) {
-    if (!isLive.value) {
-        return
-    }
-    if (isLocationInPrivacyRegion(location)) {
+    if (!isLive.value || isLocationInPrivacyRegion(location)) {
         return
     }
     realtimeIrl?.update(location)

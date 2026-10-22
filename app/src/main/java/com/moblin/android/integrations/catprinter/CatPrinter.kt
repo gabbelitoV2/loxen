@@ -188,10 +188,10 @@ class CatPrinter : CBCentralManagerDelegate, CBPeripheralDelegate {
             reconnect()
             return
         }
-        if (currentJob != null) {
+        val printJob = if (currentJob == null) printJobs.removeFirstOrNull() else null
+        if (printJob == null) {
             return
         }
-        val printJob = printJobs.removeFirstOrNull() ?: return
         val image = try {
             processImage(image = printJob.image, printMode = printJob.printMode)
         } catch (error: Exception) {
@@ -571,8 +571,7 @@ class CatPrinter : CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     private fun handleMessageMxw01(characteristic: CBCharacteristic) {
-        val value = characteristic.value ?: return
-        val command = CatPrinterCommandMxw01(value) ?: return
+        val command = characteristic.value?.let { CatPrinterCommandMxw01(it) } ?: return
         val currentJob = currentJob ?: return
         when (currentJob.state) {
             JobState.waitingForReady -> handleMessageMxw01WaitingForReady(command, currentJob)
@@ -632,9 +631,8 @@ class CatPrinter : CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     private fun handleMessageDefault(characteristic: CBCharacteristic) {
-        val value = characteristic.value ?: return
         val currentJob = currentJob ?: return
-        val command = CatPrinterCommand(value) ?: return
+        val command = characteristic.value?.let { CatPrinterCommand(it) } ?: return
         when (currentJob.state) {
             JobState.idle -> {}
             JobState.waitingForReady -> when (command) {

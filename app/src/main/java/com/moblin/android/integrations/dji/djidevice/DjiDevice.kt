@@ -498,10 +498,7 @@ open class DjiDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
         characteristic: CBCharacteristic,
         error: Throwable?,
     ) {
-        if (state != DjiDeviceState.connecting) {
-            return
-        }
-        if (characteristic.uuid != fff4Id) {
+        if (state != DjiDeviceState.connecting || characteristic.uuid != fff4Id) {
             return
         }
         val payload = DjiPairMessagePayload(pairPinCode = pairPinCode)

@@ -130,10 +130,8 @@ class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
         val zoomOutFactor = this.zoomOutFactor
         val isLocationUpdated = this.isLocationUpdated
         this.isLocationUpdated = false
-        if (newLocation == null) {
-            return
-        }
-        if (!(size.width != this.size.width
+        if (newLocation == null
+            || !(size.width != this.size.width
                 || size.height != this.size.height
                 || newLocation.latitude != location.latitude
                 || newLocation.longitude != location.longitude

@@ -50,8 +50,10 @@ class DriftTracker(private val name: String) {
         outputPresentationTimeStamp: Double,
         newestPresentationTimeStamp: Double,
     ) {
-        val mediaState = state(media) ?: return
-        if (outputPresentationTimeStamp <= mediaState.latestFillLevelPresentationTimeStamp + 0.5) {
+        val mediaState = state(media)
+        if (mediaState == null ||
+            outputPresentationTimeStamp <= mediaState.latestFillLevelPresentationTimeStamp + 0.5
+        ) {
             return
         }
         mediaState.latestFillLevelPresentationTimeStamp = outputPresentationTimeStamp

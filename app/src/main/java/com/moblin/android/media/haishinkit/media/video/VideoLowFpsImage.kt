@@ -24,10 +24,7 @@ class VideoLowFpsImage(context: Any) {
     }
 
     fun handleImageBuffer(imageBuffer: Image, presentationTimeStamp: Double) {
-        if (!enabled) {
-            return
-        }
-        if (presentationTimeStamp <= latest + interval) {
+        if (!enabled || presentationTimeStamp <= latest + interval) {
             return
         }
         latest = presentationTimeStamp

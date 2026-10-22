@@ -51,10 +51,10 @@ class QrCodeEffect(private val widget: SettingsWidgetQrCode) : VideoEffect() {
         val newExtent = newSceneWidget.layout.extent()
         val sameExtent = newExtent.width() == oldExtent?.width() && newExtent.height() == oldExtent?.height()
         val sameSize = size.width == this.size.width && size.height == this.size.height
+        val data = widget.message.toByteArray(Charsets.UTF_8)
         if (sameExtent && sameSize) {
             return
         }
-        val data = widget.message.toByteArray(Charsets.UTF_8)
         val filter = CIFilter.qrCodeGenerator()
         filter.message = data
         filter.correctionLevel = "M"

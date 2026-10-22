@@ -283,10 +283,7 @@ fun failedToConnectMessage(name: String): String {
 
 fun Model.startStream(delayed: Boolean = false) {
     Log.i(TAG, "stream: Start")
-    if (isChatPhone()) {
-        return
-    }
-    if (streaming) {
+    if (isChatPhone() || streaming) {
         return
     }
     if (delayed && !isLive.value) {
@@ -370,10 +367,9 @@ fun Model.isGoLiveNotificationConfigured(): Boolean {
 }
 
 private fun Model.isGoLiveNotificationDiscordConfigured(): Boolean {
-    if (stream.value.goLiveNotificationDiscordMessage.isEmpty()) {
-        return false
-    }
-    if (stream.value.goLiveNotificationDiscordWebhookUrl.isEmpty()) {
+    if (stream.value.goLiveNotificationDiscordMessage.isEmpty() ||
+        stream.value.goLiveNotificationDiscordWebhookUrl.isEmpty()
+    ) {
         return false
     }
     return true
@@ -905,10 +901,7 @@ fun Model.updateSrtlaPriorities() {
 }
 
 private fun Model.checkLowBitrate(speed: Long, now: Long) {
-    if (!database.lowBitrateWarning) {
-        return
-    }
-    if (streamState != StreamState.connected) {
+    if (!database.lowBitrateWarning || streamState != StreamState.connected) {
         return
     }
     if (speed < 500_000 && now > latestLowBitrateTime.toEpochMilli() + 15_000) {
@@ -918,10 +911,8 @@ private fun Model.checkLowBitrate(speed: Long, now: Long) {
 }
 
 private fun Model.handleLowFpsImage(image: ByteArray, frameNumber: ULong) {
-    if (frameNumber % lowFpsImageFps.toULong() == 0UL) {
-        if (isWatchLocal()) {
-            sendPreviewToWatch(image = image)
-        }
+    if (frameNumber % lowFpsImageFps.toULong() == 0UL && isWatchLocal()) {
+        sendPreviewToWatch(image = image)
     }
     sendPreviewToRemoteControlAssistant(preview = image)
     sendPreviewToRemoteControlWeb(preview = image)

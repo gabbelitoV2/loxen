@@ -42,11 +42,11 @@ open class DjiDeviceScanner : CBCentralManagerDelegate {
         rssi: Int,
     ) {
         val manufacturerData =
-            advertisementData[CBAdvertisementDataManufacturerDataKey] as? ByteArray ?: return
-        if (!isDjiDevice(manufacturerData = manufacturerData)) {
-            return
-        }
-        if (discoveredDevices.value.any { it.peripheral == peripheral }) {
+            advertisementData[CBAdvertisementDataManufacturerDataKey] as? ByteArray
+        if (manufacturerData == null ||
+            !isDjiDevice(manufacturerData = manufacturerData) ||
+            discoveredDevices.value.any { it.peripheral == peripheral }
+        ) {
             return
         }
         val model = djiModelFromManufacturerData(data = manufacturerData)

@@ -152,10 +152,7 @@ private fun submitVideoBitrateChange(recording: SettingsStreamRecording, value: 
 }
 
 private fun submitMaxKeyFrameInterval(recording: SettingsStreamRecording, value: String) {
-    val interval = value.toIntOrNull() ?: return
-    if (interval < 0 || interval > 10) {
-        return
-    }
+    val interval = value.toIntOrNull()?.takeIf { it in 0..10 } ?: return
     recording.maxKeyFrameInterval = interval
 }
 

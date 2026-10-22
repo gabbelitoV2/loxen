@@ -90,8 +90,7 @@ fun Model.getCurrentMediaPlayer(): MediaPlayer? {
     if (scene.videoSource.cameraPosition != com.moblin.android.various.settings.SettingsSceneCameraPosition.mediaPlayer) {
         return null
     }
-    val mediaPlayerSettings = getMediaPlayer(id = scene.videoSource.mediaPlayerCameraId)
-        ?: return null
+    val mediaPlayerSettings = getMediaPlayer(id = scene.videoSource.mediaPlayerCameraId) ?: return null
     return mediaPlayers[mediaPlayerSettings.id]
 }
 

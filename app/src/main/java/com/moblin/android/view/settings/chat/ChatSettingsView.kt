@@ -26,8 +26,8 @@ import com.moblin.android.various.model.reloadChatMessages
 import com.moblin.android.various.model.reloadChats
 
 private fun submitMaximumAge(chat: SettingsChat, value: String) {
-    val maximumAge = value.toIntOrNull() ?: return
-    if (maximumAge <= 0) {
+    val maximumAge = value.toIntOrNull()
+    if (maximumAge == null || maximumAge <= 0) {
         return
     }
     chat.maximumAge = maximumAge

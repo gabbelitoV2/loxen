@@ -420,14 +420,13 @@ class WebrtcIngestClient(
         val timestampSeconds = audioTimestamper.timestampSeconds(
             trackId = audioTrackId,
             timestamp = timestamp,
-        ) ?: return
-        if (data.isEmpty()) {
-            return
-        }
+        )
         val opusCompressedBuffer = opusCompressedBuffer
         val opusAudioConverter = opusAudioConverter
         val pcmAudioBuffer = pcmAudioBuffer
-        if (opusCompressedBuffer == null ||
+        if (timestampSeconds == null ||
+            data.isEmpty() ||
+            opusCompressedBuffer == null ||
             opusAudioConverter == null ||
             pcmAudioBuffer == null ||
             pcmAudioFormat == null

@@ -153,10 +153,9 @@ fun Model.kickAccessTokenUpdated() {
 }
 
 fun Model.updateKickChannelInfoIfNeeded() {
-    if (stream.value.kickChannelName.isEmpty()) {
-        return
-    }
-    if (stream.value.kickChannelId != null && stream.value.kickSlug != null && stream.value.kickChatroomChannelId != null) {
+    if (stream.value.kickChannelName.isEmpty() ||
+        (stream.value.kickChannelId != null && stream.value.kickSlug != null && stream.value.kickChatroomChannelId != null)
+    ) {
         return
     }
     getKickChannelInfo(channelName = stream.value.kickChannelName) { channelInfo ->

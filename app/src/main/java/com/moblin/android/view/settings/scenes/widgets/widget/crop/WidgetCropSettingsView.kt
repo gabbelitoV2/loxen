@@ -47,8 +47,8 @@ private fun submitWidth(model: Model, widget: SettingsWidget, value: String) {
 }
 
 private fun submitHeight(model: Model, widget: SettingsWidget, value: String) {
-    val height = value.toIntOrNull() ?: return
-    if (height <= 0) {
+    val height = value.toIntOrNull()
+    if (height == null || height <= 0) {
         return
     }
     widget.crop.height = height

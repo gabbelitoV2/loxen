@@ -240,12 +240,8 @@ private fun loadVideoSound(path: String, onCompleted: (String?) -> Unit) {
     asset.loadTracks(withMediaType = AVMediaType.audio) { tracks, error ->
         alertsBackgroundScope.launch {
             val reader = runCatching { AVAssetReader(asset = asset) }.getOrNull()
-            if (reader == null) {
-                alertsMainScope.launch { onCompleted(null) }
-                return@launch
-            }
             val track = tracks?.firstOrNull()
-            if (track == null || error != null) {
+            if (reader == null || track == null || error != null) {
                 alertsMainScope.launch { onCompleted(null) }
                 return@launch
             }

@@ -35,10 +35,9 @@ private fun submitStreamId(
     stream: SettingsSrtlaServerStream,
 ) {
     val streamId = value.trim()
-    if (!Regex("[a-zA-Z0-9]*").matches(streamId)) {
-        return
-    }
-    if (srtlaServer.streams.any { it.streamId == streamId }) {
+    if (!Regex("[a-zA-Z0-9]*").matches(streamId) ||
+        srtlaServer.streams.any { it.streamId == streamId }
+    ) {
         return
     }
     stream.streamId = streamId

@@ -149,13 +149,8 @@ fun Model.clearRemoteControlAssistantLog() {
 fun Model.reloadRemoteControlStreamer() {
     remoteControlStreamer?.stop()
     remoteControlStreamer = null
-    if (!isRemoteControlStreamerConfigured()) {
-        reloadTwitchEventSub()
-        reloadChats()
-        return
-    }
     val url = runCatching { URI(database.remoteControl.streamer.url) }.getOrNull()
-    if (url == null) {
+    if (!isRemoteControlStreamerConfigured() || url == null) {
         reloadTwitchEventSub()
         reloadChats()
         return
@@ -450,12 +445,12 @@ fun Model.remoteControlAssistantStopStats() {
 fun Model.reloadRemoteControlRelay() {
     remoteControlRelay?.stop()
     remoteControlRelay = null
-    if (!isRemoteControlRelayConfigured()) {
-        return
-    }
     val assistantUrl = runCatching {
         URI("ws://localhost:${database.remoteControl.assistant.port}")
-    }.getOrNull() ?: return
+    }.getOrNull()
+    if (!isRemoteControlRelayConfigured() || assistantUrl == null) {
+        return
+    }
     remoteControlRelay = RemoteControlRelay(
         context = AppDelegate.context,
         baseUrl = database.remoteControl.assistant.relay.baseUrl,
@@ -840,8 +835,8 @@ fun Model.remoteControlStreamerGetSettings(): RemoteControlSettings {
 }
 
 fun Model.remoteControlStreamerSetStream(id: UUID) {
-    val stream = findStream(id = id) ?: return
-    if (stream.enabled || isLive.value || isRecording.value) {
+    val stream = findStream(id = id)
+    if (stream == null || stream.enabled || isLive.value || isRecording.value) {
         return
     }
     setCurrentStream(stream = stream)

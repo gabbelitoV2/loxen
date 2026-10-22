@@ -2200,10 +2200,8 @@ private fun addDefaultBackZoomPresets(database: Database) {
         for (factor in zoomFactors) {
             val x = (factor * scale).roundToInt().toFloat()
             val prevX = xs.lastOrNull()
-            if (prevX != null) {
-                if ((x / prevX) >= 4) {
-                    xs.add(2 * prevX)
-                }
+            if (prevX != null && (x / prevX) >= 4) {
+                xs.add(2 * prevX)
             }
             xs.add(x)
         }

@@ -24,10 +24,11 @@ open class HttpParser {
         }
         val slice = data.copyOfRange(offset, data.size)
         val rIndex = slice.indexOfFirst { it == 0x0D.toByte() }
-        if (rIndex < 0 || slice.size <= rIndex + 1 || slice[rIndex + 1] != 0x0A.toByte()) {
-            return null
-        }
-        val line = decodeUtf8Strict(bytes = slice, offset = 0, length = rIndex) ?: return null
+        val line = if (rIndex < 0 || slice.size <= rIndex + 1 || slice[rIndex + 1] != 0x0A.toByte()) {
+            null
+        } else {
+            decodeUtf8Strict(bytes = slice, offset = 0, length = rIndex)
+        } ?: return null
         return Pair(line, offset + rIndex + 2)
     }
 }

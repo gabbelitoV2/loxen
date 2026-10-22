@@ -96,18 +96,19 @@ private fun makeMtiColor(color: RgbColor): MTIColor =
 private fun makeCheckerboardImage(extent: CGRect, settings: MaskEffectSettings): Bitmap? {
     val width = extent.width.toInt()
     val height = extent.height.toInt()
-    if (width <= 0 || height <= 0) {
-        return null
-    }
-    val context = CGContext(
-        data = null,
-        width = width,
-        height = height,
-        bitsPerComponent = 8,
-        bytesPerRow = 0,
-        space = CGColorSpaceCreateDeviceRGB(),
-        bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue,
-    ) ?: return null
+    val context = if (width > 0 && height > 0) {
+        CGContext(
+            data = null,
+            width = width,
+            height = height,
+            bitsPerComponent = 8,
+            bytesPerRow = 0,
+            space = CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue,
+        )
+    } else {
+        null
+    } ?: return null
     val squareSide = minOf(width, height).toDouble() / checkerboardSquareCount.toDouble()
     context.setFillColor(makeCgColor(settings.backgroundColor))
     context.fill(CGRect(x = 0, y = 0, width = width, height = height))
@@ -162,18 +163,19 @@ class MaskEffect : VideoEffect() {
         }
         val width = extent.width.toInt()
         val height = extent.height.toInt()
-        if (width <= 0 || height <= 0) {
-            return null
-        }
-        val context = CGContext(
-            data = null,
-            width = width,
-            height = height,
-            bitsPerComponent = 8,
-            bytesPerRow = width,
-            space = CGColorSpaceCreateDeviceGray(),
-            bitmapInfo = CGImageAlphaInfo.none.rawValue,
-        ) ?: return null
+        val context = if (width > 0 && height > 0) {
+            CGContext(
+                data = null,
+                width = width,
+                height = height,
+                bitsPerComponent = 8,
+                bytesPerRow = width,
+                space = CGColorSpaceCreateDeviceGray(),
+                bitmapInfo = CGImageAlphaInfo.none.rawValue,
+            )
+        } else {
+            null
+        } ?: return null
         val backgroundGray: Double = if (settings.inverted) 1.0 else 0.0
         val polygonGray: Double = if (settings.inverted) 0.0 else 1.0
         context.setFillColor(gray = backgroundGray, alpha = 1.0)

@@ -135,10 +135,7 @@ private data class MaskImage(
 ) {
     fun get(extent: CGRect, settings: ShapeEffectSettings): CIImage? {
         val cachedExtent = this.extent
-        if (cachedExtent == null || !shapeSameExtent(cachedExtent, extent)) {
-            return null
-        }
-        if (cornerRadius != settings.cornerRadius) {
+        if (cachedExtent == null || !shapeSameExtent(cachedExtent, extent) || cornerRadius != settings.cornerRadius) {
             return null
         }
         return image

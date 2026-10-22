@@ -12,10 +12,7 @@ import com.moblin.android.moblinliveactivity.shared.LiveActionFunction
 import com.moblin.android.moblinliveactivity.shared.LiveActivityAttributes
 
 fun Model.startLiveActivity() {
-    if (!ActivityAuthorizationInfo().areActivitiesEnabled) {
-        return
-    }
-    if (liveActivity != null) {
+    if (!ActivityAuthorizationInfo().areActivitiesEnabled || liveActivity != null) {
         return
     }
     try {

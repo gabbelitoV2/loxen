@@ -1,9 +1,30 @@
 {
-  "upstream": "b293e6dafda62993032ac50b2ee50b636c516935",
+  "upstream": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "Moblin/Various/Model/Model.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/Model.kt",
+      "reason": "hook",
+      "ported_from": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+      "errors": [],
+      "hooks": [
+        "R11.10 (T11.json) various/model/Model.kt [fun updateBrowserWidgetStatus]: neither the old nor the new line was found"
+      ]
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelScene.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
+      "reason": "hook",
+      "ported_from": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
+      "errors": [],
+      "hooks": [
+        "H11.12 (T11.json) various/model/ModelScene.kt [fun getBuiltinCameraDevices(]: neither the old nor the new line was found"
+      ]
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

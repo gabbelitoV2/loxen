@@ -259,21 +259,20 @@ fun Model.appendChatMessage(
 ) {
     val filter = evaluateFilters(user = user, segments = segments)
     if (platform != null && database.chat.botEnabled && live && filter?.chatBot != false &&
-        segments.firstOrNull()?.text?.trim()?.startsWith("!") == true
+        segments.firstOrNull()?.text?.trim()?.startsWith("!") == true &&
+        (chatBotMessages.size < 25 || isModerator)
     ) {
-        if (chatBotMessages.size < 25 || isModerator) {
-            chatBotMessages.add(
-                ChatBotMessage(
-                    platform = platform,
-                    user = user,
-                    isOwner = isOwner,
-                    isModerator = isModerator,
-                    isSubscriber = isSubscriber,
-                    userId = userId,
-                    segments = segments,
-                )
+        chatBotMessages.add(
+            ChatBotMessage(
+                platform = platform,
+                user = user,
+                isOwner = isOwner,
+                isModerator = isModerator,
+                isSubscriber = isSubscriber,
+                userId = userId,
+                segments = segments,
             )
-        }
+        )
     }
     if (pollEnabled && live && filter?.poll != false) {
         handlePollVote(vote = segments.firstOrNull()?.text?.trim())

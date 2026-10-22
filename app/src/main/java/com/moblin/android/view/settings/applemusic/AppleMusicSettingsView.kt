@@ -51,6 +51,7 @@ import com.moblin.android.various.model.MusicQueueState
 import com.moblin.android.localized
 import com.moblin.android.various.model.addMusic
 import com.moblin.android.various.model.loadMusic
+import com.moblin.android.various.model.maximumMusicQueueLength
 import com.moblin.android.various.model.moblinCloudSendSongRequests
 import com.moblin.android.various.model.nextMusic
 import com.moblin.android.various.model.pauseMusic
@@ -157,16 +158,26 @@ private fun PlaylistView(
 ) {
     val songs = musicPlaylist.songs()
     val currentIndex = musicPlaylist.currentIndex()
-    Section(headerContent = {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(localized("Playlist"))
-            Spacer(Modifier.weight(1f))
-            PlaylistEndView(musicPlaylist = musicPlaylist, queue = queue)
-        }
-    }) {
+    Section(
+        headerContent = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(localized("Playlist"))
+                Spacer(Modifier.weight(1f))
+                PlaylistEndView(musicPlaylist = musicPlaylist, queue = queue)
+            }
+        },
+        footerContent = {
+            Text(
+                localized(
+                    "The playlist holds at most $maximumMusicQueueLength songs. The oldest song is " +
+                        "removed when a song is added to a full playlist.",
+                ),
+            )
+        },
+    ) {
         ForEach(
             items = songs.withIndex().toList(),
             id = { it.value.id },

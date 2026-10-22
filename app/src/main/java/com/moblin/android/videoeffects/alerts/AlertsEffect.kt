@@ -311,10 +311,10 @@ class AlertsEffect(
     }
 
     private fun tryPlayNextAlert() {
-        if (isPlaying) {
+        val alert = if (isPlaying) null else alertsQueue.removeFirstOrNull()
+        if (alert == null) {
             return
         }
-        val alert = alertsQueue.removeFirstOrNull() ?: return
         when (alert) {
             is AlertsEffectAlert.TwitchFollow -> playTwitchFollow(event = alert.event)
             is AlertsEffectAlert.TwitchSubscribe -> playTwitchSubscribe(event = alert.event)
@@ -350,10 +350,7 @@ class AlertsEffect(
         val commandIndex = settings.chatBot.commands.indexOfFirst {
             command == it.name && it.alert.enabled
         }
-        if (commandIndex == -1) {
-            return
-        }
-        if (commandIndex >= chatBotCommandsMedias.size) {
+        if (commandIndex == -1 || commandIndex >= chatBotCommandsMedias.size) {
             return
         }
         val media = chatBotCommandsMedias[commandIndex]
@@ -372,10 +369,7 @@ class AlertsEffect(
         val stringIndex = settings.speechToText.strings.indexOfFirst {
             it.id == id && it.alert.enabled
         }
-        if (stringIndex == -1) {
-            return
-        }
-        if (stringIndex >= speechToTextStringsMedias.size) {
+        if (stringIndex == -1 || stringIndex >= speechToTextStringsMedias.size) {
             return
         }
         play(
@@ -640,11 +634,13 @@ class AlertsEffect(
         imageSize: CGSize,
         landmarkSettings: AlertsEffectLandmarkSettings,
     ): FacePlacement? {
-        val rotationAngle = detection.calcFaceAngle(imageSize = imageSize) ?: return null
-        val boundingBox = detection.stableBoundingBox(
-            imageSize = imageSize,
-            rotationAngle = rotationAngle,
-        ) ?: return null
+        val rotationAngle = detection.calcFaceAngle(imageSize = imageSize)
+        val boundingBox = rotationAngle?.let {
+            detection.stableBoundingBox(imageSize = imageSize, rotationAngle = it)
+        }
+        if (rotationAngle == null || boundingBox == null) {
+            return null
+        }
         val faceMinX = boundingBox.minX
         val faceMaxY = boundingBox.maxY
         val faceWidth = boundingBox.width

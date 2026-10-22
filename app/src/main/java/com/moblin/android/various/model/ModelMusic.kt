@@ -81,6 +81,8 @@ private val actions: ArrayDeque<Action> = ArrayDeque()
 
 private var playRequested = true
 
+const val maximumMusicQueueLength = 250
+
 private val playlistQueue =
     CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
@@ -278,6 +280,10 @@ private suspend fun Model.addAction(
     requestId: String?,
     onCompleted: (MusicAddResult) -> Unit,
 ) {
+    Unit
+}
+
+private fun Model.removeOldestMusicIfFull() {
     Unit
 }
 

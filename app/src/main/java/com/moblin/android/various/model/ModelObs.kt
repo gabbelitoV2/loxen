@@ -76,13 +76,10 @@ private class ModelObsWebsocketDelegate(private val model: Model) : ObsWebsocket
 }
 
 fun Model.updateObsSourceScreenshot() {
-    if (!obsQuickButton.sourceFetchScreenshot) {
-        return
-    }
-    if (obsQuickButton.sourceScreenshotIsFetching) {
-        return
-    }
-    if (obsQuickButton.currentScene.value.isEmpty()) {
+    if (!obsQuickButton.sourceFetchScreenshot ||
+        obsQuickButton.sourceScreenshotIsFetching ||
+        obsQuickButton.currentScene.value.isEmpty()
+    ) {
         return
     }
     obsWebSocket?.getSourceScreenshot(
@@ -207,11 +204,11 @@ fun Model.updateObsAudioInputs(sceneName: String) {
                             for (input in inputs) {
                                 if (specialInputs.mics().contains(input)) {
                                     obsSceneInputs.add(ObsSceneInput(name = input))
-                                } else if (sceneItems.any { it.sourceName == input }) {
-                                    val sceneItem = sceneItems.firstOrNull { it.sourceName == input }
-                                    if (sceneItem?.sceneItemEnabled == true) {
-                                        obsSceneInputs.add(ObsSceneInput(name = input))
-                                    }
+                                } else if (sceneItems.any { it.sourceName == input } &&
+                                    sceneItems.firstOrNull { it.sourceName == input }
+                                        ?.sceneItemEnabled == true
+                                ) {
+                                    obsSceneInputs.add(ObsSceneInput(name = input))
                                 }
                             }
                             obsWebSocket?.getInputMuteBatch(
@@ -448,11 +445,7 @@ private fun Model.makeStreamLikelyWorkingToast(scene: String) {
 fun Model.reloadObsWebSocket() {
     obsWebSocket?.stop()
     obsWebSocket = null
-    if (!isObsRemoteControlConfigured()) {
-        updateStatusObsText()
-        return
-    }
-    if (stream.obsWebSocketUrl.isEmpty()) {
+    if (!isObsRemoteControlConfigured() || stream.obsWebSocketUrl.isEmpty()) {
         updateStatusObsText()
         return
     }

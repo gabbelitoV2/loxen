@@ -122,14 +122,11 @@ private fun deletingLastPathComponent(path: String): String {
 
 private fun tagNameAndValue(from: String): Pair<String, String>? {
     val parts = from.split("=", limit = 2)
-    if (parts.size != 2) {
+    if (parts.size != 2 || parts.last().isEmpty()) {
         return null
     }
     val name = parts.first()
     val value = parts.last()
-    if (value.isEmpty()) {
-        return null
-    }
     return Pair(name, unescapeTagValue(value))
 }
 

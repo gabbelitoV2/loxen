@@ -860,10 +860,7 @@ private fun Model.handleUpdateGenericScoreboardSetClockState(scoreboard: Setting
 
 private fun Model.padelScoreboardUpdateSetCompleted(scoreboard: SettingsWidgetPadelScoreboard) {
     val score = scoreboard.score.lastOrNull() ?: return
-    if (!isSetCompleted(score = score)) {
-        return
-    }
-    if (isMatchCompleted(scoreboard = scoreboard)) {
+    if (!isSetCompleted(score = score) || isMatchCompleted(scoreboard = scoreboard)) {
         return
     }
     scoreboard.score = scoreboard.score + SettingsWidgetScoreboardScore()

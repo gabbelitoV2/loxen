@@ -45,10 +45,7 @@ fun Model.updateVideoPreviews() {
                 continue
             }
             val cameraId = runCatching { UUID.fromString(camera.id) }.getOrNull()
-            if (cameraId == null) {
-                continue
-            }
-            if (!activeBufferedVideoIds.contains(cameraId)) {
+            if (cameraId == null || !activeBufferedVideoIds.contains(cameraId)) {
                 continue
             }
             appendVideoPreviewIfNeeded(cameraId = cameraId, name = camera.name, oldFeeds = oldFeeds)

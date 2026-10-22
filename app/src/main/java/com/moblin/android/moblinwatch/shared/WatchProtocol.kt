@@ -45,8 +45,7 @@ enum class WatchMessageToWatch(val rawValue: String) {
         )
 
         fun unpack(message: Map<String, Any>): Pair<WatchMessageToWatch, Any>? {
-            val rawType = message["type"] as? String ?: return null
-            val type = fromRawValue(rawType) ?: return null
+            val type = (message["type"] as? String)?.let { fromRawValue(it) } ?: return null
             val data = message["data"] ?: return null
             return Pair(type, data)
         }
@@ -81,8 +80,7 @@ enum class WatchMessageFromWatch(val rawValue: String) {
         )
 
         fun unpack(message: Map<String, Any>): Pair<WatchMessageFromWatch, Any>? {
-            val rawType = message["type"] as? String ?: return null
-            val type = fromRawValue(rawType) ?: return null
+            val type = (message["type"] as? String)?.let { fromRawValue(it) } ?: return null
             val data = message["data"] ?: return null
             return Pair(type, data)
         }

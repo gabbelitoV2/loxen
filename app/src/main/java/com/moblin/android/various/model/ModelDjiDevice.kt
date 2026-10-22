@@ -49,12 +49,11 @@ fun Model.setCurrentDjiDevice(device: SettingsDjiDevice) {
 
 fun Model.reloadDjiDevices() {
     for (deviceId in djiDevices.keys.toList()) {
-        val device = database.djiDevices.devices.firstOrNull { it.id == deviceId } ?: continue
-        if (!device.isStarted) {
-            continue
-        }
-        val djiDevice = djiDevices[device.id] ?: continue
-        if (djiDevice.getState() == DjiDeviceState.streaming) {
+        val device = database.djiDevices.devices.firstOrNull { it.id == deviceId }
+        val djiDevice = device?.let { djiDevices[it.id] }
+        if (device == null || !device.isStarted || djiDevice == null ||
+            djiDevice.getState() == DjiDeviceState.streaming
+        ) {
             continue
         }
         startDjiDeviceLiveStream(device = device)
@@ -107,8 +106,8 @@ fun Model.removeDjiDevices(offsets: Set<Int>) {
 fun Model.updateDjiDevicesStatus() {
     val statuses = mutableListOf<String>()
     for (device in database.djiDevices.devices) {
-        val djiDevice = djiDevices[device.id] ?: continue
-        if (djiDevice.getState() != DjiDeviceState.streaming) {
+        val djiDevice = djiDevices[device.id]
+        if (djiDevice == null || djiDevice.getState() != DjiDeviceState.streaming) {
             continue
         }
         val (status, ok) = formatDeviceStatus(
@@ -157,10 +156,13 @@ private fun Model.startDjiDeviceLiveStreamInternal(
 }
 
 fun Model.automaticDjiServerRtmpUrl(device: SettingsDjiDevice): String? {
-    val stream = getRtmpStream(id = device.serverRtmpStreamId) ?: return null
+    val stream = getRtmpStream(id = device.serverRtmpStreamId)
     val status = statusOther.ipStatuses.value.firstOrNull {
         it.interfaceType.name == "wifi" && it.ipType.name == "ipv4"
-    } ?: return null
+    }
+    if (stream == null || status == null) {
+        return null
+    }
     return rtmpServerStreamUrl(
         address = status.ipType.formatAddress(status.ip),
         port = database.rtmpServer.port,
@@ -193,8 +195,8 @@ private fun Model.restartDjiLiveStreamIfNeeded(device: SettingsDjiDevice) {
         }
         SettingsDjiDeviceUrlType.custom -> return
     }
-    val djiDevice = djiDevices[device.id] ?: return
-    if (!device.isStarted) {
+    val djiDevice = djiDevices[device.id]
+    if (djiDevice == null || !device.isStarted) {
         return
     }
     startDjiDeviceLiveStreamInternal(djiDevice = djiDevice, device = device)

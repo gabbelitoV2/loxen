@@ -25,9 +25,9 @@ class ImageEffect(imageStorage: ImageStorage, widgetId: UUID) : VideoEffect() {
 
     fun loadImage(imageStorage: ImageStorage, widgetId: UUID) {
         CoroutineScope(Dispatchers.Default).launch {
-            val data = imageStorage.read(id = widgetId) ?: return@launch
-            val image = CIImage(data = data, options = mapOf(CIImageOption.applyOrientationProperty to true))
-                ?: return@launch
+            val image = imageStorage.read(id = widgetId)?.let { data ->
+                CIImage(data = data, options = mapOf(CIImageOption.applyOrientationProperty to true))
+            } ?: return@launch
             val originalImage = image.toEffectImage(isOpaque = false)
             processorPipelineQueue.launch {
                 this@ImageEffect.originalImage = originalImage

@@ -139,6 +139,7 @@ import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.moblin.android.various.model.maximumMusicQueueLength
 import com.moblin.android.various.model.remoteControlAssistantMusic
 
 @Composable
@@ -997,7 +998,11 @@ private fun MusicView(model: Model = LocalModel.current, remoteControl: RemoteCo
                     add()
                 }
             }
-            Section(header = "Queue") {
+            Section(
+                header = "Queue",
+                footer = localized("The queue holds at most") + " " + maximumMusicQueueLength + " " +
+                    localized("songs. The oldest song is removed when a song is added to a full queue."),
+            ) {
                 val status = musicStatus
                 if (status != null && status.songs.isNotEmpty()) {
                     val songs = status.songs

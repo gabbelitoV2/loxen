@@ -174,10 +174,10 @@ class AudioEncoder(private val lockQueue: CoroutineDispatcher) {
 }
 
 fun AVAudioConverter.setBitrate(bitrate: Int) {
-    if (bitrate == bitRate) {
+    val bitrates = applicableEncodeBitRates
+    if (bitrate == bitRate || bitrates == null) {
         return
     }
-    val bitrates = applicableEncodeBitRates ?: return
     val minBitrate = bitrates.minOrNull() ?: bitrate
     val maxBitrate = bitrates.maxOrNull() ?: bitrate
     bitRate = bitrate.coerceIn(minBitrate, maxBitrate)

@@ -37,10 +37,7 @@ fun isValidPort(value: String): String? {
 }
 
 fun isValidAudioBitrate(bitrate: Int): Boolean {
-    if (bitrate < 32000 || bitrate > 320_000) {
-        return false
-    }
-    if (bitrate % 32000 != 0) {
+    if (bitrate < 32000 || bitrate > 320_000 || bitrate % 32000 != 0) {
         return false
     }
     return true
@@ -120,10 +117,8 @@ fun isValidUrl(
         return localized("Malformed URL")
     }
     val scheme = url.scheme
-    if (allowedSchemes != null && scheme != null) {
-        if (!allowedSchemes.contains(scheme)) {
-            return "Only ${allowedSchemes.joinToString(separator = " and ")} allowed, not $scheme"
-        }
+    if (allowedSchemes != null && scheme != null && !allowedSchemes.contains(scheme)) {
+        return "Only ${allowedSchemes.joinToString(separator = " and ")} allowed, not $scheme"
     }
     when (scheme) {
         "rtmp" -> {

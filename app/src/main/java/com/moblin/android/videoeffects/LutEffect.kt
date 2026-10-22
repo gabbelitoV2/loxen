@@ -114,10 +114,9 @@ fun lutEffectConvertLut(image: Bitmap): Pair<Float, ByteArray> {
     val width = (image.size.width * image.scale).toInt()
     val height = (image.size.height * image.scale).toInt()
     val dimension = cbrt((width * height).toDouble()).toInt()
-    if (!(dimension > 0 && width % dimension == 0 && height % dimension == 0)) {
-        throw LutLoadError(localized("LUT image is not a cube"))
-    }
-    if (dimension * dimension * dimension != width * height) {
+    if (!(dimension > 0 && width % dimension == 0 && height % dimension == 0 &&
+            dimension * dimension * dimension == width * height)
+    ) {
         throw LutLoadError(localized("LUT image is not a cube"))
     }
     val cgImage = image.cgImage
@@ -259,8 +258,7 @@ class LutEffect : VideoEffect() {
     }
 
     private fun loadBundledPngLut(lut: SettingsColorLut) {
-        val path = Bundle.url("LUTs.bundle/${lut.name}.png") ?: return
-        val image = UIImage(contentsOfFile = path) ?: return
+        val image = Bundle.url("LUTs.bundle/${lut.name}.png")?.let { UIImage(contentsOfFile = it) } ?: return
         loadImageLut(image = image)
     }
 

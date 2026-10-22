@@ -283,10 +283,8 @@ private fun MessagesView(
         if (!chat.interactiveChat.value) {
             return
         }
-        if (!chat.paused.value) {
-            if (chat.posts.value.isNotEmpty()) {
-                model.pauseChat(chat = chat)
-            }
+        if (!chat.paused.value && chat.posts.value.isNotEmpty()) {
+            model.pauseChat(chat = chat)
         }
     }
 

@@ -23,8 +23,9 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.various.model.reloadStreamIfEnabled
 
 private fun getBearerToken(headers: List<SettingsHttpHeader>): String {
-    val authorization = headers.firstOrNull { it.name == "Authorization" } ?: return ""
-    val match = Regex("^Bearer (.*)$").find(authorization.value) ?: return ""
+    val match = headers.firstOrNull { it.name == "Authorization" }
+        ?.let { Regex("^Bearer (.*)$").find(it.value) }
+        ?: return ""
     return match.groupValues[1]
 }
 

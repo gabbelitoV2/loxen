@@ -648,10 +648,10 @@ private fun Model.selectMic(mic: SettingsMicsMic) {
 }
 
 private fun Model.trySwitchMic() {
-    if (mic.isSwitchTimerRunning.value) {
+    val requestedMic = mic.requested
+    if (mic.isSwitchTimerRunning.value || requestedMic == null) {
         return
     }
-    val requestedMic = mic.requested ?: return
     mic.requested = null
     if (requestedMic == mic.current.value) {
         return
