@@ -28,12 +28,14 @@ import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.view.settings.streams.stream.ElevenLabsLogoAndNameView
 import com.moblin.android.view.settings.streams.stream.TtsMonsterLogoAndNameView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.VoicesView
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.stopTextToSpeechIfOutputNotAllowed
 import com.moblin.android.various.settings.SettingsChat
+import com.moblin.android.various.settings.SettingsElevenLabs
 import com.moblin.android.various.settings.SettingsTtsMonster
 import com.moblin.android.various.settings.SettingsVoice
 import java.util.Locale
@@ -61,6 +63,31 @@ fun TtsMonsterSettingsView(
         },
     ) {
         TtsMonsterLogoAndNameView()
+    }
+}
+
+@Composable
+fun ElevenLabsSettingsView(
+    elevenLabs: SettingsElevenLabs,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
+) {
+    NavigationLink(
+        destination = {
+            Form(title = "ElevenLabs") {
+                Section {
+                    TextEditNavigationView(
+                        title = localized("API key"),
+                        value = elevenLabs.apiKey,
+                        onSubmit = { value ->
+                            elevenLabs.apiKey = value
+                        },
+                        sensitive = true,
+                    )
+                }
+            }
+        },
+    ) {
+        ElevenLabsLogoAndNameView()
     }
 }
 
@@ -94,6 +121,7 @@ fun ChatTextToSpeechSettingsView(
     model: Model = LocalModel.current,
     chat: SettingsChat,
     ttsMonster: SettingsTtsMonster,
+    elevenLabs: SettingsElevenLabs,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val context = LocalContext.current
@@ -125,6 +153,10 @@ fun ChatTextToSpeechSettingsView(
         model.chatTextToSpeech.setTtsMonsterApiToken(ttsMonster.apiToken)
     }
 
+    LaunchedEffect(elevenLabs.apiKey) {
+        model.chatTextToSpeech.setElevenLabsApiKey(elevenLabs.apiKey)
+    }
+
     Form(title = localized("Text to speech")) {
         Section(header = localized("Voice")) {
             NavigationLink(
@@ -136,6 +168,7 @@ fun ChatTextToSpeechSettingsView(
                         rate = chat.textToSpeechRate,
                         volume = chat.textToSpeechSayVolume,
                         ttsMonsterApiToken = ttsMonster.apiToken,
+                        elevenLabsApiKey = elevenLabs.apiKey,
                     )
                 },
             ) {
@@ -174,6 +207,7 @@ fun ChatTextToSpeechSettingsView(
                 SystemImage("hare.fill", fontSize = 17.sp)
             }
             TtsMonsterSettingsView(ttsMonster = chat.ttsMonster, onNavigate = onNavigate)
+            ElevenLabsSettingsView(elevenLabs = chat.elevenLabs, onNavigate = onNavigate)
         }
         Section(header = localized("Pause between messages")) {
             Row(

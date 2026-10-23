@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.integrations.elevenlabs.ElevenLabs
+import com.moblin.android.integrations.elevenlabs.ElevenLabsVoicesResponse
 import com.moblin.android.integrations.ttsmonster.TtsMonster
 import com.moblin.android.integrations.ttsmonster.TtsMonsterVoicesResponse
 import com.moblin.android.localized
@@ -108,6 +110,8 @@ private sealed class Voice {
 
     data class TtsMonster(val name: String, val voiceId: String) : Voice()
 
+    data class ElevenLabs(val name: String, val voiceId: String) : Voice()
+
     companion object {
         fun fromSettings(voice: SettingsVoice): Voice {
             return when (voice.type) {
@@ -115,6 +119,10 @@ private sealed class Voice {
                 SettingsVoiceType.ttsMonster -> TtsMonster(
                     name = voice.ttsMonster.name,
                     voiceId = voice.ttsMonster.voiceId,
+                )
+                SettingsVoiceType.elevenLabs -> Voice.ElevenLabs(
+                    name = voice.elevenLabs.name,
+                    voiceId = voice.elevenLabs.voiceId,
                 )
             }
         }
@@ -129,6 +137,7 @@ private data class VoicePickerItem(
         get() = when (val voice = voice) {
             is Voice.Apple -> "apple:${voice.identifier}"
             is Voice.TtsMonster -> "tts-monster:${voice.voiceId}"
+            is Voice.ElevenLabs -> "eleven-labs:${voice.voiceId}"
         }
 
     fun toSettings(): SettingsVoice {
@@ -143,6 +152,11 @@ private data class VoicePickerItem(
                 settings.ttsMonster.name = voice.name
                 settings.ttsMonster.voiceId = voice.voiceId
             }
+            is Voice.ElevenLabs -> {
+                settings.type = SettingsVoiceType.elevenLabs
+                settings.elevenLabs.name = voice.name
+                settings.elevenLabs.voiceId = voice.voiceId
+            }
         }
         return settings
     }
@@ -151,6 +165,14 @@ private data class VoicePickerItem(
 @Composable
 private fun TtsMonsterLogo(modifier: Modifier = Modifier) {
     val bitmap = remember { com.moblin.android.platform.Bundle.image("TtsMonster")?.asImageBitmap() }
+    if (bitmap != null) {
+        Image(bitmap = bitmap, contentDescription = null, modifier = modifier.width(15.dp))
+    }
+}
+
+@Composable
+private fun ElevenLabsLogo(modifier: Modifier = Modifier) {
+    val bitmap = remember { com.moblin.android.platform.Bundle.image("ElevenLabs")?.asImageBitmap() }
     if (bitmap != null) {
         Image(bitmap = bitmap, contentDescription = null, modifier = modifier.width(15.dp))
     }
@@ -183,6 +205,7 @@ private fun VoiceView(
     rate: Float,
     volume: Float,
     ttsMonsterApiToken: String,
+    elevenLabsApiKey: String,
     modifier: Modifier = Modifier,
 ) {
     var audioPlayer by remember { mutableStateOf<AudioPlayer?>(null) }
@@ -202,21 +225,36 @@ private fun VoiceView(
         synthesizer.speak(utterance = utterance, volume = volume)
     }
 
-    fun playTtsMonsterTestMessage(voiceId: String) {
-        if (ttsMonsterApiToken.isEmpty()) {
-            return
-        }
+    fun playGeneratedTestMessage(generate: suspend (String) -> ByteArray?) {
         scope.launch {
             fetching = true
             try {
-                val ttsMonster = TtsMonster(apiToken = ttsMonsterApiToken)
-                val message = getTestMessage(languageCode)
-                val data = ttsMonster.generateTts(voiceId = voiceId, message = message) ?: return@launch
+                val data = generate(getTestMessage(languageCode)) ?: return@launch
                 audioPlayer = runCatching { AudioPlayer(data) }.getOrNull()
                 audioPlayer?.play()
             } finally {
                 fetching = false
             }
+        }
+    }
+
+    fun playTtsMonsterTestMessage(voiceId: String) {
+        if (ttsMonsterApiToken.isEmpty()) {
+            return
+        }
+        val apiToken = ttsMonsterApiToken
+        playGeneratedTestMessage { message ->
+            TtsMonster(apiToken = apiToken).generateTts(voiceId = voiceId, message = message)
+        }
+    }
+
+    fun playElevenLabsTestMessage(voiceId: String) {
+        if (elevenLabsApiKey.isEmpty()) {
+            return
+        }
+        val apiKey = elevenLabsApiKey
+        playGeneratedTestMessage { message ->
+            ElevenLabs(apiKey = apiKey).generateTts(voiceId = voiceId, message = message)
         }
     }
 
@@ -263,6 +301,26 @@ private fun VoiceView(
                     }
                 }
             }
+            is Voice.ElevenLabs -> {
+                ElevenLabsLogo()
+                Text("${voiceItem.flagEmoji} ${voice.name}")
+                Spacer(Modifier.weight(1f))
+                PlayButton(
+                    onClick = {
+                        playElevenLabsTestMessage(voiceId = voice.voiceId)
+                    },
+                ) {
+                    if (fetching) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = palette.gray,
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
+                        SystemImage(name = "play.fill", fontSize = 17.sp, tint = palette.accent)
+                    }
+                }
+            }
         }
     }
 }
@@ -270,6 +328,7 @@ private fun VoiceView(
 private fun voices(
     appleVoices: List<android.speech.tts.Voice>,
     ttsMonsterVoices: TtsMonsterVoicesResponse?,
+    elevenLabsVoices: ElevenLabsVoicesResponse?,
     languageCode: String,
 ): List<VoicePickerItem> {
     val voices = mutableListOf<VoicePickerItem>()
@@ -298,6 +357,15 @@ private fun voices(
             ),
         )
     }
+    for (voice in elevenLabsVoices?.voices ?: emptyList()) {
+        val flagEmoji = emojiFlag(countryCode = voice.countryCode(languageCode = languageCode))
+        voices.add(
+            VoicePickerItem(
+                flagEmoji = flagEmoji,
+                voice = Voice.ElevenLabs(name = voice.name, voiceId = voice.voice_id),
+            ),
+        )
+    }
     return voices
 }
 
@@ -305,6 +373,7 @@ private fun voices(
 private fun LanguageView(
     appleVoices: List<android.speech.tts.Voice>,
     ttsMonsterVoices: TtsMonsterVoicesResponse?,
+    elevenLabsVoices: ElevenLabsVoicesResponse?,
     languageCode: String,
     initialSelectedVoice: VoicePickerItem?,
     onVoiceChange: (String, SettingsVoice) -> Unit,
@@ -313,6 +382,7 @@ private fun LanguageView(
     rate: Float,
     volume: Float,
     ttsMonsterApiToken: String,
+    elevenLabsApiKey: String,
 ) {
     var selectedVoice by remember { mutableStateOf(initialSelectedVoice) }
     val palette = formPalette()
@@ -322,6 +392,7 @@ private fun LanguageView(
             voices(
                 appleVoices = appleVoices,
                 ttsMonsterVoices = ttsMonsterVoices,
+                elevenLabsVoices = elevenLabsVoices,
                 languageCode = languageCode,
             ).forEach { voiceItem ->
                 key(voiceItem.id) {
@@ -339,6 +410,7 @@ private fun LanguageView(
                             rate = rate,
                             volume = volume,
                             ttsMonsterApiToken = ttsMonsterApiToken,
+                            elevenLabsApiKey = elevenLabsApiKey,
                             modifier = Modifier.weight(1f),
                         )
                         if (selectedVoice?.id == voiceItem.id) {
@@ -401,10 +473,12 @@ fun VoicesView(
     rate: Float,
     volume: Float,
     ttsMonsterApiToken: String,
+    elevenLabsApiKey: String,
 ) {
     val synthesizer = remember { SpeechSynthesizer(queue = CoroutineScope(Dispatchers.Main)) }
     var appleVoices by remember { mutableStateOf<List<android.speech.tts.Voice>>(emptyList()) }
     var ttsMonsterVoices by remember { mutableStateOf<TtsMonsterVoicesResponse?>(null) }
+    var elevenLabsVoices by remember { mutableStateOf<ElevenLabsVoicesResponse?>(null) }
     val palette = formPalette()
 
     Form(title = "Voices") {
@@ -418,6 +492,7 @@ fun VoicesView(
                         LanguageView(
                             appleVoices = appleVoices,
                             ttsMonsterVoices = ttsMonsterVoices,
+                            elevenLabsVoices = elevenLabsVoices,
                             languageCode = language.code,
                             initialSelectedVoice = selectedVoice(language),
                             onVoiceChange = onVoiceChange,
@@ -426,6 +501,7 @@ fun VoicesView(
                             rate = rate,
                             volume = volume,
                             ttsMonsterApiToken = ttsMonsterApiToken,
+                            elevenLabsApiKey = elevenLabsApiKey,
                         )
                     },
                 ) {
@@ -453,6 +529,10 @@ fun VoicesView(
                                 TtsMonsterLogo()
                                 Text(voice.ttsMonster.name)
                             }
+                            SettingsVoiceType.elevenLabs -> {
+                                ElevenLabsLogo()
+                                Text(voice.elevenLabs.name)
+                            }
                         }
                     }
                 }
@@ -471,6 +551,9 @@ fun VoicesView(
         if (ttsMonsterVoices == null && ttsMonsterApiToken.isNotEmpty()) {
             val ttsMonster = TtsMonster(apiToken = ttsMonsterApiToken)
             ttsMonsterVoices = ttsMonster.getVoices()
+        }
+        if (elevenLabsVoices == null && elevenLabsApiKey.isNotEmpty()) {
+            elevenLabsVoices = ElevenLabs(apiKey = elevenLabsApiKey).getVoices()
         }
     }
 }

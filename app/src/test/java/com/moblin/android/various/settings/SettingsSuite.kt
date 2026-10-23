@@ -4,6 +4,7 @@ import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.various.network.DefaultTcpPorts
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.junit.Test
 import com.moblin.android.various.ChatPostSegment
@@ -76,6 +77,36 @@ class SettingsSuite {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun textToSpeechVoicesWithoutElevenLabsDecode() {
+        val json = """{"textToSpeechLanguageVoices":{"en":{"type":"ttsMonster","apple":{"voice":""},"ttsMonster":{"name":"Axel","voiceId":"abc"}}}}"""
+        val chat = codableJson.decodeFromString(SettingsChat.serializer(), json)
+        val voice = assertNotNull(chat.textToSpeechLanguageVoices["en"])
+        assertEquals(SettingsVoiceType.ttsMonster, voice.type)
+        assertEquals("abc", voice.ttsMonster.voiceId)
+        assertEquals("", voice.elevenLabs.voiceId)
+    }
+
+    @Test
+    fun textToSpeechElevenLabsVoiceRoundTrips() {
+        val chat = SettingsChat()
+        chat.elevenLabs.apiKey = "key"
+        val voice = SettingsVoice()
+        voice.type = SettingsVoiceType.elevenLabs
+        voice.elevenLabs.name = "Rachel"
+        voice.elevenLabs.voiceId = "21m00Tcm4TlvDq8ikWAM"
+        chat.textToSpeechLanguageVoices["en"] = voice
+        val decoded = codableJson.decodeFromString(
+            SettingsChat.serializer(),
+            codableJson.encodeToString(SettingsChat.serializer(), chat),
+        )
+        assertEquals("key", decoded.elevenLabs.apiKey)
+        val decodedVoice = assertNotNull(decoded.textToSpeechLanguageVoices["en"])
+        assertEquals(SettingsVoiceType.elevenLabs, decodedVoice.type)
+        assertEquals("Rachel", decodedVoice.elevenLabs.name)
+        assertEquals("21m00Tcm4TlvDq8ikWAM", decodedVoice.elevenLabs.voiceId)
     }
 
     @Test

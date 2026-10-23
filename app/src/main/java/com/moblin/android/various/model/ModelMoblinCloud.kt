@@ -1,7 +1,9 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.noValue
 import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.core.CharacterSet
 import com.moblin.android.platform.core.addingPercentEncoding
 import com.moblin.android.remotecontrol.RemoteControlChatMessage
@@ -22,14 +24,19 @@ import com.moblin.android.remotecontrol.RemoteControlStatusTopLeft
 import com.moblin.android.remotecontrol.RemoteControlStatusTopRight
 import com.moblin.android.remotecontrol.RemoteControlStreamer
 import com.moblin.android.remotecontrol.RemoteControlStreamerDelegate
+import com.moblin.android.remotecontrol.RemoteControlTipKind
 import com.moblin.android.remotecontrol.RemoteControlWheelOfLuck
 import com.moblin.android.remotecontrol.RemoteControlWheelOfLuckOption
+import com.moblin.android.various.AudioPlayer
+import com.moblin.android.various.ChatHighlight
+import com.moblin.android.various.makeChatPostTextSegments
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.videoeffects.alerts.AlertsEffectAlert
 import java.net.URI
+import java.time.Instant
 import java.util.UUID
 import com.moblin.android.various.utils.add
 
@@ -135,19 +142,96 @@ fun Model.moblinCloudPlayTipAlert(name: String, message: String, amount: String,
     )
 }
 
-fun Model.moblinCloudSendSongRequests() {
-    moblinCloud?.sendSongRequests(enabled = database.moblinCloud.songRequests)
-}
-
-fun Model.moblinCloudSpinWheelOfLuck(name: String, message: String, count: Int, requestId: String?) {
+fun Model.moblinCloudTip(name: String, message: String, kind: RemoteControlTipKind, requestId: String) {
     if (isRemoteControlRequestAlreadyHandled(requestId = requestId)) {
         return
     }
+    when (kind) {
+        is RemoteControlTipKind.Message -> moblinCloudShowTipMessage(
+            name = name,
+            message = message,
+            amount = kind.amount,
+            currency = kind.currency,
+        )
+        is RemoteControlTipKind.Effect -> moblinCloudTipEffect(
+            name = name,
+            message = message,
+            sound = kind.sound,
+        )
+        is RemoteControlTipKind.WheelOfLuck -> moblinCloudTipWheelOfLuck(
+            name = name,
+            message = message,
+            count = kind.count,
+        )
+    }
+}
+
+private fun Model.moblinCloudShowTipMessage(name: String, message: String, amount: String, currency: String) {
+    var text = localized("Tipped $amount $currency")
+    if (message.isNotEmpty()) {
+        text += ": $message"
+    }
+    moblinCloudAppendChatMessage(name = name, text = text)
+    moblinCloudPlayTipAlert(name = name, message = message, amount = amount, currency = currency)
+}
+
+private fun Model.moblinCloudTipEffect(name: String, message: String, sound: String) {
+    if (!database.alertsMediaGallery.bundledSounds.any { it.name == sound }) {
+        return
+    }
+    val url = Bundle.url("Alerts.bundle/$sound", "mp3") ?: return
+    var text = localized("Played $sound")
+    if (message.isNotEmpty()) {
+        text += ": $message"
+    }
+    moblinCloudTipEffects.add(Triple(name, text, url))
+    moblinCloudTryNextEffect()
+}
+
+private fun Model.moblinCloudTryNextEffect() {
+    if (moblinCloudTipEffectPlayer != null) {
+        return
+    }
+    val effect = moblinCloudTipEffects.removeFirstOrNull() ?: return
+    val (name, text, url) = effect
+    moblinCloudAppendChatMessage(name = name, text = text)
+    moblinCloudTipEffectPlayer = runCatching { AudioPlayer(contentsOf = url) }.getOrNull()
+    moblinCloudTipEffectPlayer?.play()
+    val timeUntilNextEffect = (moblinCloudTipEffectPlayer?.duration() ?: 0.0) + 3
+    moblinCloudTipEffectTimer.startSingleShot(timeUntilNextEffect) {
+        moblinCloudTipEffectPlayer = null
+        moblinCloudTryNextEffect()
+    }
+}
+
+private fun Model.moblinCloudTipWheelOfLuck(name: String, message: String, count: Int) {
     val widget = getMoblinCloudWheelOfLuckWidget() ?: return
     getWheelOfLuckEffect(id = widget.id)?.spin(
         name = name,
         message = message,
         count = count.coerceIn(1, 10),
+    )
+}
+
+private fun Model.moblinCloudAppendChatMessage(name: String, text: String) {
+    appendChatMessage(
+        platform = null,
+        messageId = null,
+        displayName = name,
+        user = name,
+        userId = null,
+        userColor = RgbColor(red = 0x2F, green = 0xF5, blue = 0x2C),
+        userBadges = emptyList(),
+        segments = makeChatPostTextSegments(text = text),
+        timestamp = statusOther.digitalClock.value,
+        timestampTime = Instant.now(),
+        isAction = false,
+        isSubscriber = false,
+        isModerator = false,
+        isOwner = false,
+        bits = null,
+        highlight = ChatHighlight.makeRemoteControlAssistant(),
+        live = true,
     )
 }
 
@@ -181,15 +265,10 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         streamer?.sendWheelOfLuck(wheel = wheel)
     }
 
-    open fun sendSongRequests(enabled: Boolean) {
-        streamer?.sendSongRequests(enabled = enabled)
-    }
-
     override fun remoteControlStreamerConnected() {
         model?.makeToast(title = localized("Moblin Cloud connected"))
         model?.updateMoblinCloudStatus()
         model?.moblinCloudSendWheelOfLuck()
-        model?.moblinCloudSendSongRequests()
     }
 
     override fun remoteControlStreamerDisconnected() {
@@ -387,27 +466,16 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         model.remoteControlStreamerMusic(command = command, onCompleted = onCompleted)
     }
 
-    override fun remoteControlStreamerSpinWheelOfLuck(name: String, message: String, count: Int, requestId: String?) {
-        model?.moblinCloudSpinWheelOfLuck(
-            name = name,
-            message = message,
-            count = count,
-            requestId = requestId,
-        )
-    }
-
     override fun remoteControlStreamerTip(
         name: String,
         message: String,
-        amount: String,
-        currency: String,
+        kind: RemoteControlTipKind,
         requestId: String,
     ) {
         model?.remoteControlStreamerTip(
             name = name,
             message = message,
-            amount = amount,
-            currency = currency,
+            kind = kind,
             requestId = requestId,
         )
     }

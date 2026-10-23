@@ -89,6 +89,35 @@ class RemoteControlSuite {
     }
 
     @Test
+    fun tipRequests() {
+        val message = RemoteControlRequest.Tip(
+            name = "Erik",
+            message = "Hi",
+            kind = RemoteControlTipKind.Message(amount = "7.00", currency = "USD"),
+            requestId = "ORDER1"
+        )
+        assertEquals("""{"tip":{"kind":{"message":{"amount":"7.00","currency":"USD"}},"message":"Hi","name":"Erik","requestId":"ORDER1"}}""",
+                     encode(message))
+        val effect = RemoteControlRequest.Tip(
+            name = "Erik",
+            message = "",
+            kind = RemoteControlTipKind.Effect(sound = "Bad chili fart"),
+            requestId = "ORDER2"
+        )
+        assertEquals("""{"tip":{"kind":{"effect":{"sound":"Bad chili fart"}},"message":"","name":"Erik","requestId":"ORDER2"}}""",
+                     encode(effect))
+        val wheelOfLuck =
+            """{"tip":{"name":"Erik","message":"Go!","kind":{"wheelOfLuck":{"count":3}},"requestId":"ORDER3"}}"""
+        val request = RemoteControlRequest.fromJsonElement(json.parseToJsonElement(wheelOfLuck))
+        val tip = request as? RemoteControlRequest.Tip ?: fail("not a wheel of luck tip")
+        val kind = tip.kind as? RemoteControlTipKind.WheelOfLuck ?: fail("not a wheel of luck tip")
+        assertEquals("Erik", tip.name)
+        assertEquals("Go!", tip.message)
+        assertEquals(3, kind.count)
+        assertEquals("ORDER3", tip.requestId)
+    }
+
+    @Test
     fun musicResponses() {
         val found = RemoteControlResponse.MusicFind(
             song = RemoteControlMusicFoundSong(id = "1440818839", title = "Song", artist = "Band", duration = 213)

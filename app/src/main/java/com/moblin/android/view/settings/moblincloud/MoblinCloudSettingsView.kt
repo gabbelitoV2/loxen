@@ -8,7 +8,6 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.moblinCloudSendSongRequests
 import com.moblin.android.various.model.moblinCloudSendWheelOfLuck
 import com.moblin.android.various.model.reloadMoblinCloud
 import com.moblin.android.various.settings.Database
@@ -24,8 +23,19 @@ fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Databas
         Section {
             Text(
                 localized(
-                    "Let viewers interact with your stream from your page at https://moblin.app. " +
-                        "Sign in at https://moblin.app/dashboard to get your Moblin Cloud key."
+                    "Let viewers interact with your stream from your page at https://moblin.app"
+                )
+            )
+            Text(
+                localized(
+                    "1. Sign in at https://moblin.app/dashboard and set up your page.\n" +
+                        "2. Scan the QR code in the dashboard's Moblin section, or paste your Moblin Cloud key below.\n" +
+                        "3. Pick the alerts widget that shows messages and the wheel of luck widget that viewers spin."
+                )
+            )
+            Text(
+                localized(
+                    "Guide: https://moblin.app/docs/#guides/moblin-cloud"
                 )
             )
         }
@@ -50,9 +60,14 @@ fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Databas
         }
         val alertsWidgets = database.widgets.filter { it.type == SettingsWidgetType.alerts }
         val alertsOptions: List<UUID?> = listOf<UUID?>(null) + alertsWidgets.map { it.id }
-        Section(footer = localized("Alerts widget that shows tips.")) {
+        Section(
+            footer = localized(
+                "Alerts widget that shows messages on stream. Messages always show in chat. " +
+                    "Create one in Settings → Scenes and add it to the scenes you stream with."
+            )
+        ) {
             Picker(
-                title = "Tips",
+                title = "Message",
                 selection = moblinCloud.alertsWidgetId,
                 options = alertsOptions,
                 text = { id ->
@@ -69,7 +84,12 @@ fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Databas
         }
         val wheelOfLuckWidgets = database.widgets.filter { it.type == SettingsWidgetType.wheelOfLuck }
         val wheelOfLuckOptions: List<UUID?> = listOf<UUID?>(null) + wheelOfLuckWidgets.map { it.id }
-        Section(footer = localized("Wheel of luck widget viewers can spin.")) {
+        Section(
+            footer = localized(
+                "Wheel of luck widget that viewers spin. Viewers can only spin while one is picked. " +
+                    "Create one in Settings → Scenes and add it to the scenes you stream with."
+            )
+        ) {
             Picker(
                 title = "Wheel of luck",
                 selection = moblinCloud.wheelOfLuckWidgetId,
@@ -84,21 +104,6 @@ fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Databas
                 onChange = { id ->
                     moblinCloud.wheelOfLuckWidgetId = id
                     model.moblinCloudSendWheelOfLuck()
-                }
-            )
-        }
-        Section(
-            footer = localized(
-                "Let viewers add songs to your Apple Music queue. " +
-                    "The queue is still shown when disabled."
-            )
-        ) {
-            Toggle(
-                "Song requests",
-                isOn = moblinCloud.songRequests,
-                onChange = { songRequests ->
-                    moblinCloud.songRequests = songRequests
-                    model.moblinCloudSendSongRequests()
                 }
             )
         }

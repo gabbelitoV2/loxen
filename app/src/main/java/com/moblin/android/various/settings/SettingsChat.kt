@@ -718,7 +718,8 @@ enum class SettingsChatDisplayStyle(val rawValue: String) {
 @Serializable(with = SettingsVoiceType.Serializer::class)
 enum class SettingsVoiceType(val rawValue: String) {
     apple("apple"),
-    ttsMonster("ttsMonster");
+    ttsMonster("ttsMonster"),
+    elevenLabs("elevenLabs");
 
     companion object {
         fun fromRawValue(rawValue: String): SettingsVoiceType {
@@ -792,33 +793,90 @@ class SettingsVoiceTtsMonster {
     )
 }
 
+@Serializable(with = SettingsVoiceElevenLabs.Serializer::class)
+class SettingsVoiceElevenLabs {
+    var name: String = ""
+    var voiceId: String = ""
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("voiceId", voiceId)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVoiceElevenLabs {
+            val elevenLabs = SettingsVoiceElevenLabs()
+            elevenLabs.name = container.decode("name", "")
+            elevenLabs.voiceId = container.decode("voiceId", "")
+            return elevenLabs
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVoiceElevenLabs> by JsonObjectSerializer(
+        "SettingsVoiceElevenLabs",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
 @Serializable(with = SettingsVoice.Serializer::class)
 class SettingsVoice {
     var type: SettingsVoiceType = SettingsVoiceType.apple
     var apple: SettingsVoiceApple = SettingsVoiceApple()
     var ttsMonster: SettingsVoiceTtsMonster = SettingsVoiceTtsMonster()
+    var elevenLabs: SettingsVoiceElevenLabs = SettingsVoiceElevenLabs()
 
     fun encode(): JsonObject = encodeContainer {
         encode("type", type)
         encode("apple", apple)
         encode("ttsMonster", ttsMonster)
+        encode("elevenLabs", elevenLabs)
     }
 
     companion object {
         fun decode(container: JsonObject): SettingsVoice {
             val voice = SettingsVoice()
-            voice.type = container.decodeIfPresent<SettingsVoiceType>("type")
-                ?: throw SerializationException("Missing key 'type'")
-            voice.apple = container.decodeIfPresent("apple", SettingsVoiceApple.serializer())
-                ?: throw SerializationException("Missing key 'apple'")
-            voice.ttsMonster = container.decodeIfPresent("ttsMonster", SettingsVoiceTtsMonster.serializer())
-                ?: throw SerializationException("Missing key 'ttsMonster'")
+            voice.type = container.decode("type", SettingsVoiceType.Serializer, SettingsVoiceType.apple)
+            voice.apple = container.decode("apple", SettingsVoiceApple.serializer(), SettingsVoiceApple())
+            voice.ttsMonster = container.decode(
+                "ttsMonster",
+                SettingsVoiceTtsMonster.serializer(),
+                SettingsVoiceTtsMonster(),
+            )
+            voice.elevenLabs = container.decode(
+                "elevenLabs",
+                SettingsVoiceElevenLabs.serializer(),
+                SettingsVoiceElevenLabs(),
+            )
             return voice
         }
     }
 
     object Serializer : KSerializer<SettingsVoice> by JsonObjectSerializer(
         "SettingsVoice",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsElevenLabs.Serializer::class)
+class SettingsElevenLabs {
+    var apiKey: String by Published("")
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("apiKey", apiKey)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsElevenLabs {
+            val elevenLabs = SettingsElevenLabs()
+            elevenLabs.apiKey = container.decode("apiKey", "")
+            return elevenLabs
+        }
+    }
+
+    object Serializer : KSerializer<SettingsElevenLabs> by JsonObjectSerializer(
+        "SettingsElevenLabs",
         { it.encode() },
         { decode(it) },
     )
@@ -902,6 +960,7 @@ class SettingsChat {
                 false,
             )
             chat.ttsMonster = container.decode("ttsMonster", SettingsTtsMonster.serializer(), SettingsTtsMonster())
+            chat.elevenLabs = container.decode("elevenLabs", SettingsElevenLabs.serializer(), SettingsElevenLabs())
             chat.mirrored = container.decode("mirrored", false)
             chat.botEnabled = container.decode("botEnabled", false)
             chat.botCommandPermissions = container.decode(
@@ -1003,6 +1062,7 @@ class SettingsChat {
     var textToSpeechFilterMentions: Boolean by Published(true)
     var textToSpeechBluetoothSpeakerOnly: Boolean by Published(false)
     var ttsMonster: SettingsTtsMonster by Published(SettingsTtsMonster())
+    var elevenLabs: SettingsElevenLabs by Published(SettingsElevenLabs())
     var mirrored: Boolean by Published(false)
     var botEnabled: Boolean by Published(false)
     var botCommandPermissions: SettingsChatBotPermissions = SettingsChatBotPermissions()
@@ -1067,6 +1127,7 @@ class SettingsChat {
         encode("textToSpeechFilterMentions", textToSpeechFilterMentions)
         encode("textToSpeechBluetoothSpeakerOnly", textToSpeechBluetoothSpeakerOnly)
         encode("ttsMonster", ttsMonster)
+        encode("elevenLabs", elevenLabs)
         encode("mirrored", mirrored)
         encode("botEnabled", botEnabled)
         encode("botCommandPermissions", botCommandPermissions)

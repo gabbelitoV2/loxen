@@ -5,8 +5,10 @@ import androidx.compose.ui.text.font.FontWeight
 import com.moblin.android.AppDelegate
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.countFormatter
+import com.moblin.android.integrations.elevenlabs.ElevenLabs
 import com.moblin.android.integrations.openai.OpenAi
 import com.moblin.android.integrations.openai.OpenAiError
+import com.moblin.android.integrations.ttsmonster.TtsMonster
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
@@ -14,6 +16,7 @@ import com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.platform.avfoundation.AVSpeechSynthesisVoice
 import com.moblin.android.platform.avfoundation.AVSpeechUtterance
+import com.moblin.android.platform.core.ContinuousClock
 import com.moblin.android.platform.coregraphics.CGAffineTransform
 import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
@@ -42,6 +45,7 @@ import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationCh
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionMessageEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionUpgradeEvent
 import com.moblin.android.various.ChatPostSegment
+import com.moblin.android.various.TextToSpeechVoice
 import com.moblin.android.various.calcBoundingBox
 import com.moblin.android.various.calcFaceAngle
 import com.moblin.android.various.makeChatPostTextSegments
@@ -141,6 +145,10 @@ interface AlertsEffectDelegate {
     ): List<ChatPostSegment>
 
     fun alertsMakeKickSegments(text: String): List<ChatPostSegment>
+
+    fun alertsTtsMonsterApiToken(): String
+
+    fun alertsElevenLabsApiKey(): String
 }
 
 private class Pipeline {
@@ -169,6 +177,7 @@ class AlertsEffect(
     private val bundledSounds: List<SettingsAlertsMediaGalleryItem>,
 ) : VideoEffect() {
     private var audioPlayer: AudioPlayer? = null
+    private var textToSpeechAudioPlayer: AudioPlayer? = null
     private var rate: Float = 0.4f
     private var volume: Float = 1.0f
     private val synthesizer = SpeechSynthesizer(queue = CoroutineScope(Dispatchers.Main))
@@ -462,32 +471,72 @@ class AlertsEffect(
 
     private fun say(username: String, message: String, settings: SettingsWidgetAlertsAlert) {
         val voice = getVoice(settings = settings) ?: return
-        val utterance = AVSpeechUtterance(string = "$username $message")
-        utterance.rate = rate
-        utterance.pitchMultiplier = 0.8f
-        utterance.voice = voice
-        CoroutineScope(Dispatchers.Main.immediate).launch {
-            delay((settings.textToSpeechDelay * 1000.0).toLong())
-            synthesizer.speak(utterance = utterance, volume = volume)
+        val text = "$username $message"
+        val delaySeconds = settings.textToSpeechDelay
+        when (voice) {
+            is TextToSpeechVoice.Apple -> {
+                val utterance = AVSpeechUtterance(string = text)
+                utterance.rate = rate
+                utterance.pitchMultiplier = 0.8f
+                utterance.voice = voice.voice
+                CoroutineScope(Dispatchers.Main.immediate).launch {
+                    delay((delaySeconds * 1000.0).toLong())
+                    synthesizer.speak(utterance = utterance, volume = volume)
+                }
+            }
+            is TextToSpeechVoice.TtsMonster -> {
+                val apiToken = delegate?.alertsTtsMonsterApiToken() ?: return
+                if (apiToken.isEmpty()) {
+                    return
+                }
+                val voiceId = voice.voiceId
+                sayGenerated(delay = delaySeconds) {
+                    TtsMonster(apiToken = apiToken).generateTts(
+                        voiceId = voiceId,
+                        message = text,
+                    )
+                }
+            }
+            is TextToSpeechVoice.ElevenLabs -> {
+                val apiKey = delegate?.alertsElevenLabsApiKey() ?: return
+                if (apiKey.isEmpty()) {
+                    return
+                }
+                val voiceId = voice.voiceId
+                sayGenerated(delay = delaySeconds) {
+                    ElevenLabs(apiKey = apiKey).generateTts(
+                        voiceId = voiceId,
+                        message = text,
+                    )
+                }
+            }
         }
     }
 
-    private fun getVoice(settings: SettingsWidgetAlertsAlert): AVSpeechSynthesisVoice? {
+    private fun sayGenerated(delay: Double, generate: suspend () -> ByteArray?) {
+        val playAt = ContinuousClock.now.advanced(bySeconds = delay)
+        CoroutineScope(Dispatchers.Main.immediate).launch {
+            val data = generate() ?: return@launch
+            val remainingMs =
+                (playAt.nanoseconds - ContinuousClock.now.nanoseconds) / 1_000_000L
+            if (remainingMs > 0) {
+                kotlinx.coroutines.delay(remainingMs)
+            }
+            textToSpeechAudioPlayer = runCatching { AudioPlayer(data = data) }.getOrNull()
+            textToSpeechAudioPlayer?.setVolume(volume = volume)
+            textToSpeechAudioPlayer?.play()
+        }
+    }
+
+    private fun getVoice(settings: SettingsWidgetAlertsAlert): TextToSpeechVoice? {
         val language = Locale.getDefault().toLanguageTag().substringBefore('-')
         if (language.isEmpty()) {
             return null
         }
-        val voiceIdentifier = settings.textToSpeechLanguageVoices[language]?.apple?.voice
-        if (voiceIdentifier != null) {
-            return AVSpeechSynthesisVoice(identifier = voiceIdentifier)
-        }
-        val voice = AVSpeechSynthesisVoice.speechVoices()
-            .filter { it.language.startsWith(language) }
-            .firstOrNull()
-        if (voice != null) {
-            return AVSpeechSynthesisVoice(identifier = voice.identifier)
-        }
-        return null
+        return TextToSpeechVoice.find(
+            voices = settings.textToSpeechLanguageVoices,
+            language = language,
+        )
     }
 
     private fun setMessage(

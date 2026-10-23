@@ -55,6 +55,7 @@ import com.moblin.android.remotecontrol.RemoteControlStatusTopRightAudioInfo
 import com.moblin.android.remotecontrol.RemoteControlStatusTopRightAudioLevel
 import com.moblin.android.remotecontrol.RemoteControlStreamer
 import com.moblin.android.remotecontrol.RemoteControlStreamerDelegate
+import com.moblin.android.remotecontrol.RemoteControlTipKind
 import com.moblin.android.remotecontrol.RemoteControlWeb
 import com.moblin.android.remotecontrol.RemoteControlWebDelegate
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
@@ -1169,48 +1170,13 @@ fun Model.isRemoteControlRequestAlreadyHandled(requestId: String?): Boolean {
     return false
 }
 
-fun Model.remoteControlStreamerSpinWheelOfLuck(
-    name: String,
-    message: String,
-    count: Int,
-    requestId: String?
-) {
-}
-
 fun Model.remoteControlStreamerTip(
     name: String,
     message: String,
-    amount: String,
-    currency: String,
+    kind: RemoteControlTipKind,
     requestId: String
 ) {
-    if (isRemoteControlRequestAlreadyHandled(requestId = requestId)) {
-        return
-    }
-    var text = localized("Tipped $amount $currency")
-    if (message.isNotEmpty()) {
-        text += ": $message"
-    }
-    appendChatMessage(
-        platform = null,
-        messageId = null,
-        displayName = name,
-        user = name,
-        userId = null,
-        userColor = RgbColor(red = 0x2F, green = 0xF5, blue = 0x2C),
-        userBadges = emptyList(),
-        segments = makeChatPostTextSegments(text = text),
-        timestamp = statusOther.digitalClock.value,
-        timestampTime = Instant.now(),
-        isAction = false,
-        isSubscriber = false,
-        isModerator = false,
-        isOwner = false,
-        bits = null,
-        highlight = ChatHighlight.makeRemoteControlAssistant(),
-        live = true
-    )
-    moblinCloudPlayTipAlert(name = name, message = message, amount = amount, currency = currency)
+    moblinCloudTip(name = name, message = message, kind = kind, requestId = requestId)
 }
 
 fun Model.remoteControlStreamerGetScoreboardSports(): List<String> {
@@ -1899,32 +1865,16 @@ private class RemoteControlStreamerDelegateAdapter(
         model.remoteControlStreamerMusic(command = command, onCompleted = onCompleted)
     }
 
-    override fun remoteControlStreamerSpinWheelOfLuck(
-        name: String,
-        message: String,
-        count: Int,
-        requestId: String?
-    ) {
-        model.remoteControlStreamerSpinWheelOfLuck(
-            name = name,
-            message = message,
-            count = count,
-            requestId = requestId
-        )
-    }
-
     override fun remoteControlStreamerTip(
         name: String,
         message: String,
-        amount: String,
-        currency: String,
+        kind: RemoteControlTipKind,
         requestId: String
     ) {
         model.remoteControlStreamerTip(
             name = name,
             message = message,
-            amount = amount,
-            currency = currency,
+            kind = kind,
             requestId = requestId
         )
     }

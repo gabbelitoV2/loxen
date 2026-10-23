@@ -3271,23 +3271,25 @@
   },
   "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift": {
     "status": "ok",
-    "sha256": "6ed54af5df6485e6e0bc91daa772d6e295b61cc2e80f1547dbd897ff3b0a4d80",
-    "moblin_commit": "1041f4e07b91c9aa0f402cb651cfd778ef90aa89",
+    "sha256": "7de7871243011507a2af0036a2ca1019d7cef486b16b4e563906c4cab651111f",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt",
     "notes": [
-      "Only the musicResponses test changed: RemoteControlMusicFoundSong now takes duration = 213 and the expected JSON gains a sorted \"duration\":213 entry.",
-      "The named parameter duration = 213 is added to the Kotlin constructor call; the formatJson helper sorts keys, so the new field lands between \"artist\" and \"id\" as in Swift.",
-      "Everything else is byte-identical to the previous Kotlin file."
+      "Added the new tipRequests test between musicRequests and musicResponses, matching the Swift diff position.",
+      "The request is built as RemoteControlRequest.Tip with RemoteControlTipKind.Message / Effect / WheelOfLuck, following the sealed-class naming already used for RemoteControlMusicCommand in this file.",
+      "Encoding assertions reuse the file's existing encode(request) helper, which sorts keys and emits compact JSON like Swift's .sortedKeys.",
+      "The wheel-of-luck decode uses RemoteControlRequest.fromJsonElement on a parsed JsonElement, like the existing musicRequests decode, then pattern-matches with as? casts and fail() like Swift's guard case + Issue.record.",
+      "Everything else in the file is unchanged, including the hand-written JSON pretty-printer helpers."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47758,
-    "tokens_out": 4833,
-    "seconds": 15.8,
-    "ported_at": "2026-10-15T22:42:58+00:00"
+    "tokens_in": 48352,
+    "tokens_out": 6350,
+    "seconds": 20.9,
+    "ported_at": "2026-10-23T22:41:44+00:00"
   },
   "Moblin/Integrations/Emotes/Bttv.swift": {
     "status": "ok",
@@ -3766,25 +3768,26 @@
   },
   "MoblinTests/Moblin/Various/Settings/SettingsSuite.swift": {
     "status": "ok",
-    "sha256": "bfe7a787d4e80cc44079addcb488d09af7dd354fa2eaefbff75a1ad6dfa62489",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "1a8744a1b594b5117c635be721e61ed7ff3b6bad0c7b87ab3e177d45e4c14839",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt",
     "notes": [
-      "Added the two new tests textToSpeechSayEmotesDefaultsToOff and textToSpeechSayEmotesIsPersisted at the end of the class, in Swift order.",
-      "JSONDecoder/JSONEncoder are replaced with codableJson.decodeFromString(SettingsChat.serializer(), ...) and codableJson.encodeToString(SettingsChat.serializer(), chat), as required for Codable types.",
-      "Imported com.moblin.android.platform.codable.codableJson and reused the already-imported assertTrue/assertFalse.",
-      "Swift `throws` on a test disappears: Kotlin has no checked exceptions.",
-      "All pre-existing Kotlin lines are unchanged."
+      "Added the two new tests between chatFilter and textToSpeechSayEmotesDefaultsToOff, leaving every existing line untouched.",
+      "Swift's multiline line-continuation backslash is resolved: the JSON literal is a single line, unchanged byte for byte.",
+      "try #require(...) became kotlin.test.assertNotNull(...), whose return value is used like #require's.",
+      "JSON is decoded and encoded through codableJson with SettingsChat.serializer(), matching the existing tests in this file.",
+      "Swift enum cases .ttsMonster and .elevenLabs map to SettingsVoiceType.ttsMonster and SettingsVoiceType.elevenLabs.",
+      "Added the kotlin.test.assertNotNull import next to the other kotlin.test imports."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 34467,
-    "tokens_out": 2759,
-    "seconds": 10.1,
-    "ported_at": "2026-10-09T00:00:06+00:00"
+    "tokens_in": 35408,
+    "tokens_out": 2874,
+    "seconds": 12.3,
+    "ported_at": "2026-10-23T22:41:35+00:00"
   },
   "MoblinTests/Moblin/View/Settings/Macros/MacrosSettingsViewSuite.swift": {
     "status": "ok",
@@ -5491,27 +5494,27 @@
   },
   "Moblin/Various/ChatTextToSpeech.swift": {
     "status": "ok",
-    "sha256": "ba3e1f463d121dc119a2a11ba8fc3e10b6708ab57dae74762391dc4f2f0cdb7d",
-    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
+    "sha256": "976f201f403c977a25dd366e4545992046faca0030f40a80a0f11cf65dfe961c",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt",
     "notes": [
-      "Switched the speech engine to the shared Moblin type SpeechSynthesizer(queue = textToSpeechDispatchQueue), which now owns the volume/finish handling and the KeepSpeakerAlivePlayer call, so the local TextToSpeech instance, its UtteranceProgressListener and the re-creation code in reset()/skipCurrentMessageInternal() are gone.",
-      "utterApple now builds an AVSpeechUtterance from com.moblin.android.platform.avfoundation (rate, pitchMultiplier, voice) and calls synthesizer.speak(utterance = utterance, volume = volume) { sayFinished() }, mirroring the new Swift call.",
-      "Voice.Apple now carries an AVSpeechSynthesisVoice? obtained from AVSpeechSynthesisVoice(identifier) / speechVoices(), matching the Swift lookup; the old android.speech.tts.Voice lookups through synthesizer.voices no longer apply because SpeechSynthesizer does not expose the engine voice list.",
-      "The AVSpeechSynthesizerDelegate extension is gone, so the UtteranceProgressListener delegate object and the init block are removed; sayFinished() is now driven by the speak completion and by audioPlayerDidFinishPlaying.",
-      "Imports for android.os.Bundle, android.speech.tts.TextToSpeech, UtteranceProgressListener, java.util.UUID and utils.createSpeechSynthesizer were dropped with the code that used them.",
-      "dominantLanguage/languageProbability remain the existing Android stubs for NLLanguageRecognizer and were not touched by this change.",
-      "SpeechSynthesizer.speak(utterance, volume, completion) is assumed to keep the Swift parameter names; only its queue constructor argument is passed explicitly."
+      "The private Voice sealed class is gone; utterance dispatch now switches on TextToSpeechVoice (Apple/TtsMonster/ElevenLabs) returned by TextToSpeechVoice.find(voices, language).",
+      "Added the elevenLabs field, setElevenLabsApiKey and utterElevenLabs, mirroring setTtsMonsterApiToken.",
+      "playGeneratedAudio is shared by the TTS Monster and ElevenLabs paths and posts the player setup onto the serial textToSpeech queue via scope.launch, as Swift hops to textToSpeechDispatchQueue.",
+      "findNextMessageToSay drops the second optional unwrap because getVoice now returns a non-optional voice.",
+      "Natural language detection is still stubbed (dominantLanguage returns null, languageProbability 0.0), so the 0.7 probability filter never fires and the detected language always falls back to defaultLanguage/Locale.",
+      "The unused SettingsVoiceType import was removed together with the old voice-selection code.",
+      "Assumes TextToSpeechVoice exposes Apple(voice), TtsMonster(voiceId), ElevenLabs(voiceId) and a companion find(voices, language)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 39013,
-    "tokens_out": 8331,
-    "seconds": 27.7,
-    "ported_at": "2026-10-21T22:50:25+00:00"
+    "tokens_in": 39734,
+    "tokens_out": 6205,
+    "seconds": 22.2,
+    "ported_at": "2026-10-23T22:41:45+00:00"
   },
   "Moblin/Media/WiFiAware/WiFiAwareReceiver.swift": {
     "status": "ok",
@@ -5896,22 +5899,23 @@
   },
   "Moblin/RemoteControl/RemoteControlStreamer.swift": {
     "status": "ok",
-    "sha256": "0dd1b01ba304e0ef8ff8fd05acadc1d8d9b09528c274f42fc0b92d6e70f0d1fd",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "772d831c3baa50a49ef0923298cd67e74705b6290b4a5ff6d526fd55b5f32bc4",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
     "notes": [
-      "The Swift diff only merges two consecutive guards in twitchStart into one; behaviour is unchanged, so the Kotlin body keeps its two early returns in the same order (connected check first, so encryption is still skipped when disconnected).",
-      "Everything else in the file is untouched and reproduced byte-identically, including the hand-written Android hooks (SimpleStorageContext, mainScope.launch, remoteControlResult, String.isLoopback)."
+      "Removed the spinWheelOfLuck delegate method, its request branch and the sendSongRequests helper, matching the Swift diff.",
+      "remoteControlStreamerTip now takes a RemoteControlTipKind instead of amount/currency.",
+      "All other lines, imports and Android hooks are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44795,
-    "tokens_out": 6351,
-    "seconds": 20.8,
-    "ported_at": "2026-10-22T22:50:58+00:00"
+    "tokens_in": 45028,
+    "tokens_out": 5499,
+    "seconds": 16.1,
+    "ported_at": "2026-10-23T22:41:52+00:00"
   },
   "Moblin/Various/Model/ModelMoblinWebsite.swift": {
     "status": "ok",
@@ -5939,22 +5943,24 @@
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
-    "sha256": "c34bda0ee28ef5051bcea8110b58dcc9a74efa30300e5fdeb4fa109ae094f7a0",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "c25fbec12a7d2c88458e0ad977fc836283d2cb62dc897ff435ac242482edbbaa",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
     "notes": [
-      "The Swift diff only merges two guards into one; the Kotlin translation keeps the same behaviour by evaluating firstOrNull() first and returning when either condition holds.",
-      "No other line of the file was changed: the hand-written WebSocket server, OkHttp WHIP bridging, CryptoKit-based password hashing and MainTimer usage stay byte-identical."
+      "Only the Swift diff is applied: the `.songRequests` case was removed from the event switch, so the matching `is RemoteControlEvent.SongRequests -> {}` branch is gone from handleEvent.",
+      "Every other Kotlin line, including the hand-written ServerSocket/RemoteControlWebSocket layer and the platform hooks (Log, AppDelegate.context, formatDate), is kept byte-identical.",
+      "RemoteControlEvent must no longer declare a SongRequests case in the same revision, otherwise the non-exhaustive `when` over the sealed class would fail to compile in Kotlin 2.x.",
+      "Delegate methods, request plumbing, Twitch integration and the private WebSocket class are untouched by this diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 60722,
-    "tokens_out": 9147,
-    "seconds": 26.6,
-    "ported_at": "2026-10-22T22:50:57+00:00"
+    "tokens_in": 60665,
+    "tokens_out": 9756,
+    "seconds": 29.6,
+    "ported_at": "2026-10-23T22:41:57+00:00"
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
@@ -6800,23 +6806,22 @@
   },
   "Moblin/Various/KeepSpeakerAlive.swift": {
     "status": "ok",
-    "sha256": "ccbeae72336aec285f377bb7782c910031081dc777319f369be00a1414296334",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "2b24dc47ca7d5977a51953c224ec9ef62ca540dba052de666f64dcd9665e40ea",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/KeepSpeakerAlive.kt",
     "notes": [
-      "The Swift diff only merges two `guard` statements into one; the Kotlin file already expresses the same short-circuit with two early returns, so no Kotlin line changes.",
-      "playIfNeeded keeps the early return on the 5 minute check followed by the Bundle.url lookup, which is the Android hook (com.moblin.android.platform.Bundle.url) and stays byte-identical.",
-      "Everything below the unchanged guards (AudioPlayer constructors, delegate wiring, MediaDataSource wrapper) is untouched."
+      "Added AudioPlayer.duration() translated from AVAudioPlayer.duration; MediaPlayer reports milliseconds so the value is divided by 1000.0 to keep TimeInterval seconds.",
+      "Everything else in the file is unchanged, including the hand-written AudioPlayerDataSource and the MediaPlayer-based constructors."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 31989,
-    "tokens_out": 861,
-    "seconds": 4.6,
-    "ported_at": "2026-10-22T22:49:09+00:00"
+    "tokens_in": 31910,
+    "tokens_out": 764,
+    "seconds": 4.2,
+    "ported_at": "2026-10-23T22:41:27+00:00"
   },
   "Common/View/StreamOverlayTextView.swift": {
     "status": "ok",
@@ -11585,27 +11590,24 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "081bcd125162f3861dc2b8e205dda8b6cde328640da8c5cc221f4c5a9b931c82",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "5ad11b6ba8fcf83cf202a12c15b9780e00b87ca4e12e8498f6d7be440384bc84",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "Added the new enum SettingsChatBotCommandSnapshotWebRemoteControlMode after SettingsChatBotCommandSnapshotSource, mirroring the Kotlin shape used for that source enum (rawValue property, localized toString, companion fromRawValue, KSerializer using PrimitiveSerialDescriptor).",
-      "Raw values keep Swift's implicit case names (\"fallbackWhenNotLive\", \"always\") so persisted JSON stays byte-identical.",
-      "webRemoteControlMode is a @Published property, so it is a `by Published(...)` delegate like `source`.",
-      "encode writes \"webRemoteControlMode\" after \"webRemoteControlUrl\", decode reads it after webRemoteControlUrl with fallbackWhenNotLive as default.",
-      "effectiveSource(isLive) is translated as a nested when over source and webRemoteControlMode, returning the Source enum entries directly; no valueOf/rawValue lookup.",
-      "No new imports are needed: kotlinx.serialization descriptor and primitive-kind imports already exist in the file.",
-      "The rest of the file, including formatting and declaration order, is unchanged from the previous translation."
+      "Added the elevenLabs case to SettingsVoiceType with raw value elevenLabs.",
+      "Added SettingsVoiceElevenLabs and SettingsElevenLabs with Kotlin codable serializers matching the new Swift CodingKeys.",
+      "SettingsVoice now encodes and decodes elevenLabs and uses default values instead of throwing for missing keys, matching the new explicit Swift init(from:).",
+      "SettingsChat now persists and exposes SettingsElevenLabs through the elevenLabs property."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 60458,
-    "tokens_out": 12426,
-    "seconds": 40.0,
-    "ported_at": "2026-10-14T22:43:26+00:00"
+    "tokens_in": 62302,
+    "tokens_out": 14400,
+    "seconds": 46.8,
+    "ported_at": "2026-10-23T22:42:10+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -12482,17 +12484,16 @@
   },
   "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift": {
     "status": "ok",
-    "sha256": "35afc44a2b75eb05b2095567838733b9b91de2dad779783c4f488239a686b2b4",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "cc2201ec5a410d00f8ed3ae2a49923b950db76f49ea9f0079878cabfaea72abf",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/applemusic/AppleMusicSettingsView.kt",
     "notes": [
-      "PlaylistView's Section now also takes a footerContent showing the maximum playlist length note.",
-      "The interpolated maximumMusicQueueLength comes from com.moblin.android.various.model and is imported.",
-      "The footer text is a single line in Kotlin, matching the Swift line-continuation string.",
-      "Section styles headerContent/footerContent itself, so the footer Text stays unstyled like the header Text.",
-      "Everything else in the file is unchanged from the previous translation."
+      "Removed the private SongRequestsView composable, matching the deleted Swift struct.",
+      "Removed its call site inside Form, so the PlaylistView now directly follows the add-song Section.",
+      "Dropped the imports that only the removed view used: Toggle, SettingsMoblinCloud and moblinCloudSendSongRequests.",
+      "Everything else, including all Android hand-written helpers (MusicPlayerState, MusicPlayerQueue, MusicControlButton), is unchanged."
     ],
     "unsupported": [],
     "apple_only": [
@@ -12502,10 +12503,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47394,
-    "tokens_out": 4833,
-    "seconds": 20.1,
-    "ported_at": "2026-10-22T22:51:02+00:00"
+    "tokens_in": 45244,
+    "tokens_out": 2963,
+    "seconds": 9.9,
+    "ported_at": "2026-10-23T22:41:42+00:00"
   },
   "Moblin/VideoEffects/VideoSourceEffect.swift": {
     "status": "ok",
@@ -13625,26 +13626,27 @@
   },
   "Moblin/View/Utils/VoicesView.swift": {
     "status": "ok",
-    "sha256": "58ad8c45179c554de4f80abe920e44cb41886ab29989bb16bb2e413601fa40e3",
-    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
+    "sha256": "3f12f4f175a030eaf8d70fd4f22890aac0f43c9d1ba5d7a78c3c552fa02ca3ee",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/VoicesView.kt",
     "notes": [
-      "The synthesizer is now the Moblin SpeechSynthesizer (com.moblin.android.various) constructed with Dispatchers.Main for Swift's `.main` queue, as the Swift diff requires.",
-      "playAppleTestMessage builds an AVSpeechUtterance and calls synthesizer.speak(utterance = utterance, volume = volume); utterance.volume and KeepSpeakerAlivePlayer.shared.audioPlayed() are gone, as in the new Swift.",
-      "The Apple voice list stays List<android.speech.tts.Voice> because textToSpeechLanguages and the pickers are declared against that type; the utterance voice is resolved from the matching Android voice name through AVSpeechSynthesisVoice(identifier).",
-      "The VoiceView and LanguageView synthesizer parameters are typed SpeechSynthesizer; the result of the call is unchanged for callers.",
-      "VoicesView still enumerates installed voices with createSpeechSynthesizer() (the Swift AVSpeechSynthesisVoice.speechVoices()), since SpeechSynthesizer exposes no voice list.",
-      "android.os.Bundle, android.speech.tts.TextToSpeech and KeepSpeakerAlivePlayer imports were dropped because nothing references them any more."
+      "Added ElevenLabs voice support across Voice, VoicePickerItem, VoiceView, LanguageView and VoicesView.",
+      "ElevenLabs and TtsMonster test playback now share playGeneratedTestMessage, with fetching managed in try/finally.",
+      "ElevenLabs voices are fetched in the existing LaunchedEffect next to TtsMonster voices.",
+      "ElevenLabs logos are loaded from the ElevenLabs asset through Bundle.image, matching the existing TtsMonster logo helper.",
+      "Settings fields use the existing SettingsVoice.elevenLabs and SettingsVoiceType.elevenLabs declarations.",
+      "The Swift playButton helper is represented by the existing Android PlayButton composable with the fetching progress indicator.",
+      "The public VoicesView signature gains elevenLabsApiKey; callers must pass it."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50906,
-    "tokens_out": 14068,
-    "seconds": 50.4,
-    "ported_at": "2026-10-21T22:50:48+00:00"
+    "tokens_in": 53448,
+    "tokens_out": 15129,
+    "seconds": 61.5,
+    "ported_at": "2026-10-23T22:42:41+00:00"
   },
   "Moblin/View/Settings/Ingests/RistServer/RistServerStreamSettingsView.swift": {
     "status": "ok",
@@ -14411,24 +14413,26 @@
   },
   "Moblin/VideoEffects/Alerts/AlertsEffect.swift": {
     "status": "ok",
-    "sha256": "264c8b5ed976532dd7fa1cee5ac77ca4a430858fbecc73dd5104c69f2fdcf23f",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "34c4a8dc96f91fff5352cfb1f1d3e4ea4ca96ba88ed3e36a55bacd309e62d2c8",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt",
     "notes": [
-      "Merged the two guards in tryPlayNextAlert into one null check, matching the Swift `!isPlaying, let alert` guard.",
-      "Merged the index guards in playChatBotCommand and playSpeechToTextString into a single condition, as in the new Swift guard.",
-      "calcFacePlacement now computes rotationAngle first and only derives boundingBox when it is non-null, mirroring the merged Swift guard; both are smart-cast afterwards.",
-      "Everything else, including the Android-specific OpenAi coroutine hop, ChatLineUiView sizing and pipeline posting, is untouched."
+      "AlertsEffectDelegate gains alertsTtsMonsterApiToken() and alertsElevenLabsApiKey(), translated 1:1 into the Kotlin interface.",
+      "say() now branches on the TextToSpeechVoice sealed class (Apple / TtsMonster / ElevenLabs) and downloads generated TTS audio with the existing TtsMonster and ElevenLabs clients.",
+      "New sayGenerated() computes the play instant with ContinuousClock and plays the fetched bytes in a Main coroutine; the coroutine delay is called fully qualified because the parameter is named delay.",
+      "getVoice() now delegates to TextToSpeechVoice.find(voices:, language:) and keeps the hand-written Locale tag/empty check.",
+      "A textToSpeechAudioPlayer property was added next to audioPlayer so the generated audio is not stopped when the alert sound player is replaced.",
+      "New imports: ContinuousClock, TtsMonster, ElevenLabs and TextToSpeechVoice."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 87458,
-    "tokens_out": 11819,
-    "seconds": 35.4,
-    "ported_at": "2026-10-22T22:52:29+00:00"
+    "tokens_in": 89317,
+    "tokens_out": 13784,
+    "seconds": 43.1,
+    "ported_at": "2026-10-23T22:42:29+00:00"
   },
   "Moblin/View/Settings/Camera/CameraControls/CameraControlsView.swift": {
     "status": "ok",
@@ -14680,22 +14684,24 @@
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
-    "sha256": "84f05c87c38b0fcd2ec4d62bfa993420d7471ee2c9b9a1f2c56c7834398e2efe",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "592c01ee1ce11af2f91645a1130454d1c65b4ee90217926993f42171f2da1e07",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatTextToSpeechSettingsView.kt",
     "notes": [
-      "Added the 'Say emotes' Toggle between 'Say username' and 'Subscribers only', mirroring the surrounding Toggle style (isOn plus onChange that assigns).",
-      "All other lines, including the Android-specific FormSlider rows, the TextToSpeech voice loading and the footer placement, are unchanged."
+      "Added ElevenLabsSettingsView mirroring the TtsMonsterSettingsView pattern (NavigationLink + Form + TextEditNavigationView with sensitive = true).",
+      "ChatTextToSpeechSettingsView now takes an elevenLabs: SettingsElevenLabs parameter, and a LaunchedEffect on elevenLabs.apiKey calls model.chatTextToSpeech.setElevenLabsApiKey, matching Swift's .onChange(of: elevenLabs.apiKey).",
+      "The Swift diff adds elevenLabsApiKey: to the VoicesView call, but the current Kotlin VoicesView declaration has no such parameter, so the argument is not passed yet; add it once VoicesView accepts elevenLabsApiKey.",
+      "ElevenLabsSettingsView receives the existing onNavigate parameter like TtsMonsterSettingsView, even though the Swift view does not declare one."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50171,
-    "tokens_out": 2741,
-    "seconds": 9.5,
-    "ported_at": "2026-10-09T00:01:00+00:00"
+    "tokens_in": 50969,
+    "tokens_out": 3878,
+    "seconds": 13.8,
+    "ported_at": "2026-10-23T22:41:56+00:00"
   },
   "Moblin/View/Settings/Debug/DebugSettingsView.swift": {
     "status": "ok",
@@ -15627,23 +15633,27 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "81f101ea80d243f6a44c8ddc16922e68438c813895ed7f0659e33838e8d10f37",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "af4851cc55695b171957c5f9b78446e5ccc44896d7aa1303a0ed8340c4f97602",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
     "notes": [
-      "Added the new RemoteControlEvent.SongRequests case with its synthesized Swift wire shape {\"songRequests\":{\"enabled\":<bool>}}.",
-      "Registered the new case in RemoteControlEvent.fromJsonElement so events from the assistant decode.",
-      "Everything else in the file is unchanged, including the hand-written kotlinx.serialization plumbing and the CryptoKit-free AES-GCM encryption helper."
+      "Replaced the spinWheelOfLuck request with a new RemoteControlTipKind sealed class carried inside the tip request.",
+      "RemoteControlTipKind is a sealed class with a JsonObject serializer, encoded as {\"message\":{\"amount\",\"currency\"}}, {\"effect\":{\"sound\"}} or {\"wheelOfLuck\":{\"count\"}}, matching Swift's synthesized enum encoding.",
+      "RemoteControlRequest.SpinWheelOfLuck and its fromJsonElement branch were removed.",
+      "RemoteControlEvent.SongRequests and its fromJsonElement branch were removed.",
+      "Tip now encodes its kind as a nested Swift-style case object before requestId.",
+      "Everything else is unchanged from the previous Kotlin translation, including the Base64 byte handling and the AES-GCM encryption helpers."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 87565,
-    "tokens_out": 21327,
-    "seconds": 50.7,
-    "ported_at": "2026-10-17T21:48:43+00:00"
+    "tokens_in": 175304,
+    "tokens_out": 45890,
+    "seconds": 124.4,
+    "ported_at": "2026-10-23T22:43:52+00:00",
+    "warning": "changed 107 Kotlin lines for 10 changed Swift lines"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -15712,25 +15722,25 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "d834d40decb752fe280e1c317b48dbadb25d29218f3bddcacd6d4de3096d349e",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "3fc5d7d457d8dfee2db4f580992fb07f2e0e6667e7b4cf6ff1115c3f6d96d7fe",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "Only the four merged-guard Swift changes are applied; the recording-thumbnail guard merge needs no Kotlin change because that body is the hand-written MediaMetadataRetriever port.",
-      "reloadRemoteControlStreamer now computes the URI once and checks configuration and URL in one condition, as the merged Swift guard does.",
-      "reloadRemoteControlRelay merges isRemoteControlRelayConfigured() and the assistant URL parse into one early return.",
-      "remoteControlStreamerSetStream keeps the Android smart-cast form: findStream result is null-checked together with enabled/live/recording flags.",
-      "All other Android-specific behaviour (AppDelegate.context, RemoteControlStreamerDelegateAdapter, java.io.File recordings, Triple returns) is untouched."
+      "Applied only the diff: removed remoteControlStreamerSpinWheelOfLuck and switched remoteControlStreamerTip to (name, message, kind: RemoteControlTipKind, requestId) forwarding to moblinCloudTip.",
+      "Added the RemoteControlTipKind import from com.moblin.android.remotecontrol, keeping import order.",
+      "The old tip body (chat message + moblinCloudPlayTipAlert) and the isRemoteControlRequestAlreadyHandled guard are gone, matching Swift.",
+      "RemoteControlStreamerDelegateAdapter lost its spinWheelOfLuck override and its tip override now matches the kind-based signature of RemoteControlStreamerDelegate.",
+      "Everything else in the Kotlin file is untouched, including the Android-specific adapters and the Android recording/thumbnail code paths."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 92680,
-    "tokens_out": 19919,
-    "seconds": 59.2,
-    "ported_at": "2026-10-22T22:53:05+00:00"
+    "tokens_in": 92263,
+    "tokens_out": 18714,
+    "seconds": 51.3,
+    "ported_at": "2026-10-23T22:42:50+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
@@ -15867,23 +15877,23 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "a669c27165af634b224162d84574b87d9e0a4f63c6a2fcabac2dbb33ebc6e477",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "d681bb032085f633f70d76b4e32792bd99d73582c28e52b200ca492e65c92d8e",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Only the nested `if let prevX` plus inner zoom-factor check in addDefaultBackZoomPresets changed; they are now one combined Kotlin condition.",
-      "Every other line of the file is byte-identical to the previous translation, including the Android hand-written zoom-factor helpers (backCameraVirtualDeviceSwitchOverZoomFactors, backCameraZoomFactorScale) and the upperCaseMicIds hook.",
-      "Zoom presets still fall back to the fixed 0.5x-8x list when Cameras.backCameraSwitchOverZoomFactors() returns null."
+      "Only SettingsMoblinCloud changed: the songRequests setting is gone from Swift, so its Kotlin constructor parameter, published property, encode entry and decode line were removed.",
+      "No other declaration, import or formatting line was touched.",
+      "Everything else in the file is byte-identical to the previous translation, including hand-written Android hooks such as upperCaseMicIds, Cameras.backCameraSwitchOverZoomFactors and the ZIP export/import logic."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 115871,
-    "tokens_out": 27979,
-    "seconds": 78.7,
-    "ported_at": "2026-10-22T22:53:21+00:00"
+    "tokens_in": 116017,
+    "tokens_out": 27906,
+    "seconds": 73.1,
+    "ported_at": "2026-10-23T22:43:03+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -15950,24 +15960,23 @@
   },
   "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift": {
     "status": "ok",
-    "sha256": "577408936556703bb83ca6555011f137bb870738094e4b6e58f00bbc8d9fb62f",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "9f373bc13467732a83b54b7f861e1903c13fb1f640182fe9962c98feb08c0474",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/streams/stream/StreamSettingsView.kt",
     "notes": [
-      "Only the three NavigationLink destinations described by the diff changed: StreamKickSettingsView, StreamSnapshotSettingsView and StreamRealtimeIrlSettingsView now receive the model.",
-      "StreamPlatformsSettingsView already takes model: Model = LocalModel.current, so passing model = model there is safe.",
-      "No import changes were needed; all three destination views were already imported.",
-      "Every other line, import and declaration stays byte-identical to the current Kotlin file."
+      "Added the ElevenLabsLogoAndNameView composable right after TtsMonsterLogoAndNameView, matching the new Swift type.",
+      "Rest of the file is unchanged from the previous translation.",
+      "The logo is drawn through com.moblin.android.platform.swiftui.AssetImage, which reads the asset catalog image mirrored into the app's assets."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59123,
-    "tokens_out": 4574,
-    "seconds": 12.9,
-    "ported_at": "2026-10-06T23:23:53+00:00"
+    "tokens_in": 59856,
+    "tokens_out": 3971,
+    "seconds": 12.3,
+    "ported_at": "2026-10-23T22:42:11+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/PngTuber/WidgetPngTuberSettingsView.swift": {
     "status": "ok",
@@ -16131,23 +16140,25 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "3d2e02c4557d4869971dfdfc9392ed764e2a21ac1bddbfdc9077dfd0f79baa9c",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "a3ef3e167ba6c28dad95c3015c060a96eb3871e93aaee141a9663301cc4556c6",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Only updateBrowserWidgetStatus() changed: the nested if is merged into one condition and the inner assignment is unwrapped.",
-      "Progress is compared against 100 as before (progress is an Int here), and startLoadingTime uses ContinuousClock.now with advanced(bySeconds = 5.0).",
-      "Everything else in Model.kt stays byte-identical, including the Android hand-written helpers and platform hooks."
+      "Adds Model.moblinCloudTipEffects as ArrayDeque<Triple<String, String, String>> (Swift's Deque<(String, String, URL)> stores the URL as String, like other URL properties here).",
+      "Adds Model.moblinCloudTipEffectPlayer (AudioPlayer?) and Model.moblinCloudTipEffectTimer (MainTimer), placed exactly after moblinCloud.",
+      "Adds the chatTextToSpeech.setElevenLabsApiKey(apiKey = ...) call in setup() right after setTtsMonsterApiToken.",
+      "Adds alertsTtsMonsterApiToken() and alertsElevenLabsApiKey() beside the other AlertsEffectDelegate overrides; they are written as override fun because the Swift declarations live in the AlertsEffectDelegate conformance extension.",
+      "Everything else is byte-identical to the previous Kotlin file, including hand-written Android fixes."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 146043,
-    "tokens_out": 33999,
-    "seconds": 99.3,
-    "ported_at": "2026-10-22T23:07:13+00:00"
+    "tokens_in": 146393,
+    "tokens_out": 34489,
+    "seconds": 95.8,
+    "ported_at": "2026-10-23T22:43:50+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16171,23 +16182,22 @@
   },
   "Moblin/View/Settings/Chat/ChatSettingsView.swift": {
     "status": "ok",
-    "sha256": "177b3f41ae8822ea890158480491553374d807d2648324ae023315e62cddce8f",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "fb04941c0e8a2db82fcd542480e6ccadfb4178277b54eac13810097bcc941049",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatSettingsView.kt",
     "notes": [
-      "The only Swift change merges two guards in submitMaximumAge; the Kotlin function now checks null and non-positive age in one condition.",
-      "All other lines, imports and declaration order are byte-identical to the current Kotlin file.",
-      "SettingsChat.maximumAge stays an Int, so value.toIntOrNull() is kept as the Kotlin equivalent of Swift's Int(value)."
+      "The only change is adding elevenLabs = chat.elevenLabs to the ChatTextToSpeechSettingsView destination, matching the new Swift call.",
+      "Everything else in the Kotlin file stays byte-identical, including the hand-written Android onNavigate plumbing."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49454,
-    "tokens_out": 1867,
-    "seconds": 8.1,
-    "ported_at": "2026-10-22T22:52:39+00:00"
+    "tokens_in": 49594,
+    "tokens_out": 1487,
+    "seconds": 5.7,
+    "ported_at": "2026-10-23T22:42:19+00:00"
   },
   "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
     "status": "ok",
@@ -16809,23 +16819,24 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift": {
     "status": "ok",
-    "sha256": "0327bec80b85fdea619f59ffec18fa0727baea458560e5cad65da2f364dab222",
-    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "sha256": "49b3b9e51f7705a60aeb8b83ba6f5427f8a11a416c8b5d5dd070a85d9a137797",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsSettingsView.kt",
     "notes": [
-      "Added the new Moblin Cloud NavigationLink between the Kick and Chat bot rows, with the iOS Label component and the 'cloud' symbol.",
-      "Imported com.moblin.android.platform.swiftui.Label for the new row label.",
-      "WidgetAlertsMoblinCloudSettingsView lives in the same package, so no import was added for it."
+      "Only AlertTextToSpeechView changed: the VoicesView call now passes model.database.chat.ttsMonster.apiToken instead of the empty string.",
+      "The Swift also passes elevenLabsApiKey; the current Kotlin VoicesView declaration has no such parameter, so it is omitted to keep the call matching the declared signature.",
+      "No new imports are needed: model.database is reached through the existing Model parameter.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62998,
-    "tokens_out": 4584,
-    "seconds": 12.4,
-    "ported_at": "2026-10-18T22:13:44+00:00"
+    "tokens_in": 63306,
+    "tokens_out": 4590,
+    "seconds": 13.9,
+    "ported_at": "2026-10-23T22:42:35+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSrtSettingsView.swift": {
     "status": "ok",
@@ -18155,71 +18166,71 @@
   },
   "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift": {
     "status": "ok",
-    "sha256": "27af0d8e6ed3db36df37aea2d8e6fc0702bce12da6b1042760a09a4af1325338",
-    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
+    "sha256": "cddebae958fa6c810bb38c21f551957524613204941303a5f69ee25e3685754c",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/moblincloud/MoblinCloudSettingsView.kt",
     "notes": [
-      "Added a new Section with a \"Tips\" picker bound to moblinCloud.alertsWidgetId, placed before the wheel of luck section, mirroring the existing Picker translation pattern.",
-      "The alerts picker has no onChange in Swift, so onChange only assigns the new value back to moblinCloud.alertsWidgetId.",
-      "Both pickers' nil option label changed from \"None\" to \"-- None --\".",
-      "The widget list is filtered to SettingsWidgetType.alerts and mapped to a List<UUID?> with null first, exactly like the wheel of luck options.",
-      "No new imports were required; all names used were already imported."
+      "Applied the diff: added the intro line, the three-step list and the guide link; renamed the alerts picker title to Message with a new footer; updated the wheel of luck footer; removed the Song requests section.",
+      "The numbered Swift multi-line string keeps its real newlines, translated as one localized string joined with \\n.",
+      "Removed the now unused moblinCloudSendSongRequests import.",
+      "Everything else (Toggle, pickers, TextEditNavigationView, reloadMoblinCloud calls) is byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41016,
-    "tokens_out": 1730,
-    "seconds": 7.4,
-    "ported_at": "2026-10-18T21:57:18+00:00"
+    "tokens_in": 42583,
+    "tokens_out": 1744,
+    "seconds": 8.4,
+    "ported_at": "2026-10-23T22:41:31+00:00"
   },
   "Moblin/Various/Model/ModelMoblinCloud.swift": {
     "status": "ok",
-    "sha256": "038e462f8db12ce2eda6786dc57cceb814f68af3e3b8452b2a5dabfb45f05cd0",
-    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
+    "sha256": "b3278eb3724ae4dca9debdce08ea655fb16a1a99bfe0d22b88afbf9f0bc82382",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
     "notes": [
-      "The Swift diff only unifies remoteControlStreamerMusic into a single guard-then-forward body; the existing Kotlin override already had that exact shape, so no Kotlin lines change.",
-      "remoteControlStreamerMusic still reports failure with TODO(\"RemoteControlResult.error\") because the Kotlin RemoteControlResult enum entries are not part of this file's declared dependencies; kept byte-identical as a pre-existing Android deviation.",
-      "makeMoblinCloudUrl keeps the hand-written URI/percent-encoding build with CharacterSet.urlPathAllowed.",
-      "All com.moblin.android.platform and local imports are untouched."
+      "Removed moblinCloudSendSongRequests and MoblinCloud.sendSongRequests; the connected callback no longer sends song-request state.",
+      "moblinCloudSpinWheelOfLuck and the amount/currency remoteControlStreamerTip override were replaced by moblinCloudTip(name, message, kind, requestId) plus five private helpers.",
+      "The new helpers use the Model members moblinCloudTipEffects (deque of name/text/url triples), moblinCloudTipEffectPlayer (AudioPlayer?) and moblinCloudTipEffectTimer, declared in Model.kt.",
+      "Tip kinds are matched with a sealed-class when over RemoteControlTipKind.Message/Effect/WheelOfLuck.",
+      "Bundle.main.url(forResource:withExtension:) became Bundle.url(\"Alerts.bundle/$sound\", \"mp3\").",
+      "try? AudioPlayer(contentsOf:) became runCatching { AudioPlayer(contentsOf = url) }.getOrNull().",
+      "appendChatMessage keeps every Swift argument as a named argument, with .now -> Instant.now().",
+      "New imports: RgbColor, Bundle, RemoteControlTipKind, AudioPlayer, ChatHighlight, makeChatPostTextSegments and java.time.Instant."
     ],
     "unsupported": [
-      "RemoteControlResult.error (still TODO(\"RemoteControlResult.error\") in remoteControlStreamerMusic)"
+      "TODO(\"RemoteControlResult.error\"): pre-existing placeholder in the remoteControlStreamerMusic override, kept unchanged"
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53219,
-    "tokens_out": 3676,
-    "seconds": 10.8,
-    "ported_at": "2026-10-20T22:44:39+00:00"
+    "tokens_in": 56276,
+    "tokens_out": 12376,
+    "seconds": 47.9,
+    "ported_at": "2026-10-23T22:42:40+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift": {
     "status": "ok",
-    "sha256": "5ee67d36d233e7b06ad45e28d04e0210f3bf9582c50a39b15e6e7d49a770d69f",
-    "moblin_commit": "97e26d2abc8a0771f659dd002a47131cf8f5d892",
-    "mode": "full",
+    "sha256": "65b096626461bce3b49be5263bf403ca202376f2c230f3858922669445edebcd",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsMoblinCloudSettingsView.kt",
     "notes": [
-      "MoblinCloudTipsView stays a private @Composable with the same name, placed before WidgetAlertsMoblinCloudSettingsView.",
-      "Form(title = \"Tips\") / Form(title = \"Moblin Cloud\") replace Form + .navigationTitle, including in the pushed destination.",
-      "The Toggle uses the titled overload and writes alert.enabled then calls model.updateAlertsSettings() in onChange, as the Swift Binding setter does.",
-      "AlertTextToSpeechView has no ttsDelay parameter in Kotlin (it keeps its own state), so only model and alert are passed.",
-      "alertTestNames.randomElement()! is alertTestNames.random() and Int.random(in: 1 ... 100) is (1..100).random().",
-      "The test alert is built as AlertsEffectAlert.MoblinCloudTip and passed to Model.testAlert as the instructions require."
+      "Renamed the tips view's Form title from \"Tips\" to \"Message\" to match the new navigationTitle.",
+      "Renamed the NavigationLink label from \"Tips\" to \"Message\".",
+      "Everything else is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41152,
-    "tokens_out": 3858,
-    "seconds": 15.5,
-    "ported_at": "2026-10-18T22:18:09+00:00"
+    "tokens_in": 42969,
+    "tokens_out": 723,
+    "seconds": 3.6,
+    "ported_at": "2026-10-23T22:41:47+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/ZoomSliderView.swift": {
     "status": "ok",
@@ -18268,5 +18279,51 @@
     "tokens_out": 5557,
     "seconds": 23.3,
     "ported_at": "2026-10-21T22:50:20+00:00"
+  },
+  "Moblin/Various/TextToSpeechVoice.swift": {
+    "status": "ok",
+    "sha256": "554e2616b59223c2e7e434024513cce9cf8dc517d365ae0d411bb05ce1ad2ab4",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/TextToSpeechVoice.kt",
+    "notes": [
+      "Swift enum with associated values becomes a sealed class with nested data classes Apple, TtsMonster and ElevenLabs.",
+      "The static find(voices:language:) moves to the sealed class companion object, keeping the same name and parameter order.",
+      "The Swift if/else-if chain is written as a when over the selected voice type with an else branch that falls through to the AVSpeechSynthesisVoice lookup, matching the original fall-through behaviour.",
+      "Only SettingsVoice, SettingsVoiceType and AVSpeechSynthesisVoice are imported; the settings types come from com.moblin.android.various.settings as declared.",
+      "AVSpeechSynthesisVoice(identifier) resolves to the identifier overload of the shim's companion invoke because a non-null String is preferred over String?."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 30293,
+    "tokens_out": 3335,
+    "seconds": 16.7,
+    "ported_at": "2026-10-23T22:41:39+00:00"
+  },
+  "Moblin/Integrations/ElevenLabs/ElevenLabs.swift": {
+    "status": "ok",
+    "sha256": "c6bd861724bd397893c483cdb39b3fe15391f80eac35d1d875110a675bc83525",
+    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/integrations/elevenlabs/ElevenLabs.kt",
+    "notes": [
+      "Swift's URLRequest/URLSession is replaced by OkHttp's Request plus the existing suspend httpGet(request) helper, so failures use runCatching(...).getOrNull() to mirror try?.",
+      "baseUrl is a private top-level String constant; paths are built by concatenation like URL.appending(components:).",
+      "The Codable structs become @Serializable data classes keeping the Swift snake_case property names, so the JSON keys stay byte-identical.",
+      "JSON decoding uses codableJson and strips a leading UTF-8 BOM, matching String(data:encoding:.utf8) behaviour.",
+      "ElevenLabsVoice.countryCode uses java.util.Locale.forLanguageTag with '_' normalised to '-', and maps an empty country back to null like Swift's Locale.region?.identifier.",
+      "createRequest returns an OkHttp Request.Builder so the POST body and Accept header can be added afterwards, as Swift mutates its URLRequest.",
+      "The request always carries the xi-api-key header, exactly as createRequest did."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 31885,
+    "tokens_out": 4386,
+    "seconds": 19.5,
+    "ported_at": "2026-10-23T22:41:42+00:00"
   }
 }

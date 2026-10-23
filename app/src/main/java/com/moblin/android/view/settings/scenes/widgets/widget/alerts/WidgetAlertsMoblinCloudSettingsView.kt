@@ -15,7 +15,7 @@ import com.moblin.android.view.utils.TextButtonView
 
 @Composable
 private fun MoblinCloudTipsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
-    Form(title = "Tips") {
+    Form(title = "Message") {
         Section {
             Toggle(
                 title = "Enabled",
@@ -61,7 +61,7 @@ private fun MoblinCloudTipsView(model: Model = LocalModel.current, alert: Settin
 fun WidgetAlertsMoblinCloudSettingsView(moblinCloud: SettingsWidgetAlertsMoblinCloud) {
     Form(title = "Moblin Cloud") {
         Section {
-            NavigationLink(title = "Tips") {
+            NavigationLink(title = "Message") {
                 MoblinCloudTipsView(alert = moblinCloud.tips)
             }
         }

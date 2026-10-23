@@ -735,6 +735,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var remoteControlRelay: RemoteControlRelay? = null
     var remoteControlWeb: RemoteControlWeb? = null
     var moblinCloud: MoblinCloud? = null
+    var moblinCloudTipEffects: ArrayDeque<Triple<String, String, String>> = ArrayDeque()
+    var moblinCloudTipEffectPlayer: AudioPlayer? = null
+    val moblinCloudTipEffectTimer = MainTimer()
     var isRemoteControlAssistantRequestingPreview = false
     var isRemoteControlAssistantRequestingStatus = false
     var isRemoteControlAssistantRequestingStats = false
@@ -1373,6 +1376,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         chatTextToSpeech.setFilterMentions(value = chat.textToSpeechFilterMentions)
         chatTextToSpeech.setPauseBetweenMessages(value = chat.textToSpeechPauseBetweenMessages)
         chatTextToSpeech.setTtsMonsterApiToken(apiToken = chat.ttsMonster.apiToken)
+        chatTextToSpeech.setElevenLabsApiKey(apiKey = chat.elevenLabs.apiKey)
         setTextToSpeechStreamerMentions()
         updateOrientationLock()
         initMediaPlayers()
@@ -3448,6 +3452,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     override fun alertsMakeKickSegments(text: String): List<ChatPostSegment> =
         kickPusher?.makeChatPostSegments(content = text) ?: makeChatPostTextSegments(text = text)
+
+    override fun alertsTtsMonsterApiToken(): String = database.chat.ttsMonster.apiToken
+
+    override fun alertsElevenLabsApiKey(): String = database.chat.elevenLabs.apiKey
 
     override fun faxReceiverPrint(image: Bitmap) {
         printAllCatPrinters(image = image)

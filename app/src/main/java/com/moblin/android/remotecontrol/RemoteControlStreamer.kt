@@ -81,17 +81,10 @@ interface RemoteControlStreamerDelegate {
         command: RemoteControlMusicCommand,
         onCompleted: (RemoteControlResult, RemoteControlResponse?) -> Unit,
     )
-    fun remoteControlStreamerSpinWheelOfLuck(
-        name: String,
-        message: String,
-        count: Int,
-        requestId: String?,
-    )
     fun remoteControlStreamerTip(
         name: String,
         message: String,
-        amount: String,
-        currency: String,
+        kind: RemoteControlTipKind,
         requestId: String,
     )
 }
@@ -188,13 +181,6 @@ class RemoteControlStreamer(
             return
         }
         send(RemoteControlMessageToAssistant.Event(RemoteControlEvent.WheelOfLuck(wheel)))
-    }
-
-    fun sendSongRequests(enabled: Boolean) {
-        if (!connected) {
-            return
-        }
-        send(RemoteControlMessageToAssistant.Event(RemoteControlEvent.SongRequests(enabled)))
     }
 
     fun sendPreview(preview: ByteArray) {
@@ -556,21 +542,11 @@ class RemoteControlStreamer(
                     send(RemoteControlMessageToAssistant.Response(id, result, response))
                 }
             }
-            is RemoteControlRequest.SpinWheelOfLuck -> {
-                delegate.remoteControlStreamerSpinWheelOfLuck(
-                    data.name,
-                    data.message,
-                    data.count,
-                    data.requestId,
-                )
-                sendEmptyOkResponse(id)
-            }
             is RemoteControlRequest.Tip -> {
                 delegate.remoteControlStreamerTip(
                     data.name,
                     data.message,
-                    data.amount,
-                    data.currency,
+                    data.kind,
                     data.requestId,
                 )
                 sendEmptyOkResponse(id)

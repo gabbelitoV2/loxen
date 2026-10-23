@@ -1,10 +1,10 @@
 package com.moblin.android.various
 
+import com.moblin.android.integrations.elevenlabs.ElevenLabs
 import com.moblin.android.integrations.ttsmonster.TtsMonster
 import com.moblin.android.platform.avfoundation.AVSpeechSynthesisVoice
 import com.moblin.android.platform.avfoundation.AVSpeechUtterance
 import com.moblin.android.various.settings.SettingsVoice
-import com.moblin.android.various.settings.SettingsVoiceType
 import java.util.Locale
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
@@ -64,12 +64,6 @@ private val saysByLanguage = mapOf(
     "zh" to "说",
 )
 
-private sealed class Voice {
-    data class Apple(val voice: AVSpeechSynthesisVoice?) : Voice()
-
-    data class TtsMonster(val voiceId: String) : Voice()
-}
-
 class ChatTextToSpeech {
     private var rate: Float = 0.4f
     private var volume: Float = 0.6f
@@ -89,6 +83,7 @@ class ChatTextToSpeech {
     private var paused: Boolean = false
     private var currentlyPlayingMessage: TextToSpeechMessage? = null
     private var ttsMonster: TtsMonster? = null
+    private var elevenLabs: ElevenLabs? = null
     private var audioPlayer: AudioPlayer? = null
     private var isSpeaking: Boolean = false
     private var isPausingBetweenMessages: Boolean = false
@@ -221,6 +216,16 @@ class ChatTextToSpeech {
         }
     }
 
+    fun setElevenLabsApiKey(apiKey: String) {
+        scope.launch {
+            if (apiKey.isEmpty()) {
+                elevenLabs = null
+            } else {
+                elevenLabs = ElevenLabs(apiKey = apiKey)
+            }
+        }
+    }
+
     fun reset(running: Boolean) {
         scope.launch {
             this@ChatTextToSpeech.running = running
@@ -347,7 +352,7 @@ class ChatTextToSpeech {
         return 0.0
     }
 
-    private fun getVoice(message: String): Pair<Voice?, String>? {
+    private fun getVoice(message: String): Pair<TextToSpeechVoice, String>? {
         if (isFilteredOut(message = message)) {
             return null
         }
@@ -356,23 +361,8 @@ class ChatTextToSpeech {
             language = defaultLanguage ?: Locale.getDefault().language
         }
         val resolvedLanguage = language ?: return null
-        val voice = voices[resolvedLanguage]
-        val appleVoice = voice?.apple?.voice
-        if (voice?.type == SettingsVoiceType.apple && appleVoice != null) {
-            return Voice.Apple(voice = AVSpeechSynthesisVoice(appleVoice)) to getSays(resolvedLanguage)
-        }
-        val ttsMonsterVoiceId = voice?.ttsMonster?.voiceId
-        if (voice?.type == SettingsVoiceType.ttsMonster && ttsMonsterVoiceId != null) {
-            return Voice.TtsMonster(voiceId = ttsMonsterVoiceId) to getSays(resolvedLanguage)
-        }
-        val fallbackVoice = AVSpeechSynthesisVoice.speechVoices()
-            .filter { it.language.startsWith(resolvedLanguage) }
-            .firstOrNull()
-        if (fallbackVoice != null) {
-            return Voice.Apple(voice = AVSpeechSynthesisVoice(fallbackVoice.identifier)) to
-                getSays(resolvedLanguage)
-        }
-        return null
+        val voice = TextToSpeechVoice.find(voices = voices, language = resolvedLanguage) ?: return null
+        return voice to getSays(resolvedLanguage)
     }
 
     private fun trySayNextMessage() {
@@ -395,19 +385,19 @@ class ChatTextToSpeech {
         }
         isSpeaking = true
         when (voice) {
-            is Voice.Apple -> utterApple(voice = voice.voice, text = text)
-            is Voice.TtsMonster -> utterTtsMonster(voiceId = voice.voiceId, text = text)
+            is TextToSpeechVoice.Apple -> utterApple(voice = voice.voice, text = text)
+            is TextToSpeechVoice.TtsMonster -> utterTtsMonster(voiceId = voice.voiceId, text = text)
+            is TextToSpeechVoice.ElevenLabs -> utterElevenLabs(voiceId = voice.voiceId, text = text)
         }
         latestUserThatSaidSomething = message.user
         sayLatestUserThatSaidSomethingAgain = now + 30_000_000_000L
     }
 
-    private fun findNextMessageToSay(): Triple<TextToSpeechMessage, Voice, String>? {
+    private fun findNextMessageToSay(): Triple<TextToSpeechMessage, TextToSpeechVoice, String>? {
         while (true) {
             val message = messageQueue.removeFirstOrNull() ?: return null
             val result = getVoice(message = message.message) ?: continue
-            val voice = result.first ?: continue
-            return Triple(message, voice, result.second)
+            return Triple(message, result.first, result.second)
         }
     }
 
@@ -423,14 +413,25 @@ class ChatTextToSpeech {
 
     private fun utterTtsMonster(voiceId: String, text: String) {
         scope.launch {
-            val data = ttsMonster?.generateTts(voiceId = voiceId, message = text)
-            if (data != null) {
+            playGeneratedAudio(data = ttsMonster?.generateTts(voiceId = voiceId, message = text))
+        }
+    }
+
+    private fun utterElevenLabs(voiceId: String, text: String) {
+        scope.launch {
+            playGeneratedAudio(data = elevenLabs?.generateTts(voiceId = voiceId, message = text))
+        }
+    }
+
+    private fun playGeneratedAudio(data: ByteArray?) {
+        if (data != null) {
+            scope.launch {
                 audioPlayer = runCatching { AudioPlayer(data = data) }.getOrNull()
                 audioPlayer?.setDelegate(delegate = this@ChatTextToSpeech)
                 audioPlayer?.play()
-            } else {
-                sayFinished()
             }
+        } else {
+            sayFinished()
         }
     }
 

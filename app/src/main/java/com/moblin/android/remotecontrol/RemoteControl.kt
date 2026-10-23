@@ -492,37 +492,17 @@ sealed class RemoteControlRequest {
         }
     }
 
-    data class SpinWheelOfLuck(
-        val name: String,
-        val message: String,
-        val count: Int,
-        val requestId: String?,
-    ) : RemoteControlRequest() {
-        override fun toJsonElement(): JsonObject = buildJsonObject {
-            putJsonObject("spinWheelOfLuck") {
-                put("name", name)
-                put("message", message)
-                put("count", count)
-                if (requestId != null) {
-                    put("requestId", requestId)
-                }
-            }
-        }
-    }
-
     data class Tip(
         val name: String,
         val message: String,
-        val amount: String,
-        val currency: String,
+        val kind: RemoteControlTipKind,
         val requestId: String,
     ) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("tip") {
                 put("name", name)
                 put("message", message)
-                put("amount", amount)
-                put("currency", currency)
+                put("kind", kind.toJsonElement())
                 put("requestId", requestId)
             }
         }
@@ -661,25 +641,71 @@ sealed class RemoteControlRequest {
                 "music" -> Music(
                     command = RemoteControlMusicCommand.fromJsonElement(params.getValue("command")),
                 )
-                "spinWheelOfLuck" -> SpinWheelOfLuck(
-                    name = params.getValue("name").jsonPrimitive.content,
-                    message = params.getValue("message").jsonPrimitive.content,
-                    count = params.getValue("count").jsonPrimitive.int,
-                    requestId = params["requestId"]?.let {
-                        if (it is JsonNull) null else it.jsonPrimitive.content
-                    },
-                )
                 "tip" -> Tip(
                     name = params.getValue("name").jsonPrimitive.content,
                     message = params.getValue("message").jsonPrimitive.content,
-                    amount = params.getValue("amount").jsonPrimitive.content,
-                    currency = params.getValue("currency").jsonPrimitive.content,
+                    kind = RemoteControlTipKind.fromJsonElement(params.getValue("kind")),
                     requestId = params.getValue("requestId").jsonPrimitive.content,
                 )
                 else -> throw SerializationException("Unknown request ${entry.key}")
             }
         }
     }
+}
+
+@Serializable(with = RemoteControlTipKindSerializer::class)
+sealed class RemoteControlTipKind {
+    abstract fun toJsonElement(): JsonObject
+
+    data class Message(val amount: String, val currency: String) : RemoteControlTipKind() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("message") {
+                put("amount", amount)
+                put("currency", currency)
+            }
+        }
+    }
+
+    data class Effect(val sound: String) : RemoteControlTipKind() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("effect") { put("sound", sound) }
+        }
+    }
+
+    data class WheelOfLuck(val count: Int) : RemoteControlTipKind() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("wheelOfLuck") { put("count", count) }
+        }
+    }
+
+    companion object {
+        fun fromJsonElement(element: JsonElement): RemoteControlTipKind {
+            val entry = element.jsonObject.entries.first()
+            val params = entry.value.jsonObject
+            return when (entry.key) {
+                "message" -> Message(
+                    amount = params.getValue("amount").jsonPrimitive.content,
+                    currency = params.getValue("currency").jsonPrimitive.content,
+                )
+                "effect" -> Effect(sound = params.getValue("sound").jsonPrimitive.content)
+                "wheelOfLuck" -> WheelOfLuck(count = params.getValue("count").jsonPrimitive.int)
+                else -> throw SerializationException("Unknown tip kind ${entry.key}")
+            }
+        }
+    }
+}
+
+object RemoteControlTipKindSerializer : KSerializer<RemoteControlTipKind> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+
+    override fun serialize(encoder: Encoder, value: RemoteControlTipKind) {
+        encoder.encodeSerializableValue(JsonElement.serializer(), value.toJsonElement())
+    }
+
+    override fun deserialize(decoder: Decoder): RemoteControlTipKind =
+        RemoteControlTipKind.fromJsonElement(
+            decoder.decodeSerializableValue(JsonElement.serializer()),
+        )
 }
 
 sealed class RemoteControlResponse {
@@ -870,12 +896,6 @@ sealed class RemoteControlEvent {
         }
     }
 
-    data class SongRequests(val enabled: Boolean) : RemoteControlEvent() {
-        override fun toJsonElement(): JsonObject = buildJsonObject {
-            putJsonObject("songRequests") { put("enabled", enabled) }
-        }
-    }
-
     companion object {
         fun fromJson(data: String): RemoteControlEvent =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -912,9 +932,6 @@ sealed class RemoteControlEvent {
                         if (it is JsonNull) null
                         else remoteControlJson.decodeFromJsonElement<RemoteControlWheelOfLuck>(it)
                     },
-                )
-                "songRequests" -> SongRequests(
-                    enabled = params.getValue("enabled").jsonPrimitive.boolean,
                 )
                 else -> throw SerializationException("Unknown event ${entry.key}")
             }

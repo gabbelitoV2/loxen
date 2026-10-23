@@ -57,6 +57,7 @@ private fun ChatSettingsGeneralView(
                 model = model,
                 chat = chat,
                 ttsMonster = chat.ttsMonster,
+                elevenLabs = chat.elevenLabs,
             )
         },
     ) {

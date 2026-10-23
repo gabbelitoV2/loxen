@@ -136,6 +136,11 @@ fun TtsMonsterLogoAndNameView() {
 }
 
 @Composable
+fun ElevenLabsLogoAndNameView() {
+    PlatformLogoAndNameView(logo = "ElevenLabs", name = localized("ElevenLabs"))
+}
+
+@Composable
 fun MobcamLogoAndNameView() {
     PlatformLogoAndNameView(logo = "MobcamLogo", name = localized("Mobcam"), scale = 1.25)
 }

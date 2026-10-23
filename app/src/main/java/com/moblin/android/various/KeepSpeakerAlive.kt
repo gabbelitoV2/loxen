@@ -53,6 +53,10 @@ open class AudioPlayer {
         }
     }
 
+    open fun duration(): Double {
+        return player.duration / 1000.0
+    }
+
     open fun setVolume(volume: Float) {
         player.setVolume(volume, volume)
     }

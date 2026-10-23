@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-22T23:03:49+00:00",
+  "generated": "2026-10-23T22:41:10+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -2791,8 +2791,8 @@
     },
     {
       "path": "Moblin/Various/KeepSpeakerAlive.swift",
-      "lines": 53,
-      "sha256": "ccbeae72336aec285f377bb7782c910031081dc777319f369be00a1414296334",
+      "lines": 57,
+      "sha256": "2b24dc47ca7d5977a51953c224ec9ef62ca540dba052de666f64dcd9665e40ea",
       "imports": [
         "AVFoundation"
       ],
@@ -3810,6 +3810,31 @@
         "Common/Various/CommonUtils.swift",
         "Moblin/Media/HaishinKit/Util/ByteReader.swift",
         "Moblin/Media/HaishinKit/Util/ByteWriter.swift"
+      ],
+      "wave": 5
+    },
+    {
+      "path": "Moblin/Integrations/ElevenLabs/ElevenLabs.swift",
+      "lines": 72,
+      "sha256": "c6bd861724bd397893c483cdb39b3fe15391f80eac35d1d875110a675bc83525",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "ElevenLabsVerifiedLanguage",
+        "ElevenLabsVoice",
+        "ElevenLabsVoicesResponse",
+        "ElevenLabsGenerateRequest",
+        "ElevenLabs"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.integrations.elevenlabs",
+      "kotlin_path": "app/src/main/java/com/moblin/android/integrations/elevenlabs/ElevenLabs.kt",
+      "deps": [
+        "Moblin/Various/Network/NetworkUtils.swift"
       ],
       "wave": 5
     },
@@ -5242,6 +5267,27 @@
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Storages/SimpleStorage.swift",
         "Moblin/Various/Utils/FileSystemUtils.swift"
+      ],
+      "wave": 5
+    },
+    {
+      "path": "Moblin/Various/TextToSpeechVoice.swift",
+      "lines": 24,
+      "sha256": "554e2616b59223c2e7e434024513cce9cf8dc517d365ae0d411bb05ce1ad2ab4",
+      "imports": [
+        "AVFAudio"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "TextToSpeechVoice"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/TextToSpeechVoice.kt",
+      "deps": [
+        "Moblin/Various/Settings/SettingsChat.swift"
       ],
       "wave": 5
     },
@@ -7003,8 +7049,8 @@
     },
     {
       "path": "Moblin/Various/ChatTextToSpeech.swift",
-      "lines": 448,
-      "sha256": "ba3e1f463d121dc119a2a11ba8fc3e10b6708ab57dae74762391dc4f2f0cdb7d",
+      "lines": 453,
+      "sha256": "976f201f403c977a25dd366e4545992046faca0030f40a80a0f11cf65dfe961c",
       "imports": [
         "AVFAudio",
         "Collections",
@@ -7013,23 +7059,23 @@
       "tier": "platform",
       "declared_types": [
         "TextToSpeechMessage",
-        "Voice",
         "ChatTextToSpeech"
       ],
       "private_types": [
-        "TextToSpeechMessage",
-        "Voice"
+        "TextToSpeechMessage"
       ],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.various",
       "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt",
       "deps": [
+        "Moblin/Integrations/ElevenLabs/ElevenLabs.swift",
         "Moblin/Integrations/TtsMonster/TtsMonster.swift",
         "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
         "Moblin/Various/SimpleTimer.swift",
-        "Moblin/Various/SpeechSynthesizer.swift"
+        "Moblin/Various/SpeechSynthesizer.swift",
+        "Moblin/Various/TextToSpeechVoice.swift"
       ],
       "wave": 8
     },
@@ -7382,8 +7428,8 @@
     },
     {
       "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
-      "lines": 362,
-      "sha256": "6ed54af5df6485e6e0bc91daa772d6e295b61cc2e80f1547dbd897ff3b0a4d80",
+      "lines": 393,
+      "sha256": "7de7871243011507a2af0036a2ca1019d7cef486b16b4e563906c4cab651111f",
       "imports": [
         "Foundation",
         "Testing",
@@ -9951,8 +9997,8 @@
     },
     {
       "path": "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift",
-      "lines": 74,
-      "sha256": "27af0d8e6ed3db36df37aea2d8e6fc0702bce12da6b1042760a09a4af1325338",
+      "lines": 73,
+      "sha256": "cddebae958fa6c810bb38c21f551957524613204941303a5f69ee25e3685754c",
       "imports": [
         "SwiftUI"
       ],
@@ -9966,6 +10012,7 @@
       "kotlin_package": "com.moblin.android.view.settings.moblincloud",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/moblincloud/MoblinCloudSettingsView.kt",
       "deps": [
+        "Moblin/Integrations/OpenAi/OpenAi.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift"
@@ -10768,8 +10815,8 @@
     },
     {
       "path": "MoblinTests/Moblin/Various/Settings/SettingsSuite.swift",
-      "lines": 58,
-      "sha256": "bfe7a787d4e80cc44079addcb488d09af7dd354fa2eaefbff75a1ad6dfa62489",
+      "lines": 88,
+      "sha256": "1a8744a1b594b5117c635be721e61ed7ff3b6bad0c7b87ab3e177d45e4c14839",
       "imports": [
         "Foundation",
         "Testing"
@@ -12355,8 +12402,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsChat.swift",
-      "lines": 1013,
-      "sha256": "081bcd125162f3861dc2b8e205dda8b6cde328640da8c5cc221f4c5a9b931c82",
+      "lines": 1088,
+      "sha256": "5ad11b6ba8fcf83cf202a12c15b9780e00b87ca4e12e8498f6d7be440384bc84",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -12380,7 +12427,9 @@
         "SettingsVoiceType",
         "SettingsVoiceApple",
         "SettingsVoiceTtsMonster",
+        "SettingsVoiceElevenLabs",
         "SettingsVoice",
+        "SettingsElevenLabs",
         "SettingsChat"
       ],
       "private_types": [],
@@ -13817,8 +13866,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
-      "lines": 801,
-      "sha256": "c34bda0ee28ef5051bcea8110b58dcc9a74efa30300e5fdeb4fa109ae094f7a0",
+      "lines": 799,
+      "sha256": "c25fbec12a7d2c88458e0ad977fc836283d2cb62dc897ff435ac242482edbbaa",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -14140,6 +14189,44 @@
       "wave": 23
     },
     {
+      "path": "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
+      "lines": 215,
+      "sha256": "cc2201ec5a410d00f8ed3ae2a49923b950db76f49ea9f0079878cabfaea72abf",
+      "imports": [
+        "MusicKit",
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "MusicArtistView",
+        "MusicDurationView",
+        "PlaylistEndView",
+        "MusicAddedByView",
+        "ControlsView",
+        "PlaylistView",
+        "AppleMusicSettingsView"
+      ],
+      "private_types": [
+        "PlaylistEndView",
+        "ControlsView",
+        "PlaylistView"
+      ],
+      "declared_functions": [
+        "formatMusicDuration"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings.applemusic",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/applemusic/AppleMusicSettingsView.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelMusic.swift"
+      ],
+      "wave": 23
+    },
+    {
       "path": "Moblin/View/Settings/Debug/DebugLogSettingsView.swift",
       "lines": 85,
       "sha256": "1fe67d0829875a5e6069fc8d399a40acd3fe6a6e756c657e5d1a7014cd4eafbc",
@@ -14409,8 +14496,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
-      "lines": 500,
-      "sha256": "0dd1b01ba304e0ef8ff8fd05acadc1d8d9b09528c274f42fc0b92d6e70f0d1fd",
+      "lines": 479,
+      "sha256": "772d831c3baa50a49ef0923298cd67e74705b6290b4a5ff6d526fd55b5f32bc4",
       "imports": [
         "Foundation",
         "Network"
@@ -14943,47 +15030,6 @@
         "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift",
         "Moblin/View/Utils/TextItemView.swift"
-      ],
-      "wave": 25
-    },
-    {
-      "path": "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
-      "lines": 234,
-      "sha256": "35afc44a2b75eb05b2095567838733b9b91de2dad779783c4f488239a686b2b4",
-      "imports": [
-        "MusicKit",
-        "SwiftUI"
-      ],
-      "tier": "ui",
-      "declared_types": [
-        "MusicArtistView",
-        "MusicDurationView",
-        "PlaylistEndView",
-        "MusicAddedByView",
-        "ControlsView",
-        "PlaylistView",
-        "SongRequestsView",
-        "AppleMusicSettingsView"
-      ],
-      "private_types": [
-        "PlaylistEndView",
-        "ControlsView",
-        "PlaylistView",
-        "SongRequestsView"
-      ],
-      "declared_functions": [
-        "formatMusicDuration"
-      ],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.view.settings.applemusic",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/applemusic/AppleMusicSettingsView.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
-        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
-        "Moblin/Various/Model/Model.swift",
-        "Moblin/Various/Model/ModelMusic.swift",
-        "Moblin/Various/Settings/Settings.swift"
       ],
       "wave": 25
     },
@@ -15794,8 +15840,8 @@
     },
     {
       "path": "Moblin/View/Utils/VoicesView.swift",
-      "lines": 338,
-      "sha256": "58ad8c45179c554de4f80abe920e44cb41886ab29989bb16bb2e413601fa40e3",
+      "lines": 400,
+      "sha256": "3f12f4f175a030eaf8d70fd4f22890aac0f43c9d1ba5d7a78c3c552fa02ca3ee",
       "imports": [
         "AVFAudio",
         "SwiftUI"
@@ -15821,6 +15867,7 @@
       "kotlin_package": "com.moblin.android.view.utils",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/VoicesView.kt",
       "deps": [
+        "Moblin/Integrations/ElevenLabs/ElevenLabs.swift",
         "Moblin/Integrations/TtsMonster/TtsMonster.swift",
         "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
@@ -18294,8 +18341,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift",
-      "lines": 200,
-      "sha256": "84f05c87c38b0fcd2ec4d62bfa993420d7471ee2c9b9a1f2c56c7834398e2efe",
+      "lines": 228,
+      "sha256": "592c01ee1ce11af2f91645a1130454d1c65b4ee90217926993f42171f2da1e07",
       "imports": [
         "AVFAudio",
         "SwiftUI"
@@ -18303,6 +18350,7 @@
       "tier": "ui",
       "declared_types": [
         "TtsMonsterSettingsView",
+        "ElevenLabsSettingsView",
         "TextToSpeechLanguage",
         "ChatTextToSpeechSettingsView"
       ],
@@ -18316,9 +18364,9 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatTextToSpeechSettingsView.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/ElevenLabs/ElevenLabs.swift",
         "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
-        "Moblin/Various/ChatTextToSpeech.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
@@ -18713,7 +18761,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift",
       "lines": 62,
-      "sha256": "5ee67d36d233e7b06ad45e28d04e0210f3bf9582c50a39b15e6e7d49a770d69f",
+      "sha256": "65b096626461bce3b49be5263bf403ca202376f2c230f3858922669445edebcd",
       "imports": [
         "SwiftUI"
       ],
@@ -18730,6 +18778,7 @@
       "kotlin_package": "com.moblin.android.view.settings.scenes.widgets.widget.alerts",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsMoblinCloudSettingsView.kt",
       "deps": [
+        "Moblin/Integrations/OpenAi/OpenAi.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift",
@@ -20117,8 +20166,8 @@
     },
     {
       "path": "Moblin/VideoEffects/Alerts/AlertsEffect.swift",
-      "lines": 971,
-      "sha256": "264c8b5ed976532dd7fa1cee5ac77ca4a430858fbecc73dd5104c69f2fdcf23f",
+      "lines": 1002,
+      "sha256": "34c4a8dc96f91fff5352cfb1f1d3e4ea4ca96ba88ed3e36a55bacd309e62d2c8",
       "imports": [
         "AVFoundation",
         "Collections",
@@ -20142,7 +20191,9 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/ElevenLabs/ElevenLabs.swift",
         "Moblin/Integrations/OpenAi/OpenAi.swift",
+        "Moblin/Integrations/TtsMonster/TtsMonster.swift",
         "Moblin/Media/HaishinKit/Media/Processor.swift",
         "Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift",
         "Moblin/StreamingPlatforms/Kick/KickPusher.swift",
@@ -20154,6 +20205,7 @@
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/Various/SpeechSynthesizer.swift",
         "Moblin/Various/Storages/AlertMediaStorage.swift",
+        "Moblin/Various/TextToSpeechVoice.swift",
         "Moblin/VideoEffects/Alerts/AlertsEffectFace.swift",
         "Moblin/VideoEffects/Alerts/AlertsEffectMedia.swift",
         "Moblin/VideoEffects/EffectUtils.swift",
@@ -20203,8 +20255,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
-      "lines": 1223,
-      "sha256": "81f101ea80d243f6a44c8ddc16922e68438c813895ed7f0659e33838e8d10f37",
+      "lines": 1227,
+      "sha256": "af4851cc55695b171957c5f9b78446e5ccc44896d7aa1303a0ed8340c4f97602",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20217,6 +20269,7 @@
         "RemoteControlStartStatusFilter",
         "RemoteControlStartStatsFilter",
         "RemoteControlRequest",
+        "RemoteControlTipKind",
         "RemoteControlResponse",
         "RemoteControlEvent",
         "RemoteControlWheelOfLuckOption",
@@ -20332,8 +20385,8 @@
     },
     {
       "path": "Moblin/Various/Settings/Settings.swift",
-      "lines": 2493,
-      "sha256": "a669c27165af634b224162d84574b87d9e0a4f63c6a2fcabac2dbb33ebc6e477",
+      "lines": 2489,
+      "sha256": "d681bb032085f633f70d76b4e32792bd99d73582c28e52b200ca492e65c92d8e",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -20781,7 +20834,6 @@
         "Moblin/StreamingPlatforms/OpenStreamingPlatform/OpenStreamingPlatformChat.swift",
         "Moblin/StreamingPlatforms/Platform.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
-        "Moblin/Various/ChatTextToSpeech.swift",
         "Moblin/Various/Gimbal.swift",
         "Moblin/Various/Managers/Location.swift",
         "Moblin/Various/Media.swift",
@@ -20799,6 +20851,7 @@
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
         "Moblin/View/Settings/About/AboutAttributionsSettingsView.swift",
         "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift",
+        "Moblin/View/Utils/VoicesView.swift",
         "MoblinTests/TestUtils.swift"
       ],
       "wave": 38
@@ -20912,8 +20965,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
-      "lines": 307,
-      "sha256": "038e462f8db12ce2eda6786dc57cceb814f68af3e3b8452b2a5dabfb45f05cd0",
+      "lines": 359,
+      "sha256": "b3278eb3724ae4dca9debdce08ea655fb16a1a99bfe0d22b88afbf9f0bc82382",
       "imports": [
         "Foundation"
       ],
@@ -20930,6 +20983,8 @@
         "Common/Various/CommonUtils.swift",
         "Moblin/RemoteControl/RemoteControl.swift",
         "Moblin/RemoteControl/RemoteControlStreamer.swift",
+        "Moblin/Various/ChatPost.swift",
+        "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelMoblinWebsite.swift",
         "Moblin/Various/Settings/SettingsGameController.swift",
@@ -20940,8 +20995,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1616,
-      "sha256": "d834d40decb752fe280e1c317b48dbadb25d29218f3bddcacd6d4de3096d349e",
+      "lines": 1585,
+      "sha256": "3fc5d7d457d8dfee2db4f580992fb07f2e0e6667e7b4cf6ff1115c3f6d96d7fe",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21395,8 +21450,8 @@
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
-      "lines": 403,
-      "sha256": "577408936556703bb83ca6555011f137bb870738094e4b6e58f00bbc8d9fb62f",
+      "lines": 409,
+      "sha256": "9f373bc13467732a83b54b7f861e1903c13fb1f640182fe9962c98feb08c0474",
       "imports": [
         "SwiftUI"
       ],
@@ -21411,6 +21466,7 @@
         "ObsLogoAndNameView",
         "DiscordLogoAndNameView",
         "TtsMonsterLogoAndNameView",
+        "ElevenLabsLogoAndNameView",
         "MobcamLogoAndNameView",
         "GithubLogoAndNameView",
         "GrayTextView",
@@ -21431,6 +21487,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/streams/stream/StreamSettingsView.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/ElevenLabs/ElevenLabs.swift",
         "Moblin/Integrations/Emotes/Emotes.swift",
         "Moblin/Integrations/TtsMonster/TtsMonster.swift",
         "Moblin/Media/HaishinKit/Media/Processor.swift",
@@ -21619,8 +21676,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3501,
-      "sha256": "3d2e02c4557d4869971dfdfc9392ed764e2a21ac1bddbfdc9077dfd0f79baa9c",
+      "lines": 3513,
+      "sha256": "a3ef3e167ba6c28dad95c3015c060a96eb3871e93aaee141a9663301cc4556c6",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -22355,8 +22412,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatSettingsView.swift",
-      "lines": 110,
-      "sha256": "177b3f41ae8822ea890158480491553374d807d2648324ae023315e62cddce8f",
+      "lines": 115,
+      "sha256": "fb04941c0e8a2db82fcd542480e6ccadfb4178277b54eac13810097bcc941049",
       "imports": [
         "SwiftUI"
       ],
@@ -23257,8 +23314,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift",
-      "lines": 385,
-      "sha256": "0327bec80b85fdea619f59ffec18fa0727baea458560e5cad65da2f364dab222",
+      "lines": 386,
+      "sha256": "49b3b9e51f7705a60aeb8b83ba6f5427f8a11a416c8b5d5dd070a85d9a137797",
       "imports": [
         "AVFAudio",
         "PhotosUI",

@@ -133,7 +133,8 @@ fun AlertTextToSpeechView(
                     onLanguageReset = onLanguageReset,
                     rate = rate,
                     volume = volume,
-                    ttsMonsterApiToken = "",
+                    ttsMonsterApiToken = model.database.chat.ttsMonster.apiToken,
+                    elevenLabsApiKey = model.database.chat.elevenLabs.apiKey,
                 )
             },
         ) {
