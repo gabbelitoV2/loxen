@@ -14276,23 +14276,26 @@
   },
   "Moblin/Various/Model/ModelAudio.swift": {
     "status": "ok",
-    "sha256": "62859b9be5cf5ef4a74bf816d8f291a9e0795b8ad6e1e3a405f101cc9bb849d3",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "46d59abd9040c4d9156ac5fbd161149fd97c0b0ab145e4bdd54d5ca201fcb123",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAudio.kt",
     "notes": [
-      "Only the guard at the start of Model.trySwitchMic changed: the timer check and the requested-mic check are now one condition.",
-      "The two Swift guards collapse into a single Kotlin early return that reads mic.requested into a local val so it smart-casts to non-null.",
-      "Everything else in the file is unchanged, including the Android-side MutableStateFlow properties and platform shim calls."
+      "Applied the Swift diff only: screen-capture mic support (list, sync insertFirst flag, buffered-audio attach, talkback).",
+      "updateAudioGain() is called in trySwitchMic as in Swift; it lives in another Model file.",
+      "syncMics gained an insertFirst parameter defaulting to true, so existing callers are unchanged.",
+      "Screen capture mic is appended (not inserted first) into database.mics.mics.",
+      "listScreenCaptureMics returns an empty list on Mac and uses screenCaptureCameraId.uuidString as inputUid.",
+      "activeBufferedVideoIds held the screen capture id drives the connected flag."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 69579,
-    "tokens_out": 8599,
-    "seconds": 26.5,
-    "ported_at": "2026-10-22T22:51:36+00:00"
+    "tokens_in": 71807,
+    "tokens_out": 8662,
+    "seconds": 25.7,
+    "ported_at": "2026-10-24T22:20:32+00:00"
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
@@ -15742,26 +15745,25 @@
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "2239ba04877451d04adb2240120be9cafc3eab6893a49ea249b6dae3053c1f87",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "0026365bdb67297bb3810c8894b9b1292c6f559d45ce8a36777cecb2f1ac23ac",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "Only the four guard-merge refactorings from the diff were applied; no other line changed.",
-      "startStream now merges the chat-phone and streaming checks into a single early return.",
-      "checkLowBitrate merges the lowBitrateWarning and connection-state checks.",
-      "handleLowFpsImage merges the frame-number modulo check with isWatchLocal().",
-      "isGoLiveNotificationDiscordConfigured merges both emptiness checks into one guard.",
-      "All existing Android-side deviations (Instant/elapsedRealtime timing, Build.MODEL device name, mainScope launches, Color literals) were preserved untouched."
+      "reloadStream now calls updateAudioGain() instead of setAudioGain(gainDb:), and the function itself is renamed to updateAudioGain() applying database.audio.gainDb plus the selected mic's own gainDb.",
+      "getMicById(id:) and mic.current are referenced as they exist in the Model mic files: getMicById(id = mic.current.value.id)?.gainDb, assuming mic.current is a MutableStateFlow and the mic's gainDb is a plain settings property (verify against ModelMic.kt).",
+      "database.audio.gainDb keeps the existing .value convention already used in this file.",
+      "handleBufferedVideoReady/handleBufferedVideoRemoved now also treat the screen capture camera as a network source when not running on Mac, inside the existing nested RIST/WHEP else-branch.",
+      "isMac() is imported from com.moblin.android.various.utils and screenCaptureCameraId comes from the same package."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88610,
-    "tokens_out": 11341,
-    "seconds": 33.7,
-    "ported_at": "2026-10-22T22:52:38+00:00"
+    "tokens_in": 88902,
+    "tokens_out": 14834,
+    "seconds": 48.6,
+    "ported_at": "2026-10-24T22:20:03+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
@@ -16114,27 +16116,24 @@
   },
   "Moblin/View/Settings/Audio/AudioSettingsView.swift": {
     "status": "ok",
-    "sha256": "caf004fc608a1f096190723988e7db60b25282b13bb5f201594afbdbc1e760fa",
+    "sha256": "3384d4aa44153f90b5aab2e70853afe6247f80ae0fd557eaa9802d99d211a901",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/audio/AudioSettingsView.kt",
     "notes": [
-      "Both SwiftUI views become @Composable functions with identical names; Form is rendered as a vertically scrolling Column and Section headers/footers become plain Text elements.",
-      "NavigationLink destinations are not instantiated here: each tappable row calls onNavigate(\"<destination>\") instead of using navigation-compose, so QuickButtonMicView, MicsDelaySettingsView and StreamAudioSettingsView are not imported.",
-      "@EnvironmentObject / @ObservedObject objects are plain parameters whose published properties are assumed to be MutableStateFlow: read with collectAsState(), written with .value.",
-      "audio.outputToInputChannelsMap.channel1 / channel2 are assumed to be plain Int properties of the settings class, mutated directly as in Swift.",
-      "Swift's .onChange(of:) handlers are folded into the component callbacks (Slider onValueChange, Switch onCheckedChange) so the model is notified in the same step.",
-      ".navigationTitle(\"Audio\") is not emitted here; the caller's TopAppBar is expected to show the title \"Audio\".",
-      "SF Symbols are mapped to the closest Material icons (music.mic -> Icons.Default.Mic, speaker.fill/wave.1 -> VolumeDown, wave.3 -> VolumeUp, dot.radiowaves.left.and.right -> GraphicEq).",
-      "Form/Section styling (inset grouped list look) is not reproduced; header and footer texts use MaterialTheme typography/colors."
+      "Added a Gains NavigationLink to MicsGainSettingsView right after the Delays link inside the mic Section, matching the Swift diff.",
+      "Output gain slider now calls model.updateAudioGain() (new Model extension) instead of model.setAudioGain(gain:), so the setAudioGain import was swapped for updateAudioGain.",
+      "MicsGainSettingsView lives in the same package com.moblin.android.view.settings.audio, so no import was added for it.",
+      "All other lines are unchanged from the previous Kotlin translation, including the Android-specific flow handling for gainDb, bluetoothOutputOnly and preferStereoMic."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7808,
-    "tokens_out": 16114,
-    "seconds": 59.7,
-    "ported_at": "2026-09-22T14:09:56+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 53481,
+    "tokens_out": 2905,
+    "seconds": 10.9,
+    "ported_at": "2026-10-24T22:20:46+00:00"
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
@@ -18318,5 +18317,29 @@
     "tokens_out": 4386,
     "seconds": 19.5,
     "ported_at": "2026-10-23T22:41:42+00:00"
+  },
+  "Moblin/View/Settings/Audio/MicsGainSettingsView.swift": {
+    "status": "ok",
+    "sha256": "4e473b0bf294712a467071ac79128bf6bbcb9b12a71a909d144e743128e0c666",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/audio/MicsGainSettingsView.kt",
+    "notes": [
+      "Text() comes from Material 3 (there is no SwiftUI Text shim) with the default 17.sp body size.",
+      "SettingsMicsMic.gainDb is exposed as a StateFlow over the internal _gainDb, so the slider writes mic._gainDb.value and reads it with collectAsState().",
+      "SwiftUI Slider step: 1.0 has no FormSlider counterpart; the value is rounded with roundToInt() inside onValueChange.",
+      "The .onChange(of: mic.gainDb) side effect becomes a call to model.updateAudioGain() right after the write in onValueChange, so it never runs on first composition.",
+      "SettingsMics.mics is a StateFlow, collected at the top of MicsGainSettingsView (the whole list) and inside MicGainView (the single mic's gain).",
+      "Form provides the NavigationStack and the navigation title \"Gains\"; Section carries the footer text through footerContent.",
+      "ForEach keys on SettingsMicsMic.id so rows keep identity across list updates."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 40409,
+    "tokens_out": 3040,
+    "seconds": 15.0,
+    "ported_at": "2026-10-24T22:17:43+00:00"
   }
 }

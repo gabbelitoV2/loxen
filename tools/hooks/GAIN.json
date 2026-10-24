@@ -1,0 +1,11 @@
+{
+  "task": "GAIN",
+  "hooks": [
+    {"id": "GAIN.1", "file": "various/model/ModelStream.kt", "scope": "fun Model.updateAudioGain",
+     "op": "replace",
+     "old": "    val gainDb = database.audio.gainDb.value + (getMicById(id = mic.current.value.id)?.gainDb ?: 0f)",
+     "new": "    val gainDb = database.audio.gainDb.value + (getMicById(id = mic.current.value.id)?.gainDb?.value ?: 0f)"},
+    {"id": "GAIN.2", "file": "view/settings/audio/MicsGainSettingsView.kt", "op": "add_import",
+     "new": "import com.moblin.android.various.model.updateAudioGain"}
+  ]
+}

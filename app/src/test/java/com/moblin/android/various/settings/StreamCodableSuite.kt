@@ -352,7 +352,7 @@ class StreamCodableSuite {
         assertEmptyDecodesTo(SettingsChat.serializer(), chat)
         assertEmptyFails(SettingsVoiceApple.serializer())
         assertEmptyFails(SettingsVoiceTtsMonster.serializer())
-        assertEmptyFails(SettingsVoice.serializer())
+        assertEmptyDecodesTo(SettingsVoice.serializer(), SettingsVoice())
     }
 
     @Test
@@ -726,7 +726,7 @@ class StreamCodableSuite {
         assertEquals(3.0f, chat.bigGifScale)
         val encoded = codableJson.encodeToJsonElement(SettingsChat.serializer(), chat).jsonObject
         assertEquals(
-            "{\"type\":\"apple\",\"apple\":{\"voice\":\"com.apple.voice.en\"},\"ttsMonster\":{\"name\":\"\",\"voiceId\":\"\"}}",
+            "{\"type\":\"apple\",\"apple\":{\"voice\":\"com.apple.voice.en\"},\"ttsMonster\":{\"name\":\"\",\"voiceId\":\"\"},\"elevenLabs\":{\"name\":\"\",\"voiceId\":\"\"}}",
             encoded["textToSpeechLanguageVoices"]!!.jsonObject["en"].toString(),
         )
         assertEquals("\"Be nice\"", encoded["botCommandAi"]!!.jsonObject["role"].toString())
@@ -1027,7 +1027,7 @@ class StreamCodableSuite {
         assertKeys(SettingsOpenAi.serializer(), SettingsOpenAi(), "baseUrl apiKey model role")
         assertKeys(SettingsVoiceApple.serializer(), SettingsVoiceApple(), "voice")
         assertKeys(SettingsVoiceTtsMonster.serializer(), SettingsVoiceTtsMonster(), "name voiceId")
-        assertKeys(SettingsVoice.serializer(), SettingsVoice(), "type apple ttsMonster")
+        assertKeys(SettingsVoice.serializer(), SettingsVoice(), "type apple ttsMonster elevenLabs")
         assertKeys(
             SettingsChat.serializer(),
             SettingsChat(),
@@ -1038,7 +1038,7 @@ class StreamCodableSuite {
             maximumAgeEnabled meInUsernameColor enabled usernamesToIgnore textToSpeechEnabled
             textToSpeechDefaultLanguage textToSpeechDetectLanguagePerMessage textToSpeechSayUsername textToSpeechSayEmotes textToSpeechRate
             textToSpeechSayVolume textToSpeechLanguageVoices textToSpeechSubscribersOnly textToSpeechFilter
-            textToSpeechFilterMentions textToSpeechBluetoothSpeakerOnly ttsMonster mirrored botEnabled
+            textToSpeechFilterMentions textToSpeechBluetoothSpeakerOnly ttsMonster elevenLabs mirrored botEnabled
             botCommandPermissions botSendLowBatteryWarning botCommandAi botCommandSnapshot badges showFirstTimeChatterMessage
             showNewFollowerMessage bottomPoints newMessagesAtTop textToSpeechPauseBetweenMessages showDeletedMessages
             aliases customCommands predefinedMessages predefinedMessagesFilter nicknames displayStyle background
@@ -1134,7 +1134,7 @@ class StreamCodableSuite {
             "internationalNameAndUsername",
             "username",
         )
-        assertRawValues(SettingsVoiceType.serializer(), SettingsVoiceType.entries, "apple", "ttsMonster")
+        assertRawValues(SettingsVoiceType.serializer(), SettingsVoiceType.entries, "apple", "ttsMonster", "elevenLabs")
         assertRawValues(SettingsRtspTransport.serializer(), SettingsRtspTransport.entries, "rtpRtspTcp", "rtpUdp")
         assertCaseNames(
             SettingsStreamSrtAdaptiveBitrateAlgorithm.serializer(),
@@ -1178,9 +1178,9 @@ class StreamCodableSuite {
         val voices = decodeJson(
             SettingsChat.serializer(),
             "{\"textToSpeechLanguageVoices\":{\"sv\":{\"type\":1,\"apple\":{\"voice\":\"\"}," +
-                "\"ttsMonster\":{\"name\":\"\",\"voiceId\":\"\"}}}}",
+                "\"ttsMonster\":{\"name\":\"\",\"voiceId\":\"\"},\"elevenLabs\":{\"name\":\"\",\"voiceId\":\"\"}}}}",
         )
-        assertTrue(voices.textToSpeechLanguageVoices.isEmpty())
+        assertEquals(SettingsVoiceType.apple, voices.textToSpeechLanguageVoices["sv"]!!.type)
     }
 
     @Test
@@ -1519,13 +1519,14 @@ class StreamCodableSuite {
               "textToSpeechRate": 0.7,
               "textToSpeechSayVolume": 0.5,
               "textToSpeechLanguageVoices": {
-                "sv": {"type": "ttsMonster", "apple": {"voice": "a"}, "ttsMonster": {"name": "N", "voiceId": "V"}}
+                "sv": {"type": "ttsMonster", "apple": {"voice": "a"}, "ttsMonster": {"name": "N", "voiceId": "V"}, "elevenLabs": {"name": "", "voiceId": ""}}
               },
               "textToSpeechSubscribersOnly": true,
               "textToSpeechFilter": false,
               "textToSpeechFilterMentions": false,
               "textToSpeechBluetoothSpeakerOnly": true,
               "ttsMonster": {"apiToken": "token"},
+              "elevenLabs": {"apiKey": "key"},
               "mirrored": true,
               "botEnabled": true,
               "botCommandPermissions": $permissions,

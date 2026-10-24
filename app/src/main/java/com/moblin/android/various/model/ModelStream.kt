@@ -40,6 +40,7 @@ import com.moblin.android.various.settings.SettingsStreamWhipHttpTransport
 import com.moblin.android.various.settings.defaultStreamUrl
 import com.moblin.android.various.storages.StreamingHistoryStream
 import com.moblin.android.various.storages.ThermalState
+import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.tryGetToastSubTitle
 import com.moblin.android.various.utils.uploadImage
 import java.io.ByteArrayOutputStream
@@ -600,7 +601,7 @@ fun Model.reloadStream() {
             1 to database.audio.outputToInputChannelsMap.channel2,
         ),
     )
-    setAudioGain(gainDb = database.audio.gainDb.value)
+    updateAudioGain()
     updateMicDelay()
     startRecorderIfNeeded()
     reloadConnections()
@@ -946,6 +947,8 @@ private fun Model.handleBufferedVideoReady(cameraId: UUID) {
             isNetwork = true
         } else if (getWhepStream(id = cameraId) != null) {
             isNetwork = true
+        } else if (cameraId == screenCaptureCameraId && !isMac()) {
+            isNetwork = true
         }
     }
     if (isNetwork) {
@@ -973,6 +976,8 @@ private fun Model.handleBufferedVideoRemoved(cameraId: UUID) {
         } else if (getWhipStream(id = cameraId) != null) {
             isNetwork = true
         } else if (getWhepStream(id = cameraId) != null) {
+            isNetwork = true
+        } else if (cameraId == screenCaptureCameraId && !isMac()) {
             isNetwork = true
         }
     }
@@ -1080,7 +1085,8 @@ fun Model.setAudioChannelsMap(channelsMap: Map<Int, Int>) {
     media.setAudioChannelsMap(channelsMap = channelsMap)
 }
 
-fun Model.setAudioGain(gainDb: Float) {
+fun Model.updateAudioGain() {
+    val gainDb = database.audio.gainDb.value + (getMicById(id = mic.current.value.id)?.gainDb?.value ?: 0f)
     media.setAudioGain(gain = 10.0.pow(gainDb / 20.0).toFloat())
 }
 

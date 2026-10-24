@@ -32,8 +32,8 @@ import com.moblin.android.various.model.fallbackStream
 import com.moblin.android.various.model.reloadAudioSession
 import com.moblin.android.various.model.reloadStreamIfEnabled
 import com.moblin.android.various.model.selectMicDefault
-import com.moblin.android.various.model.setAudioGain
 import com.moblin.android.various.model.setInputGainIfSupported
+import com.moblin.android.various.model.updateAudioGain
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAudio
 import com.moblin.android.various.settings.SettingsDebug
@@ -130,6 +130,9 @@ fun AudioSettingsView(
                 NavigationLink("Delays") {
                     MicsDelaySettingsView(model = model, mics = database.mics)
                 }
+                NavigationLink("Gains") {
+                    MicsGainSettingsView(model = model, mics = database.mics)
+                }
             }
         }
         if (showAllSettings) {
@@ -168,7 +171,7 @@ fun AudioSettingsView(
                         value = gainDb,
                         onValueChange = {
                             audio._gainDb.value = it
-                            model.setAudioGain(it)
+                            model.updateAudioGain()
                         },
                         modifier = Modifier.weight(1f),
                         valueRange = 0.0f..24.0f,

@@ -261,6 +261,7 @@ private fun Model.updateMics(audioSession: List<SettingsMicsMic>) {
     updateRtmpMics()
     updateWhipMics()
     updateWhepMics()
+    updateScreenCaptureMics()
     syncMics(found = audioSession, isKind = { it.isAudioSession() }, removeMissing = false)
 }
 
@@ -292,6 +293,15 @@ fun Model.updateMediaPlayerMics() {
     syncMics(found = listMediaPlayerMics(), isKind = { it.isMediaPlayer() }, removeMissing = true)
 }
 
+fun Model.updateScreenCaptureMics() {
+    syncMics(
+        found = listScreenCaptureMics(),
+        isKind = { it.isScreenCapture() },
+        removeMissing = true,
+        insertFirst = false,
+    )
+}
+
 fun Model.updateAudioSessionMicsAsync(onCompleted: (() -> Unit)? = null) {
     processorControlQueue.launch {
         val audioSessionMics = listAudioSessionMics()
@@ -306,6 +316,7 @@ private fun Model.syncMics(
     found: List<SettingsMicsMic>,
     isKind: (SettingsMicsMic) -> Boolean,
     removeMissing: Boolean,
+    insertFirst: Boolean = true,
 ) {
     val mics = database.mics.mics.value.toMutableList()
     if (removeMissing) {
@@ -325,7 +336,11 @@ private fun Model.syncMics(
     }
     for (mic in found) {
         if (!mics.contains(mic)) {
-            mics.add(0, mic)
+            if (insertFirst) {
+                mics.add(0, mic)
+            } else {
+                mics.add(mic)
+            }
         }
     }
     database.mics._mics.value = mics
@@ -618,6 +633,19 @@ private fun Model.listMediaPlayerMics(): List<SettingsMicsMic> {
     }
 }
 
+private fun Model.listScreenCaptureMics(): List<SettingsMicsMic> {
+    if (isMac()) {
+        return emptyList()
+    }
+    return listOf(
+        SettingsMicsMic(
+            name = screenCaptureCameraName,
+            inputUid = screenCaptureCameraId.uuidString,
+            connected = activeBufferedVideoIds.contains(screenCaptureCameraId),
+        )
+    )
+}
+
 private fun Model.getConnectedMicById(id: String): SettingsMicsMic? {
     val mic = getMicById(id = id)
     if (mic == null || !mic.connected.value) {
@@ -673,11 +701,14 @@ private fun Model.trySwitchMic() {
         attachBufferedAudio(cameraId = getWhepMicCameraId(mic = requestedMic), micId = requestedMic.id)
     } else if (isMediaPlayerMic(mic = requestedMic)) {
         attachBufferedAudio(cameraId = getMediaPlayerMicCameraId(mic = requestedMic), micId = requestedMic.id)
+    } else if (requestedMic.isScreenCapture()) {
+        attachBufferedAudio(cameraId = screenCaptureCameraId, micId = requestedMic.id)
     } else {
         selectMicDefault(mic = requestedMic)
     }
     mic.setCurrent(requestedMic)
     updateMicDelay()
+    updateAudioGain()
     mic.setIsSwitchTimerRunning(true)
     mainScope.launch {
         delay(1000)
@@ -774,6 +805,8 @@ private fun Model.startTalkback(mic: SettingsMicsMic) {
         media.setTalkback(cameraId = getWhepMicCameraId(mic = mic))
     } else if (isMediaPlayerMic(mic = mic)) {
         media.setTalkback(cameraId = getMediaPlayerMicCameraId(mic = mic))
+    } else if (mic.isScreenCapture()) {
+        media.setTalkback(cameraId = screenCaptureCameraId)
     } else {
         media.setTalkback(cameraId = null)
     }

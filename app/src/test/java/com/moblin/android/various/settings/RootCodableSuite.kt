@@ -286,13 +286,13 @@ class RootCodableSuite {
     @Test
     fun micsMic() {
         assertEquals(
-            "{\"name\":\"\",\"inputUid\":\"\",\"dataSourceID\":null,\"builtInOrientation\":null,\"delay\":0.0}",
+            "{\"name\":\"\",\"inputUid\":\"\",\"dataSourceID\":null,\"builtInOrientation\":null,\"delay\":0.0,\"gainDb\":0.0}",
             encodeToString(SettingsMicsMic.serializer(), SettingsMicsMic()),
         )
         assertDefaults(
             SettingsMicsMic.serializer(),
             SettingsMicsMic(),
-            listOf("name", "inputUid", "dataSourceID", "builtInOrientation", "delay"),
+            listOf("name", "inputUid", "dataSourceID", "builtInOrientation", "delay", "gainDb"),
         )
         val mic = decodeFromString(
             SettingsMicsMic.serializer(),
