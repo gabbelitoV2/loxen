@@ -28,11 +28,13 @@ import com.moblin.android.platform.avfoundation.AVSampleRateKey
 import com.moblin.android.platform.avfoundation.AVVideoHeightKey
 import com.moblin.android.platform.avfoundation.AVVideoWidthKey
 import com.moblin.android.platform.avfoundation.UTType
+import com.moblin.android.platform.avfoundation.frameLength
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URI
 import java.util.concurrent.Executors
+import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -111,6 +113,7 @@ class Recorder : AVAssetWriterDelegate {
     private var videoWriterInput: WriterInput? = null
     private var audioConverter: AVAudioConverter? = null
     private var audioOutputFormat: MediaFormat? = null
+    private var audioConverterInputDescription: MediaFormat? = null
     private var basePresentationTimeStamp: Long = kCMTimeInvalidUs
     private var nextAudioPresentationTimeStamp: Long = kCMTimeInvalidUs
 
@@ -311,24 +314,20 @@ class Recorder : AVAssetWriterDelegate {
     }
 
     private fun convertAudio(sampleBuffer: MediaSample, presentationTimeStamp: Long): MediaSample? {
-        return tryConvertAudio(sampleBuffer, presentationTimeStamp, makeConverter = false)
-            ?: tryConvertAudio(sampleBuffer, presentationTimeStamp, makeConverter = true)
-    }
-
-    private fun tryConvertAudio(
-        sampleBuffer: MediaSample,
-        presentationTimeStamp: Long,
-        makeConverter: Boolean,
-    ): MediaSample? {
-        if (makeConverter) {
+        if (!sampleBuffer.format.isSameAudioFormat(audioConverterInputDescription)) {
             makeAudioConverter(sampleBuffer.format)
         }
-        val converter = audioConverter ?: return null
+        val audioConverter = audioConverter ?: return null
+        val inputSampleRate = audioConverter.inputFormat.audioSampleRate()
+        if (inputSampleRate <= 0) {
+            return null
+        }
+        val ratio = audioConverter.outputFormat.audioSampleRate().toDouble() / inputSampleRate
         val outputBuffer = AVAudioPCMBuffer(
-            pcmFormat = converter.outputFormat,
-            frameCapacity = sampleBuffer.numSamples,
+            pcmFormat = audioConverter.outputFormat,
+            frameCapacity = ceil(sampleBuffer.numSamples * ratio).toInt(),
         ) ?: return null
-        val inputBuffer = if (sampleBuffer.format.isSameAudioFormat(converter.inputFormat)) {
+        val inputBuffer = if (sampleBuffer.format.isSameAudioFormat(audioConverter.inputFormat)) {
             sampleBuffer
         } else {
             null
@@ -337,9 +336,12 @@ class Recorder : AVAssetWriterDelegate {
             Log.i(TAG, "recorder: Failed to create input buffer")
             return null
         }
-        val error = converter.convert(to = outputBuffer, from = inputBuffer)
+        val error = audioConverter.convert(to = outputBuffer, from = inputBuffer)
         if (error != null) {
             Log.i(TAG, "recorder: audio: Convert failed with $error")
+            return null
+        }
+        if (outputBuffer.frameLength <= 0) {
             return null
         }
         return outputBuffer.replacePresentationTimeStamp(presentationTimeStamp)
@@ -418,7 +420,10 @@ class Recorder : AVAssetWriterDelegate {
     }
 
     private fun makeAudioConverter(formatDescription: MediaFormat?) {
-        val streamBasicDescription = formatDescription?.takeIf { it.audioSampleRate() > 0 } ?: return
+        audioConverter?.release()
+        audioConverter = null
+        audioConverterInputDescription = formatDescription?.takeIf { it.audioSampleRate() > 0 }
+        val streamBasicDescription = audioConverterInputDescription ?: return
         Log.d(TAG, "recorder: Creating converter from $streamBasicDescription")
         val inputFormat = makeAudioFormat(streamBasicDescription) ?: return
         if (audioOutputFormat == null) {
@@ -429,7 +434,6 @@ class Recorder : AVAssetWriterDelegate {
         }
         val audioOutputFormat = audioOutputFormat ?: return
         Log.d(TAG, "recorder: Input: $inputFormat, output: $audioOutputFormat")
-        audioConverter?.release()
         audioConverter = AVAudioConverter.create(from = inputFormat, to = audioOutputFormat)
         audioConverter?.channelMap = makeChannelMap(
             numberOfInputChannels = inputFormat.audioChannelCount(),
@@ -519,6 +523,7 @@ class Recorder : AVAssetWriterDelegate {
         audioConverter?.release()
         audioConverter = null
         audioOutputFormat = null
+        audioConverterInputDescription = null
         basePresentationTimeStamp = kCMTimeInvalidUs
         nextAudioPresentationTimeStamp = kCMTimeInvalidUs
         fileWriterQueue.launch {

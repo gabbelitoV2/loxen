@@ -2527,26 +2527,26 @@
   },
   "MoblinTests/Moblin/Media/HaishinKit/Media/Audio/AudioUnitSuite.swift": {
     "status": "ok",
-    "sha256": "3544bd71f49667b495d2c20b4448050dc0410f79bd4914eef215aff5e77de9fa",
+    "sha256": "00e953c99b235d17e4ff38ed176f0a8c1b49e7ccfdd7e0c051c926a57a5df386",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/media/audio/AudioUnitSuite.kt",
     "notes": [
-      "Swift Testing struct AudioUnitSuite becomes a JUnit 4 test class, one @Test function per @Test func.",
-      "withUnsafeMutableBufferPointer indirection is dropped: the Kotlin helpers take the array plus an explicit count, so tests pass (samples, samples.size) or (samples, 0) for the empty cases.",
-      "Swift Float32 peak values are compared with kotlin.test assertEquals(expected, actual, absoluteTolerance) using 0.0001f, since Float equality on computed peaks is fragile.",
-      "Int16.min / Int16.max map to Short.MIN_VALUE / Short.MAX_VALUE in shortArrayOf.",
-      "Sample literals stay byte/value-identical to the Swift suite: [0.1, -0.75, 0.5, -0.2] and [100, -3000, 2000, -50].",
-      "The types and helpers under test (AudioUnit, TalkbackPlayer, AudioMeasurement, AudioUnitAttachParams, makeChannelMap, audioFormat, calcAudioLevelPeak*) live in the same package, so no imports are needed for them.",
-      "The AVFoundation import is unused by the test bodies and has no Android counterpart, so it is not reproduced."
+      "Added the four makeChannelMap tests as list equality assertions.",
+      "convertMonoToStereo uses makePcmFormat and the AVAudioConverter/AVAudioPCMBuffer shims instead of AVAudioFormat.",
+      "PCM data is written and read through the ShortBuffer returned by int16ChannelData.",
+      "Inserted samples are compared with assertContentEquals on ShortArray.",
+      "Extension imports for frameLength and int16ChannelData were added.",
+      "Existing audio-level tests left byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2242,
-    "tokens_out": 2440,
-    "seconds": 9.9,
-    "ported_at": "2026-09-22T12:43:46+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 33945,
+    "tokens_out": 2554,
+    "seconds": 10.2,
+    "ported_at": "2026-10-24T21:59:07+00:00"
   },
   "MoblinTests/Moblin/Integrations/Dji/DjiDevice/DjiDeviceSuite.swift": {
     "status": "ok",
@@ -3815,27 +3815,24 @@
   },
   "Moblin/Various/Settings/SettingsAudio.swift": {
     "status": "ok",
-    "sha256": "e9a897eb944c5a9eb779b9579b6b22d8b3cc9b9b6891531aa7000af5c1e14223",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "88a579bcb6e75d462c8e034b99372725a811ffbc0441a1e2a6fcfe726065207b",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsAudio.kt",
     "notes": [
-      "The Swift diff is empty, so the Kotlin file is returned unchanged.",
-      "SettingsMic keeps a custom KSerializer because the failable Swift init falls back to getDefaultMic() on an unknown raw value.",
-      "SettingsMicsMic.delay and .connected stay MutableStateFlow-backed with internal _delay/_connected, since every reader is a Compose view.",
-      "SettingsMicsMic equality uses inputUid plus dataSourceId, matching the Swift == operator, with a matching hashCode.",
-      "SettingsAudioOutputToInputChannelsMap has no hand-written Swift encode/init(from:), yet the port keeps the container helpers used elsewhere; decode reads channel1/channel2 directly from the JsonObject.",
-      "Swift CodingKey .dataSourceID and .all keep their raw JSON keys \"dataSourceID\" and \"all\".",
-      "Swift init() {} becomes the no-argument primary constructor of each class; the name/inputUid/connected initializer is the secondary constructor."
+      "Added gainDb as a MutableStateFlow-backed property on SettingsMicsMic, following the file's existing hand-written StateFlow pattern.",
+      "Added isScreenCapture() comparing inputUid with screenCaptureCameraId.uuidString, and its guard in isExternal().",
+      "gainDb is encoded and decoded under the key \"gainDb\" in SettingsMicsMic's Codable container.",
+      "Two imports were added for the new code: com.moblin.android.platform.core.uuidString and com.moblin.android.various.model.screenCaptureCameraId."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41606,
-    "tokens_out": 2758,
-    "seconds": 9.3,
-    "ported_at": "2026-09-29T23:56:54+00:00"
+    "tokens_in": 43818,
+    "tokens_out": 3302,
+    "seconds": 12.1,
+    "ported_at": "2026-10-24T21:59:09+00:00"
   },
   "MoblinTests/Moblin/Various/ChatBotCommandSuite.swift": {
     "status": "ok",
@@ -11222,23 +11219,26 @@
   },
   "Moblin/Media/HaishinKit/Media/Recorder.swift": {
     "status": "ok",
-    "sha256": "23d9126bed6fcd3b64a356f767841855ac46324c028403d84543fc52c8f70803",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "f5a38e8fd59f4041f00331eade01ef37d37fdf8d8b70578b9bdef5caa4805938",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/Recorder.kt",
     "notes": [
-      "Merged the two appends in appendAudioInternal into a single guard-equivalent check; MediaSample.replacePresentationTimeStamp returns a non-null MediaSample in Kotlin, so the optional binding collapses.",
-      "The merged guard in tryConvertAudio is already the shape the Kotlin port has (converter and outputBuffer both bail out with null), so those lines stay unchanged.",
-      "Everything else, including the Android-specific Bookmark.openOutput, lease handling in appendVideo and the LegacyWriterInput choice for API 26, is untouched."
+      "Added audioConverterInputDescription (a MediaFormat) next to audioOutputFormat; it holds the last input format handed to makeAudioConverter.",
+      "The Swift comparison of AudioStreamBasicDescription values is written with MediaFormat.isSameAudioFormat, the shim's content comparison.",
+      "convertAudio is now a single function: it recreates the converter when the input format changed, sizes the output buffer from numSamples * output/input sample-rate ratio (rounded up) and drops empty results via the frameLength shim extension.",
+      "Swift's block-based AVAudioConverter.convert(to:error:withInputFrom:) has no PCM-to-PCM block variant in the shim, so the existing convert(to, from) path is kept with the same error handling.",
+      "makeAudioConverter now clears and releases the previous converter and records the input format before returning early, as the new Swift code does.",
+      "reset() clears audioConverterInputDescription together with the other converter state."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54373,
-    "tokens_out": 6031,
-    "seconds": 19.5,
-    "ported_at": "2026-10-22T22:50:23+00:00"
+    "tokens_in": 55089,
+    "tokens_out": 8105,
+    "seconds": 27.8,
+    "ported_at": "2026-10-24T21:59:25+00:00"
   },
   "Moblin/Various/ChatPost.swift": {
     "status": "ok",
@@ -11290,25 +11290,24 @@
   },
   "Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift": {
     "status": "ok",
-    "sha256": "a3e2789ee49b78bb1147c3f68651491434f1ac83ea066c491adc3f5ce34d1471",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "0b5fce9763411cce0049c23512e55a89d3e1fb6751aefa413a57b3f03932e106",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/audio/AudioUnit.kt",
     "notes": [
-      "The Swift diff only merges two consecutive guards into one and re-indents a continuation line; both are behaviour-neutral and have no Kotlin counterpart to change, so the Kotlin file is returned unchanged.",
-      "Kotlin already collapses the Swift formatDescription/audioStreamBasicDescription/AVAudioFormat guard into the single check `sampleBuffer.format == null`, because the platform layer hands MediaSample a ready MediaFormat.",
-      "The separate `frameCount > 0` guard is kept as its own early return, matching the remaining Swift guard.",
-      "The second hunk only changes whitespace before `.mSampleRate`; the Kotlin code reads MediaFormat.KEY_SAMPLE_RATE directly, so nothing moves.",
-      "All hand-written Android pieces (AudioTrack-based TalkbackPlayer, processorPipelineDispatcher, MediaSample-based helpers) are preserved byte-identical."
+      "Only makeChannelMap changed: the monotonic-fill loop now fills output channels from output index and duplicates input channel 0 when the source is mono.",
+      "TalkbackPlayer keeps its hand-written AudioTrack implementation instead of AVAudioEngine, as before.",
+      "Everything else in the file is byte-identical to the previous translation.",
+      "makeChannelMap still returns List<Int>; NSNumber wrapping stays dropped on Android."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 56953,
-    "tokens_out": 6297,
-    "seconds": 20.8,
-    "ported_at": "2026-10-22T22:50:17+00:00"
+    "tokens_in": 56960,
+    "tokens_out": 5793,
+    "seconds": 17.3,
+    "ported_at": "2026-10-24T21:59:15+00:00"
   },
   "Moblin/Various/Model/ModelWhepClient.swift": {
     "status": "ok",
@@ -12184,24 +12183,23 @@
   },
   "Moblin/VideoEffects/Browser/BrowserEffect.swift": {
     "status": "ok",
-    "sha256": "e23b536c880c81370da773380b89b3293b063c96e841c936b2a6d51e29367972",
-    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
+    "sha256": "7c7f8d97da8284a4ae9dae0d7dbf17a0b01a5bf90a3c67b0c576a32c76c5353f",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt",
     "notes": [
-      "reload() now keeps the Swift guard on isLoaded, resets startLoadingTime and reloads via webView.load(URLRequest(url = url)) instead of webView.reload().",
-      "Its Android translation matches the load call already used in setSceneWidgetEnabled, so the URLRequest(url = URI) constructor of the WebKit shim is reused.",
-      "ContinuousClock.now is assigned to startLoadingTime exactly as in the load path.",
-      "No other member, import or declaration order changed."
+      "The iOS 26 scroll edge-effect block has no Android counterpart; the WKWebView shim's UIScrollViewFlags exposes no top/bottom/left/right edge effects, so those lines were dropped, matching how contentInsetAdjustmentBehavior was already dropped in this port.",
+      "Everything else is untouched: the Swift diff only added the iOS 26 availability block, so no other Kotlin line changed.",
+      "webView.scrollView.backgroundColor and showsVertical/HorizontalScrollIndicator still map onto the existing WKWebView/scrollView shim members."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 67500,
-    "tokens_out": 3635,
-    "seconds": 10.9,
-    "ported_at": "2026-10-07T23:54:18+00:00"
+    "tokens_in": 67706,
+    "tokens_out": 3788,
+    "seconds": 13.8,
+    "ported_at": "2026-10-24T21:59:11+00:00"
   },
   "Moblin/VideoEffects/DrawOnStreamEffect.swift": {
     "status": "ok",
@@ -14210,23 +14208,23 @@
   },
   "Moblin/Various/Model/ModelScreenCapture.swift": {
     "status": "ok",
-    "sha256": "9fccf4b874c6f1e5a90f77cfe3516e946aaa8e3a4a2849afd87bb6a7e25242a3",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "d4e1da5dcbcc4667b475e687dc584f0824c666ffcf4ac4dd5b52e8b1b7d88511",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScreenCapture.kt",
     "notes": [
-      "The only Swift change is inside the `#if targetEnvironment(macCatalyst)` branch (merging two guards in `sceneWidgetsNeedMacScreenCapture`), which has no Android counterpart and is deliberately absent from the Kotlin port.",
-      "The Kotlin port keeps the `#else` behaviour: `Model.sceneNeedsMacScreenCapture(scene)` returns false, which matches the non-Catalyst Swift path.",
-      "No Kotlin line changes; the file is returned byte-identical to the current version."
+      "Screen capture start/stop now also registers and removes a buffered audio source under the same synthetic camera id.",
+      "handleSampleBuffer gains an audioApp branch forwarding the sample to media.appendBufferedAudioSampleBuffer.",
+      "sceneNeedsMacScreenCapture stays the non-Catalyst stub returning false, as on iOS outside Mac Catalyst."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41006,
-    "tokens_out": 954,
-    "seconds": 4.8,
-    "ported_at": "2026-10-22T22:51:21+00:00"
+    "tokens_in": 41191,
+    "tokens_out": 827,
+    "seconds": 3.8,
+    "ported_at": "2026-10-24T21:59:01+00:00"
   },
   "Moblin/Various/Model/ModelZoom.swift": {
     "status": "ok",
@@ -18187,30 +18185,25 @@
   },
   "Moblin/Various/Model/ModelMoblinCloud.swift": {
     "status": "ok",
-    "sha256": "b3278eb3724ae4dca9debdce08ea655fb16a1a99bfe0d22b88afbf9f0bc82382",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "c431415f3212bd0b38043a35a84cc03545db0f27ec0ca0508dfd944406afb018",
+    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
     "notes": [
-      "Removed moblinCloudSendSongRequests and MoblinCloud.sendSongRequests; the connected callback no longer sends song-request state.",
-      "moblinCloudSpinWheelOfLuck and the amount/currency remoteControlStreamerTip override were replaced by moblinCloudTip(name, message, kind, requestId) plus five private helpers.",
-      "The new helpers use the Model members moblinCloudTipEffects (deque of name/text/url triples), moblinCloudTipEffectPlayer (AudioPlayer?) and moblinCloudTipEffectTimer, declared in Model.kt.",
-      "Tip kinds are matched with a sealed-class when over RemoteControlTipKind.Message/Effect/WheelOfLuck.",
-      "Bundle.main.url(forResource:withExtension:) became Bundle.url(\"Alerts.bundle/$sound\", \"mp3\").",
-      "try? AudioPlayer(contentsOf:) became runCatching { AudioPlayer(contentsOf = url) }.getOrNull().",
-      "appendChatMessage keeps every Swift argument as a named argument, with .now -> Instant.now().",
-      "New imports: RgbColor, Bundle, RemoteControlTipKind, AudioPlayer, ChatHighlight, makeChatPostTextSegments and java.time.Instant."
+      "The Swift diff only reformats the guard in moblinCloudTryNextEffect onto multiple lines; no behaviour changes, so the Kotlin file is unchanged.",
+      "makeMoblinCloudUrl stays as before: URI parsing plus percent-encoded path and scheme swap to ws/wss.",
+      "MoblinCloud keeps the RemoteControlStreamerDelegate overrides with empty bodies as in Swift.",
+      "remoteControlStreamerMusic still forwards to Model when the model reference is alive; the dead-branch result remains a TODO pending a RemoteControlResult error case.",
+      "The tip effect queue uses a Triple list and removeFirstOrNull, matching popFirst()."
     ],
-    "unsupported": [
-      "TODO(\"RemoteControlResult.error\"): pre-existing placeholder in the remoteControlStreamerMusic override, kept unchanged"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 56276,
-    "tokens_out": 12376,
-    "seconds": 47.9,
-    "ported_at": "2026-10-23T22:42:40+00:00"
+    "tokens_in": 55632,
+    "tokens_out": 4088,
+    "seconds": 12.6,
+    "ported_at": "2026-10-24T21:59:20+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift": {
     "status": "ok",

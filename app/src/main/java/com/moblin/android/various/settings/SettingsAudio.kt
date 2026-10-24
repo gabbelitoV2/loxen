@@ -12,6 +12,8 @@ import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.core.uuidString
+import com.moblin.android.various.model.screenCaptureCameraId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.KSerializer
@@ -62,6 +64,8 @@ class SettingsMicsMic {
     var builtInOrientation: SettingsMic? = null
     internal val _delay = MutableStateFlow(0.0)
     val delay: StateFlow<Double> get() = _delay
+    internal val _gainDb = MutableStateFlow(0.0f)
+    val gainDb: StateFlow<Float> get() = _gainDb
     internal val _connected = MutableStateFlow(false)
     val connected: StateFlow<Boolean> get() = _connected
     constructor()
@@ -100,6 +104,9 @@ class SettingsMicsMic {
             return false
         }
         if (isMediaPlayerCameraOrMic(name)) {
+            return false
+        }
+        if (isScreenCapture()) {
             return false
         }
         return true
@@ -141,6 +148,10 @@ class SettingsMicsMic {
         return isMediaPlayerCameraOrMic(name)
     }
 
+    fun isScreenCapture(): Boolean {
+        return inputUid == screenCaptureCameraId.uuidString
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) {
             return true
@@ -161,6 +172,7 @@ class SettingsMicsMic {
         encode("dataSourceID", dataSourceId)
         encode("builtInOrientation", builtInOrientation)
         encode("delay", delay.value)
+        encode("gainDb", gainDb.value)
     }
 
     constructor(name: String, inputUid: String, connected: Boolean) {
@@ -177,6 +189,7 @@ class SettingsMicsMic {
             mic.dataSourceId = container.decode<Int?>("dataSourceID", null)
             mic.builtInOrientation = container.decode<SettingsMic?>("builtInOrientation", null)
             mic._delay.value = container.decode("delay", 0.0)
+            mic._gainDb.value = container.decode("gainDb", 0.0f)
             return mic
         }
     }

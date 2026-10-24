@@ -127,8 +127,12 @@ fun makeChannelMap(
     outputToInputChannelsMap: Map<Int, Int>
 ): List<Int> {
     val channelMap = MutableList(numberOfOutputChannels) { -1 }
-    for (inputIndex in 0 until minOf(numberOfInputChannels, numberOfOutputChannels)) {
-        channelMap[inputIndex] = inputIndex
+    for (outputIndex in 0 until numberOfOutputChannels) {
+        if (outputIndex < numberOfInputChannels) {
+            channelMap[outputIndex] = outputIndex
+        } else if (numberOfInputChannels == 1) {
+            channelMap[outputIndex] = 0
+        }
     }
     for (outputIndex in 0 until numberOfOutputChannels) {
         val inputIndex = outputToInputChannelsMap[outputIndex]

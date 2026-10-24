@@ -44,11 +44,17 @@ private fun Model.handleScreenCaptureStarted(latency: Double) {
         name = screenCaptureCameraName,
         latency = latency,
     )
+    media.addBufferedAudio(
+        cameraId = screenCaptureCameraId,
+        name = screenCaptureCameraName,
+        latency = latency,
+    )
 }
 
 private fun Model.handleScreenCaptureStopped() {
     makeToast(title = localized("Screen capture stopped"))
     media.removeBufferedVideo(cameraId = screenCaptureCameraId)
+    media.removeBufferedAudio(cameraId = screenCaptureCameraId)
 }
 
 fun Model.senderConnected() {
@@ -66,6 +72,10 @@ fun Model.senderDisconnected() {
 fun Model.handleSampleBuffer(type: SampleBufferType, sampleBuffer: MediaSample) {
     when (type) {
         SampleBufferType.video -> media.appendBufferedVideoSampleBuffer(
+            cameraId = screenCaptureCameraId,
+            sampleBuffer = sampleBuffer,
+        )
+        SampleBufferType.audioApp -> media.appendBufferedAudioSampleBuffer(
             cameraId = screenCaptureCameraId,
             sampleBuffer = sampleBuffer,
         )
