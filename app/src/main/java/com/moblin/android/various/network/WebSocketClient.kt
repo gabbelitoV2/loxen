@@ -48,7 +48,14 @@ class WebSocketClient(
         startInternal()
     }
 
-    fun stop() {
+    fun stop(
+        closeCode: NWProtocolWebSocket.CloseCode =
+            NWProtocolWebSocket.CloseCode.protocolCode(NWProtocolWebSocket.CloseCode.Defined.normalClosure),
+    ) {
+        if (connected) {
+            Log.d(tag, "websocket: Closing with code $closeCode")
+            webSocket.disconnect(closeCode = closeCode)
+        }
         stopInternal()
     }
 
@@ -113,14 +120,27 @@ class WebSocketClient(
                 pongReceived = false
                 webSocket.ping()
             } else {
+                Log.d(tag, "websocket: Pong not received")
+                val connected = connected
                 startInternal()
-                delegate?.webSocketClientDisconnected(this)
+                if (connected) {
+                    delegate?.webSocketClientDisconnected(this)
+                }
             }
         }
     }
 
     private fun stopPingTimer() {
         pingTimer.stop()
+    }
+
+    private fun handleDisconnected() {
+        val connected = connected
+        stopInternal()
+        startConnectTimer()
+        if (connected) {
+            delegate?.webSocketClientDisconnected(this)
+        }
     }
 
     override fun webSocketDidConnect(connection: WebSocketConnection) {
@@ -137,9 +157,7 @@ class WebSocketClient(
         reason: ByteArray?,
     ) {
         Log.d(tag, "websocket: Disconnected")
-        stopInternal()
-        startConnectTimer()
-        delegate?.webSocketClientDisconnected(this)
+        handleDisconnected()
     }
 
     override fun webSocketViabilityDidChange(connection: WebSocketConnection, isViable: Boolean) {
@@ -147,9 +165,7 @@ class WebSocketClient(
         if (isViable) {
             return
         }
-        stopInternal()
-        startConnectTimer()
-        delegate?.webSocketClientDisconnected(this)
+        handleDisconnected()
     }
 
     override fun webSocketDidAttemptBetterPathMigration(result: Result<WebSocketConnection>) {
@@ -158,12 +174,7 @@ class WebSocketClient(
 
     override fun webSocketDidReceiveError(connection: WebSocketConnection, error: NWError) {
         Log.d(tag, "websocket: Error ${error.message}")
-        val connected = connected
-        stopInternal()
-        startConnectTimer()
-        if (connected) {
-            delegate?.webSocketClientDisconnected(this)
-        }
+        handleDisconnected()
     }
 
     override fun webSocketDidReceivePong(connection: WebSocketConnection) {

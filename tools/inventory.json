@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-24T22:17:05+00:00",
+  "generated": "2026-10-25T22:07:04+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -2819,31 +2819,6 @@
       "wave": 1
     },
     {
-      "path": "Moblin/Various/Network/WebSocketClient.swift",
-      "lines": 179,
-      "sha256": "7a96ffce3b5029044f6f13487d0e1a68cb2411761eac63d80ea18b7d902d2d39",
-      "imports": [
-        "NWWebSocket",
-        "Network",
-        "SwiftUI"
-      ],
-      "tier": "ui",
-      "declared_types": [
-        "WebSocketClientDelegate",
-        "WebSocketClient"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.various.network",
-      "kotlin_path": "app/src/main/java/com/moblin/android/various/network/WebSocketClient.kt",
-      "deps": [
-        "Moblin/Various/MainTimer.swift",
-        "Moblin/Various/Network/NetworkInterfaceTypeSelector.swift"
-      ],
-      "wave": 1
-    },
-    {
       "path": "Moblin/Various/Settings/SettingsHttpProxy.swift",
       "lines": 30,
       "sha256": "b0510f930a1567f1f4eed988a6174a3bc1f64c240e90c923c139a3df223158b6",
@@ -3242,37 +3217,6 @@
       "deps": [
         "Moblin/Media/Srtla/Common/Srt.swift",
         "Moblin/Media/Srtla/Common/Srtla.swift"
-      ],
-      "wave": 2
-    },
-    {
-      "path": "Moblin/RemoteControl/RemoteControlRelay.swift",
-      "lines": 158,
-      "sha256": "3c778f5c5177aa1b46aaf413f25587c3dfce23daa1d8a929dbd68269a4c5cee2",
-      "imports": [
-        "Collections",
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "MessageType",
-        "MessageConnectData",
-        "MessageConnect",
-        "Connection",
-        "RemoteControlRelay"
-      ],
-      "private_types": [
-        "MessageType",
-        "MessageConnectData",
-        "MessageConnect",
-        "Connection"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.remotecontrol",
-      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlRelay.kt",
-      "deps": [
-        "Moblin/Various/Network/WebSocketClient.swift"
       ],
       "wave": 2
     },
@@ -4581,94 +4525,32 @@
       "wave": 5
     },
     {
-      "path": "Moblin/Obs/ObsWebSocket.swift",
-      "lines": 1087,
-      "sha256": "45893f894cffe9eedfb97e8b0b7f26bd7306a9a067370ce8c95a40ed7fd880c0",
+      "path": "Moblin/RemoteControl/RemoteControlRelay.swift",
+      "lines": 158,
+      "sha256": "3c778f5c5177aa1b46aaf413f25587c3dfce23daa1d8a929dbd68269a4c5cee2",
       "imports": [
-        "CryptoKit",
-        "Foundation",
-        "Network"
+        "Collections",
+        "Foundation"
       ],
-      "tier": "platform",
+      "tier": "logic",
       "declared_types": [
-        "EventSubscription",
-        "OpCode",
-        "RequestStatus",
-        "ResponseRequestStatus",
-        "RequestType",
-        "EventType",
-        "Identify",
-        "Identified",
-        "Reidentify",
-        "HelloAuthentication",
-        "Hello",
-        "GetSceneListResponseScene",
-        "GetSceneListResponse",
-        "GetSceneItemList",
-        "GetSceneItemListItem",
-        "GetSceneItemListResponse",
-        "GetSpecialInputsResponse",
-        "GetInputListResponseInput",
-        "GetInputListResponse",
-        "SetCurrentProgramSceneRequest",
-        "SetItemUrlInputSettings",
-        "SetItemUrlRequest",
-        "GetStreamStatusResponse",
-        "GetRecordStatusResponse",
-        "GetSourceScreenshot",
-        "GetSourceScreenshotResponse",
-        "SetInputAudioSyncOffset",
-        "GetInputAudioSyncOffset",
-        "GetInputAudioSyncOffsetResponse",
-        "InputSettings",
-        "SetInputSettings",
-        "GetInputSettingsRequest",
-        "ObsMediaSourceInputSettings",
-        "GetInputSettingsResponse",
-        "ObsMediaSourceSettings",
-        "SetInputMute",
-        "GetInputMute",
-        "GetInputMuteResponse",
-        "SceneChangedEvent",
-        "InputMuteStateChangedEvent",
-        "ObsOutputState",
-        "StreamStateChangedEvent",
-        "RecordStateChangedEvent",
-        "InputVolumeMeter",
-        "InputVolumeMeters",
-        "ObsAudioInputVolume",
-        "Request",
-        "BatchRequest",
-        "ObsSceneList",
-        "ObsStreamStatus",
-        "ObsRecordStatus",
-        "ObsWebsocketDelegate",
-        "ObsWebSocket"
+        "MessageType",
+        "MessageConnectData",
+        "MessageConnect",
+        "Connection",
+        "RemoteControlRelay"
       ],
       "private_types": [
-        "EventSubscription",
-        "OpCode",
-        "RequestStatus",
-        "ResponseRequestStatus",
-        "RequestType",
-        "EventType",
-        "Identify",
-        "Identified",
-        "Reidentify",
-        "HelloAuthentication",
-        "Hello",
-        "Request",
-        "BatchRequest"
+        "MessageType",
+        "MessageConnectData",
+        "MessageConnect",
+        "Connection"
       ],
       "declared_functions": [],
-      "declared_globals": [
-        "obsMinimumAudioDelay",
-        "obsMaximumAudioDelay"
-      ],
-      "kotlin_package": "com.moblin.android.obs",
-      "kotlin_path": "app/src/main/java/com/moblin/android/obs/ObsWebSocket.kt",
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlRelay.kt",
       "deps": [
-        "Moblin/Integrations/OpenAi/OpenAi.swift",
         "Moblin/Various/Network/WebSocketClient.swift"
       ],
       "wave": 5
@@ -6810,6 +6692,99 @@
       "wave": 8
     },
     {
+      "path": "Moblin/Obs/ObsWebSocket.swift",
+      "lines": 1087,
+      "sha256": "45893f894cffe9eedfb97e8b0b7f26bd7306a9a067370ce8c95a40ed7fd880c0",
+      "imports": [
+        "CryptoKit",
+        "Foundation",
+        "Network"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "EventSubscription",
+        "OpCode",
+        "RequestStatus",
+        "ResponseRequestStatus",
+        "RequestType",
+        "EventType",
+        "Identify",
+        "Identified",
+        "Reidentify",
+        "HelloAuthentication",
+        "Hello",
+        "GetSceneListResponseScene",
+        "GetSceneListResponse",
+        "GetSceneItemList",
+        "GetSceneItemListItem",
+        "GetSceneItemListResponse",
+        "GetSpecialInputsResponse",
+        "GetInputListResponseInput",
+        "GetInputListResponse",
+        "SetCurrentProgramSceneRequest",
+        "SetItemUrlInputSettings",
+        "SetItemUrlRequest",
+        "GetStreamStatusResponse",
+        "GetRecordStatusResponse",
+        "GetSourceScreenshot",
+        "GetSourceScreenshotResponse",
+        "SetInputAudioSyncOffset",
+        "GetInputAudioSyncOffset",
+        "GetInputAudioSyncOffsetResponse",
+        "InputSettings",
+        "SetInputSettings",
+        "GetInputSettingsRequest",
+        "ObsMediaSourceInputSettings",
+        "GetInputSettingsResponse",
+        "ObsMediaSourceSettings",
+        "SetInputMute",
+        "GetInputMute",
+        "GetInputMuteResponse",
+        "SceneChangedEvent",
+        "InputMuteStateChangedEvent",
+        "ObsOutputState",
+        "StreamStateChangedEvent",
+        "RecordStateChangedEvent",
+        "InputVolumeMeter",
+        "InputVolumeMeters",
+        "ObsAudioInputVolume",
+        "Request",
+        "BatchRequest",
+        "ObsSceneList",
+        "ObsStreamStatus",
+        "ObsRecordStatus",
+        "ObsWebsocketDelegate",
+        "ObsWebSocket"
+      ],
+      "private_types": [
+        "EventSubscription",
+        "OpCode",
+        "RequestStatus",
+        "ResponseRequestStatus",
+        "RequestType",
+        "EventType",
+        "Identify",
+        "Identified",
+        "Reidentify",
+        "HelloAuthentication",
+        "Hello",
+        "Request",
+        "BatchRequest"
+      ],
+      "declared_functions": [],
+      "declared_globals": [
+        "obsMinimumAudioDelay",
+        "obsMaximumAudioDelay"
+      ],
+      "kotlin_package": "com.moblin.android.obs",
+      "kotlin_path": "app/src/main/java/com/moblin/android/obs/ObsWebSocket.kt",
+      "deps": [
+        "Moblin/Integrations/OpenAi/OpenAi.swift",
+        "Moblin/Various/Network/WebSocketClient.swift"
+      ],
+      "wave": 8
+    },
+    {
       "path": "Moblin/StreamingPlatforms/Kick/KickApi.swift",
       "lines": 593,
       "sha256": "62e75689ac9e80ce4b9624e7a0c1ae708f5577082d8b9b50624fa1c97604c1c1",
@@ -6917,140 +6892,6 @@
         "Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift",
         "Moblin/Various/Network/HttpUrlSession.swift",
         "Moblin/Various/Network/NetworkUtils.swift"
-      ],
-      "wave": 8
-    },
-    {
-      "path": "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift",
-      "lines": 1015,
-      "sha256": "5c3cf6a77820b2a080f3c7892ca59da3daddfc12f2a75766031d87be8eed76e4",
-      "imports": [
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "BasicMetadata",
-        "BasicMessage",
-        "WelcomePayloadSession",
-        "WelcomePayload",
-        "WelcomeMessage",
-        "TwitchEventSubMessageFragmentEmote",
-        "TwitchEventSubMessageFragment",
-        "TwitchEventSubMessage",
-        "TwitchEventSubSharedChat",
-        "TwitchEventSubBadge",
-        "TwitchEventSubChatter",
-        "TwitchEventSubNotificationChannelSubscribeEvent",
-        "TwitchEventSubNotificationChannelSubscriptionUpgradeEvent",
-        "TwitchEventSubNotificationChannelWatchStreakEvent",
-        "TwitchEventSubNotificationChannelSubscriptionGiftEvent",
-        "TwitchEventSubNotificationChannelSubscriptionMessageEvent",
-        "NotificationChannelChatNotificationSub",
-        "NotificationChannelChatNotificationResub",
-        "NotificationChannelChatNotificationSubGift",
-        "NotificationChannelChatNotificationCommunitySubGift",
-        "NotificationChannelChatNotificationPrimePaidUpgrade",
-        "NotificationChannelChatNotificationWatchStreak",
-        "NotificationChannelChatNotificationRaid",
-        "NotificationChannelChatNotificationEvent",
-        "NotificationChannelChatNotificationPayload",
-        "NotificationChannelChatNotificationMessage",
-        "TwitchEventSubNotificationChannelFollowEvent",
-        "NotificationChannelFollowPayload",
-        "NotificationChannelFollowMessage",
-        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEventReward",
-        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent",
-        "NotificationChannelPointsCustomRewardRedemptionAddPayload",
-        "NotificationChannelPointsCustomRewardRedemptionAddMessage",
-        "TwitchEventSubChannelRaidEvent",
-        "NotificationChannelRaidPayload",
-        "NotificationChannelRaidMessage",
-        "TwitchEventSubChannelCheerEvent",
-        "NotificationChannelCheerPayload",
-        "NotificationChannelCheerMessage",
-        "TwitchEventSubChannelHypeTrainBeginEvent",
-        "NotificationChannelHypeTrainBeginPayload",
-        "NotificationChannelHypeTrainBeginMessage",
-        "TwitchEventSubChannelHypeTrainProgressEvent",
-        "NotificationChannelHypeTrainProgressPayload",
-        "NotificationChannelHypeTrainProgressMessage",
-        "TwitchEventSubChannelHypeTrainEndEvent",
-        "NotificationChannelHypeTrainEndPayload",
-        "NotificationChannelHypeTrainEndMessage",
-        "TwitchEventSubChannelPollChoice",
-        "TwitchEventSubChannelPollEvent",
-        "NotificationChannelPollPayload",
-        "NotificationChannelPollMessage",
-        "TwitchEventSubChannelPredictionOutcome",
-        "TwitchEventSubChannelPredictionEvent",
-        "NotificationChannelPredictionPayload",
-        "NotificationChannelPredictionMessage",
-        "TwitchEventSubChannelAdBreakBeginEvent",
-        "NotificationChannelAdBreakBeginPayload",
-        "NotificationChannelAdBreakBeginMessage",
-        "TwitchEventSubChannelModerateRaid",
-        "TwitchEventSubChannelModerateEvent",
-        "NotificationChannelModeratePayload",
-        "NotificationChannelModerateMessage",
-        "TwitchEventSubChannelShoutoutCreateEvent",
-        "NotificationChannelShoutoutCreatePayload",
-        "NotificationChannelShoutoutCreateMessage",
-        "TwitchEventSubDelegate",
-        "Subscription",
-        "TwitchEventSub"
-      ],
-      "private_types": [
-        "BasicMetadata",
-        "BasicMessage",
-        "WelcomePayloadSession",
-        "WelcomePayload",
-        "WelcomeMessage",
-        "NotificationChannelChatNotificationSub",
-        "NotificationChannelChatNotificationResub",
-        "NotificationChannelChatNotificationSubGift",
-        "NotificationChannelChatNotificationCommunitySubGift",
-        "NotificationChannelChatNotificationPrimePaidUpgrade",
-        "NotificationChannelChatNotificationWatchStreak",
-        "NotificationChannelChatNotificationRaid",
-        "NotificationChannelChatNotificationEvent",
-        "NotificationChannelChatNotificationPayload",
-        "NotificationChannelChatNotificationMessage",
-        "NotificationChannelFollowPayload",
-        "NotificationChannelFollowMessage",
-        "NotificationChannelPointsCustomRewardRedemptionAddPayload",
-        "NotificationChannelPointsCustomRewardRedemptionAddMessage",
-        "NotificationChannelRaidPayload",
-        "NotificationChannelRaidMessage",
-        "NotificationChannelCheerPayload",
-        "NotificationChannelCheerMessage",
-        "NotificationChannelHypeTrainBeginPayload",
-        "NotificationChannelHypeTrainBeginMessage",
-        "NotificationChannelHypeTrainProgressPayload",
-        "NotificationChannelHypeTrainProgressMessage",
-        "NotificationChannelHypeTrainEndPayload",
-        "NotificationChannelHypeTrainEndMessage",
-        "NotificationChannelPollPayload",
-        "NotificationChannelPollMessage",
-        "NotificationChannelPredictionPayload",
-        "NotificationChannelPredictionMessage",
-        "NotificationChannelAdBreakBeginPayload",
-        "NotificationChannelAdBreakBeginMessage",
-        "NotificationChannelModeratePayload",
-        "NotificationChannelModerateMessage",
-        "NotificationChannelShoutoutCreatePayload",
-        "NotificationChannelShoutoutCreateMessage",
-        "Subscription"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
-      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt",
-      "deps": [
-        "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
-        "Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift",
-        "Moblin/Various/MainTimer.swift",
-        "Moblin/Various/Network/NetworkUtils.swift",
-        "Moblin/Various/Network/WebSocketClient.swift"
       ],
       "wave": 8
     },
@@ -7434,32 +7275,6 @@
       "wave": 8
     },
     {
-      "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
-      "lines": 393,
-      "sha256": "7de7871243011507a2af0036a2ca1019d7cef486b16b4e563906c4cab651111f",
-      "imports": [
-        "Foundation",
-        "Testing",
-        "WeatherKit"
-      ],
-      "tier": "test",
-      "declared_types": [
-        "RemoteControlSuite"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.remotecontrol",
-      "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt",
-      "deps": [
-        "Moblin/Obs/ObsWebSocket.swift",
-        "Moblin/RemoteControl/RemoteControl.swift",
-        "Moblin/Various/Managers/GForceManager.swift",
-        "Moblin/Various/Variables.swift"
-      ],
-      "wave": 8
-    },
-    {
       "path": "Moblin/Media/HaishinKit/Mpeg/NalUnitStream.swift",
       "lines": 119,
       "sha256": "6b5df725f00952cc652f602a871ba161e898eb34735b8ef8c6aaddc8d00e081e",
@@ -7515,6 +7330,140 @@
         "Moblin/Media/HaishinKit/Mpeg/NalUnitReader.swift"
       ],
       "wave": 9
+    },
+    {
+      "path": "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift",
+      "lines": 1015,
+      "sha256": "5c3cf6a77820b2a080f3c7892ca59da3daddfc12f2a75766031d87be8eed76e4",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "BasicMetadata",
+        "BasicMessage",
+        "WelcomePayloadSession",
+        "WelcomePayload",
+        "WelcomeMessage",
+        "TwitchEventSubMessageFragmentEmote",
+        "TwitchEventSubMessageFragment",
+        "TwitchEventSubMessage",
+        "TwitchEventSubSharedChat",
+        "TwitchEventSubBadge",
+        "TwitchEventSubChatter",
+        "TwitchEventSubNotificationChannelSubscribeEvent",
+        "TwitchEventSubNotificationChannelSubscriptionUpgradeEvent",
+        "TwitchEventSubNotificationChannelWatchStreakEvent",
+        "TwitchEventSubNotificationChannelSubscriptionGiftEvent",
+        "TwitchEventSubNotificationChannelSubscriptionMessageEvent",
+        "NotificationChannelChatNotificationSub",
+        "NotificationChannelChatNotificationResub",
+        "NotificationChannelChatNotificationSubGift",
+        "NotificationChannelChatNotificationCommunitySubGift",
+        "NotificationChannelChatNotificationPrimePaidUpgrade",
+        "NotificationChannelChatNotificationWatchStreak",
+        "NotificationChannelChatNotificationRaid",
+        "NotificationChannelChatNotificationEvent",
+        "NotificationChannelChatNotificationPayload",
+        "NotificationChannelChatNotificationMessage",
+        "TwitchEventSubNotificationChannelFollowEvent",
+        "NotificationChannelFollowPayload",
+        "NotificationChannelFollowMessage",
+        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEventReward",
+        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent",
+        "NotificationChannelPointsCustomRewardRedemptionAddPayload",
+        "NotificationChannelPointsCustomRewardRedemptionAddMessage",
+        "TwitchEventSubChannelRaidEvent",
+        "NotificationChannelRaidPayload",
+        "NotificationChannelRaidMessage",
+        "TwitchEventSubChannelCheerEvent",
+        "NotificationChannelCheerPayload",
+        "NotificationChannelCheerMessage",
+        "TwitchEventSubChannelHypeTrainBeginEvent",
+        "NotificationChannelHypeTrainBeginPayload",
+        "NotificationChannelHypeTrainBeginMessage",
+        "TwitchEventSubChannelHypeTrainProgressEvent",
+        "NotificationChannelHypeTrainProgressPayload",
+        "NotificationChannelHypeTrainProgressMessage",
+        "TwitchEventSubChannelHypeTrainEndEvent",
+        "NotificationChannelHypeTrainEndPayload",
+        "NotificationChannelHypeTrainEndMessage",
+        "TwitchEventSubChannelPollChoice",
+        "TwitchEventSubChannelPollEvent",
+        "NotificationChannelPollPayload",
+        "NotificationChannelPollMessage",
+        "TwitchEventSubChannelPredictionOutcome",
+        "TwitchEventSubChannelPredictionEvent",
+        "NotificationChannelPredictionPayload",
+        "NotificationChannelPredictionMessage",
+        "TwitchEventSubChannelAdBreakBeginEvent",
+        "NotificationChannelAdBreakBeginPayload",
+        "NotificationChannelAdBreakBeginMessage",
+        "TwitchEventSubChannelModerateRaid",
+        "TwitchEventSubChannelModerateEvent",
+        "NotificationChannelModeratePayload",
+        "NotificationChannelModerateMessage",
+        "TwitchEventSubChannelShoutoutCreateEvent",
+        "NotificationChannelShoutoutCreatePayload",
+        "NotificationChannelShoutoutCreateMessage",
+        "TwitchEventSubDelegate",
+        "Subscription",
+        "TwitchEventSub"
+      ],
+      "private_types": [
+        "BasicMetadata",
+        "BasicMessage",
+        "WelcomePayloadSession",
+        "WelcomePayload",
+        "WelcomeMessage",
+        "NotificationChannelChatNotificationSub",
+        "NotificationChannelChatNotificationResub",
+        "NotificationChannelChatNotificationSubGift",
+        "NotificationChannelChatNotificationCommunitySubGift",
+        "NotificationChannelChatNotificationPrimePaidUpgrade",
+        "NotificationChannelChatNotificationWatchStreak",
+        "NotificationChannelChatNotificationRaid",
+        "NotificationChannelChatNotificationEvent",
+        "NotificationChannelChatNotificationPayload",
+        "NotificationChannelChatNotificationMessage",
+        "NotificationChannelFollowPayload",
+        "NotificationChannelFollowMessage",
+        "NotificationChannelPointsCustomRewardRedemptionAddPayload",
+        "NotificationChannelPointsCustomRewardRedemptionAddMessage",
+        "NotificationChannelRaidPayload",
+        "NotificationChannelRaidMessage",
+        "NotificationChannelCheerPayload",
+        "NotificationChannelCheerMessage",
+        "NotificationChannelHypeTrainBeginPayload",
+        "NotificationChannelHypeTrainBeginMessage",
+        "NotificationChannelHypeTrainProgressPayload",
+        "NotificationChannelHypeTrainProgressMessage",
+        "NotificationChannelHypeTrainEndPayload",
+        "NotificationChannelHypeTrainEndMessage",
+        "NotificationChannelPollPayload",
+        "NotificationChannelPollMessage",
+        "NotificationChannelPredictionPayload",
+        "NotificationChannelPredictionMessage",
+        "NotificationChannelAdBreakBeginPayload",
+        "NotificationChannelAdBreakBeginMessage",
+        "NotificationChannelModeratePayload",
+        "NotificationChannelModerateMessage",
+        "NotificationChannelShoutoutCreatePayload",
+        "NotificationChannelShoutoutCreateMessage",
+        "Subscription"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
+      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt",
+      "deps": [
+        "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift",
+        "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Network/NetworkUtils.swift",
+        "Moblin/Various/Network/WebSocketClient.swift"
+      ],
+      "wave": 10
     },
     {
       "path": "Moblin/Various/Network/HttpProxyServer.swift",
@@ -7621,6 +7570,32 @@
       "wave": 10
     },
     {
+      "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
+      "lines": 393,
+      "sha256": "7de7871243011507a2af0036a2ca1019d7cef486b16b4e563906c4cab651111f",
+      "imports": [
+        "Foundation",
+        "Testing",
+        "WeatherKit"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "RemoteControlSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt",
+      "deps": [
+        "Moblin/Obs/ObsWebSocket.swift",
+        "Moblin/RemoteControl/RemoteControl.swift",
+        "Moblin/Various/Managers/GForceManager.swift",
+        "Moblin/Various/Variables.swift"
+      ],
+      "wave": 10
+    },
+    {
       "path": "MoblinTests/Moblin/StreamingPlatforms/Twitch/CheermotesSuite.swift",
       "lines": 95,
       "sha256": "a209d885f3b3436cbcb7c9a116023e30cdcea6969a3313619bac148c2c931019",
@@ -7640,32 +7615,6 @@
       "deps": [
         "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
         "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift"
-      ],
-      "wave": 10
-    },
-    {
-      "path": "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift",
-      "lines": 1117,
-      "sha256": "fdd85aab966b72c366a842020ae7e8051de5b3e2d84ae9e2c6c49ed261e30d7c",
-      "imports": [
-        "Foundation",
-        "Testing"
-      ],
-      "tier": "test",
-      "declared_types": [
-        "Delegate",
-        "TwitchEventSubSuite"
-      ],
-      "private_types": [
-        "Delegate"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
-      "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift"
       ],
       "wave": 10
     },
@@ -7969,6 +7918,32 @@
       "deps": [
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Utils/Utils.swift"
+      ],
+      "wave": 11
+    },
+    {
+      "path": "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift",
+      "lines": 1117,
+      "sha256": "fdd85aab966b72c366a842020ae7e8051de5b3e2d84ae9e2c6c49ed261e30d7c",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "Delegate",
+        "TwitchEventSubSuite"
+      ],
+      "private_types": [
+        "Delegate"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
+      "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift"
       ],
       "wave": 11
     },
@@ -8739,44 +8714,6 @@
       "wave": 13
     },
     {
-      "path": "Moblin/Moblink/MoblinkRelay.swift",
-      "lines": 489,
-      "sha256": "a35446e0ff716b1e23affefd6445cf4181cb6748142fb0666e116c3fab24cb37",
-      "imports": [
-        "Foundation",
-        "Network"
-      ],
-      "tier": "platform",
-      "declared_types": [
-        "MoblinkRelayState",
-        "RelayState",
-        "MoblinkRelayDelegate",
-        "Relay",
-        "MoblinkRelay"
-      ],
-      "private_types": [
-        "RelayState",
-        "Relay"
-      ],
-      "declared_functions": [
-        "moblinkRelayLoadRelayId",
-        "getMoblinkRelayId",
-        "moblinkRelayResetId"
-      ],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.moblink",
-      "kotlin_path": "app/src/main/java/com/moblin/android/moblink/MoblinkRelay.kt",
-      "deps": [
-        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
-        "Moblin/Moblink/MoblinkProtocol.swift",
-        "Moblin/RemoteControl/RemoteControl.swift",
-        "Moblin/Various/MainTimer.swift",
-        "Moblin/Various/Network/WebSocketClient.swift",
-        "Moblin/Various/Storages/SimpleStorage.swift"
-      ],
-      "wave": 13
-    },
-    {
       "path": "Moblin/StreamingPlatforms/Kick/KickPlatformStatus.swift",
       "lines": 41,
       "sha256": "4defcc16a67aa4228505a2fd89cc1c7a3f482d6d15471d1511538763b8b750b7",
@@ -9178,6 +9115,32 @@
         "Moblin/Integrations/WorkoutDevice/WorkoutDeviceRunning.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/Settings.swift"
+      ],
+      "wave": 13
+    },
+    {
+      "path": "Moblin/Various/Network/WebSocketClient.swift",
+      "lines": 291,
+      "sha256": "91704069298cef37a506a988f71b1aec9023907986cc7d9d9884ea99c58bdaa6",
+      "imports": [
+        "Foundation",
+        "Network"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "WebSocketClientDelegate",
+        "WebSocketClient"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.network",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/network/WebSocketClient.kt",
+      "deps": [
+        "Moblin/Integrations/Tesla/TeslaVehicle.swift",
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Network/NetworkInterfaceTypeSelector.swift"
       ],
       "wave": 13
     },
@@ -11157,6 +11120,44 @@
       "wave": 15
     },
     {
+      "path": "Moblin/Moblink/MoblinkRelay.swift",
+      "lines": 489,
+      "sha256": "a35446e0ff716b1e23affefd6445cf4181cb6748142fb0666e116c3fab24cb37",
+      "imports": [
+        "Foundation",
+        "Network"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "MoblinkRelayState",
+        "RelayState",
+        "MoblinkRelayDelegate",
+        "Relay",
+        "MoblinkRelay"
+      ],
+      "private_types": [
+        "RelayState",
+        "Relay"
+      ],
+      "declared_functions": [
+        "moblinkRelayLoadRelayId",
+        "getMoblinkRelayId",
+        "moblinkRelayResetId"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.moblink",
+      "kotlin_path": "app/src/main/java/com/moblin/android/moblink/MoblinkRelay.kt",
+      "deps": [
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/Moblink/MoblinkProtocol.swift",
+        "Moblin/RemoteControl/RemoteControl.swift",
+        "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Network/WebSocketClient.swift",
+        "Moblin/Various/Storages/SimpleStorage.swift"
+      ],
+      "wave": 15
+    },
+    {
       "path": "Moblin/Various/ChatBotCommand.swift",
       "lines": 284,
       "sha256": "f745938e551ae6220e6009517a3cee7aae5ec698b733e4c716a8d529b647fa54",
@@ -13018,8 +13019,8 @@
     },
     {
       "path": "MoblinTests/TestUtils.swift",
-      "lines": 98,
-      "sha256": "6b02e717751d5c34dd470b4c9a44e1fc510f5dbc77204125b4f69dd3c34b8ac2",
+      "lines": 105,
+      "sha256": "fced05f0f50fc8b075ba43fb0b67708b3802353c16a13f876ba2eae5e45c357b",
       "imports": [
         "Foundation"
       ],
@@ -13664,6 +13665,44 @@
       "deps": [
         "Moblin/Integrations/Tesla/TeslaVehicle.swift",
         "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "MoblinTests/TestUtils.swift"
+      ],
+      "wave": 20
+    },
+    {
+      "path": "MoblinTests/Moblin/Various/Network/WebSocketClientSuite.swift",
+      "lines": 370,
+      "sha256": "9951ab2105e3e53e76600a08149e071210d3d6e8c6b0afbfaca67ecdc4ef3f9b",
+      "imports": [
+        "Foundation",
+        "Network",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "ClientEvent",
+        "ServerEvent",
+        "Delegate",
+        "WebSocketServerMock",
+        "Connection",
+        "WebSocketClientSuite"
+      ],
+      "private_types": [
+        "ClientEvent",
+        "ServerEvent",
+        "Delegate",
+        "WebSocketServerMock",
+        "Connection"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.network",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/network/WebSocketClientSuite.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/Tesla/TeslaVehicle.swift",
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/Various/Network/WebSocketClient.swift",
         "MoblinTests/TestUtils.swift"
       ],
       "wave": 20

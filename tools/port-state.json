@@ -3883,23 +3883,24 @@
   },
   "MoblinTests/TestUtils.swift": {
     "status": "ok",
-    "sha256": "6b02e717751d5c34dd470b4c9a44e1fc510f5dbc77204125b4f69dd3c34b8ac2",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "fced05f0f50fc8b075ba43fb0b67708b3802353c16a13f876ba2eae5e45c357b",
+    "moblin_commit": "43433947d537cb13c81e1ae04b7ee36d2e3c5f27",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/TestUtils.kt",
     "notes": [
-      "Adds spokenEmoteNames right after emoteNames, matching the new Swift helper.",
-      "ChatPostUrl has no name member in the Kotlin port, so the same value is produced inline as the still URL's last path component, which keeps it consistent with the sibling emoteNames helper.",
-      "Everything else in the file, including the Android-only runMainTest and MainLooperDrainRule hooks, is left byte-identical."
+      "The Swift diff only touches MessageQueue: it is now final and guards its buffer/continuations with an NSLock.",
+      "The Kotlin MessageQueue already uses an unbounded Channel (Channel.UNLIMITED + withTimeout on receive), which is thread-safe and non-blocking, so it is the hand-written Android equivalent of the new lock and is kept unchanged.",
+      "Kotlin classes are final by default, so the new `final class` adds nothing.",
+      "No other Swift line changed, so every other Kotlin declaration stays byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38596,
-    "tokens_out": 9313,
-    "seconds": 38.4,
-    "ported_at": "2026-10-09T00:00:38+00:00"
+    "tokens_in": 38946,
+    "tokens_out": 1484,
+    "seconds": 6.6,
+    "ported_at": "2026-10-25T22:07:15+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsReaderSuite.swift": {
     "status": "ok",
@@ -7175,27 +7176,28 @@
   },
   "Moblin/Various/Network/WebSocketClient.swift": {
     "status": "ok",
-    "sha256": "7a96ffce3b5029044f6f13487d0e1a68cb2411761eac63d80ea18b7d902d2d39",
-    "tier": "ui",
+    "sha256": "91704069298cef37a506a988f71b1aec9023907986cc7d9d9884ea99c58bdaa6",
+    "moblin_commit": "43433947d537cb13c81e1ae04b7ee36d2e3c5f27",
+    "mode": "incremental",
+    "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/network/WebSocketClient.kt",
     "notes": [
-      "NWWebSocket/WebSocketConnection are replaced by OkHttp WebSocket + WebSocketListener; every listener callback is marshalled onto Dispatchers.Main to reproduce Swift's @MainActor isolation.",
-      "The `delegate` property keeps Swift's `weak` semantics through a WeakReference-backed property that still exposes the original name and type.",
-      "The stored `URL` becomes a plain String because it is only handed to OkHttp.",
-      "Each connection attempt builds a fresh OkHttpClient with pingInterval(10, SECONDS) (the NWProtocolWebSocket.Options.autoReplyPing equivalent) and sends `protocols` through the Sec-WebSocket-Protocol header, as OkHttp has no setSubprotocols call.",
-      "NetworkInterfaceTypeSelector is used only as an availability check: OkHttp cannot bind a socket to a chosen NWInterface.InterfaceType, so the loopback override is dropped (loopback hosts are reached through the URL). The constructor is called as NetworkInterfaceTypeSelector(Dispatchers.Main, cellular).",
-      "`webSocket` starts as null instead of an idle NWWebSocket instance, so send() before start() is a no-op instead of queueing onto an unconnected socket.",
-      "MainTimer from com.moblin.android.various is reused unchanged; this file assumes startSingleShot(timeout, function), startPeriodic(interval, initial, function) and stop().",
-      "webSocketDidReceivePong has no caller because OkHttp does not surface pong frames, and the manual ping path is marked TODO because OkHttp owns ping/pong via pingInterval."
+      "The Swift rewrite drives NWConnection directly with NWProtocolWebSocket.Metadata; the Android platform layer only exposes the WebSocket shim (NWWebSocket/NWProtocolWebSocket.Options/CloseCode), so the transport stays NWWebSocket and the connection state/viability/message/pong handling maps onto the WebSocketConnectionDelegate callbacks.",
+      "The new private helpers handleStateUpdate/handleViabilityUpdate/handleMessage/receiveMessage/send/handleSendError/sendPing have no separate Kotlin counterpart because the shim delivers those events through the delegate; their logic lives in the matching override bodies.",
+      "stop(closeCode:) now takes the close code with the same default (.protocolCode(.normalClosure)) and forwards it to webSocket.disconnect(closeCode) so the close frame is sent like Swift's NWProtocolWebSocket.Metadata(opcode: .close).",
+      "handleDisconnected() is added: it remembers connected, restarts the connect timer and only notifies the delegate when the socket had been connected, matching the new Swift behaviour.",
+      "The ping timer now logs 'websocket: Pong not received' and only reports a disconnect when the client was connected before restarting.",
+      "Swift's deinit { connection?.cancel() } has no Kotlin equivalent; stopInternal() cancels the shim socket and there is no finalizer to keep.",
+      "The Context constructor parameter stays because NetworkInterfaceTypeSelector needs it; the Swift init never had one.",
+      "swift's `.url(url)` endpoint and `defaultProtocolStack.applicationProtocols` are handled inside the NWWebSocket shim (ws -> tcp, wss -> tls, subprotocols, autoReplyPing)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3188,
-    "tokens_out": 23730,
-    "seconds": 93.2,
-    "ported_at": "2026-09-22T13:19:00+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 38167,
+    "tokens_out": 5889,
+    "seconds": 27.6,
+    "ported_at": "2026-10-25T22:07:36+00:00"
   },
   "Moblin/Various/Model/ModelFaceBackgroundImage.swift": {
     "status": "ok",
@@ -18341,5 +18343,34 @@
     "tokens_out": 3040,
     "seconds": 15.0,
     "ported_at": "2026-10-24T22:17:43+00:00"
+  },
+  "MoblinTests/Moblin/Various/Network/WebSocketClientSuite.swift": {
+    "status": "ok",
+    "sha256": "9951ab2105e3e53e76600a08149e071210d3d6e8c6b0afbfaca67ecdc4ef3f9b",
+    "moblin_commit": "43433947d537cb13c81e1ae04b7ee36d2e3c5f27",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/network/WebSocketClientSuite.kt",
+    "notes": [
+      "Swift Testing suite ported to a JUnit 4 class with kotlin.test assertions; every async @MainActor test runs inside runMainTest so the Robolectric main looper is advanced.",
+      "Task.sleep becomes delay(); the reconnect-delay check uses ContinuousClock.now and kotlin.time.Duration from the platform layer.",
+      "WebSocketServerMock now stands on the platform NWListener/NWConnection shims. Those shims serve plain TCP only, so inserting the NWProtocolWebSocket options, building frame metadata and reading protocolMetadata are TODO.",
+      "WebSocketClient.stop(closeCode:) is not part of the platform shim (only stop() is declared), so the close-code argument is dropped and the client always sends the default normal closure; the privateCode expectations in the close tests only hold once that overload exists.",
+      "UInt16 ports are Int in Kotlin; url() returns the \"ws://127.0.0.1:<port>\" String that WebSocketClient takes instead of a URL.",
+      "WebSocketClient needs a Context, so every construction passes AppDelegate.context.",
+      "MessageQueue.get() times out after 10 s, so a missing callback fails the test instead of hanging the run.",
+      "The Swift deinit of the mock server is dropped; stop() cancels the listener."
+    ],
+    "unsupported": [
+      "NWParameters.defaultProtocolStack.applicationProtocols (WebSocket options on NWListener) -> TODO",
+      "NWProtocolWebSocket.Metadata / NWConnection.ContentContext (WebSocket frames on NWConnection) -> TODO",
+      "NWConnection.ContentContext.protocolMetadata(definition:) -> TODO"
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 37546,
+    "tokens_out": 21846,
+    "seconds": 103.7,
+    "ported_at": "2026-10-25T22:08:51+00:00"
   }
 }
