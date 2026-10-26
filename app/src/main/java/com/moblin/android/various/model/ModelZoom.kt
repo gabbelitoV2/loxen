@@ -23,6 +23,9 @@ class Zoom {
     var frontX: Float = 0.5f
     var speedActive = false
     val speedTimer = MainTimer()
+    val remoteControlTimer = MainTimer()
+    var remoteControlTimerRunning = false
+    var remoteControlPending = false
     val backPresetId = MutableStateFlow(UUID.randomUUID())
     val frontPresetId = MutableStateFlow(UUID.randomUUID())
     val x = MutableStateFlow(1.0f)
@@ -73,12 +76,28 @@ fun Model.setZoomXWhenInRange(x: Float, setPinch: Boolean = true) {
         else -> {}
     }
     zoom.x.value = x
-    remoteControlStateChanged(RemoteControlAssistantStreamerState(zoom = x))
+    remoteControlZoomChanged()
     if (isWatchLocal()) {
         sendZoomToWatch(x)
     }
     if (setPinch) {
         zoom.xPinch = zoom.x.value
+    }
+}
+
+private fun Model.remoteControlZoomChanged() {
+    if (zoom.remoteControlTimerRunning) {
+        zoom.remoteControlPending = true
+        return
+    }
+    remoteControlStateChanged(RemoteControlAssistantStreamerState(zoom = zoom.x.value))
+    zoom.remoteControlTimerRunning = true
+    zoom.remoteControlTimer.startSingleShot(timeout = 0.5) {
+        zoom.remoteControlTimerRunning = false
+        if (zoom.remoteControlPending) {
+            zoom.remoteControlPending = false
+            remoteControlZoomChanged()
+        }
     }
 }
 
@@ -143,6 +162,9 @@ private fun Model.clearZoomPresetId() {
 }
 
 private fun Model.setBackZoomPreset(presetId: UUID) {
+    if (presetId == zoom.backPresetId.value) {
+        return
+    }
     zoom.backPresetId.value = presetId
     if (cameraPosition == AVCaptureDevice.Position.BACK.ordinal) {
         remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))
@@ -153,6 +175,9 @@ private fun Model.setBackZoomPreset(presetId: UUID) {
 }
 
 private fun Model.setFrontZoomPreset(presetId: UUID) {
+    if (presetId == zoom.frontPresetId.value) {
+        return
+    }
     zoom.frontPresetId.value = presetId
     if (cameraPosition == AVCaptureDevice.Position.FRONT.ordinal) {
         remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))

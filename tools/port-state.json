@@ -1596,24 +1596,23 @@
   },
   "Moblin/Media/HaishinKit/Rtmp/Amf/Amf.swift": {
     "status": "ok",
-    "sha256": "291399fcf2a3f9c532ec8a91745209342f4728f13f8eab0030d7dfb8373b67bc",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "98b9960eeac66b27fad234369751615bb3f8fb889d72d89f38d978444e3bcb2a",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/amf/Amf.kt",
     "notes": [
-      "The Swift diff only merges two guards into one with short-circuit `&&`; the Kotlin decodeInt already performed the type check before reading the double, so the behaviour is identical and the file is unchanged.",
-      "decodeInt still truncates toward zero via kotlin.math.truncate and validates the Int range, matching `Int(exactly:)` for NaN and out-of-range values.",
-      "The Amf0Encoder/Amf0Decoder expose the ByteWriter/ByteReader surface as delegating members because Kotlin has no implementation-by-delegation of a class.",
-      "decodeDateValue keeps the split second/nanosecond Instant construction so sub-millisecond precision of the AMF0 date double is preserved."
+      "The Swift diff only removes redundant explicit `return`s inside `decodeString()` and `decodeObject()`; the Kotlin versions already use a single `return when (...)`, so no code change was needed.",
+      "Everything else in the Kotlin file is unchanged and kept byte-identical, including the Android-side ByteWriter/ByteReader delegation and java.time.Instant date handling.",
+      "AmfError cases are Kotlin objects extending a sealed Exception class, thrown as AmfError.X."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 39467,
-    "tokens_out": 3379,
-    "seconds": 11.1,
-    "ported_at": "2026-10-22T22:49:15+00:00"
+    "tokens_in": 39504,
+    "tokens_out": 3327,
+    "seconds": 11.5,
+    "ported_at": "2026-10-26T23:25:00+00:00"
   },
   "Moblin/Various/Variables.swift": {
     "status": "ok",
@@ -5914,30 +5913,6 @@
     "tokens_out": 5499,
     "seconds": 16.1,
     "ported_at": "2026-10-23T22:41:52+00:00"
-  },
-  "Moblin/Various/Model/ModelMoblinWebsite.swift": {
-    "status": "ok",
-    "sha256": "a5b0d9c60b4c40a31aaa657a8c4e5232ed389c9a90cecf61c09812d72ceaa669",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
-    "mode": "incremental",
-    "tier": "platform",
-    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinWebsite.kt",
-    "notes": [
-      "Only the file-scope constant changed: Swift `private let baseUrl` became the non-private `let moblinWebsiteApiUrl`, so the Kotlin property drops `private` and is renamed; both URL constants now interpolate it.",
-      "`moblinWebsiteApiUrl` stays a hard-coded empty String as in the previous port, since the Info.plist key has no Android asset counterpart here.",
-      "Everything else in the file is untouched and kept byte-identical."
-    ],
-    "unsupported": [],
-    "apple_only": [
-      "DeviceCheck DCAppAttestService.generateKey/attestKey/isSupported (App Attest) - attestedKey() and sendLive() bodies are TODO()",
-      "DeviceCheck DCAppAttestService.generateAssertion - generateAssertion() body is TODO()"
-    ],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 47129,
-    "tokens_out": 2407,
-    "seconds": 7.8,
-    "ported_at": "2026-10-17T21:47:44+00:00"
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
@@ -11197,16 +11172,16 @@
   },
   "Common/Various/CommonUtils.swift": {
     "status": "ok",
-    "sha256": "dceca9e6d26270d2024bec9b99088031c3b141f7740d4b531eee87410f029a63",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "380d55d58c52699ce2d01c95cd3acffcce89975045fb621a0451d981fc3a090b",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/common/various/CommonUtils.kt",
     "notes": [
-      "Both hunks in the diff are pure Swift optional-binding refactors (merging two guards into one); they carry no semantic change.",
-      "Color.toRgb() already deviates on Android: it reads the Compose Color channels directly instead of UIColor(...).cgColor.components, so the merged guard hunk needs no Kotlin change.",
-      "ByteArray.makeBlockBuffer is an Android placeholder returning null (no CMBlockBuffer on Android), so the makeBlockBuffer hunk leaves it untouched.",
-      "No Kotlin line was added, removed or reformatted; the file is returned byte-identical."
+      "The Swift diff only drops explicit `return` keywords (implicit single-expression returns) from the `urlImage` switch cases; behaviour is identical.",
+      "The Kotlin `urlImage(interfaceType: Int)` already maps ConnectivityManager types to the same symbol names and needs no edit.",
+      "The Kotlin signature takes an Int (ConnectivityManager transport type) instead of NWInterface.InterfaceType, a deliberate hand-written Android deviation that is preserved.",
+      "No other declaration in the file is affected, so every other line stays byte-identical."
     ],
     "unsupported": [],
     "apple_only": [
@@ -11214,33 +11189,30 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62184,
-    "tokens_out": 9701,
-    "seconds": 28.1,
-    "ported_at": "2026-10-22T22:50:15+00:00"
+    "tokens_in": 62034,
+    "tokens_out": 9770,
+    "seconds": 28.0,
+    "ported_at": "2026-10-26T23:25:17+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Recorder.swift": {
     "status": "ok",
-    "sha256": "f5a38e8fd59f4041f00331eade01ef37d37fdf8d8b70578b9bdef5caa4805938",
-    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
+    "sha256": "62fe518a9d91bf4f8e289ea30070451cb4a9aae42d0b0f1db013ddc95faa1cc2",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/Recorder.kt",
     "notes": [
-      "Added audioConverterInputDescription (a MediaFormat) next to audioOutputFormat; it holds the last input format handed to makeAudioConverter.",
-      "The Swift comparison of AudioStreamBasicDescription values is written with MediaFormat.isSameAudioFormat, the shim's content comparison.",
-      "convertAudio is now a single function: it recreates the converter when the input format changed, sizes the output buffer from numSamples * output/input sample-rate ratio (rounded up) and drops empty results via the frameLength shim extension.",
-      "Swift's block-based AVAudioConverter.convert(to:error:withInputFrom:) has no PCM-to-PCM block variant in the shim, so the existing convert(to, from) path is kept with the same error handling.",
-      "makeAudioConverter now clears and releases the previous converter and records the input format before returning early, as the new Swift code does.",
-      "reset() clears audioConverterInputDescription together with the other converter state."
+      "appendAudioSilence now returns Boolean and appendAudioInternal aborts the append when silence insertion fails, then advances nextAudioPresentationTimeStamp.",
+      "All Android-specific fixes (Bookmark.openOutput, lease retention in appendVideo, audioConverter.release(), isSameAudioFormat checks, channel-index-mask layout) are untouched.",
+      "Silence buffer is zero-filled through MediaSample.data because AVAudioPCMBuffer.mutableAudioBufferList has no counterpart; the zeroed data is what gets appended."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 55089,
-    "tokens_out": 8105,
-    "seconds": 27.8,
-    "ported_at": "2026-10-24T21:59:25+00:00"
+    "tokens_in": 54784,
+    "tokens_out": 5668,
+    "seconds": 16.1,
+    "ported_at": "2026-10-26T23:25:05+00:00"
   },
   "Moblin/Various/ChatPost.swift": {
     "status": "ok",
@@ -12051,27 +12023,23 @@
   },
   "Moblin/MoblinApp.swift": {
     "status": "ok",
-    "sha256": "c4b9fa1425a04931950ab0c23dc612f54187577617cd76f359979a16187fd42e",
+    "sha256": "2b1a85929bafdb97d757c87387899c82237a414a95e33c51430c20908288aea4",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/MoblinApp.kt",
     "notes": [
-      "@main MoblinApp becomes object MoblinApp (holding globalModel) plus a top-level @Composable MoblinApp() that creates the Model once with remember and stores it in globalModel.",
-      "Android has no App/Scene entry point, so MainActivity is added at the end to host MoblinApp(); it and AppDelegate must be registered in AndroidManifest.xml.",
-      "AppDelegate maps to android.app.Application, using Application.registerActivityLifecycleCallbacks to track the current activity so orientationLock can call Activity.requestedOrientation like the Swift didSet did.",
-      "Sub-views (StreamView, CameraPreviewView, StreamPreviewView) are passed to MainView as @Composable lambdas, which is the Compose equivalent of the SwiftUI view parameters.",
-      "Model @Published state (show, toast, orientation, database) is read with collectAsState(); controllers (webBrowserController, createStreamWizard) stay plain properties.",
-      "SceneDelegate is not used on Android: settings URLs come through platform/AndroidHost, and the external display scene is platform/uikit/ExternalDisplay (DisplayManager presentation displays shown with android.app.Presentation), installed from MainActivity by a hook.",
-      ".background(.black) becomes a Box with Modifier.background(Color.Black); .ignoresSafeArea() is a no-op because nothing applies window insets here.",
-      "targetEnvironment(macCatalyst) branches (storeSettings, replaysStorage.store, exit(EXIT_SUCCESS)) are not part of the Android build and were dropped."
+      "The Swift diff only converts explicit `return` statements into implicit single-expression returns; the behaviour is unchanged, so the Kotlin file stays identical.",
+      "AppDelegate.orientationLock keeps its Android form: ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE with a setter that requests the orientation on the current activity.",
+      "supportedInterfaceOrientationsFor keeps returning orientationLock, matching the else branch of the Swift #if targetEnvironment(macCatalyst)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3959,
-    "tokens_out": 21843,
-    "seconds": 88.2,
-    "ported_at": "2026-09-22T13:39:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48043,
+    "tokens_out": 1462,
+    "seconds": 5.4,
+    "ported_at": "2026-10-26T23:25:02+00:00"
   },
   "Moblin/VideoEffects/BingoCardEffect.swift": {
     "status": "ok",
@@ -14230,26 +14198,24 @@
   },
   "Moblin/Various/Model/ModelZoom.swift": {
     "status": "ok",
-    "sha256": "a7a9538ca031af122162cab0e5373b13a817a80d7e76933c6130927fddb771c9",
-    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
+    "sha256": "8b714adb48839585fa7e8178f97f26a6954e5c632b8cd636006d2234c49de423",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelZoom.kt",
     "notes": [
-      "The macCatalyst-only MacZoomRamp class and its uses in setCameraZoomX/stopCameraZoom are wrapped in #if targetEnvironment(macCatalyst); they are excluded from the Android port like any other platform-conditional code, so no Kotlin declaration exists for them.",
-      "Zoom gains speedActive (plain var, since the Swift property is not @Published) and speedTimer (MainTimer).",
-      "setZoomSpeed/stopZoomSpeed/updateZoomXFromCamera are translated as Model extension functions right after commitZoomX, matching the Swift declaration order.",
-      "pow(abs(speed), 2) becomes abs(speed).pow(2) with kotlin.math.pow; abs likewise from kotlin.math.",
-      "MainTimer.startPeriodic(interval = 0.1) drives the periodic camera-to-x sync, and stopZoomSpeed stops that timer before applying the clamped zoom level back to x.",
-      "The zoom level returned by stopCameraZoom already comes through cameraZoomLevelToX, so it is fed straight into setZoomXWhenInRange as in Swift."
+      "Added remoteControlTimer, remoteControlTimerRunning and remoteControlPending to Zoom mirroring the Swift throttling state.",
+      "New private Model.remoteControlZoomChanged() replaces the direct remoteControlStateChanged call in setZoomXWhenInRange and throttles to one update per 0.5 s with a pending flag.",
+      "setBackZoomPreset/setFrontZoomPreset now return early when the preset id is unchanged.",
+      "MainTimer.startSingleShot is used for the 0.5 s window, as declared in the platform API."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58384,
-    "tokens_out": 3825,
-    "seconds": 12.8,
-    "ported_at": "2026-10-19T23:08:57+00:00"
+    "tokens_in": 58272,
+    "tokens_out": 3266,
+    "seconds": 10.8,
+    "ported_at": "2026-10-26T23:25:16+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffect.swift": {
     "status": "ok",
@@ -15394,23 +15360,23 @@
   },
   "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift": {
     "status": "ok",
-    "sha256": "ee789e89c271fbe8140b51477f89377ec6a56fa4667f1770243da24a09297a73",
-    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
+    "sha256": "547aea663b6b56b3d425ab5ea6a4d3b6b7fed9bb521e9bdf0355be8d3efa0ec1",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysSettingsView.kt",
     "notes": [
-      "Adds a 'Zoom slider' toggle in the Bottom right section, bound to show.zoomSlider.",
-      "SettingsShow.zoomSlider is not yet in the listed declarations; the binding assumes it is added to SettingsShow like the other overlay flags.",
-      "Existing bindings, section order and android-specific Label/Modifier.weight(1f) usage are untouched."
+      "Wrapped the Moblin Cloud toggle in `if (!isMac())` inside the Top right Section, mirroring the new Swift `if !isMac()` block.",
+      "Added the `com.moblin.android.various.utils.isMac` import following Moblin's Kotlin import ordering.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50017,
-    "tokens_out": 2365,
-    "seconds": 8.2,
-    "ported_at": "2026-10-19T23:08:53+00:00"
+    "tokens_in": 50563,
+    "tokens_out": 2320,
+    "seconds": 7.7,
+    "ported_at": "2026-10-26T23:25:13+00:00"
   },
   "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift": {
     "status": "ok",
@@ -17332,24 +17298,23 @@
   },
   "Moblin/View/Settings/SettingsView.swift": {
     "status": "ok",
-    "sha256": "a8fe0977c401a008d8510daba1936cf99ecdc4fb31c1a1c800f20aa07868600a",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "sha256": "ecf30715654798cbc66d0379da5b998fac5a8da54599ea11754ddaa21c805874",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
     "notes": [
-      "Added a Moblin Cloud NavigationLink after Remote control inside the showAllSettings section, matching the Swift diff.",
-      "Added the import com.moblin.android.view.settings.moblincloud.MoblinCloudSettingsView, kept in alphabetical order before the moblink import.",
-      "The destination collects nothing from flows: model, database and database.moblinCloud are read inside the destination lambda as in the other links.",
-      "Everything else in the file is untouched."
+      "Wrapped the Moblin Cloud NavigationLink in an `if (!isMac())` guard, matching the new Swift condition.",
+      "Everything else kept byte-identical, including the hand-written AppleWatchSettingsDestination and Loxen label overrides.",
+      "isMac() was already imported from com.moblin.android.various.utils."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59482,
-    "tokens_out": 5011,
-    "seconds": 14.2,
-    "ported_at": "2026-10-17T21:48:43+00:00"
+    "tokens_in": 59793,
+    "tokens_out": 4504,
+    "seconds": 13.4,
+    "ported_at": "2026-10-26T23:25:31+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardSettingsView.swift": {
     "status": "ok",
@@ -17920,22 +17885,22 @@
   },
   "MoblinTests/Moblin/Various/Storages/ReplaysStorageSuite.swift": {
     "status": "ok",
-    "sha256": "30decd876e1eb137f8d9b22d4e11baa4996454e7650902a4dc4395bd025ea909",
-    "moblin_commit": "29b5e5b7d8acb5865935e2db6957c5168b802b45",
+    "sha256": "eba2a6e5e527e7f6d6174d37a458dcabd296de62e5b8e1168edfbd636851554e",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/storages/ReplaysStorageSuite.kt",
     "notes": [
-      "Only the waitUntil timeout in cleanupKeepsFilesOfKnownReplays changed from Duration.ofSeconds(2) to Duration.ofSeconds(10); the identical call in orphanedFileIsRemovedAsynchronously keeps Duration.ofSeconds(2).",
-      "Everything else in the Kotlin file is unchanged, including the Robolectric runner, the MutableStateFlow `.value` reads and the java.io.File writes that replace the Swift Data().write(to:) calls."
+      "Only the two waitUntil timeouts changed: 2s to 30s and 10s to 30s; everything else is byte-identical.",
+      "Timeouts stay expressed with java.time.Duration via Duration.ofSeconds()."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 35307,
-    "tokens_out": 2459,
-    "seconds": 8.4,
-    "ported_at": "2026-10-04T22:34:15+00:00"
+    "tokens_in": 35463,
+    "tokens_out": 1626,
+    "seconds": 5.5,
+    "ported_at": "2026-10-26T23:24:54+00:00"
   },
   "MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift": {
     "status": "ok",
@@ -18346,31 +18311,49 @@
   },
   "MoblinTests/Moblin/Various/Network/WebSocketClientSuite.swift": {
     "status": "ok",
-    "sha256": "9951ab2105e3e53e76600a08149e071210d3d6e8c6b0afbfaca67ecdc4ef3f9b",
-    "moblin_commit": "43433947d537cb13c81e1ae04b7ee36d2e3c5f27",
-    "mode": "full",
+    "sha256": "cf13a346fae0801322b15b52751c7fd0de6e4dc5297b28000fbff8f344a43522",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/network/WebSocketClientSuite.kt",
     "notes": [
-      "Swift Testing suite ported to a JUnit 4 class with kotlin.test assertions; every async @MainActor test runs inside runMainTest so the Robolectric main looper is advanced.",
-      "Task.sleep becomes delay(); the reconnect-delay check uses ContinuousClock.now and kotlin.time.Duration from the platform layer.",
-      "WebSocketServerMock now stands on the platform NWListener/NWConnection shims. Those shims serve plain TCP only, so inserting the NWProtocolWebSocket options, building frame metadata and reading protocolMetadata are TODO.",
-      "WebSocketClient.stop(closeCode:) is not part of the platform shim (only stop() is declared), so the close-code argument is dropped and the client always sends the default normal closure; the privateCode expectations in the close tests only hold once that overload exists.",
-      "UInt16 ports are Int in Kotlin; url() returns the \"ws://127.0.0.1:<port>\" String that WebSocketClient takes instead of a URL.",
-      "WebSocketClient needs a Context, so every construction passes AppDelegate.context.",
-      "MessageQueue.get() times out after 10 s, so a missing callback fails the test instead of hanging the run.",
-      "The Swift deinit of the mock server is dropped; stop() cancels the listener."
+      "Applied the diff: listener readiness now carries success or failure, and url() rethrows listener errors.",
+      "Kotlin Result cannot safely be used as a MessageQueue type argument here, so a file-private ReadyResult mirrors Result<UInt16, NWError>.",
+      "Removed WebSocketServerMock.stop(), matching the Swift change.",
+      "reconnectWhenServerStartsLater now uses the fixed port 24680 and no longer starts an unavailable server first.",
+      "Existing Android no-op server send/close/receive mock bodies are preserved because the diff does not touch them.",
+      "Renamed no Swift declarations; only the mock readiness type and reconnect test body changed."
     ],
-    "unsupported": [
-      "NWParameters.defaultProtocolStack.applicationProtocols (WebSocket options on NWListener) -> TODO",
-      "NWProtocolWebSocket.Metadata / NWConnection.ContentContext (WebSocket frames on NWConnection) -> TODO",
-      "NWConnection.ContentContext.protocolMetadata(definition:) -> TODO"
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 41894,
+    "tokens_out": 11733,
+    "seconds": 50.2,
+    "ported_at": "2026-10-26T23:25:39+00:00"
+  },
+  "Moblin/Various/Model/ModelMoblinWebsite.swift": {
+    "status": "ok",
+    "sha256": "a5b0d9c60b4c40a31aaa657a8c4e5232ed389c9a90cecf61c09812d72ceaa669",
+    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
+    "mode": "incremental",
+    "tier": "platform",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinWebsite.kt",
+    "notes": [
+      "Only the file-scope constant changed: Swift `private let baseUrl` became the non-private `let moblinWebsiteApiUrl`, so the Kotlin property drops `private` and is renamed; both URL constants now interpolate it.",
+      "`moblinWebsiteApiUrl` stays a hard-coded empty String as in the previous port, since the Info.plist key has no Android asset counterpart here.",
+      "Everything else in the file is untouched and kept byte-identical."
+    ],
+    "unsupported": [],
+    "apple_only": [
+      "DeviceCheck DCAppAttestService.generateKey/attestKey/isSupported (App Attest) - attestedKey() and sendLive() bodies are TODO()",
+      "DeviceCheck DCAppAttestService.generateAssertion - generateAssertion() body is TODO()"
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 37546,
-    "tokens_out": 21846,
-    "seconds": 103.7,
-    "ported_at": "2026-10-25T22:08:51+00:00"
+    "tokens_in": 47129,
+    "tokens_out": 2407,
+    "seconds": 7.8,
+    "ported_at": "2026-10-17T21:47:44+00:00"
   }
 }

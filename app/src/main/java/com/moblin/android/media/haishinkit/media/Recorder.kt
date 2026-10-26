@@ -231,7 +231,10 @@ class Recorder : AVAssetWriterDelegate {
             return
         }
         if (offset > maximumAudioPresentationTimeStampOffset && offset < 10) {
-            appendAudioSilence(writer, input, nextAudioPresentationTimeStamp, relativePresentationTimeStamp)
+            if (!appendAudioSilence(writer, input, nextAudioPresentationTimeStamp, relativePresentationTimeStamp)) {
+                return
+            }
+            nextAudioPresentationTimeStamp = relativePresentationTimeStamp
         }
         val relativeSampleBuffer = convertedSampleBuffer.replacePresentationTimeStamp(relativePresentationTimeStamp)
         if (!appendAudioSampleBuffer(writer, input, relativeSampleBuffer)) {
@@ -254,13 +257,13 @@ class Recorder : AVAssetWriterDelegate {
         input: WriterInput,
         from: Long,
         to: Long,
-    ) {
-        val outputFormat = audioConverter?.outputFormat ?: return
+    ): Boolean {
+        val outputFormat = audioConverter?.outputFormat ?: return false
         val numberOfFrames = ((to - from) / 1_000_000.0 * outputFormat.audioSampleRate()).roundToInt()
         if (numberOfFrames <= 0) {
-            return
+            return false
         }
-        val buffer = AVAudioPCMBuffer(pcmFormat = outputFormat, frameCapacity = numberOfFrames) ?: return
+        val buffer = AVAudioPCMBuffer(pcmFormat = outputFormat, frameCapacity = numberOfFrames) ?: return false
         buffer.data.fill(0)
         val sampleBuffer = buffer.replacePresentationTimeStamp(from)
         Log.i(
@@ -268,7 +271,7 @@ class Recorder : AVAssetWriterDelegate {
             "recorder: audio: Inserting ${formatThreeDecimals((to - from) / 1_000_000.0)} seconds of silence at " +
                 formatThreeDecimals(from / 1_000_000.0),
         )
-        appendAudioSampleBuffer(writer, input, sampleBuffer)
+        return appendAudioSampleBuffer(writer, input, sampleBuffer)
     }
 
     private fun appendAudioSampleBuffer(

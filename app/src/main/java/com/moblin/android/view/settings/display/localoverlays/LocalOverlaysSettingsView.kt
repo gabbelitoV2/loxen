@@ -9,6 +9,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.various.settings.SettingsShow
+import com.moblin.android.various.utils.isMac
 
 @Composable
 fun LocalOverlaysSettingsView(show: SettingsShow) {
@@ -141,12 +142,14 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
                     modifier = Modifier.weight(1f),
                 )
             }
-            Toggle(isOn = moblinCloud.value, onChange = { moblinCloud.value = it }) {
-                Label(
-                    "Moblin Cloud",
-                    systemImage = "cloud",
-                    modifier = Modifier.weight(1f),
-                )
+            if (!isMac()) {
+                Toggle(isOn = moblinCloud.value, onChange = { moblinCloud.value = it }) {
+                    Label(
+                        "Moblin Cloud",
+                        systemImage = "cloud",
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
             Toggle(isOn = djiDevices.value, onChange = { djiDevices.value = it }) {
                 Label(

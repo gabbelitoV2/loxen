@@ -5,6 +5,7 @@ import com.moblin.android.MessageQueue
 import com.moblin.android.platform.core.ContinuousClock
 import com.moblin.android.platform.network.NWConnection
 import com.moblin.android.platform.network.NWEndpoint
+import com.moblin.android.platform.network.NWError
 import com.moblin.android.platform.network.NWListener
 import com.moblin.android.platform.network.NWParameters
 import com.moblin.android.platform.network.NWProtocolWebSocket
@@ -33,6 +34,16 @@ private sealed class ServerEvent {
     data object Disconnected : ServerEvent()
 }
 
+private sealed class ReadyResult {
+    data class Success(val port: Int) : ReadyResult()
+    data class Failure(val error: NWError) : ReadyResult()
+
+    fun get(): Int = when (this) {
+        is Success -> port
+        is Failure -> throw error
+    }
+}
+
 private class Delegate : WebSocketClientDelegate {
     val events = MessageQueue<ClientEvent>()
     var disconnections = 0
@@ -57,7 +68,7 @@ private class Delegate : WebSocketClientDelegate {
 
 private class WebSocketServerMock(private var port: Int? = null) {
     private val listener: NWListener
-    private val ready = MessageQueue<Int>()
+    private val ready = MessageQueue<ReadyResult>()
     private val connections = MessageQueue<NWConnection>()
     val events = MessageQueue<ServerEvent>()
     var connectionCount = 0
@@ -91,13 +102,9 @@ private class WebSocketServerMock(private var port: Int? = null) {
 
     suspend fun url(): String {
         if (port == null) {
-            port = ready.get()
+            port = ready.get().get()
         }
         return "ws://127.0.0.1:$port"
-    }
-
-    fun stop() {
-        listener.cancel()
     }
 
     suspend fun expectEvent(expected: ServerEvent) {
@@ -127,11 +134,11 @@ private class WebSocketServerMock(private var port: Int? = null) {
     }
 
     private fun handleListenerState(state: NWListener.State) {
-        if (state == NWListener.State.ready) {
-            val port = listener.port
-            if (port != null) {
-                ready.put(port.rawValue.toInt())
-            }
+        when (state) {
+            NWListener.State.ready -> ready.put(ReadyResult.Success(listener.port!!.rawValue.toInt()))
+            is NWListener.State.waiting -> ready.put(ReadyResult.Failure(state.error))
+            is NWListener.State.failed -> ready.put(ReadyResult.Failure(state.error))
+            else -> Unit
         }
     }
 
@@ -369,17 +376,17 @@ class WebSocketClientSuite {
 
     @Test
     fun reconnectWhenServerStartsLater() = runMainTest {
-        val unavailableServer = WebSocketServerMock()
-        val url = unavailableServer.url()
-        unavailableServer.stop()
         val delegate = Delegate()
-        val client = WebSocketClient(context = AppDelegate.context, url = url, loopback = true)
+        val client = WebSocketClient(
+            context = AppDelegate.context,
+            url = "ws://127.0.0.1:24680",
+            loopback = true,
+        )
         client.delegate = delegate
         client.start()
         delay(700)
         assertFalse(client.isConnected())
-        val port = url.substringAfterLast(":").toInt()
-        val server = WebSocketServerMock(port = port)
+        val server = WebSocketServerMock(port = 24680)
         server.url()
         server.acceptConnection()
         val event = delegate.events.get()

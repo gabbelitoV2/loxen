@@ -357,14 +357,16 @@ fun SettingsView(
                     }) {
                         Label("Remote control", systemImage = "appletvremote.gen1")
                     }
-                    NavigationLink(destination = {
-                        MoblinCloudSettingsView(
-                            model = model,
-                            database = database,
-                            moblinCloud = database.moblinCloud,
-                        )
-                    }) {
-                        Label("Moblin Cloud", systemImage = "cloud")
+                    if (!isMac()) {
+                        NavigationLink(destination = {
+                            MoblinCloudSettingsView(
+                                model = model,
+                                database = database,
+                                moblinCloud = database.moblinCloud,
+                            )
+                        }) {
+                            Label("Moblin Cloud", systemImage = "cloud")
+                        }
                     }
                 }
                 Section {
