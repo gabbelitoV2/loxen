@@ -42,7 +42,7 @@ class ModelWiFiSsidSuite {
         method.invoke(model)
     }
 
-    private fun remoteControlSsid(): String? = model.remoteControlStreamerCreateStatus(filter = null).first?.wiFiSsid
+    private fun remoteControlSsid(): String? = model.createRemoteControlStatus(filter = null).first?.wiFiSsid
 
     @Test
     fun fetchCurrentWiFiSsidCompletesOnTheMainThreadAfterReturning() {

@@ -5896,44 +5896,45 @@
   },
   "Moblin/RemoteControl/RemoteControlStreamer.swift": {
     "status": "ok",
-    "sha256": "772d831c3baa50a49ef0923298cd67e74705b6290b4a5ff6d526fd55b5f32bc4",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "9a32810689f5429aba31100f6ac0b15950688c9cd780c9a60c9cba2b5d037a88",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
     "notes": [
-      "Removed the spinWheelOfLuck delegate method, its request branch and the sendSongRequests helper, matching the Swift diff.",
-      "remoteControlStreamerTip now takes a RemoteControlTipKind instead of amount/currency.",
-      "All other lines, imports and Android hooks are unchanged."
+      "Applied the diff: added remoteControlStreamerAppAttest to the delegate, sendIcon(id), and the app-attest step in handleHello.",
+      "Data(base64Encoded:) becomes android.util.Base64.decode wrapped in runCatching(...).getOrNull(), matching the Swift nil-on-invalid behaviour.",
+      "The Identify message now carries a third nullable appAttest argument, as RemoteControlAppAttest already exists in the remotecontrol package.",
+      "The app-attest completion is hopped onto mainScope because the surrounding class state and web socket are main-thread bound, like the file's other delegate callbacks.",
+      "The current web socket is captured before the async call and compared by identity, standing in for the Swift webSocket === self.webSocket check."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45028,
-    "tokens_out": 5499,
-    "seconds": 16.1,
-    "ported_at": "2026-10-23T22:41:52+00:00"
+    "tokens_in": 45001,
+    "tokens_out": 7405,
+    "seconds": 27.7,
+    "ported_at": "2026-10-27T05:14:34+00:00"
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
-    "sha256": "c25fbec12a7d2c88458e0ad977fc836283d2cb62dc897ff435ac242482edbbaa",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "d55483714ec59161afd0e21aa46cfa0e47a5af31fe273a81b253d36e96c707e3",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
     "notes": [
-      "Only the Swift diff is applied: the `.songRequests` case was removed from the event switch, so the matching `is RemoteControlEvent.SongRequests -> {}` branch is gone from handleEvent.",
-      "Every other Kotlin line, including the hand-written ServerSocket/RemoteControlWebSocket layer and the platform hooks (Log, AppDelegate.context, formatDate), is kept byte-identical.",
-      "RemoteControlEvent must no longer declare a SongRequests case in the same revision, otherwise the non-exhaustive `when` over the sealed class would fail to compile in Kotlin 2.x.",
-      "Delegate methods, request plumbing, Twitch integration and the private WebSocket class are untouched by this diff."
+      "Only the handleEvent dispatch changes: a new RemoteControlEvent.Icon branch is added after WheelOfLuck.",
+      "The identify case already ignores streamerId and appAttest in the Kotlin port, so the first Swift diff hunk needs no code change.",
+      "RemoteControlEvent.Icon is assumed to exist in RemoteControl.kt's sealed RemoteControlEvent hierarchy, added by the caller of this translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 60665,
-    "tokens_out": 9756,
-    "seconds": 29.6,
-    "ported_at": "2026-10-23T22:41:57+00:00"
+    "tokens_in": 60823,
+    "tokens_out": 8929,
+    "seconds": 27.1,
+    "ported_at": "2026-10-27T05:14:29+00:00"
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
@@ -7357,30 +7358,27 @@
   },
   "Moblin/Various/Model/ModelStore.swift": {
     "status": "ok",
-    "sha256": "f701d56d68247356723cf3dc73b9c3731fab12a21e5f79062235026e6665cc8f",
+    "sha256": "48fe6c6ffc1fc6501359281a6a6ab6ef274a2cca677d33ae91e9674eaf7521a3",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStore.kt",
     "notes": [
-      "StoreKit has no Android counterpart; every function that touches StoreKit products or transactions got the body TODO(\"no Android counterpart for StoreKit\").",
-      "struct Icon -> data class Icon(name, id, price) keeping both helper functions imageNoBackground() and image(); Swift's Identifiable has no Kotlin equivalent, equals/hashCode come from the data class.",
-      "The Model extension becomes top-level extension functions on Model in com.moblin.android.various.model, matching the original declaration order.",
-      "listenForAppStoreTransactions() returned Task<Void, any Error>; it now takes a CoroutineScope and returns the Job of the launched coroutine.",
-      "checkVerified(result:) used Swift's opaque VerificationResult<StoreKit.Transaction>; its parameter and return type are Any? because those StoreKit types do not exist in the port.",
-      "purchaseProduct(id:) and restorePurchases() were async throws; Kotlin has no checked exceptions, so they stay plain suspend functions (their bodies are TODO).",
-      "The global logger is replaced by a file-private Log tag constant named TAG with value \"Model\".",
-      "updateIcons(myProductIds:) keeps its full loop and store bookkeeping; only the Icon built from StoreKit product metadata (displayName/displayPrice/id) is a TODO."
+      "Added the moblinCloudSendIcon() call at the end of updateIconImageFromDatabase(), matching the new Swift line.",
+      "Everything else is unchanged from the previous translation."
     ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 3772,
-    "tokens_out": 9868,
-    "seconds": 40.6,
-    "ported_at": "2026-09-22T13:19:44+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "unsupported": [
+      "StoreKit product fetching, transaction listening and purchasing have no Android counterpart"
+    ],
     "needs_user": [
       "StoreKit: Product.products(for:), Transaction.updates, VerificationResult, AppStore.sync(), Product.purchase(), Transaction.currentEntitlements, Transaction.finish() (needs Google Play Billing and the icon products in the Play Console)"
-    ]
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 42019,
+    "tokens_out": 1015,
+    "seconds": 5.0,
+    "ported_at": "2026-10-27T05:14:06+00:00"
   },
   "Moblin/Various/Model/ModelWebBrowser.swift": {
     "status": "ok",
@@ -12662,23 +12660,22 @@
   },
   "Moblin/View/Settings/Store/StoreSettingsView.swift": {
     "status": "ok",
-    "sha256": "6c095562266c1adff60083fefbe6bda86209fe81ae2af16b87ac1644c706761b",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "0145cf613e20cdc3475b66ad8633dd4ae2cb839b2d6662381b6ac3bb355ec439",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/store/StoreSettingsView.kt",
     "notes": [
-      "Only the model dependency changed: the two private views now take an explicit `Model` parameter instead of resolving the environment object, so their Kotlin default `= LocalModel.current` is removed and the call sites in StoreSettingsView pass `model = model`.",
-      "Parameter order in the Kotlin signatures is left as before (`store` first) because the call sites use named arguments; only the default value was dropped.",
-      "The `LocalModel` import is kept: `StoreSettingsView` still declares `model: Model = LocalModel.current`."
+      "Added the model.moblinCloudSendIcon() call in the icon Picker's onChange lambda, right after updateFaceFilterSettings(), matching the new Swift line.",
+      "Imported the Model extension moblinCloudSendIcon from com.moblin.android.various.model alongside the existing updateFaceFilterSettings/purchaseProduct extensions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45896,
-    "tokens_out": 2487,
-    "seconds": 8.1,
-    "ported_at": "2026-10-06T23:22:29+00:00"
+    "tokens_in": 46021,
+    "tokens_out": 2211,
+    "seconds": 8.9,
+    "ported_at": "2026-10-27T05:13:51+00:00"
   },
   "Moblin/View/Settings/Moblink/MoblinkSettingsView.swift": {
     "status": "ok",
@@ -15602,27 +15599,25 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "af4851cc55695b171957c5f9b78446e5ccc44896d7aa1303a0ed8340c4f97602",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "2845b033bf567a22da384d5580b810c5b672e98f04b3527e43de4006ca810870",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
     "notes": [
-      "Replaced the spinWheelOfLuck request with a new RemoteControlTipKind sealed class carried inside the tip request.",
-      "RemoteControlTipKind is a sealed class with a JsonObject serializer, encoded as {\"message\":{\"amount\",\"currency\"}}, {\"effect\":{\"sound\"}} or {\"wheelOfLuck\":{\"count\"}}, matching Swift's synthesized enum encoding.",
-      "RemoteControlRequest.SpinWheelOfLuck and its fromJsonElement branch were removed.",
-      "RemoteControlEvent.SongRequests and its fromJsonElement branch were removed.",
-      "Tip now encodes its kind as a nested Swift-style case object before requestId.",
-      "Everything else is unchanged from the previous Kotlin translation, including the Base64 byte handling and the AES-GCM encryption helpers."
+      "Added RemoteControlEvent.Icon with encode and decode branches matching Swift's new `case icon(id:)`.",
+      "Added RemoteControlStatusTopRightBitrateInfo (Long fields) and RemoteControlStatusTopRightBondingConnection (ULong bytesPerSecond) and wired them into RemoteControlStatusTopRight in Swift declaration order.",
+      "Added RemoteControlAppAttest right after RemoteControlAuthentication, before RemoteControlResult, as in Swift.",
+      "RemoteControlMessageToAssistant.Identify now carries an optional appAttest, encoded only when present like the file's other nullable fields.",
+      "All other declarations, formatting and imports left byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 175304,
-    "tokens_out": 45890,
-    "seconds": 124.4,
-    "ported_at": "2026-10-23T22:43:52+00:00",
-    "warning": "changed 107 Kotlin lines for 10 changed Swift lines"
+    "tokens_in": 88167,
+    "tokens_out": 21769,
+    "seconds": 64.7,
+    "ported_at": "2026-10-27T05:15:35+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -15691,47 +15686,50 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "3fc5d7d457d8dfee2db4f580992fb07f2e0e6667e7b4cf6ff1115c3f6d96d7fe",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "36c050662c53b05c059fa8471bbc4ecee9171eecfe1f2ab3a07bf90a34e96567",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "Applied only the diff: removed remoteControlStreamerSpinWheelOfLuck and switched remoteControlStreamerTip to (name, message, kind: RemoteControlTipKind, requestId) forwarding to moblinCloudTip.",
-      "Added the RemoteControlTipKind import from com.moblin.android.remotecontrol, keeping import order.",
-      "The old tip body (chat message + moblinCloudPlayTipAlert) and the isRemoteControlRequestAlreadyHandled guard are gone, matching Swift.",
-      "RemoteControlStreamerDelegateAdapter lost its spinWheelOfLuck override and its tip override now matches the kind-based signature of RemoteControlStreamerDelegate.",
-      "Everything else in the Kotlin file is untouched, including the Android-specific adapters and the Android recording/thumbnail code paths."
+      "Renamed the extracted remote-control helpers (createRemoteControlStatus*, remoteControlGetStatus, remoteControlSet*, remoteControlMusic) and added forwarding RemoteControlStreamerDelegate methods as in the new Swift layout.",
+      "createRemoteControlStateChanged is no longer private; remoteControlGetSettings replaces the private handleGetSettings.",
+      "remoteControlStateChanged now also forwards state to moblinCloud.",
+      "createRemoteControlStatusTopRight fills bitrateInfo and bondingInfo when live/bonding.",
+      "Added remoteControlStreamerAppAttest returning null and its adapter override.",
+      "remoteControlWebGetStatus/GetSettings now call the new remoteControlGetStatus/remoteControlGetSettings helpers."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "map found song"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 92263,
-    "tokens_out": 18714,
-    "seconds": 51.3,
-    "ported_at": "2026-10-23T22:42:50+00:00"
+    "tokens_in": 96717,
+    "tokens_out": 26866,
+    "seconds": 97.6,
+    "ported_at": "2026-10-27T05:17:14+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "0026365bdb67297bb3810c8894b9b1292c6f559d45ce8a36777cecb2f1ac23ac",
-    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
+    "sha256": "5c3d82f330e9967fad0c9b47e771bf204dd521837d5b75af4f1930f60c612ea7",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "reloadStream now calls updateAudioGain() instead of setAudioGain(gainDb:), and the function itself is renamed to updateAudioGain() applying database.audio.gainDb plus the selected mic's own gainDb.",
-      "getMicById(id:) and mic.current are referenced as they exist in the Model mic files: getMicById(id = mic.current.value.id)?.gainDb, assuming mic.current is a MutableStateFlow and the mic's gainDb is a plain settings property (verify against ModelMic.kt).",
-      "database.audio.gainDb keeps the existing .value convention already used in this file.",
-      "handleBufferedVideoReady/handleBufferedVideoRemoved now also treat the screen capture camera as a network source when not running on Mac, inside the existing nested RIST/WHEP else-branch.",
-      "isMac() is imported from com.moblin.android.various.utils and screenCaptureCameraId comes from the same package."
+      "Applies only the three additions from the diff: clearing/assigning bonding.connections and publishing bitrate.bitsPerSecond.",
+      "bonding.connections is treated as a MutableStateFlow<List<BondingConnection>> like bonding.rtts and bonding.pieChartPercentages, written with .value.",
+      "bitrate.bitsPerSecond is treated as a MutableStateFlow<Long?> (null when not live), matching the other Bitrate fields translated from Model.swift.",
+      "All other lines, including the Android-specific Build.MODEL, Color.Red and Clock-based uptime handling, are unchanged.",
+      "No iOS-only API is introduced by this diff, so nothing new needs a TODO."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88902,
-    "tokens_out": 14834,
-    "seconds": 48.6,
-    "ported_at": "2026-10-24T22:20:03+00:00"
+    "tokens_in": 89015,
+    "tokens_out": 12141,
+    "seconds": 38.7,
+    "ported_at": "2026-10-27T05:15:15+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
@@ -16105,25 +16103,24 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "a3ef3e167ba6c28dad95c3015c060a96eb3871e93aaee141a9663301cc4556c6",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "c9e09a2afacc245d5610c26c937fe050753062b2d751814b02cb7c3a03c9bed7",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Adds Model.moblinCloudTipEffects as ArrayDeque<Triple<String, String, String>> (Swift's Deque<(String, String, URL)> stores the URL as String, like other URL properties here).",
-      "Adds Model.moblinCloudTipEffectPlayer (AudioPlayer?) and Model.moblinCloudTipEffectTimer (MainTimer), placed exactly after moblinCloud.",
-      "Adds the chatTextToSpeech.setElevenLabsApiKey(apiKey = ...) call in setup() right after setTtsMonsterApiToken.",
-      "Adds alertsTtsMonsterApiToken() and alertsElevenLabsApiKey() beside the other AlertsEffectDelegate overrides; they are written as override fun because the Swift declarations live in the AlertsEffectDelegate conformance extension.",
-      "Everything else is byte-identical to the previous Kotlin file, including hand-written Android fixes."
+      "Added Bitrate.bitsPerSecond as a nullable Long, matching Swift's Int64?.",
+      "Added Bonding.connections as a MutableList<BondingConnection>, keeping it after pieChartPercentages and before statisticsFormatter as in Swift.",
+      "Inserted moblinCloud?.sendPeriodicStatus() into handle1sTimer right after sendPeriodicRemoteControlStreamerStats, matching the new Swift call order.",
+      "No other lines changed; all Android-specific hand-written code is preserved."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 146393,
-    "tokens_out": 34489,
-    "seconds": 95.8,
-    "ported_at": "2026-10-23T22:43:50+00:00"
+    "tokens_in": 146467,
+    "tokens_out": 33908,
+    "seconds": 99.2,
+    "ported_at": "2026-10-27T05:18:56+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -18151,25 +18148,32 @@
   },
   "Moblin/Various/Model/ModelMoblinCloud.swift": {
     "status": "ok",
-    "sha256": "c431415f3212bd0b38043a35a84cc03545db0f27ec0ca0508dfd944406afb018",
-    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
+    "sha256": "d2485d9752dc5ba2c51429ab4a5914ad78e153c527a523ace386c1ce89594533",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
     "mode": "incremental",
-    "tier": "logic",
+    "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
     "notes": [
-      "The Swift diff only reformats the guard in moblinCloudTryNextEffect onto multiple lines; no behaviour changes, so the Kotlin file is unchanged.",
-      "makeMoblinCloudUrl stays as before: URI parsing plus percent-encoded path and scheme swap to ws/wss.",
-      "MoblinCloud keeps the RemoteControlStreamerDelegate overrides with empty bodies as in Swift.",
-      "remoteControlStreamerMusic still forwards to Model when the model reference is alive; the dead-branch result remains a TODO pending a RemoteControlResult error case.",
-      "The tip effect queue uses a Triple list and removeFirstOrNull, matching popFirst()."
+      "DeviceCheck App Attest has no Android equivalent, so attestedKey, withAttestedKey and generateAssertion keep their signatures with TODO bodies; Moblin Cloud live reporting and remote-control App Attest therefore do nothing on Android.",
+      "moblinWebsiteApiUrl comes from the iOS Info.plist entry MoblinWebsiteApiUrl; there is no Info.plist on Android, so the constant is a TODO and must be pointed at the Android configuration value.",
+      "MoblinCloudChannel, MoblinCloudLive, MoblinCloudChallenge and MoblinCloudAppAttest are @Serializable; the Data fields use DataSerializer so the wire format stays base64 like Swift's synthesized Codable.",
+      "POSTs go through httpUrlSession() (OkHttp) executed inside withContext(Dispatchers.IO) by a small file-private performRequest helper.",
+      "withCheckedContinuation is translated to suspendCancellableCoroutine plus kotlin.coroutines.resume.",
+      "The YouTube handle lookup assumes the ported listChannels callback delivers a kotlin.Result, read with getOrNull().",
+      "MoblinCloud now forwards RemoteControlAssistantStreamerState and periodic status to the model, and reports the icon id on connect.",
+      "The pre-existing RemoteControlResult error TODO inside remoteControlStreamerMusic is kept unchanged."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "DeviceCheck DCAppAttestService (attestedKey, withAttestedKey, generateAssertion)",
+      "Info.plist key MoblinWebsiteApiUrl",
+      "RemoteControlResult.error (pre-existing TODO kept in remoteControlStreamerMusic)"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 55632,
-    "tokens_out": 4088,
-    "seconds": 12.6,
-    "ported_at": "2026-10-24T21:59:20+00:00"
+    "tokens_in": 67393,
+    "tokens_out": 27500,
+    "seconds": 121.0,
+    "ported_at": "2026-10-27T05:17:16+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift": {
     "status": "ok",
@@ -18331,29 +18335,5 @@
     "tokens_out": 11733,
     "seconds": 50.2,
     "ported_at": "2026-10-26T23:25:39+00:00"
-  },
-  "Moblin/Various/Model/ModelMoblinWebsite.swift": {
-    "status": "ok",
-    "sha256": "a5b0d9c60b4c40a31aaa657a8c4e5232ed389c9a90cecf61c09812d72ceaa669",
-    "moblin_commit": "290bbf568569ce0cc6ac4f0b243242008aba1d8b",
-    "mode": "incremental",
-    "tier": "platform",
-    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinWebsite.kt",
-    "notes": [
-      "Only the file-scope constant changed: Swift `private let baseUrl` became the non-private `let moblinWebsiteApiUrl`, so the Kotlin property drops `private` and is renamed; both URL constants now interpolate it.",
-      "`moblinWebsiteApiUrl` stays a hard-coded empty String as in the previous port, since the Info.plist key has no Android asset counterpart here.",
-      "Everything else in the file is untouched and kept byte-identical."
-    ],
-    "unsupported": [],
-    "apple_only": [
-      "DeviceCheck DCAppAttestService.generateKey/attestKey/isSupported (App Attest) - attestedKey() and sendLive() bodies are TODO()",
-      "DeviceCheck DCAppAttestService.generateAssertion - generateAssertion() body is TODO()"
-    ],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 47129,
-    "tokens_out": 2407,
-    "seconds": 7.8,
-    "ported_at": "2026-10-17T21:47:44+00:00"
   }
 }

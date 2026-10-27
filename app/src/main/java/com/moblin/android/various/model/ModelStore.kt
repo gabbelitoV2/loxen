@@ -101,4 +101,5 @@ fun Model.updateIconImageFromDatabase() {
         database.iconImage = plainIcon.id
     }
     store.iconImage.value = database.iconImage
+    moblinCloudSendIcon()
 }

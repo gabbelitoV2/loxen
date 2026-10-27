@@ -36,6 +36,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.platform.uikit.UIApplication
 import com.moblin.android.platform.uikit.setAlternateIconName
+import com.moblin.android.various.model.moblinCloudSendIcon
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Store
 import com.moblin.android.various.model.purchaseProduct
@@ -182,6 +183,7 @@ private fun StoreSettingsMyIconsView(store: Store, model: Model = LocalModel.cur
             store.iconImage.value = image
             model.database.iconImage = image
             model.updateFaceFilterSettings()
+            model.moblinCloudSendIcon()
             setAppIcon(iconImage = image)
         }
     }

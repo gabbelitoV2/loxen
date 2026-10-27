@@ -87,6 +87,10 @@ interface RemoteControlStreamerDelegate {
         kind: RemoteControlTipKind,
         requestId: String,
     )
+    fun remoteControlStreamerAppAttest(
+        challenge: ByteArray,
+        onCompleted: (RemoteControlAppAttest?) -> Unit,
+    )
 }
 
 class RemoteControlStreamer(
@@ -183,6 +187,13 @@ class RemoteControlStreamer(
         send(RemoteControlMessageToAssistant.Event(RemoteControlEvent.WheelOfLuck(wheel)))
     }
 
+    fun sendIcon(id: String) {
+        if (!connected) {
+            return
+        }
+        send(RemoteControlMessageToAssistant.Event(RemoteControlEvent.Icon(id)))
+    }
+
     fun sendPreview(preview: ByteArray) {
         send(RemoteControlMessageToAssistant.Preview(preview))
     }
@@ -262,7 +273,23 @@ class RemoteControlStreamer(
             authentication.salt,
             password,
         )
-        send(RemoteControlMessageToAssistant.Identify(streamerId, hash))
+        val delegate = this.delegate
+        val challenge = runCatching {
+            Base64.decode(authentication.challenge, Base64.DEFAULT)
+        }.getOrNull()
+        if (delegate == null || challenge == null) {
+            send(RemoteControlMessageToAssistant.Identify(streamerId, hash, null))
+            return
+        }
+        val webSocket = webSocket
+        delegate.remoteControlStreamerAppAttest(challenge) { appAttest ->
+            mainScope.launch {
+                if (webSocket !== this@RemoteControlStreamer.webSocket) {
+                    return@launch
+                }
+                send(RemoteControlMessageToAssistant.Identify(streamerId, hash, appAttest))
+            }
+        }
     }
 
     private fun handleIdentified(result: RemoteControlResult): Boolean {

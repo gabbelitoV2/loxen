@@ -896,6 +896,12 @@ sealed class RemoteControlEvent {
         }
     }
 
+    data class Icon(val id: String) : RemoteControlEvent() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("icon") { put("id", id) }
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlEvent =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -933,6 +939,7 @@ sealed class RemoteControlEvent {
                         else remoteControlJson.decodeFromJsonElement<RemoteControlWheelOfLuck>(it)
                     },
                 )
+                "icon" -> Icon(id = params.getValue("id").jsonPrimitive.content)
                 else -> throw SerializationException("Unknown event ${entry.key}")
             }
         }
@@ -2012,9 +2019,24 @@ data class RemoteControlStatusTopLeft(
 )
 
 @Serializable
+data class RemoteControlStatusTopRightBitrateInfo(
+    var bitsPerSecond: Long,
+    var totalBytes: Long,
+)
+
+@Serializable
+data class RemoteControlStatusTopRightBondingConnection(
+    var name: String,
+    var bytesPerSecond: ULong,
+    var rtt: Int? = null,
+)
+
+@Serializable
 data class RemoteControlStatusTopRight(
     var audioInfo: RemoteControlStatusTopRightAudioInfo? = null,
     var audioLevel: RemoteControlStatusItem? = null,
+    var bitrateInfo: RemoteControlStatusTopRightBitrateInfo? = null,
+    var bondingInfo: List<RemoteControlStatusTopRightBondingConnection>? = null,
     var rtmpServer: RemoteControlStatusItem? = null,
     var remoteControl: RemoteControlStatusItem? = null,
     var gameController: RemoteControlStatusItem? = null,
@@ -2243,6 +2265,14 @@ data class RemoteControlAuthentication(
 )
 
 @Serializable
+data class RemoteControlAppAttest(
+    val keyId: String,
+    val attestation: String,
+    val attestationChallenge: String,
+    val assertion: String,
+)
+
+@Serializable
 enum class RemoteControlResult(val wireName: String) {
     @SerialName("ok")
     Ok("ok"),
@@ -2335,13 +2365,20 @@ sealed class RemoteControlMessageToAssistant {
 
     fun toJson(): String = remoteControlJson.encodeToString(JsonElement.serializer(), toJsonElement())
 
-    data class Identify(val streamerId: String?, val authentication: String) : RemoteControlMessageToAssistant() {
+    data class Identify(
+        val streamerId: String?,
+        val authentication: String,
+        val appAttest: RemoteControlAppAttest? = null,
+    ) : RemoteControlMessageToAssistant() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("identify") {
                 if (streamerId != null) {
                     put("streamerId", streamerId)
                 }
                 put("authentication", authentication)
+                if (appAttest != null) {
+                    put("appAttest", remoteControlJson.encodeToJsonElement(appAttest))
+                }
             }
         }
     }
@@ -2412,6 +2449,9 @@ sealed class RemoteControlMessageToAssistant {
                         if (it is JsonNull) null else it.jsonPrimitive.content
                     },
                     authentication = params.getValue("authentication").jsonPrimitive.content,
+                    appAttest = params["appAttest"]?.let {
+                        if (it is JsonNull) null else remoteControlJson.decodeFromJsonElement<RemoteControlAppAttest>(it)
+                    },
                 )
                 "response" -> Response(
                     id = params.getValue("id").jsonPrimitive.int,

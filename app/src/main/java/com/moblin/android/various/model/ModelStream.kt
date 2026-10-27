@@ -836,9 +836,11 @@ fun Model.updateBondingStatistics() {
     if (bonding.statistics.value != noValue) {
         bonding.statistics.value = noValue
     }
+    bonding.connections = mutableListOf()
 }
 
 private fun Model.handleBondingStatistics(connections: List<BondingConnection>) {
+    bonding.connections = connections.toMutableList()
     bonding.statisticsFormatter.format(connections)?.let { (message, rtts, percentages) ->
         bonding.statistics.value = message
         bonding.rtts.value = rtts
@@ -849,6 +851,7 @@ private fun Model.handleBondingStatistics(connections: List<BondingConnection>) 
 fun Model.updateSpeed(now: Long) {
     if (isLive.value) {
         val speed = media.getVideoStreamBitrate(bitrate = stream.value.bitrate).toLong()
+        bitrate.bitsPerSecond = speed
         checkLowBitrate(speed = speed, now = now)
         streamingHistoryStream?.updateBitrate(bitrate = speed)
         val speedMbpsOneDecimal = String.format(Locale.US, "%.1f", speed.toDouble() / 1_000_000)
@@ -880,6 +883,7 @@ fun Model.updateSpeed(now: Long) {
             sendSpeedAndTotalToWatch(speedAndTotal = bitrate.speedAndTotal.value)
         }
     } else if (bitrate.speedAndTotal.value != noValue) {
+        bitrate.bitsPerSecond = null
         bitrate.speedMbpsOneDecimal.value = noValue
         bitrate.speedAndTotal.value = noValue
         if (isWatchLocal()) {

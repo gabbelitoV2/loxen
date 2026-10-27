@@ -291,6 +291,7 @@ class Ingests {
 class Bitrate {
     val speedAndTotal = MutableStateFlow(noValue)
     val speedMbpsOneDecimal = MutableStateFlow(noValue)
+    var bitsPerSecond: Long? = null
     val statusColor = MutableStateFlow(Color.White)
     val statusIconColor = MutableStateFlow<Color?>(null)
 }
@@ -299,6 +300,7 @@ class Bonding {
     val statistics = MutableStateFlow(noValue)
     val rtts = MutableStateFlow(noValue)
     val pieChartPercentages = MutableStateFlow<List<BondingPercentage>>(emptyList())
+    var connections: MutableList<BondingConnection> = mutableListOf()
     var statisticsFormatter = BondingStatisticsFormatter()
 }
 
@@ -2021,6 +2023,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateAutoSceneSwitcher(now = monotonicNow)
         sendPeriodicRemoteControlStreamerStatus()
         sendPeriodicRemoteControlStreamerStats(now = now)
+        moblinCloud?.sendPeriodicStatus()
         speechToTextProcess()
         updateTwitchRaid()
         updateTwitchPollCountdown()

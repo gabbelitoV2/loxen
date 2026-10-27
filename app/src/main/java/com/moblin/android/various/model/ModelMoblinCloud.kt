@@ -39,6 +39,183 @@ import java.net.URI
 import java.time.Instant
 import java.util.UUID
 import com.moblin.android.various.utils.add
+import com.moblin.android.platform.log.Log
+import com.moblin.android.platform.codable.DataSerializer
+import com.moblin.android.platform.codable.codableJson
+import kotlinx.coroutines.CoroutineScope
+import com.moblin.android.remotecontrol.RemoteControlAppAttest
+import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.various.network.NetworkResponse
+import com.moblin.android.various.network.httpUrlSession
+import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.various.storages.SimpleStringStorage
+import com.moblin.android.various.utils.isMac
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlin.coroutines.resume
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import java.util.Base64
+
+private const val TAG = "MoblinCloud"
+
+private val mainScope = CoroutineScope(Dispatchers.Main)
+
+val moblinWebsiteApiUrl: String = ""
+private val liveUrl: String = "$moblinWebsiteApiUrl/streamers/live"
+private val challengeUrl: String = "$moblinWebsiteApiUrl/streamers/live/challenge"
+private val appAttestStorage = SimpleStringStorage(key = "moblinWebsiteAppAttest")
+
+@Serializable
+private data class MoblinCloudChannel(val platform: String, val name: String)
+
+@Serializable
+private data class MoblinCloudLive(
+    val channels: List<MoblinCloudChannel>,
+    val challenge: String,
+    val keyId: String,
+    val attestation: String,
+    val attestationChallenge: String,
+)
+
+@Serializable
+private data class MoblinCloudChallenge(val challenge: String)
+
+@Serializable
+private data class MoblinCloudAppAttest(
+    val keyId: String,
+    @Serializable(with = DataSerializer::class) val challenge: ByteArray,
+    @Serializable(with = DataSerializer::class) var attestation: ByteArray? = null,
+) {
+    fun attestationBase64(): String {
+        return Base64.getEncoder().encodeToString(attestation!!)
+    }
+
+    fun challengeBase64(): String {
+        return Base64.getEncoder().encodeToString(challenge)
+    }
+}
+
+private sealed class MoblinCloudError : Exception() {
+    class NotSupported : MoblinCloudError()
+    class KeyRejected(val reason: String) : MoblinCloudError()
+    class BadResponse(val reason: String) : MoblinCloudError()
+}
+
+private fun describe(response: Response, data: ByteArray): String {
+    return "${response.code} ${data.decodeToString()}"
+}
+
+private suspend fun performRequest(request: Request): Pair<ByteArray, Response> {
+    return withContext(Dispatchers.IO) {
+        httpUrlSession().newCall(request).execute().use { response ->
+            Pair(response.body?.bytes() ?: ByteArray(0), response)
+        }
+    }
+}
+
+private fun loadAppAttest(): MoblinCloudAppAttest? {
+    return runCatching {
+        codableJson.decodeFromString(MoblinCloudAppAttest.serializer(), appAttestStorage.get())
+    }.getOrNull()
+}
+
+private fun storeAppAttest(appAttest: MoblinCloudAppAttest?) {
+    val data = if (appAttest != null) {
+        runCatching {
+            codableJson.encodeToString(MoblinCloudAppAttest.serializer(), appAttest)
+        }.getOrNull()
+    } else {
+        null
+    }
+    if (data == null) {
+        appAttestStorage.set("")
+        return
+    }
+    appAttestStorage.set(data)
+}
+
+private suspend fun attestedKey(): MoblinCloudAppAttest =
+    TODO("no Android counterpart for DeviceCheck")
+
+private suspend fun <T> withAttestedKey(body: suspend (MoblinCloudAppAttest) -> T): T =
+    TODO("no Android counterpart for DeviceCheck")
+
+private suspend fun generateAssertion(appAttest: MoblinCloudAppAttest, clientData: ByteArray): ByteArray =
+    ByteArray(0)
+
+private suspend fun fetchChallenge(): String {
+    val request = Request.Builder()
+        .url(challengeUrl)
+        .post(ByteArray(0).toRequestBody(null))
+        .build()
+    val (data, response) = performRequest(request)
+    if (!response.isSuccessful) {
+        throw MoblinCloudError.BadResponse("challenge: ${describe(response, data)}")
+    }
+    return codableJson.decodeFromString(MoblinCloudChallenge.serializer(), data.decodeToString()).challenge
+}
+
+private suspend fun postLive(channels: List<MoblinCloudChannel>, appAttest: MoblinCloudAppAttest) {
+    val challenge = fetchChallenge()
+    val live = MoblinCloudLive(
+        channels = channels,
+        challenge = challenge,
+        keyId = appAttest.keyId,
+        attestation = appAttest.attestationBase64(),
+        attestationChallenge = appAttest.challengeBase64(),
+    )
+    val body = codableJson.encodeToString(MoblinCloudLive.serializer(), live).encodeToByteArray()
+    val assertion = generateAssertion(appAttest = appAttest, clientData = body)
+    val request = Request.Builder()
+        .url(liveUrl)
+        .header("Content-Type", "application/json")
+        .header("Moblin-Assertion", Base64.getEncoder().encodeToString(assertion))
+        .post(body.toRequestBody("application/json".toMediaType()))
+        .build()
+    val (data, response) = performRequest(request)
+    if (response.code == 401) {
+        throw MoblinCloudError.KeyRejected("live: ${describe(response, data)}")
+    }
+    if (!response.isSuccessful) {
+        throw MoblinCloudError.BadResponse("live: ${describe(response, data)}")
+    }
+}
+
+private suspend fun makeAppAttest(
+    challenge: ByteArray,
+    appAttest: MoblinCloudAppAttest,
+): RemoteControlAppAttest {
+    val assertion = generateAssertion(appAttest = appAttest, clientData = challenge)
+    return RemoteControlAppAttest(
+        keyId = appAttest.keyId,
+        attestation = appAttest.attestationBase64(),
+        attestationChallenge = appAttest.challengeBase64(),
+        assertion = Base64.getEncoder().encodeToString(assertion),
+    )
+}
+
+private suspend fun makeMoblinCloudAppAttest(challenge: ByteArray): RemoteControlAppAttest? {
+    return try {
+        withAttestedKey { makeAppAttest(challenge = challenge, appAttest = it) }
+    } catch (error: Exception) {
+        Log.i(TAG, "moblin-website: App Attest failed: $error")
+        null
+    }
+}
+
+private suspend fun sendLive(channels: List<MoblinCloudChannel>) {
+    try {
+        withAttestedKey { postLive(channels = channels, appAttest = it) }
+    } catch (error: Exception) {
+        Log.i(TAG, "moblin-website: Failed to send live: $error")
+    }
+}
 
 private fun makeMoblinCloudUrl(key: String): String? {
     val components = runCatching { URI(moblinWebsiteApiUrl) }.getOrNull() ?: return null
@@ -55,6 +232,43 @@ private fun makeMoblinCloudUrl(key: String): String? {
     return "$scheme://$authority$path$query$fragment"
 }
 
+fun Model.sendLiveToMoblinWebsite(onCompleted: (() -> Unit)? = null) {
+    val stream = stream.value
+    if (isMac() || !stream.goLiveNotificationMoblinWebsite) {
+        onCompleted?.invoke()
+        return
+    }
+    mainScope.launch {
+        try {
+            val channels = mutableListOf<MoblinCloudChannel>()
+            if (stream.twitchLoggedIn) {
+                val name = fetchTwitchChannelName(stream = stream)
+                if (name != null && name.isNotEmpty()) {
+                    channels.add(MoblinCloudChannel(platform = "twitch", name = name))
+                }
+            }
+            if (stream.isYouTubeAuthorized()) {
+                val name = fetchYouTubeHandle(stream = stream)
+                if (name != null && name.isNotEmpty()) {
+                    channels.add(MoblinCloudChannel(platform = "youtube", name = name))
+                }
+            }
+            if (stream.kickLoggedIn) {
+                val name = fetchKickChannelName(stream = stream)
+                if (name != null && name.isNotEmpty()) {
+                    channels.add(MoblinCloudChannel(platform = "kick", name = name))
+                }
+            }
+            if (channels.isEmpty()) {
+                return@launch
+            }
+            sendLive(channels = channels)
+        } finally {
+            onCompleted?.invoke()
+        }
+    }
+}
+
 fun Model.stopMoblinCloud() {
     moblinCloud?.stop()
     moblinCloud = null
@@ -64,7 +278,7 @@ fun Model.reloadMoblinCloud() {
     stopMoblinCloud()
     val settings = database.moblinCloud
     val key = settings.key.trim()
-    if (!settings.enabled || key.isEmpty()) {
+    if (isMac() || !settings.enabled || key.isEmpty()) {
         updateMoblinCloudStatus()
         return
     }
@@ -83,7 +297,7 @@ fun Model.reloadMoblinCloud() {
 }
 
 fun Model.isShowingStatusMoblinCloud(): Boolean {
-    return database.show.moblinCloud && database.moblinCloud.enabled
+    return database.show.moblinCloud && database.moblinCloud.enabled && !isMac()
 }
 
 fun Model.updateMoblinCloudStatus() {
@@ -124,6 +338,10 @@ fun Model.moblinCloudSendWheelOfLuck() {
         )
     }
     moblinCloud?.sendWheelOfLuck(wheel = wheel)
+}
+
+fun Model.moblinCloudSendIcon() {
+    moblinCloud?.sendIcon(id = database.iconImage)
 }
 
 fun Model.moblinCloudPlayTipAlert(name: String, message: String, amount: String, currency: String) {
@@ -235,6 +453,39 @@ private fun Model.moblinCloudAppendChatMessage(name: String, text: String) {
     )
 }
 
+private suspend fun Model.fetchTwitchChannelName(stream: SettingsStream): String? {
+    return suspendCancellableCoroutine { continuation ->
+        createTwitchApi(stream = stream).getUserInfo { info ->
+            continuation.resume(info?.login?.trim())
+        }
+    }
+}
+
+private suspend fun Model.fetchYouTubeHandle(stream: SettingsStream): String? {
+    return suspendCancellableCoroutine { continuation ->
+        getYouTubeApi(stream = stream) { youTubeApi ->
+            if (youTubeApi == null) {
+                continuation.resume(null)
+                return@getYouTubeApi
+            }
+            youTubeApi.listChannels { result ->
+                val handle = (result as? NetworkResponse.Success)?.value?.items?.firstOrNull()?.snippet?.customUrl
+                    ?.trim()
+                    ?.removePrefix("@")
+                continuation.resume(handle)
+            }
+        }
+    }
+}
+
+private suspend fun Model.fetchKickChannelName(stream: SettingsStream): String? {
+    return suspendCancellableCoroutine { continuation ->
+        createKickApi(stream = stream).getUser { user ->
+            continuation.resume(user?.username?.trim())
+        }
+    }
+}
+
 open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteControlStreamerDelegate {
     private var model: Model? = model
     private var streamer: RemoteControlStreamer? = RemoteControlStreamer(
@@ -243,6 +494,8 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         streamerId = streamerId,
         delegate = this,
     )
+    private var requestingStatus = false
+    private var statusFilter: RemoteControlStartStatusFilter? = null
 
     open fun start() {
         streamer?.start()
@@ -265,13 +518,51 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         streamer?.sendWheelOfLuck(wheel = wheel)
     }
 
+    open fun sendIcon(id: String) {
+        streamer?.sendIcon(id = id)
+    }
+
+    open fun stateChanged(state: RemoteControlAssistantStreamerState) {
+        if (!requestingStatus) {
+            return
+        }
+        streamer?.stateChanged(state = state)
+    }
+
+    open fun sendPeriodicStatus() {
+        val streamer = streamer
+        val model = model
+        if (!requestingStatus || streamer == null || !streamer.isConnected() || model == null) {
+            return
+        }
+        val (general, topLeft, topRight) = model.createRemoteControlStatus(filter = statusFilter)
+        streamer.sendStatus(general = general, topLeft = topLeft, topRight = topRight)
+    }
+
+    private fun setRequestingStatus(on: Boolean, filter: RemoteControlStartStatusFilter? = null) {
+        requestingStatus = on
+        statusFilter = filter
+    }
+
+    override fun remoteControlStreamerAppAttest(
+        challenge: ByteArray,
+        onCompleted: (RemoteControlAppAttest?) -> Unit,
+    ) {
+        mainScope.launch {
+            onCompleted(makeMoblinCloudAppAttest(challenge = challenge))
+        }
+    }
+
     override fun remoteControlStreamerConnected() {
+        setRequestingStatus(on = false)
         model?.makeToast(title = localized("Moblin Cloud connected"))
         model?.updateMoblinCloudStatus()
         model?.moblinCloudSendWheelOfLuck()
+        model?.moblinCloudSendIcon()
     }
 
     override fun remoteControlStreamerDisconnected() {
+        setRequestingStatus(on = false)
         model?.makeToast(title = localized("Moblin Cloud disconnected"))
         model?.updateMoblinCloudStatus()
     }
@@ -280,7 +571,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerGetStatus(): Triple<RemoteControlStatusGeneral, RemoteControlStatusTopLeft, RemoteControlStatusTopRight> {
-        return Triple(
+        return model?.remoteControlGetStatus() ?: Triple(
             RemoteControlStatusGeneral(),
             RemoteControlStatusTopLeft(),
             RemoteControlStatusTopRight(),
@@ -288,7 +579,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerGetSettings(): RemoteControlSettings {
-        return RemoteControlSettings(
+        return model?.remoteControlGetSettings() ?: RemoteControlSettings(
             streams = emptyList(),
             scenes = emptyList(),
             autoSceneSwitchers = null,
@@ -302,27 +593,34 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerSetStream(id: UUID) {
+        model?.remoteControlSetStream(id = id)
     }
 
     override fun remoteControlStreamerSetScene(id: UUID) {
+        model?.selectScene(id = id)
     }
 
     override fun remoteControlStreamerSetAutoSceneSwitcher(id: UUID?) {
+        model?.setAutoSceneSwitcher(id = id)
     }
 
     override fun remoteControlStreamerSetMic(id: String) {
+        model?.manualSelectMicById(id = id)
     }
 
     override fun remoteControlStreamerSetTalkbackMic(id: String) {
     }
 
     override fun remoteControlStreamerSetBitratePreset(id: UUID) {
+        model?.remoteControlSetBitratePreset(id = id)
     }
 
     override fun remoteControlStreamerSetRecord(on: Boolean) {
+        model?.remoteControlSetRecord(on = on)
     }
 
     override fun remoteControlStreamerSetLive(on: Boolean) {
+        model?.remoteControlSetLive(on = on)
     }
 
     override fun remoteControlStreamerSetPreviewStream(on: Boolean) {
@@ -332,27 +630,35 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerSetZoom(x: Float) {
+        model?.remoteControlSetZoom(x = x)
     }
 
     override fun remoteControlStreamerSetZoomPreset(id: UUID) {
+        model?.setZoomPreset(id = id)
     }
 
     override fun remoteControlStreamerSetMute(on: Boolean) {
+        model?.setMuteOn(value = on)
     }
 
     override fun remoteControlStreamerSetStealthMode(on: Boolean) {
+        model?.setStealthMode(on = on)
     }
 
     override fun remoteControlStreamerSetTorch(on: Boolean) {
+        model?.remoteControlSetTorch(on = on)
     }
 
     override fun remoteControlStreamerReloadBrowserWidgets() {
+        model?.reloadBrowserWidgets()
     }
 
     override fun remoteControlStreamerSetSrtConnectionPriority(id: UUID, priority: Int, enabled: Boolean) {
+        model?.remoteControlSetSrtConnectionPriority(id = id, priority = priority, enabled = enabled)
     }
 
     override fun remoteControlStreamerSetSrtConnectionPrioritiesEnabled(enabled: Boolean) {
+        model?.remoteControlSetSrtConnectionPrioritiesEnabled(enabled = enabled)
     }
 
     override fun remoteControlStreamerTwitchEventSubNotification(message: String) {
@@ -374,15 +680,24 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerInstantReplay() {
+        model?.instantReplay()
     }
 
     override fun remoteControlStreamerSaveReplay() {
+        model?.saveReplay()
     }
 
     override fun remoteControlStreamerStartStatus(interval: Int, filter: RemoteControlStartStatusFilter) {
+        setRequestingStatus(on = true, filter = filter)
+        val model = model
+        if (model != null) {
+            streamer?.stateChanged(state = model.createRemoteControlStateChanged())
+        }
+        sendPeriodicStatus()
     }
 
     override fun remoteControlStreamerStopStatus() {
+        setRequestingStatus(on = false)
     }
 
     override fun remoteControlStreamerGetScoreboardSports(): List<String> {
@@ -463,7 +778,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
             onCompleted(TODO("RemoteControlResult.error"), null)
             return
         }
-        model.remoteControlStreamerMusic(command = command, onCompleted = onCompleted)
+        model.remoteControlMusic(command = command, onCompleted = onCompleted)
     }
 
     override fun remoteControlStreamerTip(
@@ -472,7 +787,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         kind: RemoteControlTipKind,
         requestId: String,
     ) {
-        model?.remoteControlStreamerTip(
+        model?.moblinCloudTip(
             name = name,
             message = message,
             kind = kind,

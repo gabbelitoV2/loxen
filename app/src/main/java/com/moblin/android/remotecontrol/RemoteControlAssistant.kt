@@ -639,6 +639,7 @@ class RemoteControlAssistant(
             is RemoteControlEvent.Scoreboard -> {}
             is RemoteControlEvent.GolfScoreboard -> {}
             is RemoteControlEvent.WheelOfLuck -> {}
+            is RemoteControlEvent.Icon -> {}
             is RemoteControlEvent.Stats -> delegate?.remoteControlAssistantStats(data = data.data)
         }
     }

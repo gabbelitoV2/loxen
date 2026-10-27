@@ -1,0 +1,13 @@
+{
+  "task": "MWURL",
+  "hooks": [
+    {
+      "id": "HMWURL.1",
+      "file": "various/model/ModelMoblinCloud.kt",
+      "op": "replace",
+      "old": "val moblinWebsiteApiUrl: String = TODO(\"Info.plist value MoblinWebsiteApiUrl has no Android counterpart\")",
+      "new": "val moblinWebsiteApiUrl: String = \"\"",
+      "note": "A TODO in a top-level property throws when the file class loads and takes every other function in the file down with it. Android has no Info.plist, and the previous port used an empty URL."
+    }
+  ]
+}
