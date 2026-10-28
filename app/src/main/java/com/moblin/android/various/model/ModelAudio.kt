@@ -200,14 +200,10 @@ fun Model.switchMicIfNeededAfterSceneSwitch() {
     updateMics()
     if (database.mics.autoSwitch.value) {
         val scene = getSelectedScene()
-        if (scene != null && scene.overrideMic) {
-            val sceneMic = getConnectedMicById(id = scene.micId)
-            if (sceneMic != null) {
-                selectMic(mic = sceneMic)
-                return
-            }
-        }
-        if (defaultMic.connected.value) {
+        val sceneMic = if (scene != null && scene.overrideMic) getConnectedMicById(id = scene.micId) else null
+        if (sceneMic != null) {
+            selectMic(mic = sceneMic)
+        } else if (defaultMic.connected.value) {
             selectMic(mic = defaultMic)
         } else {
             val highestPrioMic = getHighestPriorityConnectedMic()

@@ -921,6 +921,7 @@ private fun Model.handleLowFpsImage(image: ByteArray, frameNumber: ULong) {
     }
     sendPreviewToRemoteControlAssistant(preview = image)
     sendPreviewToRemoteControlWeb(preview = image)
+    sendPreviewToMoblinCloud(preview = image)
 }
 
 private fun Model.handleEncoderResolutionChanged(resolution: Size) {

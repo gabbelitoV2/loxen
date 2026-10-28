@@ -67,6 +67,7 @@ private const val TAG = "MoblinCloud"
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 val moblinWebsiteApiUrl: String = ""
+private val moblinCloudApiUrl: String = ""
 private val liveUrl: String = "$moblinWebsiteApiUrl/streamers/live"
 private val challengeUrl: String = "$moblinWebsiteApiUrl/streamers/live/challenge"
 private val appAttestStorage = SimpleStringStorage(key = "moblinWebsiteAppAttest")
@@ -218,7 +219,7 @@ private suspend fun sendLive(channels: List<MoblinCloudChannel>) {
 }
 
 private fun makeMoblinCloudUrl(key: String): String? {
-    val components = runCatching { URI(moblinWebsiteApiUrl) }.getOrNull() ?: return null
+    val components = runCatching { URI(moblinCloudApiUrl) }.getOrNull() ?: return null
     val scheme = when (components.scheme) {
         "https" -> "wss"
         "http" -> "ws"
@@ -272,6 +273,15 @@ fun Model.sendLiveToMoblinWebsite(onCompleted: (() -> Unit)? = null) {
 fun Model.stopMoblinCloud() {
     moblinCloud?.stop()
     moblinCloud = null
+    setLowFpsImage()
+}
+
+fun Model.isMoblinCloudPreviewActive(): Boolean {
+    return moblinCloud?.isRequestingPreview() ?: false
+}
+
+fun Model.sendPreviewToMoblinCloud(preview: ByteArray) {
+    moblinCloud?.sendPreview(preview = preview)
 }
 
 fun Model.reloadMoblinCloud() {
@@ -496,6 +506,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     )
     private var requestingStatus = false
     private var statusFilter: RemoteControlStartStatusFilter? = null
+    private var requestingPreview = false
 
     open fun start() {
         streamer?.start()
@@ -529,6 +540,18 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         streamer?.stateChanged(state = state)
     }
 
+    open fun isRequestingPreview(): Boolean {
+        return requestingPreview
+    }
+
+    open fun sendPreview(preview: ByteArray) {
+        val streamer = streamer
+        if (!requestingPreview || streamer == null || !streamer.isConnected()) {
+            return
+        }
+        streamer.sendPreview(preview = preview)
+    }
+
     open fun sendPeriodicStatus() {
         val streamer = streamer
         val model = model
@@ -544,6 +567,11 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         statusFilter = filter
     }
 
+    private fun setRequestingPreview(on: Boolean) {
+        requestingPreview = on
+        model?.setLowFpsImage()
+    }
+
     override fun remoteControlStreamerAppAttest(
         challenge: ByteArray,
         onCompleted: (RemoteControlAppAttest?) -> Unit,
@@ -555,6 +583,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
 
     override fun remoteControlStreamerConnected() {
         setRequestingStatus(on = false)
+        setRequestingPreview(on = false)
         model?.makeToast(title = localized("Moblin Cloud connected"))
         model?.updateMoblinCloudStatus()
         model?.moblinCloudSendWheelOfLuck()
@@ -563,6 +592,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
 
     override fun remoteControlStreamerDisconnected() {
         setRequestingStatus(on = false)
+        setRequestingPreview(on = false)
         model?.makeToast(title = localized("Moblin Cloud disconnected"))
         model?.updateMoblinCloudStatus()
     }
@@ -624,6 +654,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerSetPreviewStream(on: Boolean) {
+        model?.remoteControlSetPreviewStream(on = on)
     }
 
     override fun remoteControlStreamerSetDebugLogging(on: Boolean) {
@@ -668,9 +699,11 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerStartPreview() {
+        setRequestingPreview(on = true)
     }
 
     override fun remoteControlStreamerStopPreview() {
+        setRequestingPreview(on = false)
     }
 
     override fun remoteControlStreamerSetRemoteSceneSettings(data: RemoteControlRemoteSceneSettings) {
@@ -730,6 +763,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerSetFilter(filter: RemoteControlFilter, on: Boolean) {
+        model?.remoteControlSetFilter(filter = filter, on = on)
     }
 
     override fun remoteControlStreamerTriggerReaction(reaction: RemoteControlReaction) {
@@ -739,6 +773,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerSetGimbalTracking(on: Boolean) {
+        model?.setGimbalTracking(on = on)
     }
 
     override fun remoteControlStreamerSetGimbalMovement(x: Float, y: Float) {
@@ -761,9 +796,11 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerStartMacro(id: UUID) {
+        model?.startMacro(id = id)
     }
 
     override fun remoteControlStreamerStopMacro(id: UUID) {
+        model?.stopMacro(id = id)
     }
 
     override fun remoteControlStreamerSendMessage(text: String) {

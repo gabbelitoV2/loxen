@@ -2660,6 +2660,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (isRemoteControlWebPreviewActive()) {
             fps = max(fps, 1.0f)
         }
+        if (isMoblinCloudPreviewActive()) {
+            fps = max(fps, 1.0f)
+        }
         media.setLowFpsImage(fps = fps)
         lowFpsImageFps = max(fps, 1f).toLong()
     }

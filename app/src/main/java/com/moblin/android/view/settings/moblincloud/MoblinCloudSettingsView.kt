@@ -23,12 +23,12 @@ fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Databas
         Section {
             Text(
                 localized(
-                    "Let viewers interact with your stream from your page at https://moblin.app"
+                    "Let viewers interact with your stream from your page at https://cloud.moblin.app"
                 )
             )
             Text(
                 localized(
-                    "1. Sign in at https://moblin.app/dashboard and set up your page.\n" +
+                    "1. Sign in at https://cloud.moblin.app and set up your page.\n" +
                         "2. Scan the QR code in the dashboard's Moblin section, or paste your Moblin Cloud key below.\n" +
                         "3. Pick the alerts widget that shows messages and the wheel of luck widget that viewers spin."
                 )

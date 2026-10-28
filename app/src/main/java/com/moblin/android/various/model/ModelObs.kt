@@ -380,19 +380,15 @@ private fun Model.updateObsSceneSwitcherStreamingDirectlyToObs(now: Instant) {
         } else {
             switchToMainSceneIfNeeded()
         }
-    } else {
-        if (isStreamLikelyBroken(now = now)) {
-            switchToBrbSceneIfNeeded()
-        } else {
-            if (obsQuickButton.currentScene.value == stream.obsBrbScene) {
-                makeStreamReconnectFixAudioToast()
-                stopNetStream()
-                streamState = StreamState.disconnected
-                reconnectTimer.startSingleShot(timeout = 5.0) {
-                    Log.i(TAG, "stream: Reconnecting because of OBS scene switcher")
-                    startNetStream()
-                }
-            }
+    } else if (isStreamLikelyBroken(now = now)) {
+        switchToBrbSceneIfNeeded()
+    } else if (obsQuickButton.currentScene.value == stream.obsBrbScene) {
+        makeStreamReconnectFixAudioToast()
+        stopNetStream()
+        streamState = StreamState.disconnected
+        reconnectTimer.startSingleShot(timeout = 5.0) {
+            Log.i(TAG, "stream: Reconnecting because of OBS scene switcher")
+            startNetStream()
         }
     }
 }

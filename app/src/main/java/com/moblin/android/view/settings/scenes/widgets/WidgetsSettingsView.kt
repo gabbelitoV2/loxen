@@ -19,7 +19,6 @@ import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.HorizontalEdge
 import com.moblin.android.platform.swiftui.NavigationLink
-import com.moblin.android.platform.swiftui.NavigationStack
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.SwipeActions
@@ -30,7 +29,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetSettingsView
-import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSettingsView
+import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSheetView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
@@ -135,14 +134,11 @@ fun WidgetsSettingsView(
         }
     }
     Sheet(isPresented = presentingCreateWizard, onDismissRequest = { presentingCreateWizard = false }) {
-        NavigationStack {
-            WidgetWizardSettingsView(
-                model = model,
-                database = database,
-                createWidgetWizard = model.createWidgetWizard,
-                presentingCreateWizard = presentingCreateWizard,
-                onPresentingCreateWizardChange = { presentingCreateWizard = it },
-            )
-        }
+        WidgetWizardSheetView(
+            model = model,
+            database = database,
+            presentingCreateWizard = presentingCreateWizard,
+            onPresentingCreateWizardChange = { presentingCreateWizard = it },
+        )
     }
 }

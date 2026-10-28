@@ -51,9 +51,11 @@ import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
 import com.moblin.android.various.settings.videoStabilizationModes
+import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSheetView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.AddButtonView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
+import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.view.utils.InlinePickerItem
@@ -357,6 +359,7 @@ private fun WidgetsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingAddWidget by remember { mutableStateOf(false) }
+    var presentingCreateWizard by remember { mutableStateOf(false) }
     val widgets = database.widgets
 
     fun deleteSceneWidget(offsets: IndexSet) {
@@ -443,6 +446,18 @@ private fun WidgetsView(
                 }
             }
         }
+        CreateButtonView {
+            model.createWidgetWizard.reset(scene = scene)
+            presentingCreateWizard = true
+        }
+        Sheet(isPresented = presentingCreateWizard, onDismissRequest = { presentingCreateWizard = false }) {
+            WidgetWizardSheetView(
+                model = model,
+                database = database,
+                presentingCreateWizard = presentingCreateWizard,
+                onPresentingCreateWizardChange = { presentingCreateWizard = it },
+            )
+        }
     }
 }
 
@@ -472,6 +487,7 @@ fun SceneSettingsView(
             onNameChange = { scene.name = it },
             existingNames = scenes,
         )
+        WidgetsView(model = model, database = database, scene = scene, onNavigate = onNavigate)
         VideoSourceView(
             model = model,
             database = database,
@@ -481,7 +497,6 @@ fun SceneSettingsView(
         )
         QuickSwitchGroupView(model = model, database = database, scene = scene)
         SceneMicView(model = model, database = database, scene = scene, onNavigate = onNavigate)
-        WidgetsView(model = model, database = database, scene = scene, onNavigate = onNavigate)
         SceneColorView(model = model, scene = scene)
     }
 }

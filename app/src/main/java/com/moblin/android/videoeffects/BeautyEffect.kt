@@ -96,12 +96,10 @@ class BeautyEffect(fps: Float) : VideoEffect() {
     private fun updateScaleFactors(detections: List<VNFaceObservation>?, isFirstAfterAttach: Boolean) {
         if (isFirstAfterAttach) {
             shapeScaleFactor = 1f
+        } else if (detections == null || detections.isEmpty()) {
+            decreaseShapeScaleFactor()
         } else {
-            if (detections == null || detections.isEmpty()) {
-                decreaseShapeScaleFactor()
-            } else {
-                increaseShapeScaleFactor()
-            }
+            increaseShapeScaleFactor()
         }
     }
 

@@ -108,9 +108,11 @@ class CreateWidgetWizard {
     val name = MutableStateFlow("")
     val type = MutableStateFlow(SettingsWidgetType.text)
     var widget: SettingsWidget = SettingsWidget(name = "")
+    var sceneId: UUID? = null
 
-    fun reset() {
+    fun reset(scene: SettingsScene? = null) {
         name.value = ""
+        sceneId = scene?.id
         type.value = SettingsWidgetType.text
         widget = SettingsWidget(name = "")
         widget.text.formatString = ""

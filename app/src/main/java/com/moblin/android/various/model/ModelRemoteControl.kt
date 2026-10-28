@@ -746,7 +746,7 @@ fun Model.reloadRemoteControlWeb() {
     remoteControlWeb?.start(port = database.remoteControl.web.port)
 }
 
-private fun Model.handleRemoteControlSetFilter(filter: RemoteControlFilter, on: Boolean) {
+fun Model.remoteControlSetFilter(filter: RemoteControlFilter, on: Boolean) {
     when (filter) {
         RemoteControlFilter.Pixellate -> setPixellateQuickButton(on = on)
         RemoteControlFilter.Movie -> setFilterQuickButton(type = SettingsQuickButtonType.movie, on = on)
@@ -915,16 +915,20 @@ fun Model.remoteControlSetLive(on: Boolean) {
     }
 }
 
-fun Model.remoteControlStreamerSetLive(on: Boolean) {
-    remoteControlSetLive(on = on)
-}
-
-fun Model.remoteControlStreamerSetPreviewStream(on: Boolean) {
+fun Model.remoteControlSetPreviewStream(on: Boolean) {
     if (on) {
         startPreviewStream()
     } else {
         stopPreviewStream()
     }
+}
+
+fun Model.remoteControlStreamerSetLive(on: Boolean) {
+    remoteControlSetLive(on = on)
+}
+
+fun Model.remoteControlStreamerSetPreviewStream(on: Boolean) {
+    remoteControlSetPreviewStream(on = on)
 }
 
 fun Model.remoteControlStreamerSetDebugLogging(on: Boolean) {
@@ -1309,7 +1313,7 @@ fun Model.remoteControlStreamerWhip(
 }
 
 fun Model.remoteControlStreamerSetFilter(filter: RemoteControlFilter, on: Boolean) {
-    handleRemoteControlSetFilter(filter = filter, on = on)
+    remoteControlSetFilter(filter = filter, on = on)
 }
 
 fun Model.remoteControlStreamerTriggerReaction(reaction: RemoteControlReaction) {
@@ -1619,7 +1623,7 @@ fun Model.remoteControlWebUpdateGolfScoreboard(data: RemoteControlGolfScoreboard
 }
 
 fun Model.remoteControlWebSetFilter(filter: RemoteControlFilter, on: Boolean) {
-    handleRemoteControlSetFilter(filter = filter, on = on)
+    remoteControlSetFilter(filter = filter, on = on)
 }
 
 fun Model.remoteControlWebTriggerReaction(reaction: RemoteControlReaction) {

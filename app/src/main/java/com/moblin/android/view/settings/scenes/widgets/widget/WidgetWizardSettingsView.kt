@@ -136,10 +136,11 @@ private fun SelectScenesView(
     }
 
     LaunchedEffect(Unit) {
+        val sceneId = createWidgetWizard.sceneId ?: model.getSelectedScene()?.id
         scenesToAddWidgetTo = database.scenes.map {
             SceneToAddWidgetTo(
                 scene = it,
-                enabled = it === model.getSelectedScene(),
+                enabled = it.id == sceneId,
             )
         }
     }
@@ -169,6 +170,22 @@ fun WidgetWizardSelectScenesNavigationView(
             WizardNextButtonView()
         }
     }
+}
+
+@Composable
+fun WidgetWizardSheetView(
+    model: Model = LocalModel.current,
+    database: Database,
+    presentingCreateWizard: Boolean,
+    onPresentingCreateWizardChange: (Boolean) -> Unit,
+) {
+    WidgetWizardSettingsView(
+        model = model,
+        database = database,
+        createWidgetWizard = model.createWidgetWizard,
+        presentingCreateWizard = presentingCreateWizard,
+        onPresentingCreateWizardChange = onPresentingCreateWizardChange,
+    )
 }
 
 @Composable
