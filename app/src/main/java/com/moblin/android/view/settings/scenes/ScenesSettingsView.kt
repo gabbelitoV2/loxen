@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +55,7 @@ import com.moblin.android.various.model.getSelectedScene
 import com.moblin.android.various.model.remoteSceneSettingsUpdated
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.setGraphicsImplementation
+import com.moblin.android.various.model.showWidgetOutlines
 
 @Composable
 private fun SceneItemView(
@@ -311,6 +313,9 @@ fun ScenesSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Form(title = "Scenes") {
+        LaunchedEffect(Unit) {
+            model.showWidgetOutlines()
+        }
         ScenesListView(model = model, database = database, onNavigate = onNavigate)
         WidgetsSettingsView(database = database)
         if (database.showAllSettings) {

@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-28T23:39:28+00:00",
+  "generated": "2026-10-29T23:39:39+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -11397,6 +11397,28 @@
       "wave": 15
     },
     {
+      "path": "Moblin/Various/Model/ModelWidgetOutlines.swift",
+      "lines": 160,
+      "sha256": "a3bc26e81eeb74e625fabb895d014a25b05242b5bf06c9454c51bbf6e4b557b3",
+      "imports": [
+        "Foundation",
+        "ImageIO"
+      ],
+      "tier": "logic",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWidgetOutlines.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/VideoEffects/EffectUtils.swift"
+      ],
+      "wave": 15
+    },
+    {
       "path": "Moblin/VideoEffects/Alerts/AlertsEffectMedia.swift",
       "lines": 269,
       "sha256": "9e784922952a5fcf1539fb12ebcf7b58916d0b93c67c08a416cecbc1d969cdbe",
@@ -18905,8 +18927,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Chat/WidgetChatSettingsView.swift",
-      "lines": 126,
-      "sha256": "16a8fce294a2debd26a3516e69d04e375a1dec54b499c903e0584405ddacf52e",
+      "lines": 127,
+      "sha256": "b44deff16277d3bdad92e49be9d2fad1b28629afe66700cc644d3942d3586445",
       "imports": [
         "SwiftUI"
       ],
@@ -19001,8 +19023,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Image/WidgetImageSettingsView.swift",
-      "lines": 80,
-      "sha256": "10d1bb4966ffe35615aab77456774d0a22b365d1f02df01c73db58b8cb79e01a",
+      "lines": 81,
+      "sha256": "fc6e64fd0fdd08d8a5c167dce367ef9ca820ec1f96d66184c004b718beeb34fc",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -19029,8 +19051,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/PomodoroTimer/WidgetPomodoroTimerSettingsView.swift",
-      "lines": 214,
-      "sha256": "11c92a1aae20bece627c45710ab44603c2695372a00c3a9457475080da4753af",
+      "lines": 217,
+      "sha256": "52718626c1b43b196bed81927635cfc2399ee0c3bb3a7d5cbdb11f1d25a6e063",
       "imports": [
         "AVFAudio",
         "SwiftUI"
@@ -19668,6 +19690,35 @@
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/VideoEffects/ShapeEffect.swift"
+      ],
+      "wave": 29
+    },
+    {
+      "path": "Moblin/View/Stream/WidgetOutlinesView.swift",
+      "lines": 113,
+      "sha256": "db327c31a2c31c2db33ba9da984313f34ce352e0399b1d481afaf19337850d1c",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "WidgetOutlineLabelView",
+        "WidgetOutlineView",
+        "WidgetOutlinesView"
+      ],
+      "private_types": [
+        "WidgetOutlineLabelView",
+        "WidgetOutlineView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.stream",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
+      "deps": [
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsScene.swift"
       ],
       "wave": 29
     },
@@ -21005,7 +21056,7 @@
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
       "lines": 734,
-      "sha256": "0f08d9c4045a1d66578389830083cf01e637465a94b92cc34de1b7c4e684317c",
+      "sha256": "61a79ae262799a3235d4e0f48fcc753960f6f66ea8eaea245a478f08a381b2d4",
       "imports": [
         "CryptoKit",
         "DeviceCheck",
@@ -21052,8 +21103,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1648,
-      "sha256": "778dc8b51bb3bb4e2ad0ac966db7e7d88661a4b31fb17342e4b3d3df8bc7251e",
+      "lines": 1652,
+      "sha256": "842f0dc573bb8212745f9bd8037c1769fd495c4d5f4feff75543e61d0013af0e",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21093,8 +21144,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
-      "lines": 1768,
-      "sha256": "073e6203e5262ec05b2c7d031f659bb1e83cfed72c2e5e930a62bbca2bdc115b",
+      "lines": 1813,
+      "sha256": "b299b1de9fe461132431a83776d6cfdc3300db9c062756b14a545349ef985c0a",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21103,6 +21154,7 @@
       "tier": "media",
       "declared_types": [
         "CreateWidgetWizard",
+        "DrawnSceneWidget",
         "WidgetInScene"
       ],
       "private_types": [],
@@ -21733,8 +21785,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3519,
-      "sha256": "02138d22ed8d8e00adfa5f691003b796c3888bcb666fa2000d4ce2172bfe984b",
+      "lines": 3542,
+      "sha256": "b7571ce51b05a05f8df64e5fc2e0596343a8a8004a263764e78bd634f1ef10cd",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -21789,6 +21841,8 @@
         "SceneSelector",
         "PhotoShootProvider",
         "StreamOverlay",
+        "WidgetOutline",
+        "WidgetOutlines",
         "Store",
         "DrawOnStream",
         "StealthMode",
@@ -24274,8 +24328,8 @@
     },
     {
       "path": "Moblin/View/Settings/SettingsView.swift",
-      "lines": 289,
-      "sha256": "ecf30715654798cbc66d0379da5b998fac5a8da54599ea11754ddaa21c805874",
+      "lines": 292,
+      "sha256": "7974f18620a154838b74c7065611035155ff76a7b70dca3d35b66cf9962c1d94",
       "imports": [
         "SwiftUI"
       ],
@@ -24501,8 +24555,8 @@
     },
     {
       "path": "Moblin/View/Utils/ShortcutView.swift",
-      "lines": 104,
-      "sha256": "2c2b2d6ea7fe6b10e6e58fd04535654a56a291481774f96296ffe4d3cb84417f",
+      "lines": 105,
+      "sha256": "b01ca97a16bc281990282772d6909e51c3bc7fda3ef84df387c04be2759cbca9",
       "imports": [
         "SwiftUI"
       ],
@@ -24538,7 +24592,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift",
       "lines": 77,
-      "sha256": "3e85302621ea63fcd4bac261bac6dfce9ce2646e706b392b7950dbe9ad515a05",
+      "sha256": "197b72e5ea2a605ce9c663932d12e2a3cc3dc3a742825a782afd39066ae0a702",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -24598,8 +24652,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
-      "lines": 235,
-      "sha256": "bb897ae943e58fd39f48f9916050b8883d404a3a8adef5ab5b2ba936206cbc59",
+      "lines": 239,
+      "sha256": "cbd6caadd58ad5eac12104dadb55797ad6d60a6443b3eec5978e48ef991b34e6",
       "imports": [
         "SwiftUI"
       ],
@@ -24946,8 +25000,8 @@
     },
     {
       "path": "Moblin/View/MainView.swift",
-      "lines": 773,
-      "sha256": "7cc1c86bf13c4eca4f91ef1eb86dcea3ea9f13d6efbcccd38a558d1dd14b03e3",
+      "lines": 777,
+      "sha256": "5a0e7e8305cd8aca9b9f66165af2668c3963a27f3e2fa0578c4229d8e3cb6978",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -25039,6 +25093,7 @@
         "Moblin/View/Stream/StreamGridView.swift",
         "Moblin/View/Stream/StreamOverlayView.swift",
         "Moblin/View/Stream/StreamView.swift",
+        "Moblin/View/Stream/WidgetOutlinesView.swift",
         "Moblin/View/WebBrowser/WebBrowserView.swift"
       ],
       "wave": 53

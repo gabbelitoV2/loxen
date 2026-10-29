@@ -27,6 +27,7 @@ import com.moblin.android.view.settings.chat.sliderValuePercentageWidth
 import com.moblin.android.view.utils.FontSettingsView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.various.model.getChatEffect
+import com.moblin.android.various.model.updateWidgetOutlines
 
 @Composable
 fun WidgetChatSettingsView(
@@ -37,6 +38,7 @@ fun WidgetChatSettingsView(
 ) {
     fun setEffectSettings() {
         model.getChatEffect(widget.id)?.setSettings(chat)
+        model.updateWidgetOutlines()
     }
 
     val showAllSettings = database.showAllSettings

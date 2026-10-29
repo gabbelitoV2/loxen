@@ -44,12 +44,13 @@ fun WidgetShortcutView(
 
 @Composable
 fun ScenesShortcutView(
+    model: Model = LocalModel.current,
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     NavigationLink(
         destination = {
-            ScenesSettingsView(database = database)
+            ScenesSettingsView(model = model, database = database)
         },
     ) {
         Label("Scenes", systemImage = "photo.on.rectangle")

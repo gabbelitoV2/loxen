@@ -44,6 +44,7 @@ import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
 import kotlin.math.roundToInt
+import com.moblin.android.various.model.updateWidgetOutlines
 
 private fun getPomodoroSoundName(model: Model, soundId: UUID?): String {
     return model.getAllAlertSounds().firstOrNull { it.id == soundId }?.name ?: localized("-- None --")
@@ -241,7 +242,11 @@ fun WidgetPomodoroTimerSettingsView(
             FormSlider(
                 value = pomodoroTimer.width.toFloat(),
                 onValueChange = {
-                    pomodoroTimer.width = ((it / 0.05f).roundToInt() * 0.05f).toDouble()
+                    val width = ((it / 0.05f).roundToInt() * 0.05f).toDouble()
+                    if (pomodoroTimer.width != width) {
+                        pomodoroTimer.width = width
+                        model.updateWidgetOutlines()
+                    }
                 },
                 valueRange = 1f..5f,
                 modifier = Modifier.weight(1f),

@@ -130,6 +130,12 @@ class CreateWidgetWizard {
     }
 }
 
+data class DrawnSceneWidget(
+    val scene: SettingsScene,
+    val sceneWidget: SettingsSceneWidget,
+    val widget: SettingsWidget,
+)
+
 data class WidgetInScene(val widget: SettingsWidget, val sceneWidget: SettingsSceneWidget) {
     val id: UUID
         get() = widget.id
@@ -340,6 +346,7 @@ fun Model.sceneUpdated(attachCamera: Boolean = false, updateRemoteScene: Boolean
     val scene = getSelectedScene()
     if (scene == null) {
         sceneUpdatedOff()
+        updateWidgetOutlines()
         return
     }
     for (browserEffect in browserEffects.values) {
@@ -354,6 +361,7 @@ fun Model.sceneUpdated(attachCamera: Boolean = false, updateRemoteScene: Boolean
     }
     updateStatusCameraText()
     updateSpeechToText()
+    updateWidgetOutlines()
 }
 
 fun Model.getSceneName(id: UUID?): String? {
@@ -1360,6 +1368,47 @@ private fun Model.addSceneEffects(
             SettingsWidgetType.wheelOfLuck -> addSceneWheelOfLuckEffects(sceneWidget, widget, effects)
             SettingsWidgetType.bingoCard -> addSceneBingoCardEffects(sceneWidget, widget, effects)
             SettingsWidgetType.pomodoroTimer -> addScenePomodoroTimerEffects(sceneWidget, widget, effects)
+        }
+    }
+}
+
+fun Model.getDrawnSceneWidgets(scene: SettingsScene): List<DrawnSceneWidget> {
+    val drawnWidgets = mutableListOf<DrawnSceneWidget>()
+    val addedScenes = mutableListOf<SettingsScene>()
+    getDrawnSceneWidgetsInternal(scene, drawnWidgets, addedScenes)
+    val remoteSceneWidget = remoteSceneWidgets.firstOrNull()
+    if (remoteSceneWidget != null) {
+        val remoteScene = getLocalAndRemoteScenes()
+            .firstOrNull { it.id == remoteSceneWidget.scene.sceneId }
+        if (remoteScene != null) {
+            getDrawnSceneWidgetsInternal(remoteScene, drawnWidgets, addedScenes)
+        }
+    }
+    return drawnWidgets
+}
+
+private fun Model.getDrawnSceneWidgetsInternal(
+    scene: SettingsScene,
+    drawnWidgets: MutableList<DrawnSceneWidget>,
+    addedScenes: MutableList<SettingsScene>
+) {
+    if (addedScenes.contains(scene)) {
+        return
+    }
+    addedScenes.add(scene)
+    for (sceneWidget in scene.widgets) {
+        val widget = findWidget(id = sceneWidget.widgetId) ?: continue
+        if (!widget.enabled) {
+            continue
+        }
+        if (widget.type == SettingsWidgetType.scene) {
+            val nestedScene = getLocalAndRemoteScenes()
+                .firstOrNull { it.id == widget.scene.sceneId }
+            if (nestedScene != null) {
+                getDrawnSceneWidgetsInternal(nestedScene, drawnWidgets, addedScenes)
+            }
+        } else if (drawnWidgets.none { it.widget.id == widget.id }) {
+            drawnWidgets.add(DrawnSceneWidget(scene = scene, sceneWidget = sceneWidget, widget = widget))
         }
     }
 }

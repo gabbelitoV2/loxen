@@ -415,6 +415,24 @@ class StreamOverlay {
     val isTorchOn = MutableStateFlow(false)
 }
 
+data class WidgetOutline(
+    val sceneWidget: SettingsSceneWidget,
+    val widget: SettingsWidget,
+    val rect: com.moblin.android.platform.coregraphics.CGRect,
+    val sized: Boolean,
+    val inScene: Boolean,
+) {
+    val id: UUID
+        get() = sceneWidget.id
+}
+
+class WidgetOutlines {
+    val enabled = MutableStateFlow(false)
+    val outlines = MutableStateFlow<List<WidgetOutline>>(emptyList())
+    val canvasSize = MutableStateFlow(com.moblin.android.platform.coregraphics.CGSize(width = 1920, height = 1080))
+    var imageSizes: MutableMap<UUID, com.moblin.android.platform.coregraphics.CGSize?> = mutableMapOf()
+}
+
 class Store {
     val myIcons = MutableStateFlow<List<Icon>>(emptyList())
     val iconsInStore = MutableStateFlow<List<Icon>>(emptyList())
@@ -510,6 +528,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         set(value) = enterForegroundCountStorage.set(value)
 
     val showingPanel = MutableStateFlow(ShowingPanel.none)
+
     val panelHidden = MutableStateFlow(false)
     val showStealthMode = MutableStateFlow(false)
     val lockScreen = MutableStateFlow(false)
@@ -582,6 +601,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val store = Store()
     val show = Show()
     val streamOverlay = StreamOverlay()
+    val widgetOutlines = WidgetOutlines()
     val sceneSelector = SceneSelector()
     val toast = Toast()
     val statusOther = StatusOther()
@@ -967,6 +987,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         } else {
             showingPanel.value = panel
         }
+        updateWidgetOutlinesForShowingPanel()
         panelHidden.value = false
         for (pageButtonPairs in quickButtons.pairs.value) {
             for (pair in pageButtonPairs) {

@@ -166,6 +166,7 @@ import com.moblin.android.view.stream.StreamOverlayView
 import com.moblin.android.view.stream.StreamViewInsets
 import com.moblin.android.view.stream.StreamViewLayout
 import com.moblin.android.view.stream.StreamViewMetrics
+import com.moblin.android.view.stream.WidgetOutlinesView
 import com.moblin.android.view.stream.overlay.StreamOverlayNavigationView
 import com.moblin.android.view.webbrowser.WebBrowserView
 import java.time.Instant
@@ -1004,6 +1005,12 @@ private fun streamViewWithWidgets(
                 size = streamLayout.size
             )
             browserWidgets(model = model, streamSize = streamLayout.size)
+            WidgetOutlinesView(
+                widgetOutlines = model.widgetOutlines,
+                database = model.database,
+                streamOverlay = model.streamOverlay,
+                size = streamLayout.size.toCGSize()
+            )
         }
     }
 }

@@ -28,6 +28,7 @@ import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.various.model.getImageEffect
+import com.moblin.android.various.model.imageWidgetUpdated
 
 @Composable
 fun WidgetImagePickerView(
@@ -67,6 +68,7 @@ fun WidgetImagePickerView(
         if (data != null) {
             model.imageStorage.write(widget.id, data)
             loadImage()
+            model.imageWidgetUpdated(id = widget.id)
             model.getImageEffect(id = widget.id)?.loadImage(imageStorage = model.imageStorage, widgetId = widget.id)
         }
     }

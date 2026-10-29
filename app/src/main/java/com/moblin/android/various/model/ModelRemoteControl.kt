@@ -1112,6 +1112,10 @@ fun Model.remoteControlStreamerMusic(
 }
 
 fun Model.remoteControlStreamerSendMessage(text: String) {
+    remoteControlSendMessage(text = text)
+}
+
+fun Model.remoteControlSendMessage(text: String) {
     val user = localized("Mom")
     appendChatMessage(
         platform = null,

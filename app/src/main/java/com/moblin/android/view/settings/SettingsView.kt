@@ -98,6 +98,7 @@ import com.moblin.android.moblinwatch.shared.WatchSettings
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.appModeChanged
+import com.moblin.android.various.model.hideWidgetOutlines
 import com.moblin.android.various.model.sendInitToWatch
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAppMode
@@ -207,6 +208,9 @@ fun SettingsView(
     val showAllSettings = binding({ database.showAllSettings }) { database.showAllSettings = it }
     NavigationStack {
         Form(title = "Settings") {
+            LaunchedEffect(Unit) {
+                model.hideWidgetOutlines()
+            }
             if (isLive) {
                 InfoBannerView(text = "Settings that would stop the stream are disabled when live.")
             }

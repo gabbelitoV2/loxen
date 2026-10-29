@@ -107,7 +107,7 @@ fun QuickButtonSceneWidgetsView(
             }
         }
         ShortcutSectionView {
-            ScenesShortcutView(database = model.database)
+            ScenesShortcutView(model = model, database = model.database)
         }
     }
 }

@@ -584,7 +584,6 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     override fun remoteControlStreamerConnected() {
         setRequestingStatus(on = false)
         setRequestingPreview(on = false)
-        model?.makeToast(title = localized("Moblin Cloud connected"))
         model?.updateMoblinCloudStatus()
         model?.moblinCloudSendWheelOfLuck()
         model?.moblinCloudSendIcon()
@@ -593,7 +592,6 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     override fun remoteControlStreamerDisconnected() {
         setRequestingStatus(on = false)
         setRequestingPreview(on = false)
-        model?.makeToast(title = localized("Moblin Cloud disconnected"))
         model?.updateMoblinCloudStatus()
     }
 
@@ -804,6 +802,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     }
 
     override fun remoteControlStreamerSendMessage(text: String) {
+        model?.remoteControlSendMessage(text = text)
     }
 
     override fun remoteControlStreamerMusic(
