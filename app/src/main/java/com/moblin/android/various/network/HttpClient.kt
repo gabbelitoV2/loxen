@@ -1,15 +1,21 @@
 package com.moblin.android.various.network
 
+import com.moblin.android.platform.core.ContinuousClock
 import com.moblin.android.platform.network.NWConnection
 import com.moblin.android.platform.network.NWEndpoint
 import com.moblin.android.platform.network.NWInterface
 import com.moblin.android.platform.network.NWParameters
 import com.moblin.android.various.MainTimer
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 open class HttpParser {
     open var data: ByteArray = ByteArray(0)
@@ -99,12 +105,23 @@ private class InterfaceTypeHttpClient {
         connection = null
     }
 
+    private fun startTimer() {
+        timer.startSingleShot(timeout = 60.0) {
+            completed(data = null)
+        }
+    }
+
     private fun completed(data: ByteArray?) {
         completion?.invoke(data)
         stop()
     }
 
-    fun call(request: Request, body: ByteArray?, completion: (ByteArray?) -> Unit) {
+    fun call(
+        request: Request,
+        body: ByteArray?,
+        maximumBytesPerSecond: (() -> Int?)?,
+        completion: (ByteArray?) -> Unit,
+    ) {
         val created = createRequest(request = request, body = body) ?: run {
             completion(null)
             return
@@ -112,20 +129,74 @@ private class InterfaceTypeHttpClient {
         val (host, port, useTls, content) = created
         val endpoint = NWEndpoint.hostPort(host = NWEndpoint.Host(host), port = NWEndpoint.Port(port))
         this.completion = completion
-        timer.startSingleShot(timeout = 60.0) {
-            completed(data = null)
-        }
+        startTimer()
         connect(endpoint = endpoint, useTls = useTls) { interfaceTypeIndex ->
-            connection?.send(
-                content = content,
-                completion = NWConnection.SendCompletion.contentProcessed { error ->
+            if (maximumBytesPerSecond != null) {
+                sendPaced(
+                    content = content,
+                    offset = 0,
+                    sendTime = ContinuousClock.now,
+                    maximumBytesPerSecond = maximumBytesPerSecond,
+                    interfaceTypeIndex = interfaceTypeIndex,
+                )
+            } else {
+                send(content = content, interfaceTypeIndex = interfaceTypeIndex) {
+                    receiveData(interfaceTypeIndex)
+                }
+            }
+        }
+    }
+
+    private fun send(content: ByteArray, interfaceTypeIndex: Int, onSent: () -> Unit) {
+        connection?.send(
+            content = content,
+            completion = NWConnection.SendCompletion.contentProcessed { error ->
+                if (isCurrentConnection(interfaceTypeIndex)) {
                     if (error != null) {
                         completed(data = null)
                     } else {
-                        receiveData(interfaceTypeIndex)
+                        onSent()
                     }
-                },
-            )
+                }
+            },
+        )
+    }
+
+    private fun sendPaced(
+        content: ByteArray,
+        offset: Int,
+        sendTime: ContinuousClock.Instant,
+        maximumBytesPerSecond: () -> Int?,
+        interfaceTypeIndex: Int,
+    ) {
+        val end = minOf(offset + 16384, content.size)
+        send(content = content.copyOfRange(offset, end), interfaceTypeIndex = interfaceTypeIndex) {
+            if (end >= content.size) {
+                receiveData(interfaceTypeIndex)
+            } else {
+                startTimer()
+                var nextSendTime = maxOf(sendTime, ContinuousClock.now)
+                val bytesPerSecond = maximumBytesPerSecond()
+                if (bytesPerSecond != null) {
+                    nextSendTime += ((end - offset).toDouble() / bytesPerSecond.toDouble()).seconds
+                }
+                val delaySeconds = maxOf(
+                    ContinuousClock.now.duration(to = nextSendTime).toDouble(DurationUnit.SECONDS),
+                    0.0,
+                )
+                mainScope.launch {
+                    delay((delaySeconds * 1000.0).toLong())
+                    if (connection != null && isCurrentConnection(interfaceTypeIndex)) {
+                        sendPaced(
+                            content = content,
+                            offset = end,
+                            sendTime = nextSendTime,
+                            maximumBytesPerSecond = maximumBytesPerSecond,
+                            interfaceTypeIndex = interfaceTypeIndex,
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -235,8 +306,17 @@ private class InterfaceTypeHttpClient {
     )
 }
 
-fun httpCall(request: Request, body: ByteArray?, completion: (ByteArray?) -> Unit) {
-    InterfaceTypeHttpClient().call(request = request, body = body) { data ->
+fun httpCall(
+    request: Request,
+    body: ByteArray?,
+    maximumBytesPerSecond: (() -> Int?)? = null,
+    completion: (ByteArray?) -> Unit,
+) {
+    InterfaceTypeHttpClient().call(
+        request = request,
+        body = body,
+        maximumBytesPerSecond = maximumBytesPerSecond,
+    ) { data ->
         if (data != null) {
             completion(data)
         } else {
@@ -286,3 +366,5 @@ private fun decodeUtf8Strict(bytes: ByteArray, offset: Int, length: Int): String
         .onUnmappableCharacter(CodingErrorAction.REPORT)
     decoder.decode(ByteBuffer.wrap(bytes, offset, length)).toString().removePrefix("\uFEFF")
 }.getOrNull()
+
+private val mainScope = CoroutineScope(Dispatchers.Main)

@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-29T23:39:39+00:00",
+  "generated": "2026-10-30T23:18:06+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -6999,8 +6999,8 @@
     },
     {
       "path": "Moblin/Various/Network/HttpClient.swift",
-      "lines": 255,
-      "sha256": "ef6add8879609644f14eb65a0f1b866f8101fef12f8ba6a16f7ae38c8c27957d",
+      "lines": 310,
+      "sha256": "d8f040ccb429d82fe5e4ba29d6979827e1b03d8dcf9d2bf38b8faa5085d015af",
       "imports": [
         "Foundation",
         "Network"
@@ -7499,8 +7499,8 @@
     },
     {
       "path": "Moblin/Various/Utils/Utils.swift",
-      "lines": 500,
-      "sha256": "03c51f791b1e74e8a584ce9c59ea760e3aeaedda051c0e6baf36e0de9f0b0508",
+      "lines": 501,
+      "sha256": "4f520087bc1d6c138534833aee2db720455c02d1502f4b50ecab0461d0dace80",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -7571,8 +7571,8 @@
     },
     {
       "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
-      "lines": 393,
-      "sha256": "7de7871243011507a2af0036a2ca1019d7cef486b16b4e563906c4cab651111f",
+      "lines": 405,
+      "sha256": "2ec11d5081d792ed87d59da9f2bbdcb930689121368215d9c4a7d9de3b5f744b",
       "imports": [
         "Foundation",
         "Testing",
@@ -9050,8 +9050,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSnapshot.swift",
-      "lines": 242,
-      "sha256": "54eb2d986786bc989b0a7581ba2f4abc685336741e1a24d2b9d99364ba557dfc",
+      "lines": 274,
+      "sha256": "539db6ec3943de951122f8727a6bea40a332be7f14a9b5484cd7cbef3065f23b",
       "imports": [
         "ImageIO",
         "Photos",
@@ -9060,7 +9060,8 @@
       ],
       "tier": "ui",
       "declared_types": [
-        "SnapshotJob"
+        "SnapshotJob",
+        "DiscordSnapshotUpload"
       ],
       "private_types": [],
       "declared_functions": [],
@@ -13962,7 +13963,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
       "lines": 801,
-      "sha256": "d55483714ec59161afd0e21aa46cfa0e47a5af31fe273a81b253d36e96c707e3",
+      "sha256": "35bfe8668597ca392c8a27ac21ded3c12f7840cef167d8fa326876b56c3fd9db",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -14552,7 +14553,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
       "lines": 500,
-      "sha256": "9a32810689f5429aba31100f6ac0b15950688c9cd780c9a60c9cba2b5d037a88",
+      "sha256": "5183c5979f2f8b2ca6a9d8b4e63f353d7f235080b1e0eaff944c6ae1d5660599",
       "imports": [
         "Foundation",
         "Network"
@@ -20468,7 +20469,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
       "lines": 1248,
-      "sha256": "2845b033bf567a22da384d5580b810c5b672e98f04b3527e43de4006ca810870",
+      "sha256": "43b4f2299ee82a184303ad7db46eb8ddbce2b0ab36dbbb9637b961849ae0462e",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20817,7 +20818,7 @@
     {
       "path": "Moblin/Various/Model/ModelStream.swift",
       "lines": 1141,
-      "sha256": "f5d54e0668922dda6eea8195a1d041b014a958bab0c7f0e8aaf8fb99c958b0b5",
+      "sha256": "4ecf849116668d0cc074bb2f71ee9ca86a4b357e24e0d10871ffcba9930e1dee",
       "imports": [
         "AVFoundation",
         "Foundation",
@@ -21056,7 +21057,7 @@
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
       "lines": 734,
-      "sha256": "61a79ae262799a3235d4e0f48fcc753960f6f66ea8eaea245a478f08a381b2d4",
+      "sha256": "872796ffbb90b7c77d287d51cac43d21981f86648336baf43684301f35e025da",
       "imports": [
         "CryptoKit",
         "DeviceCheck",
@@ -21104,7 +21105,7 @@
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
       "lines": 1652,
-      "sha256": "842f0dc573bb8212745f9bd8037c1769fd495c4d5f4feff75543e61d0013af0e",
+      "sha256": "fb52ac03bbe122fb8e3cbf749e8a97859a4e2b8dd3e2919ef7d5c4b0ba8f8bb3",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21785,8 +21786,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3542,
-      "sha256": "b7571ce51b05a05f8df64e5fc2e0596343a8a8004a263764e78bd634f1ef10cd",
+      "lines": 3544,
+      "sha256": "dc26e6314627db8a9ef0f4be808bc3052170d82b309926c6eadbce286d4d0b48",
       "imports": [
         "AVKit",
         "ActivityKit",

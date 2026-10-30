@@ -76,7 +76,7 @@ interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerStopStats()
     fun remoteControlStreamerStartMacro(id: UUID)
     fun remoteControlStreamerStopMacro(id: UUID)
-    fun remoteControlStreamerSendMessage(text: String)
+    fun remoteControlStreamerSendMessage(name: String?, text: String)
     fun remoteControlStreamerMusic(
         command: RemoteControlMusicCommand,
         onCompleted: (RemoteControlResult, RemoteControlResponse?) -> Unit,
@@ -561,7 +561,7 @@ class RemoteControlStreamer(
                 sendEmptyOkResponse(id)
             }
             is RemoteControlRequest.SendMessage -> {
-                delegate.remoteControlStreamerSendMessage(data.text)
+                delegate.remoteControlStreamerSendMessage(data.name, data.text)
                 sendEmptyOkResponse(id)
             }
             is RemoteControlRequest.Music -> {

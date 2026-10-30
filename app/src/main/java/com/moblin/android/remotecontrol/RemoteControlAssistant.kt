@@ -345,7 +345,7 @@ class RemoteControlAssistant(
     }
 
     fun sendMessage(text: String) {
-        performRequestNoResponseData(RemoteControlRequest.SendMessage(text = text), {})
+        performRequestNoResponseData(RemoteControlRequest.SendMessage(name = null, text = text), {})
     }
 
     fun music(command: RemoteControlMusicCommand, onSuccess: (RemoteControlMusicStatus) -> Unit) {

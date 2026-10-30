@@ -478,9 +478,14 @@ sealed class RemoteControlRequest {
         }
     }
 
-    data class SendMessage(val text: String) : RemoteControlRequest() {
+    data class SendMessage(val name: String?, val text: String) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
-            putJsonObject("sendMessage") { put("text", text) }
+            putJsonObject("sendMessage") {
+                if (name != null) {
+                    put("name", name)
+                }
+                put("text", text)
+            }
         }
     }
 
@@ -637,7 +642,12 @@ sealed class RemoteControlRequest {
                 "stopStats" -> StopStats
                 "startMacro" -> StartMacro(id = UUID.fromString(params.getValue("id").jsonPrimitive.content))
                 "stopMacro" -> StopMacro(id = UUID.fromString(params.getValue("id").jsonPrimitive.content))
-                "sendMessage" -> SendMessage(text = params.getValue("text").jsonPrimitive.content)
+                "sendMessage" -> SendMessage(
+                    name = params["name"]?.let {
+                        if (it is JsonNull) null else it.jsonPrimitive.content
+                    },
+                    text = params.getValue("text").jsonPrimitive.content,
+                )
                 "music" -> Music(
                     command = RemoteControlMusicCommand.fromJsonElement(params.getValue("command")),
                 )

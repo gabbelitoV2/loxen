@@ -31,6 +31,12 @@ data class SnapshotJob(
     val takeSnapshot: (String) -> Unit,
 )
 
+data class DiscordSnapshotUpload(
+    val url: String,
+    val image: ByteArray,
+    val message: String?,
+)
+
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 fun Model.takeSnapshot(age: Float, isChatBot: Boolean, message: String?) {
@@ -213,34 +219,6 @@ fun Model.takeSnapshotWithCountdown(message: String, user: String?, takeSnapshot
     tryTakeNextSnapshot()
 }
 
-private fun Model.getDiscordWebhookUrl(isChatBot: Boolean): String? {
-    return if (isChatBot) {
-        stream.value.discordChatBotSnapshotWebhook.takeIf { it.isNotBlank() }
-    } else {
-        stream.value.discordSnapshotWebhook.takeIf { it.isNotBlank() }
-    }
-}
-
-private fun Model.tryUploadSnapshotToDiscord(image: ByteArray, message: String?, isChatBot: Boolean) {
-    val url = getDiscordWebhookUrl(isChatBot)
-    if (url == null) {
-        return
-    }
-    uploadImage(
-        url = url,
-        paramName = "snapshot",
-        fileName = "snapshot.jpg",
-        image = image,
-        message = message,
-    ) { ok ->
-        if (ok) {
-            makeToast(title = localized("Snapshot uploaded to Discord"))
-        } else {
-            makeErrorToast(title = localized("Failed to upload snapshot to Discord"))
-        }
-    }
-}
-
 fun Model.takeVideoSourcePreviewImage(
     widget: SettingsWidget,
     onComplete: (Bitmap?) -> Unit,
@@ -255,6 +233,59 @@ fun Model.takeVideoSourcePreviewImage(
 
 fun Model.setCleanSnapshots() {
     media.setCleanSnapshots(enabled = stream.value.recording.cleanSnapshots)
+}
+
+private fun Model.getDiscordWebhookUrl(isChatBot: Boolean): String? {
+    return if (isChatBot) {
+        stream.value.discordChatBotSnapshotWebhook.takeIf { it.isNotBlank() }
+    } else {
+        stream.value.discordSnapshotWebhook.takeIf { it.isNotBlank() }
+    }
+}
+
+private fun Model.tryUploadSnapshotToDiscord(image: ByteArray, message: String?, isChatBot: Boolean) {
+    val url = getDiscordWebhookUrl(isChatBot)
+    if (url == null) {
+        return
+    }
+    if (discordSnapshotUploads.size == 20) {
+        Log.i(TAG, "snapshot: Discord upload queue full, dropping oldest snapshot")
+        discordSnapshotUploads.removeFirst()
+    }
+    discordSnapshotUploads.add(DiscordSnapshotUpload(url = url, image = image, message = message))
+    tryUploadNextSnapshotToDiscord()
+}
+
+private fun Model.tryUploadNextSnapshotToDiscord() {
+    if (isUploadingSnapshotToDiscord || discordSnapshotUploads.isEmpty()) {
+        return
+    }
+    val upload = discordSnapshotUploads.removeFirst()
+    isUploadingSnapshotToDiscord = true
+    uploadImage(
+        url = upload.url,
+        paramName = "snapshot",
+        fileName = "snapshot.jpg",
+        image = upload.image,
+        message = upload.message,
+    ) { ok ->
+        isUploadingSnapshotToDiscord = false
+        if (ok) {
+            makeToast(title = localized("Snapshot uploaded to Discord"))
+        } else {
+            makeErrorToast(title = localized("Failed to upload snapshot to Discord"))
+        }
+        tryUploadNextSnapshotToDiscord()
+    }
+}
+
+private fun Model.getDiscordSnapshotUploadMaximumBytesPerSecond(): Int? {
+    if (!isLive.value) {
+        return null
+    }
+    val bitrate = media.getVideoStreamBitrate(bitrate = stream.value.bitrate)
+    val divisor = if (bitrate >= stream.value.bitrate) 2 else 4
+    return (bitrate.toInt() / 8 / divisor).coerceIn(16_000, 1_000_000)
 }
 
 private fun encodeSnapshotForPhotos(image: Bitmap): ByteArray? {

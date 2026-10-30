@@ -49,7 +49,15 @@ class RemoteControlSuite {
     @Test
     fun sendMessageRequest() {
         assertEquals("""{"sendMessage":{"text":"Hello"}}""",
-                     encode(RemoteControlRequest.SendMessage(text = "Hello")))
+                     encode(RemoteControlRequest.SendMessage(name = null, text = "Hello")))
+        assertEquals("""{"sendMessage":{"name":"Erik","text":"Hello"}}""",
+                     encode(RemoteControlRequest.SendMessage(name = "Erik", text = "Hello")))
+        val request = RemoteControlRequest.fromJsonElement(
+            json.parseToJsonElement("""{"sendMessage":{"text":"Hello"}}""")
+        )
+        val message = request as? RemoteControlRequest.SendMessage ?: fail("not a message")
+        assertNull(message.name)
+        assertEquals("Hello", message.text)
     }
 
     @Test

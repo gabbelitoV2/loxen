@@ -801,8 +801,8 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         model?.stopMacro(id = id)
     }
 
-    override fun remoteControlStreamerSendMessage(text: String) {
-        model?.remoteControlSendMessage(text = text)
+    override fun remoteControlStreamerSendMessage(name: String?, text: String) {
+        model?.remoteControlSendMessage(name = name, text = text)
     }
 
     override fun remoteControlStreamerMusic(

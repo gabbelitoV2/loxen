@@ -807,6 +807,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var bluetoothCentralManger: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     var sceneSettingsPanelScene = SettingsScene(name = "")
     var snapshotJobs: ArrayDeque<SnapshotJob> = ArrayDeque()
+    var discordSnapshotUploads: ArrayDeque<DiscordSnapshotUpload> = ArrayDeque()
+    var isUploadingSnapshotToDiscord = false
     var gameControllers: MutableList<com.moblin.android.platform.gamecontroller.GCController?> = mutableListOf()
     var moveToGimbalPresetQueue: ArrayDeque<UUID> = ArrayDeque()
     var moveToGimbalPresetQueueRunning = false

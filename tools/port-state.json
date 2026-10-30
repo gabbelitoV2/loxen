@@ -3270,25 +3270,24 @@
   },
   "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift": {
     "status": "ok",
-    "sha256": "7de7871243011507a2af0036a2ca1019d7cef486b16b4e563906c4cab651111f",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "2ec11d5081d792ed87d59da9f2bbdcb930689121368215d9c4a7d9de3b5f744b",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt",
     "notes": [
-      "Added the new tipRequests test between musicRequests and musicResponses, matching the Swift diff position.",
-      "The request is built as RemoteControlRequest.Tip with RemoteControlTipKind.Message / Effect / WheelOfLuck, following the sealed-class naming already used for RemoteControlMusicCommand in this file.",
-      "Encoding assertions reuse the file's existing encode(request) helper, which sorts keys and emits compact JSON like Swift's .sortedKeys.",
-      "The wheel-of-luck decode uses RemoteControlRequest.fromJsonElement on a parsed JsonElement, like the existing musicRequests decode, then pattern-matches with as? casts and fail() like Swift's guard case + Issue.record.",
-      "Everything else in the file is unchanged, including the hand-written JSON pretty-printer helpers."
+      "Only the sendMessageRequest test changed; every other line of the Kotlin suite is kept byte-identical.",
+      "SendMessage now takes a nullable name in addition to text, encoded with explicit named arguments so the call compiles regardless of parameter order.",
+      "The decode half uses RemoteControlRequest.fromJsonElement with the suite's existing json instance, then casts to SendMessage and asserts name is null and text is \"Hello\".",
+      "fail() is reused for the Swift Issue.record plus early return, matching the other decode tests in this suite."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 48352,
-    "tokens_out": 6350,
-    "seconds": 20.9,
-    "ported_at": "2026-10-23T22:41:44+00:00"
+    "tokens_in": 48705,
+    "tokens_out": 5720,
+    "seconds": 19.1,
+    "ported_at": "2026-10-30T23:18:42+00:00"
   },
   "Moblin/Integrations/Emotes/Bttv.swift": {
     "status": "ok",
@@ -5445,25 +5444,28 @@
   },
   "Moblin/Various/Network/HttpClient.swift": {
     "status": "ok",
-    "sha256": "ef6add8879609644f14eb65a0f1b866f8101fef12f8ba6a16f7ae38c8c27957d",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "d8f040ccb429d82fe5e4ba29d6979827e1b03d8dcf9d2bf38b8faa5085d015af",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/network/HttpClient.kt",
     "notes": [
-      "Only HttpParser.getLine changed: the two Swift guards are now one guard, so the Kotlin line lookup and the strict UTF-8 decode are folded into a single elvis return.",
-      "Everything else (InterfaceTypeHttpClient, httpCall, httpCallUrlSession, parseIntStrict, decodeUtf8Strict) is untouched and byte-identical to the previous Kotlin file.",
-      "InterfaceTypeHttpClient still binds NWConnection to NWParameters.requiredInterfaceType and falls through cellular, wifi, wiredEthernet, keeping the chosen transport first for later calls.",
-      "The OkHttp fallback in httpCallUrlSession attaches the body with toRequestBody() before calling httpRequest(), matching Swift's uploadTask(from:).",
-      "MainActor.assumeIsolated is dropped: NWConnection handlers already run on the Dispatchers.Main coroutine dispatcher passed to start(queue =)."
+      "Added startTimer() and split the upload into send() plus sendPaced() with an optional maximumBytesPerSecond pacing callback, as in the new Swift.",
+      "ContinuousClock.now is com.moblin.android.platform.core.ContinuousClock; the pacing delay is computed as Instant.duration(to:).toDouble(DurationUnit.SECONDS) clamped at 0.",
+      "DispatchQueue.main.asyncAfter becomes a file-private mainScope (CoroutineScope(Dispatchers.Main)) with launch { delay(ms) }.",
+      "httpCall gained the maximumBytesPerSecond parameter (default null) in third position, so existing trailing-lambda callers keep compiling.",
+      "The send completion lambda uses nested if instead of the Swift guard-early-return, because a return from the contentProcessed handler would skip unrelated logic.",
+      "sendPaced slices the body with ByteArray.copyOfRange(offset, end) where end = minOf(offset + 16384, content.size).",
+      "httpCallUrlSession is unchanged; it still posts the body through httpRequest and falls back to OkHttp.",
+      "InterfaceTypeHttpClient stays private to this file; the pacing lambdas are plain Kotlin function types, main-confined by convention."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45962,
-    "tokens_out": 3221,
-    "seconds": 11.6,
-    "ported_at": "2026-10-22T22:49:38+00:00"
+    "tokens_in": 47149,
+    "tokens_out": 9532,
+    "seconds": 41.9,
+    "ported_at": "2026-10-30T23:19:04+00:00"
   },
   "Moblin/Obs/ObsWebSocket.swift": {
     "status": "ok",
@@ -5896,45 +5898,44 @@
   },
   "Moblin/RemoteControl/RemoteControlStreamer.swift": {
     "status": "ok",
-    "sha256": "9a32810689f5429aba31100f6ac0b15950688c9cd780c9a60c9cba2b5d037a88",
-    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
+    "sha256": "5183c5979f2f8b2ca6a9d8b4e63f353d7f235080b1e0eaff944c6ae1d5660599",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
     "notes": [
-      "Applied the diff: added remoteControlStreamerAppAttest to the delegate, sendIcon(id), and the app-attest step in handleHello.",
-      "Data(base64Encoded:) becomes android.util.Base64.decode wrapped in runCatching(...).getOrNull(), matching the Swift nil-on-invalid behaviour.",
-      "The Identify message now carries a third nullable appAttest argument, as RemoteControlAppAttest already exists in the remotecontrol package.",
-      "The app-attest completion is hopped onto mainScope because the surrounding class state and web socket are main-thread bound, like the file's other delegate callbacks.",
-      "The current web socket is captured before the async call and compared by identity, standing in for the Swift webSocket === self.webSocket check."
+      "Only the sendMessage signature and its call site changed; the rest of the Kotlin file is untouched.",
+      "RemoteControlStreamerDelegate.remoteControlStreamerSendMessage now takes a nullable name plus text, matching the new Swift protocol.",
+      "The SendMessage request handler passes data.name (nullable) and data.text to the delegate.",
+      "RemoteControlRequest.SendMessage is assumed to expose name: String? and text: String as declared in RemoteControl.kt."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45001,
-    "tokens_out": 7405,
-    "seconds": 27.7,
-    "ported_at": "2026-10-27T05:14:34+00:00"
+    "tokens_in": 45108,
+    "tokens_out": 5244,
+    "seconds": 17.6,
+    "ported_at": "2026-10-30T23:18:40+00:00"
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
-    "sha256": "d55483714ec59161afd0e21aa46cfa0e47a5af31fe273a81b253d36e96c707e3",
-    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
+    "sha256": "35bfe8668597ca392c8a27ac21ded3c12f7840cef167d8fa326876b56c3fd9db",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
     "notes": [
-      "Only the handleEvent dispatch changes: a new RemoteControlEvent.Icon branch is added after WheelOfLuck.",
-      "The identify case already ignores streamerId and appAttest in the Kotlin port, so the first Swift diff hunk needs no code change.",
-      "RemoteControlEvent.Icon is assumed to exist in RemoteControl.kt's sealed RemoteControlEvent hierarchy, added by the caller of this translation."
+      "Only the sendMessage request construction changed: it now passes name = null explicitly to match Swift's .sendMessage(name:text:).",
+      "The Kotlin SendMessage request keeps its default-valued name parameter, so the explicit null is wire-identical to the previous call.",
+      "Everything else in the file (custom NWListener/WebSocket implementation, Twitch delegates, timers, request bookkeeping) is untouched and kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 60823,
-    "tokens_out": 8929,
-    "seconds": 27.1,
-    "ported_at": "2026-10-27T05:14:29+00:00"
+    "tokens_in": 60772,
+    "tokens_out": 9772,
+    "seconds": 32.5,
+    "ported_at": "2026-10-30T23:18:55+00:00"
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
@@ -8611,23 +8612,23 @@
   },
   "Moblin/Various/Utils/Utils.swift": {
     "status": "ok",
-    "sha256": "03c51f791b1e74e8a584ce9c59ea760e3aeaedda051c0e6baf36e0de9f0b0508",
-    "moblin_commit": "b293e6dafda62993032ac50b2ee50b636c516935",
+    "sha256": "4f520087bc1d6c138534833aee2db720455c02d1502f4b50ecab0461d0dace80",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/Utils.kt",
     "notes": [
-      "Removed createSpeechSynthesizer(), the Android TextToSpeech equivalent of the deleted AVSpeechSynthesizer factory.",
-      "The now unused android.speech.tts.TextToSpeech import is kept so every untouched line stays byte-identical, as the incremental rules require.",
-      "No other Kotlin declaration in Utils.kt maps to a line in the diff, so everything else is unchanged."
+      "uploadImage gained the optional maximumBytesPerSecond callback parameter, placed before onCompleted as in Swift and typed (() -> Int?)?",
+      "The new parameter is forwarded to httpCall as the named argument maximumBytesPerSecond so HttpClient can apply the rate limit; HttpClient.kt must accept that optional parameter.",
+      "No other line of the file changed: all existing Android-specific ports (Bitmap thumbnails, Bookmark path resolution, MediaMetadataRetriever duration, ByteArray pointer helpers) are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53659,
-    "tokens_out": 4678,
-    "seconds": 13.3,
-    "ported_at": "2026-10-21T22:50:11+00:00"
+    "tokens_in": 53691,
+    "tokens_out": 5496,
+    "seconds": 21.1,
+    "ported_at": "2026-10-30T23:18:44+00:00"
   },
   "Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift": {
     "status": "ok",
@@ -9307,28 +9308,27 @@
   },
   "Moblin/Various/Model/ModelSnapshot.swift": {
     "status": "ok",
-    "sha256": "54eb2d986786bc989b0a7581ba2f4abc685336741e1a24d2b9d99364ba557dfc",
-    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "sha256": "539db6ec3943de951122f8727a6bea40a332be7f14a9b5484cd7cbef3065f23b",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSnapshot.kt",
     "notes": [
-      "takeSnapshot now takes age/isChatBot/message; the estimatedViewerDelay computation moved to the callers.",
-      "SnapshotJob no longer stores isChatBot and instead carries the takeSnapshot closure that performs the delayed capture.",
-      "takeSnapshotWithCountdown loses its isChatPhone guard and its isChatBot parameter, and takes the takeSnapshot closure.",
-      "Added takeSnapshotWebRemoteControl, takeSnapshotHeic and the shared private handleSnapshot, inserted in the same declaration order as the Swift file.",
-      "saveSnapshotToPhotos is split in two: the Bitmap overload encodes and then hops to main, the ByteArray overload writes the asset to Photos.",
-      "The Discord live-only check moved out of tryUploadSnapshotToDiscord into the call site inside takeSnapshot, as in Swift.",
-      "request.timeoutInterval = 15 has no per-request OkHttp counterpart on Request.Builder, so it is dropped; the shared client's default timeouts apply.",
-      "URL(string:).appending(path:queryItems:) is built with java.net.URI (scheme/authority/path/query) since there is no direct Kotlin equivalent."
+      "Adds `DiscordSnapshotUpload` as a data class with `url` stored as a String (only stored, never parsed) and `image` as ByteArray.",
+      "`getDiscordWebhookUrl` and `tryUploadSnapshotToDiscord` moved below `setCleanSnapshots` to match the new Swift order; the old direct upload body is replaced by the 20-entry queue plus `tryUploadNextSnapshotToDiscord`.",
+      "Assumes Model declares `var discordSnapshotUploads: MutableList<DiscordSnapshotUpload>` and `var isUploadingSnapshotToDiscord: Boolean` (Swift vars without @Published); adapt to `.value` if they were @Published and became StateFlows.",
+      "The declared platform `uploadImage` has no `maximumBytesPerSecond` parameter yet, so the call is emitted with the parameters it declares and `getDiscordSnapshotUploadMaximumBytesPerSecond` is translated but not passed to it.",
+      "Swift passes `getDiscordSnapshotUploadMaximumBytesPerSecond` without parentheses; Kotlin translates the body as a function returning Int? and clamps with coerceIn(16000, 1_000_000).",
+      "The Discord upload chain stays serial: the next upload is started from the previous completion callback, as in Swift.",
+      "Queue-full drop is logged with Log.i(TAG, ...) using the existing TAG \"Model\"."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62483,
-    "tokens_out": 22134,
-    "seconds": 89.7,
-    "ported_at": "2026-10-11T23:15:50+00:00"
+    "tokens_in": 62902,
+    "tokens_out": 9140,
+    "seconds": 43.5,
+    "ported_at": "2026-10-30T23:19:06+00:00"
   },
   "Moblin/Various/Model/ModelSrtClient.swift": {
     "status": "ok",
@@ -15569,25 +15569,19 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "2845b033bf567a22da384d5580b810c5b672e98f04b3527e43de4006ca810870",
-    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
+    "sha256": "43b4f2299ee82a184303ad7db46eb8ddbce2b0ab36dbbb9637b961849ae0462e",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
-    "notes": [
-      "Added RemoteControlEvent.Icon with encode and decode branches matching Swift's new `case icon(id:)`.",
-      "Added RemoteControlStatusTopRightBitrateInfo (Long fields) and RemoteControlStatusTopRightBondingConnection (ULong bytesPerSecond) and wired them into RemoteControlStatusTopRight in Swift declaration order.",
-      "Added RemoteControlAppAttest right after RemoteControlAuthentication, before RemoteControlResult, as in Swift.",
-      "RemoteControlMessageToAssistant.Identify now carries an optional appAttest, encoded only when present like the file's other nullable fields.",
-      "All other declarations, formatting and imports left byte-identical."
-    ],
+    "notes": [],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88167,
-    "tokens_out": 21769,
-    "seconds": 64.7,
-    "ported_at": "2026-10-27T05:15:35+00:00"
+    "tokens_in": 88114,
+    "tokens_out": 22083,
+    "seconds": 64.9,
+    "ported_at": "2026-10-30T23:19:28+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -15656,42 +15650,44 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "842f0dc573bb8212745f9bd8037c1769fd495c4d5f4feff75543e61d0013af0e",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+    "sha256": "fb52ac03bbe122fb8e3cbf749e8a97859a4e2b8dd3e2919ef7d5c4b0ba8f8bb3",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "Split remoteControlStreamerSendMessage into a thin delegate wrapper plus a new remoteControlSendMessage(text) with the original body, mirroring the Swift diff.",
-      "Everything else in the file is unchanged."
+      "Only the send-message pair changed: both Model functions now take a nullable name plus text, and the delegate adapter forward matches the new signature.",
+      "The delegate override in RemoteControlStreamerDelegateAdapter was updated to the new remoteControlStreamerSendMessage(name, text) shape declared by the platform RemoteControlStreamerDelegate interface.",
+      "Default user name falls back to localized(\"Mom\") when name is null, as in Swift's name ?? String(localized: \"Mom\").",
+      "All other lines, imports and declaration order are unchanged from the current Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 92757,
-    "tokens_out": 18396,
-    "seconds": 51.1,
-    "ported_at": "2026-10-29T23:40:43+00:00"
+    "tokens_in": 92886,
+    "tokens_out": 18836,
+    "seconds": 54.1,
+    "ported_at": "2026-10-30T23:19:38+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "f5d54e0668922dda6eea8195a1d041b014a958bab0c7f0e8aaf8fb99c958b0b5",
-    "moblin_commit": "bd404e9a0ba000cd96ea71b8287aa99552b14c42",
+    "sha256": "4ecf849116668d0cc074bb2f71ee9ca86a4b357e24e0d10871ffcba9930e1dee",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "Only change: handleLowFpsImage now also forwards the low FPS preview to Moblin Cloud via sendPreviewToMoblinCloud(preview = image).",
-      "sendPreviewToMoblinCloud is an existing Model extension in package com.moblin.android.various.model (ModelMoblinCloud.kt), so no import is needed.",
-      "Everything else, including hand-written Android hooks (PlatformThread, Instant/SystemClock, MediaSample), is untouched."
+      "Only the tryUploadGoLiveNotificationToDiscord uploadImage call changed: the trailing closure became the named onCompleted argument.",
+      "Everything else in the Kotlin file is untouched, including the Android-specific takeSnapshot JPEG encoding, payloadSize hook and processor accessors.",
+      "declared_types lists the classes and enums the file declares; the Model extensions are top-level functions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88824,
-    "tokens_out": 11314,
-    "seconds": 34.2,
-    "ported_at": "2026-10-28T23:40:19+00:00"
+    "tokens_in": 88896,
+    "tokens_out": 11557,
+    "seconds": 35.5,
+    "ported_at": "2026-10-30T23:18:59+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
@@ -16064,27 +16060,24 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "b7571ce51b05a05f8df64e5fc2e0596343a8a8004a263764e78bd634f1ef10cd",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+    "sha256": "dc26e6314627db8a9ef0f4be808bc3052170d82b309926c6eadbce286d4d0b48",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Added WidgetOutline (computed id from sceneWidget.id) and WidgetOutlines after StreamOverlay, mirroring the new Swift declarations.",
-      "WidgetOutlines keeps the existing Kotlin convention: published properties are MutableStateFlow (enabled, outlines, canvasSize) instead of @Published.",
-      "CGRect/CGSize are fully qualified from com.moblin.android.platform.coregraphics to avoid touching the file's import block.",
-      "imageSizes replaces [UUID: CGSize?] with MutableMap<UUID, CGSize?>.",
-      "Model gained `val widgetOutlines = WidgetOutlines()` right after `streamOverlay`.",
-      "toggleShowingPanel now calls updateWidgetOutlinesForShowingPanel() after choosing the panel, before panelHidden is reset, matching the Swift diff; that method lives in another Model extension file.",
-      "Swift's blank line after showingPanel was kept in Kotlin formatting only."
+      "Only the diff hunk was applied: two new Model properties after snapshotJobs.",
+      "discordSnapshotUploads is an ArrayDeque (Swift Deque) of DiscordSnapshotUpload, which lives in the same Kotlin package so no import is added.",
+      "isUploadingSnapshotToDiscord is a plain Boolean property, not a state flow, matching the Swift stored var that is not @Published.",
+      "All other lines stay byte-identical to the previous Kotlin translation, including the Android-only hooks."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 146867,
-    "tokens_out": 35941,
-    "seconds": 106.7,
-    "ported_at": "2026-10-29T23:41:52+00:00"
+    "tokens_in": 146842,
+    "tokens_out": 34159,
+    "seconds": 98.4,
+    "ported_at": "2026-10-30T23:20:26+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -18094,23 +18087,25 @@
   },
   "Moblin/Various/Model/ModelMoblinCloud.swift": {
     "status": "ok",
-    "sha256": "61a79ae262799a3235d4e0f48fcc753960f6f66ea8eaea245a478f08a381b2d4",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+    "sha256": "872796ffbb90b7c77d287d51cac43d21981f86648336baf43684301f35e025da",
+    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
     "notes": [
-      "Removed the connected/disconnected toasts; the rest of the file is unchanged.",
-      "remoteControlStreamerSendMessage now forwards the text to the model via remoteControlSendMessage.",
-      "The localized import is still needed by updateMoblinCloudStatus and the tip message texts."
+      "Only the remoteControlStreamerSendMessage override changed: it now takes a nullable sender name plus the text and forwards both to Model.remoteControlSendMessage.",
+      "The delegate interface already declares remoteControlStreamerSendMessage(name: String?, text: String), so the override signature now matches it.",
+      "Everything else in the file is untouched."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "no Android counterpart for DeviceCheck"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66193,
-    "tokens_out": 7054,
-    "seconds": 20.6,
-    "ported_at": "2026-10-29T23:40:13+00:00"
+    "tokens_in": 66033,
+    "tokens_out": 7109,
+    "seconds": 22.0,
+    "ported_at": "2026-10-30T23:19:03+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift": {
     "status": "ok",

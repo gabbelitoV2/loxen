@@ -413,9 +413,10 @@ private fun Model.tryUploadGoLiveNotificationToDiscord(
         fileName = "snapshot.jpg",
         image = image,
         message = stream.value.goLiveNotificationDiscordMessage,
-    ) { _ ->
-        onCompleted()
-    }
+        onCompleted = { _ ->
+            onCompleted()
+        },
+    )
 }
 
 fun Model.startNetStream() {

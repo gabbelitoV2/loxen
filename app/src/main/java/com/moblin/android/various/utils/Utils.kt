@@ -130,6 +130,7 @@ fun uploadImage(
     fileName: String,
     image: ByteArray,
     message: String?,
+    maximumBytesPerSecond: (() -> Int?)? = null,
     onCompleted: ((Boolean) -> Unit)? = null
 ) {
     val boundary = UUID.randomUUID().toString()
@@ -150,7 +151,7 @@ fun uploadImage(
     data.write("content-type: image/jpeg\r\n\r\n".toByteArray())
     data.write(image)
     data.write("\r\n--$boundary--\r\n".toByteArray())
-    httpCall(request = request, body = data.toByteArray()) { response ->
+    httpCall(request = request, body = data.toByteArray(), maximumBytesPerSecond = maximumBytesPerSecond) { response ->
         onCompleted?.invoke(response != null)
     }
 }

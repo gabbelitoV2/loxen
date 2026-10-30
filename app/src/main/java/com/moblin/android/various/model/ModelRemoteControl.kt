@@ -1111,12 +1111,12 @@ fun Model.remoteControlStreamerMusic(
     remoteControlMusic(command = command, onCompleted = onCompleted)
 }
 
-fun Model.remoteControlStreamerSendMessage(text: String) {
-    remoteControlSendMessage(text = text)
+fun Model.remoteControlStreamerSendMessage(name: String?, text: String) {
+    remoteControlSendMessage(name = name, text = text)
 }
 
-fun Model.remoteControlSendMessage(text: String) {
-    val user = localized("Mom")
+fun Model.remoteControlSendMessage(name: String?, text: String) {
+    val user = name ?: localized("Mom")
     appendChatMessage(
         platform = null,
         messageId = null,
@@ -1930,8 +1930,8 @@ private class RemoteControlStreamerDelegateAdapter(
         model.remoteControlStreamerStopMacro(id = id)
     }
 
-    override fun remoteControlStreamerSendMessage(text: String) {
-        model.remoteControlStreamerSendMessage(text = text)
+    override fun remoteControlStreamerSendMessage(name: String?, text: String) {
+        model.remoteControlStreamerSendMessage(name = name, text = text)
     }
 
     override fun remoteControlStreamerMusic(
