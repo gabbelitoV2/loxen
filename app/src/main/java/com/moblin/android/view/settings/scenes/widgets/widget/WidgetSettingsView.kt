@@ -25,6 +25,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.sceneUpdatedThrottled
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAlignment
 import com.moblin.android.various.settings.SettingsWidget
@@ -59,12 +60,36 @@ fun AlignmentOptionView(layout: MutableState<SettingsWidgetLayout>, alignment: S
     Button(
         action = {
             layout.value = layout.value.copy(alignment = alignment)
+            if (alignment.isHorizontalOrVerticalCenter()) {
+                layout.value = layout.value.copy(positioningLock = false)
+            }
         },
     ) {
         SystemImage(
             name = if (layout.value.alignment == alignment) "square.fill" else "square",
             fontSize = 28.sp,
         )
+    }
+}
+
+@Composable
+fun AlignmentPickerView(layout: MutableState<SettingsWidgetLayout>) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topLeft)
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topCenter)
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topRight)
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.leftCenter)
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.center)
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.rightCenter)
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomLeft)
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomCenter)
+            AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomRight)
+        }
     }
 }
 
@@ -142,23 +167,7 @@ private fun generalAndAlignmentPicker(
         }
         if (widget.hasAlignment()) {
             Divider()
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topLeft)
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topCenter)
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.topRight)
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.leftCenter)
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.center)
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.rightCenter)
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomLeft)
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomCenter)
-                    AlignmentOptionView(layout = layout, alignment = SettingsAlignment.bottomRight)
-                }
-            }
+            AlignmentPickerView(layout = layout)
             LaunchedEffect(layout.value.alignment) {
                 model.sceneUpdated()
             }
@@ -182,7 +191,7 @@ private fun horizontalAndVerticalPositioning(
                     onValueChange = { layout.value = layout.value.copy(xString = it) },
                     onSubmit = {
                         setYBasedOnXIfLocked(model, layout)
-                        model.sceneUpdated()
+                        model.sceneUpdatedThrottled()
                     },
                     numericInput = numericInput.value,
                     onNumericInputChange = { numericInput.value = it },
@@ -199,7 +208,7 @@ private fun horizontalAndVerticalPositioning(
                 onValueChange = { layout.value = layout.value.copy(yString = it) },
                 onSubmit = {
                     setXBasedOnYIfLocked(model, layout)
-                    model.sceneUpdated()
+                    model.sceneUpdatedThrottled()
                 },
                 numericInput = numericInput.value,
                 onNumericInputChange = { numericInput.value = it },
@@ -236,7 +245,7 @@ private fun horizontalPositioning(
         value = layout.value.xString,
         onValueChange = { layout.value = layout.value.copy(xString = it) },
         onSubmit = {
-            model.sceneUpdated()
+            model.sceneUpdatedThrottled()
         },
         numericInput = numericInput.value,
         onNumericInputChange = { numericInput.value = it },
@@ -259,7 +268,7 @@ private fun verticalPositioning(
         value = layout.value.yString,
         onValueChange = { layout.value = layout.value.copy(yString = it) },
         onSubmit = {
-            model.sceneUpdated()
+            model.sceneUpdatedThrottled()
         },
         numericInput = numericInput.value,
         onNumericInputChange = { numericInput.value = it },
@@ -308,7 +317,7 @@ fun WidgetLayoutView(
                     value = layout.value.sizeString,
                     onValueChange = { layout.value = layout.value.copy(sizeString = it) },
                     onSubmit = {
-                        model.sceneUpdated()
+                        model.sceneUpdatedThrottled()
                     },
                     numericInput = numericInput.value,
                     onNumericInputChange = { numericInput.value = it },

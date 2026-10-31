@@ -4799,27 +4799,25 @@
   },
   "Moblin/Various/Model/ModelCamera.swift": {
     "status": "ok",
-    "sha256": "639c88fb27ef64f1729780edd46e74aae6ab0d70a93fb877837ab22f96775c6b",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "fd2c0ab43b09a4a3d820bee22565c11fdbc40b364964fff5bb15681c1c86a4ce",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelCamera.kt",
     "notes": [
-      "Added the new VideoSources class between CameraShow and CameraState, with @Published properties as MutableStateFlow<List<Camera>> and all() reading them via .value.",
-      "The old public listCameras(position:) became the private listBuiltinCameras(position:); its hand-written Kotlin body (DeviceType.entries.toList()) is kept.",
-      "updateCameraLists() and listCameras(excludeBuiltin:) were removed, replaced by updateVideoSources()/updateDeviceVideoSources().",
-      "Declarations were reordered to match Swift: colorSpaceUpdated..shouldShowCameraPreview, then updateVideoSources, updateDeviceVideoSources, listBuiltinCameras, listExternalCameras, isBackCamera, isFrontCamera.",
-      "isBackCamera/isFrontCamera/getCameraPositionName/getExternalCameraName/isExternalCameraConnected now read videoSources.back/front/external (via .value).",
-      "The Model.videoSources property is assumed declared in Model.kt; this file only references it.",
-      "VideoSources is not a settings class, so its arrays stay MutableStateFlow with List values, written with .value =."
+      "Only the two diffed lines changed: updateShowCameraPreview now ANDs with !presentingSceneEditor, and shouldShowCameraPreview is now public (private removed).",
+      "presentingSceneEditor is the existing Model property from the scene editor port; no new declaration was needed.",
+      "Everything else in the Kotlin file is unchanged, including the Android-specific CaptureDevice wrappers, observe() KVO holders and the mainScope.launch handlers.",
+      "The Swift `stream.portrait` access keeps the Kotlin `stream.value.portrait` form.",
+      "setColorSpace keeps the Android MediaFormat color-space call instead of the Swift switch, unchanged by this diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 74541,
-    "tokens_out": 18809,
-    "seconds": 54.6,
-    "ported_at": "2026-09-29T23:47:11+00:00"
+    "tokens_in": 72839,
+    "tokens_out": 9687,
+    "seconds": 28.5,
+    "ported_at": "2026-10-31T22:53:28+00:00"
   },
   "Moblin/Various/Network/DnsLookup.swift": {
     "status": "ok",
@@ -8065,28 +8063,24 @@
   },
   "Moblin/View/Stream/StreamView.swift": {
     "status": "ok",
-    "sha256": "76b82441b746b21674af995b4373834d5eaf54ff2a3df37fc71642c21c0becc4",
-    "moblin_commit": "ca4765da82fc1d7a0049dfe49e1872e5a04ebf54",
+    "sha256": "023620663732f9fe92640fdcbceca9867476c5a09dbe4de8ab7c9a8d26ae9ee6",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/StreamView.kt",
     "notes": [
-      "sceneLayers was renamed to deviceLayers and now owns every AVCaptureVideoPreviewLayer; widget preview layers are no longer duplicated in the widget layer map.",
-      "CameraPreviewWidgetLayer keeps its Android Context constructor parameter (Swift init() takes none) because it creates FrameLayouts for borderLayer/contentLayer.",
-      "CALayer addSublayer/removeFromSuperlayer become addView/removeView; a preview layer is detached from its previous parent before being re-added to contentLayer or to the container.",
-      "The preview layer gravity is set through the shim property PreviewView.videoGravity, and the layer is moved with a MATCH_PARENT LayoutParams when it is a direct child of the container (the Swift layer.frame = bounds).",
-      "layoutLayers() centralises hiding/showing the device layers and the selection transform, then calls layoutWidgets(); onLayout now just calls layoutLayers().",
-      "layoutWidgets() prunes widgetLayers whose widget disappeared, hides the remaining ones, skips the currently selected device and creates the widget layer lazily.",
-      "setDevices(ids:) no longer takes the widgetId->deviceId map; the widget layers are created on demand in layoutWidgets().",
-      "selectedDeviceId is stored so select(), setWidgets() and layoutSubviews can all re-run the same layer pass."
+      "SharedUiViewContainerView gains previousOwner and a canAttach lambda; the view is handed back to its previous owner when the container leaves the window (onDetachedFromWindow mirrors window == nil).",
+      "previousOwner is a plain nullable reference instead of a weak var; the referencing container is the transient one, so no leak of the shared view.",
+      "StreamPreviewView takes an extra sceneEditor flag and wires canAttach to model.presentingSceneEditor in the AndroidView factory.",
+      "onLayout keeps the existing hand-written parent-null guard and only resizes the shared view while it is actually a child."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 55796,
-    "tokens_out": 16079,
-    "seconds": 61.0,
-    "ported_at": "2026-10-09T23:37:02+00:00"
+    "tokens_in": 54816,
+    "tokens_out": 5730,
+    "seconds": 36.0,
+    "ported_at": "2026-10-31T22:53:35+00:00"
   },
   "Moblin/View/Utils/SwipeLeftToDuplicateOrDeleteHelpView.swift": {
     "status": "ok",
@@ -9117,27 +9111,23 @@
   },
   "Moblin/Various/Model/ModelAppMode.swift": {
     "status": "ok",
-    "sha256": "36fd6261ad87050752d3f1af10747c6889f7400c2184e2ba116dd9a9aa4e297d",
+    "sha256": "fa106b8ad60128b927f9c9ec303afb1d1cfd5241387c416272ccfe5a189f4745",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAppMode.kt",
     "notes": [
-      "The Swift extension on Model becomes top-level Kotlin extension functions on Model in the same package, so the two files can be read side by side.",
-      "`database.appMode == .chatPhone` assumes the port keeps an enum `AppMode` in this package with a `chatPhone` entry; `AppMode` is not declared here and must already exist.",
-      "AVAudioPlayer is replaced with android.media.MediaPlayer: numberOfLoops = -1 becomes isLooping = true and play() becomes start().",
-      "The member `chatPhoneBackgroundAudioPlayer` is assumed to be declared in the Model file as `var chatPhoneBackgroundAudioPlayer: MediaPlayer? = null`.",
-      "Bundle.main.url(forResource:withExtension:) for the Alerts.bundle subdirectory has no direct Android equivalent, so only the asset resolution plus MediaPlayer construction is deferred with TODO().",
-      "`resetSelectedScene(changeScene: false)` is called with a Kotlin named argument; the parameter name must be `changeScene` in the Model file.",
-      "The long Swift switch lists every SettingsQuickButtonType case explicitly, all returning false, with `default` returning true; the Kotlin `when` mirrors this with `else -> true`.",
-      "No new types are declared by this file; it only adds extension functions to Model."
+      "The only change is the new SettingsQuickButtonType.sceneEditor -> false branch in Model.isQuickButtonAllowed.",
+      "The branch relies on the Kotlin enum entry SettingsQuickButtonType.sceneEditor; the glossary snapshot of SettingsQuickButtonType ends at photoShoot, so that entry must exist in the settings port for this line to compile.",
+      "Everything else, including the StreamingService background hooks in start/stopChatPhoneBackgroundAudio, is kept byte-identical because the Swift diff does not touch those functions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3297,
-    "tokens_out": 6317,
-    "seconds": 25.7,
-    "ported_at": "2026-09-22T13:26:07+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 37920,
+    "tokens_out": 1746,
+    "seconds": 10.0,
+    "ported_at": "2026-10-31T22:53:07+00:00"
   },
   "Moblin/Various/Model/ModelLiveActivity.swift": {
     "status": "ok",
@@ -14614,22 +14604,23 @@
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
-    "sha256": "61693f0b889b4853b40dc373c3d0a2fbe295451120f5b514c48da77f350a0f00",
-    "moblin_commit": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+    "sha256": "5ed4dd5ff58cd53de84284331d09c444a2660572b021f21abd6e200e77777559",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt",
     "notes": [
-      "Single-line change: snapshotAction now calls takeSnapshot with explicit arguments.",
-      "All other declarations, imports and formatting are kept byte-identical to the current Kotlin file."
+      "Added sceneEditorAction(), setting model.presentingSceneEditor to true through its state flow.",
+      "Added the SettingsQuickButtonType.sceneEditor branch after photoShoot, rendering QuickButtonImage with sceneEditorAction().",
+      "No other declarations or imports changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61279,
-    "tokens_out": 7507,
-    "seconds": 19.8,
-    "ported_at": "2026-10-11T23:14:44+00:00"
+    "tokens_in": 61487,
+    "tokens_out": 8083,
+    "seconds": 27.3,
+    "ported_at": "2026-10-31T22:53:24+00:00"
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
@@ -15390,27 +15381,23 @@
   },
   "Moblin/Various/Settings/SettingsQuickButtons.swift": {
     "status": "ok",
-    "sha256": "e0f1e86d4be966fbc4f7cb1ba97a1ac185ea07bfd65647b16f2edaa760901ce0",
+    "sha256": "66bdcd4d4707b41a6cbd7fc58997d28c87c776e949f5727cbd81269c79fea355",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsQuickButtons.kt",
     "notes": [
-      "Swift @Published properties are modelled as public MutableStateFlow fields (a MutableStateFlow is-a StateFlow) so both reading via collectAsState() and writing work.",
-      "The hand-written Codable encode/init(from:) are translated with private @Serializable surrogate classes so the Swift coding keys are preserved exactly (systemImageNameOn/Off, blackScreenShowChat/Status, backgroundImage*).",
-      "SettingsQuickButtonType keeps its raw strings byte-identical through SettingsQuickButtonTypeSerializer; the 'Pause chat' alias is mapped to chat in fromRawValue as the Swift decoder did.",
-      "Missing JSON keys fall back to the same defaults Swift supplied (Swift decode(_:default:) equivalent: surrogate defaults).",
-      "id stays a java.util.UUID and is persisted as a string inside the surrogate.",
-      "color remains an androidx.compose.ui.graphics.Color StateFlow; backgroundColor remains an RgbColor.",
-      "The enum's Swift toString() becomes an override of Any.toString() returning localized text (live -> \"Stream\", stream -> \"Switch stream\").",
-      "RgbColor.color() is assumed to be a member provided by com.moblin.android.common.various; no extra import was added."
+      "Only the diff is applied: a new enum entry sceneEditor and its toString branch; the rest of the file is unchanged.",
+      "sceneEditor is appended after photoShoot in the enum, so the trailing semicolon moves to the new last entry.",
+      "toString() gains a sceneEditor branch after photoShoot, in the same order as the Swift switch."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8843,
-    "tokens_out": 26459,
-    "seconds": 94.2,
-    "ported_at": "2026-09-22T14:02:12+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 51554,
+    "tokens_out": 2935,
+    "seconds": 9.7,
+    "ported_at": "2026-10-31T22:53:09+00:00"
   },
   "Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift": {
     "status": "ok",
@@ -15691,25 +15678,25 @@
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
-    "sha256": "b299b1de9fe461132431a83776d6cfdc3300db9c062756b14a545349ef985c0a",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+    "sha256": "083958a9d60976ac16a2826e7790021e7ac91158ce405fc91f800890a61a3c34",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
     "notes": [
-      "Added DrawnSceneWidget data class between CreateWidgetWizard and WidgetInScene, matching the Swift declaration order.",
-      "sceneUpdated now calls updateWidgetOutlines() in both the no-scene early-return path and at the end of the normal path.",
-      "Added getDrawnSceneWidgets and the private recursive getDrawnSceneWidgetsInternal after addSceneEffects, using inout list parameters as MutableList arguments like the existing addSceneEffects translation.",
-      "Scene deduplication keeps the Swift identity-based contains() on the class SettingsScene, which Kotlin reference equality provides.",
-      "Widget de-duplication uses drawnWidgets.none { it.widget.id == widget.id } to mirror the Swift contains(where:) check."
+      "Added sceneUpdatedThrottled/throttledSceneUpdate using mainScope.launch + delay(33) in place of DispatchQueue.main.asyncAfter; they mutate Model's existing sceneUpdateThrottled/throttledSceneUpdatePending flags.",
+      "getDrawnSceneWidgets gained an includeDisabled parameter with default false, forwarded to the internal walker.",
+      "getDrawnSceneWidgetsInternal takes includeDisabled with a default and keeps Swift's enabled-or-(includeDisabled and not a scene) guard as a negated Kotlin condition.",
+      "The recursive call for the remote scene keeps the default (false) exactly like Swift.",
+      "No platform API changes were needed; everything else is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 99639,
-    "tokens_out": 18948,
-    "seconds": 54.9,
-    "ported_at": "2026-10-29T23:40:47+00:00"
+    "tokens_in": 100187,
+    "tokens_out": 19038,
+    "seconds": 52.8,
+    "ported_at": "2026-10-31T22:54:08+00:00"
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",
@@ -15800,23 +15787,23 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "d681bb032085f633f70d76b4e32792bd99d73582c28e52b200ca492e65c92d8e",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "ecc9a0e1c1589aad07b37c32dbc13aa9c52f798d5a2a62cd5aa7e43f56ad7296",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Only SettingsMoblinCloud changed: the songRequests setting is gone from Swift, so its Kotlin constructor parameter, published property, encode entry and decode line were removed.",
-      "No other declaration, import or formatting line was touched.",
-      "Everything else in the file is byte-identical to the previous translation, including hand-written Android hooks such as upperCaseMicIds, Cameras.backCameraSwitchOverZoomFactors and the ZIP export/import logic."
+      "Adds the new sceneEditor quick button between widgets and localOverlays in addMissingQuickButtonsPageOne, matching the Swift diff.",
+      "All other lines are byte-identical to the existing Kotlin port.",
+      "Uses SettingsQuickButtonType.sceneEditor, which already exists in the ported enum."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 116017,
-    "tokens_out": 27906,
-    "seconds": 73.1,
-    "ported_at": "2026-10-23T22:43:03+00:00"
+    "tokens_in": 115891,
+    "tokens_out": 27702,
+    "seconds": 76.1,
+    "ported_at": "2026-10-31T22:54:28+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -15971,25 +15958,23 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "eab153a968effd70a51b4397086355c01147cfac985674ea7f489c44160fe4c6",
-    "moblin_commit": "8e31a3d866e03afd4efe38e2a8bd2733cd08e42f",
+    "sha256": "e8f5d004fca5b414a7cd0fdd45102a4e66f0204e732394e3a70b4f405d086029",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "Only SettingsWidgetWheelOfLuckOption changed: added published function/functionData plus their coding keys, encode and decode entries.",
-      "Swift's CodingKeys sceneId/widgetId/gimbalPresetId/gimbalMotion/macroId/streamDeckLayoutId are encoded as flat keys taken from functionData, exactly as on iOS.",
-      "functionData is a settings struct (data class with val fields), so decode builds one copy with all six decoded values instead of mutating it field by field.",
-      "SettingsControllerFunction.UNUSED and SettingsGimbalMotion.KAPOW are the Kotlin counterparts of .unused and .kapow.",
-      "Everything else in the file is unchanged and byte-identical, including the hand-written Android decoding helpers and platform calls."
+      "Adds SettingsAlignment.isHorizontalOrVerticalCenter() returning isHorizontalCenter() || isVerticalCenter(), inserted directly after isVerticalCenter() to keep Swift declaration order.",
+      "No other Swift lines changed, so every other Kotlin line is byte-identical to the previous translation.",
+      "All hand-written Android deviations (RgbColor.color() helper, decodeSynthesized helpers, @Serializable(with=...) container pattern, Published delegates, MainTimer, AVCaptureDevice.withUniqueID, defaultScoreboardSize) are preserved."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 141803,
-    "tokens_out": 47324,
-    "seconds": 116.6,
-    "ported_at": "2026-10-20T22:46:26+00:00"
+    "tokens_in": 141761,
+    "tokens_out": 44589,
+    "seconds": 118.6,
+    "ported_at": "2026-10-31T22:55:15+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",
@@ -16060,24 +16045,25 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "dc26e6314627db8a9ef0f4be808bc3052170d82b309926c6eadbce286d4d0b48",
-    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
+    "sha256": "1b53d816b9987b01970a5915abff419d42794cfb2bebbbcfa37d4da760e6237e",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Only the diff hunk was applied: two new Model properties after snapshotJobs.",
-      "discordSnapshotUploads is an ArrayDeque (Swift Deque) of DiscordSnapshotUpload, which lives in the same Kotlin package so no import is added.",
-      "isUploadingSnapshotToDiscord is a plain Boolean property, not a state flow, matching the Swift stored var that is not @Published.",
-      "All other lines stay byte-identical to the previous Kotlin translation, including the Android-only hooks."
+      "WidgetOutline gains an `enabled` field, added as the last constructor parameter so existing positional copies keep compiling.",
+      "New `SceneEditor` class is an ObservableObject with a single `sceneId: UUID?` published property, translated to a MutableStateFlow.",
+      "Model gains `presentingSceneEditor`, `sceneEditorWidgetOutlines`, `sceneEditor`, `sceneUpdateThrottled` and `throttledSceneUpdatePending` in the positions the Swift source declares them.",
+      "`attachCameraFinalize` now uses `shouldShowCameraPreview()` instead of the locally computed `showCameraPreview`, matching the new Swift line.",
+      "Everything else in the file is untouched, including the hand-written Android hooks."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 146842,
-    "tokens_out": 34159,
-    "seconds": 98.4,
-    "ported_at": "2026-10-30T23:20:26+00:00"
+    "tokens_in": 147308,
+    "tokens_out": 35055,
+    "seconds": 95.6,
+    "ported_at": "2026-10-31T22:54:56+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16696,27 +16682,23 @@
   },
   "Moblin/View/Settings/Streams/Stream/Replay/StreamReplaySettingsView.swift": {
     "status": "ok",
-    "sha256": "05d7f2b043e238322681a28afd775b5e40650e2feb8d174e88057e10cdbb4c0b",
+    "sha256": "9465d37f7b2473dafbeaf405dc95989486b1b132954f402b3647d9a115ff2ffd",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
     "notes": [
-      "SwiftUI views became Jetpack Compose composables; every @Binding turned into a value plus onValueChange pair following the Compose convention.",
-      "The private VideoPickerView no longer uses UIDocumentPickerViewController; it launches ActivityResultContracts.OpenDocument, copies the chosen file into context.filesDir and hands the resulting file URI to model.onDocumentPickerUrl, which is how the Swift delegate design exposed the picked URL.",
-      "CMVideoDimensions became android.util.Size returned by SettingsStreamResolution.dimensions(portrait:).",
-      "The Swift alignment enum used by replay.layout.alignment is assumed to be WidgetLayoutAlignment in com.moblin.android.various.model; isHorizontalCenter/isVerticalCenter/mirrorPositionHorizontally/mirrorPositionVertically are called as members.",
-      "SettingsStreamReplay.layout is mutated in place, so recomposition depends on the settings observable object; the pair callbacks only exist where a whole layout object is swapped.",
-      "SwiftUI .onChange(of: replay.layout) became LaunchedEffect keyed on alignment, x, y and size.",
-      "LocalizedStringKey parameters stay plain String keys and are resolved with localized(); the ffmpeg Help text and enum toString() values are rendered verbatim as in SwiftUI.",
-      "The Swift Section/Form/Picker/NavigationLink/NavigationView chrome was rebuilt with Column, Material3 DropdownMenu/DropdownMenuItem, Switch and a local showDetail flag."
+      "Replaced the 3x3 AlignmentOptionView grid with the single AlignmentPickerView call from the widget settings package.",
+      "Swapped the AlignmentOptionView import for AlignmentPickerView; the Arrangement import is now unused but left in place to keep untouched lines byte-identical.",
+      "layout is still the binding(replay.layout) MutableState handed to both SaveLoadLayoutView and AlignmentPickerView."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8514,
-    "tokens_out": 25289,
-    "seconds": 90.8,
-    "ported_at": "2026-09-22T14:14:17+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 57031,
+    "tokens_out": 3927,
+    "seconds": 14.0,
+    "ported_at": "2026-10-31T22:53:40+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VideoSource/WidgetVideoSourceSettingsView.swift": {
     "status": "ok",
@@ -16878,23 +16860,24 @@
   },
   "Moblin/View/Settings/Scenes/ScenesSettingsView.swift": {
     "status": "ok",
-    "sha256": "cbd6caadd58ad5eac12104dadb55797ad6d60a6443b3eec5978e48ef991b34e6",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+    "sha256": "690131e541c7cab5adcb15ecc4f0836113a7fef8167e8a3c04bdf75cb18eea48",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/ScenesSettingsView.kt",
     "notes": [
-      "ScenesSettingsView already takes model as a defaulted parameter (standing in for the new `let model: Model` stored property), so only the onAppear behaviour was added.",
-      "`.onAppear { model.showWidgetOutlines() }` became a LaunchedEffect(Unit) at the start of the Form content, so it runs once when the Scenes screen appears.",
-      "Added the LaunchedEffect import and the showWidgetOutlines Model extension import; every other line is unchanged."
+      "Added the new OpenSceneEditorButtonView composable before SceneNameView, matching the Swift declaration order.",
+      "It uses TextButtonView from com.moblin.android.view.utils inside a Section, as the Swift does.",
+      "ScenesSettingsView now places OpenSceneEditorButtonView right after ScenesListView.",
+      "presentingSceneEditor is a model StateFlow property, set through .value like the other model flags."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59171,
-    "tokens_out": 3321,
-    "seconds": 12.6,
-    "ported_at": "2026-10-29T23:40:26+00:00"
+    "tokens_in": 59540,
+    "tokens_out": 3976,
+    "seconds": 14.7,
+    "ported_at": "2026-10-31T22:53:51+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardPadelSettingsView.swift": {
     "status": "ok",
@@ -17360,22 +17343,23 @@
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift": {
     "status": "ok",
-    "sha256": "197b72e5ea2a605ce9c663932d12e2a3cc3dc3a742825a782afd39066ae0a702",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+    "sha256": "bfbd45d9a1cdf03fff61ea35fd417c87c26e056731709697f5f4f6ad2a3e2262",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonSceneWidgetsView.kt",
     "notes": [
-      "Only the ScenesShortcutView call changed: the model is now passed explicitly, alongside the database.",
-      "No imports changed; Model was already imported for the WidgetView and QuickButtonSceneWidgetsView declarations."
+      "Added the OpenSceneEditorButtonView(model = model) call between the widgets Section and the ShortcutSectionView, matching the new Swift source.",
+      "Imported OpenSceneEditorButtonView from com.moblin.android.view.settings.scenes.",
+      "Everything else is unchanged from the previous Kotlin translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51653,
-    "tokens_out": 1072,
-    "seconds": 4.9,
-    "ported_at": "2026-10-29T23:40:17+00:00"
+    "tokens_in": 51780,
+    "tokens_out": 1326,
+    "seconds": 5.6,
+    "ported_at": "2026-10-31T22:53:46+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupSettingsView.swift": {
     "status": "ok",
@@ -17567,28 +17551,25 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift": {
     "status": "ok",
-    "sha256": "5b5432e757ca3117a340fdd56ee5f7ec10527e713028cadbfc02d2225b47479a",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
-    "mode": "full",
+    "sha256": "db8713947caeceb0f3a2cd34da4c1472c56686c41b0dacebcf3a918f2ef324b9",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetSettingsView.kt",
     "notes": [
-      "Every Swift struct View became a top-level @Composable function with the same name; @Binding became MutableState<T>, @ObservedObject and plain let became normal parameters with LocalModel.current default for model.",
-      "@Binding var layout writes into SettingsWidgetLayout, an immutable settings data class, so each field write became layout.value = layout.value.copy(x = ...) or .updatingXString()/.updatingYString().",
-      "The private methods of WidgetLayoutView (dimensions, horizontalIncrement, verticalIncrement, setXBasedOnYIfLocked, setYBasedOnXIfLocked, generalAndAlignmentPicker, horizontalAndVerticalPositioning, horizontalPositioning, verticalPositioning) are file-private top-level declarations taking model/layout/numericInput, because Kotlin has no composable local functions.",
-      ".onChange(of: layout.alignment) is a LaunchedEffect keyed on the alignment; it also fires once on first composition, unlike SwiftUI's onChange.",
-      ".buttonStyle(.borderless/.bordered), .lineLimit and .minimumScaleFactor have no Compose counterpart and were dropped; .font(.title) on SF Symbols is fontSize = 28.sp.",
-      "PositionEditView and SizeEditView have no Modifier parameter in the port, so .padding(.bottom, 10) on the first position editor is applied through a wrapping Box.",
-      "WidgetMapSettingsView names its delay/size parameters initialDelay/initialSize in the Kotlin port, so widget.map.delay and widget.map.size are passed to those.",
-      "Button, Toggle, Form, Section and Divider come from com.moblin.android.platform.swiftui and Text from Material 3."
+      "AlignmentOptionView now clears positioningLock when a horizontal or vertical center alignment is chosen, mirrored with a second struct copy.",
+      "The alignment grid moved into a new AlignmentPickerView composable; generalAndAlignmentPicker now calls it and keeps the onChange as a LaunchedEffect on layout.alignment.",
+      "Position and size submit callbacks now call model.sceneUpdatedThrottled() instead of model.sceneUpdated(); the alignment change observer still calls sceneUpdated().",
+      "Existing Android-only helpers (dimensions/horizontalIncrement/verticalIncrement top-level functions, mutable-state bindings, LocalModel defaults) are untouched.",
+      "isHorizontalOrVerticalCenter() is called as a member of SettingsAlignment, matching the existing isHorizontalCenter()/isVerticalCenter() calls."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54759,
-    "tokens_out": 25882,
-    "seconds": 88.6,
-    "ported_at": "2026-09-29T23:59:52+00:00"
+    "tokens_in": 60477,
+    "tokens_out": 4786,
+    "seconds": 16.0,
+    "ported_at": "2026-10-31T22:53:45+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardTwitchSettingsView.swift": {
     "status": "ok",
@@ -17662,24 +17643,25 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "5a0e7e8305cd8aca9b9f66165af2668c3963a27f3e2fa0578c4229d8e3cb6978",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+    "sha256": "fa19b7f368cb4039cdd6652c5df275d530db0b2c234b2011f84a50099d63e97f",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "Only the Swift diff is applied: WidgetOutlinesView is inserted after browserWidgets inside streamViewWithWidgets, taking the stream layout size.",
-      "WidgetOutlinesView is imported from com.moblin.android.view.stream, its package per the glossary.",
-      "All surrounding hand-written Android code (safe-area insets, StreamViewLayout metrics, opacity/hit-testing helper) is left byte-identical.",
-      "The size passed is the Compose Size of StreamViewLayout, matching how browserWidgets already receives it."
+      "Adds a full-screen SceneEditor cover driven by model.presentingSceneEditor, dismissed through onDismissRequest which clears the flag and calls model.sceneEditorPresentationChanged().",
+      "The cover is placed right after the predefined-messages sheet and before the settings-import confirmation dialog, matching the Swift modifier order.",
+      "environmentObject(model) has no Compose counterpart: the model is already passed explicitly to SceneEditorView.",
+      "Swift's onDismiss runs after the cover closes; here the dismiss handler clears the state and then calls sceneEditorPresentationChanged so the callback still fires exactly once.",
+      "Required the FullScreenCover and SceneEditorView imports; nothing else in the file changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 77396,
-    "tokens_out": 11891,
-    "seconds": 36.6,
-    "ported_at": "2026-10-29T23:40:55+00:00"
+    "tokens_in": 77900,
+    "tokens_out": 13284,
+    "seconds": 41.3,
+    "ported_at": "2026-10-31T22:54:30+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",
@@ -18270,52 +18252,97 @@
   },
   "Moblin/Various/Model/ModelWidgetOutlines.swift": {
     "status": "ok",
-    "sha256": "a3bc26e81eeb74e625fabb895d014a25b05242b5bf06c9454c51bbf6e4b557b3",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
-    "mode": "full",
+    "sha256": "09579a6c03f835939c5e2b2a00b14226e1aace2a1a048f8c92eb044dc319d821",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWidgetOutlines.kt",
     "notes": [
-      "WidgetOutlines.enabled/outlines/canvasSize are assumed to be MutableStateFlow properties on the already-ported WidgetOutlines class (ObservableObject rule), so they are read and written through .value; imageSizes is assumed to be a MutableMap<UUID, CGSize>.",
-      "CGSize and CGRect are plain Kotlin classes in the platform layer with reference equality, so the canvas-size check and widgetOutlinesEqual compare origin.x/y and size.width/height field by field.",
-      "ImageIO (CGImageSourceCreateWithURL / CGImageSourceCopyPropertiesAtIndex) is replaced by BitmapFactory with inJustDecodeBounds for the pixel size plus android.media.ExifInterface for the EXIF orientation, using the same orientation >= 5 swap as the Swift code.",
-      "Model.showingPanel is a MutableStateFlow<ShowingPanel>, compared through .value with the ShowingPanel.settings enum entry.",
-      "imageStorage.makePath(id:) is assumed to return a String path, so readImageSize takes a String; if the port keeps a URL type this signature must follow it.",
-      "hasPosition() on SettingsWidget is resolved with a star import of com.moblin.android.various.settings so it works whether it is a member or a top-level extension there.",
-      "widget.pomodoroTimer.width, widget.browser.width/height and widget.chat.fontSize/height are converted with toDouble() so the Kotlin translation compiles for Int, Float or Double declarations.",
-      "No private helper in this file collides with another file's private helper names."
+      "Applied the diff: setWidgetOutlinesEnabled now takes a WidgetOutlines receiver argument so it can serve both widgetOutlines and sceneEditorWidgetOutlines.",
+      "updateWidgetOutlines is now an overload pair: the public no-arg entry point plus a private three-argument helper (widgetOutlines, scene, includeDisabled).",
+      "getDrawnSceneWidgets is called with the new includeDisabled named parameter; WidgetOutline gained an enabled field taken from widget.enabled.",
+      "widgetOutlineSize and widgetImageSize take the target WidgetOutlines so image-size caching is per outline set.",
+      "imageWidgetUpdated clears the cached image size in both outline sets.",
+      "widgetOutlinesEqual compares the new enabled flag as well.",
+      "readImageSize keeps the existing Android BitmapFactory/ExifInterface implementation unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41696,
-    "tokens_out": 12479,
-    "seconds": 58.1,
-    "ported_at": "2026-10-29T23:40:49+00:00"
+    "tokens_in": 44962,
+    "tokens_out": 4337,
+    "seconds": 17.8,
+    "ported_at": "2026-10-31T22:53:16+00:00"
   },
   "Moblin/View/Stream/WidgetOutlinesView.swift": {
     "status": "ok",
-    "sha256": "db327c31a2c31c2db33ba9da984313f34ce352e0399b1d481afaf19337850d1c",
-    "moblin_commit": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
-    "mode": "full",
+    "sha256": "dcbbb09371c7aff345647e3376ddd531c9eec5b3ecc607cdf8339cb852cad4fc",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
     "notes": [
-      "WidgetOutlineLabelView and WidgetOutlineView stay private top-level composables in this file, in the same order as the Swift structs.",
-      "WidgetOutlines.enabled/outlines/canvasSize and StreamOverlay.isFrontCameraSelected are collected as MutableStateFlow (the model ObservableObject convention); if any of them is a plain property in its Kotlin file, read it directly instead.",
-      "database.mirrorFrontCameraOnStream is a Published-backed settings property, so it is read directly without collectAsState.",
-      "The Swift alignmentGuide that lifts the outside label above or below the outline is reproduced by measuring the label with onSizeChanged and offsetting it by its height plus 4 dp.",
-      "The dashed rectangle (StrokeStyle dash [4, 4] when the widget is not in the scene) is drawn with drawBehind and PathEffect.dashPathEffect.",
-      "Rectangle, Circle and the label always render white, matching the inherited .foregroundStyle(.white) and the black 0.6 label background.",
-      "The positioned rects are computed in points and applied as dp offsets inside a canvas-sized Box, which stands in for SwiftUI's .position in the parent ZStack.",
-      "requiresHitTesting(false) is dropped because the outlines contain no pointer input."
+      "Added the top-level widgetOutlineViewRect(rect, canvasSize, mirror, size) function that the Swift diff extracted, placed before WidgetOutlineLabelView as in the source.",
+      "WidgetOutlineLabelView lost its private modifier to match the Swift struct becoming internal, so the composable is now public.",
+      "The new .foregroundStyle(.white) in the Swift label is already covered by the existing hand-written white Text colour and the default white SystemImage tint, so those lines stay untouched.",
+      "WidgetOutlineView now calls widgetOutlineViewRect instead of computing the rect inline; the rest of the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 48974,
-    "tokens_out": 17180,
-    "seconds": 85.3,
-    "ported_at": "2026-10-29T23:41:17+00:00"
+    "tokens_in": 51378,
+    "tokens_out": 2496,
+    "seconds": 10.0,
+    "ported_at": "2026-10-31T22:53:08+00:00"
+  },
+  "Moblin/Various/Model/ModelSceneEditor.swift": {
+    "status": "ok",
+    "sha256": "db8cebbca428cabdef5768b7d2b108f0627b41a691e9fcddd2df55ce3367c53b",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSceneEditor.kt",
+    "notes": [
+      "Swift's tuple parameter `centered: (horizontal:vertical:)` has no Kotlin equivalent, so it became the two Boolean parameters centeredHorizontal/centeredVertical; call sites must pass them in that order.",
+      "SettingsWidgetLayout is a val-only data class, so every layout write goes through copy(...) and the mutating updatingXString/updatingYString/updatingSizeString helpers are assigned back as the rules describe.",
+      "size.clamped(to: 1 ... 100) is written as size.coerceIn(1.0, 100.0), which has the same inclusive bounds.",
+      "scene.widgets.removeAll(where:) becomes removeAll { } and the draw-order swap is done with two indexed assignments on the published MutableList.",
+      "sceneSettingsPanelSceneId is a MutableStateFlow counter in Model, so it is bumped with .value += 1 to force recomposition of the scene settings panel.",
+      "presentingSceneEditor and sceneEditor.sceneId are read and written the same way as in Swift; sceneEditor stays a plain reference holder.",
+      "The two file-private Swift helpers became private top-level functions in com.moblin.android.various.model, keeping Swift's file scope.",
+      "The settings package is imported with a wildcard so the SettingsAlignment predicates (isLeft, isTop, isHorizontalCenter, ...) resolve whether they are enum members or package-level extensions."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 40260,
+    "tokens_out": 20338,
+    "seconds": 94.1,
+    "ported_at": "2026-10-31T22:54:33+00:00"
+  },
+  "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift": {
+    "status": "ok",
+    "sha256": "edd06bacae20225f45a19c031333adf8d71c08d1b91dc72b6d83ae1333ec1a07",
+    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorView.kt",
+    "notes": [
+      "Selection state is a small private class: sceneWidgetId keeps the Swift didSet, so setting it to null hides the settings panel; the canvas observes it through sceneWidgetIdFlow.",
+      "DragGesture/DragGesture.Value have no shim, so both gestures are pointerInput + detectDragGestures with the translation accumulated in points; handlers are wrapped in rememberUpdatedState so a long drag never reads stale state.",
+      "Widget outlines and snap guides are drawn in one Canvas; WidgetOutlineLabelView stays a composable placed with Modifier.offset like the Swift overlay.",
+      "Color.accentColor is replaced by formPalette().accent, and the trash button's .foregroundStyle(.red) by CompositionLocalProvider(LocalTint provides formPalette().red).",
+      "popover(isPresented:) becomes Sheet(isPresented, onDismissRequest); presentationCompactAdaptation(.none) is dropped.",
+      "navigationBarTitleDisplayMode(.inline) has no counterpart and is dropped; the settings sheet is still wrapped in NavigationStack with a NavigationToolbar xmark button.",
+      "The Swift @ViewBuilder helpers videoArea/settingsPanel/widgetButtons become private top-level composables (videoArea, settingsPanel) plus inline content, because Kotlin composables cannot be members of a view function.",
+      "model.sceneEditorMoveWidget receives the Swift tuple (snapX.centered, snapY.centered) as a Kotlin Pair<Boolean, Boolean>."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 56749,
+    "tokens_out": 47921,
+    "seconds": 185.5,
+    "ported_at": "2026-10-31T22:56:52+00:00"
   }
 }

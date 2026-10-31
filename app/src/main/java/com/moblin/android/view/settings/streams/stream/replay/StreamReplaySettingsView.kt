@@ -51,7 +51,7 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamReplay
 import com.moblin.android.various.settings.SettingsStreamReplayStinger
 import com.moblin.android.various.settings.SettingsStreamReplayTransitionType
-import com.moblin.android.view.settings.scenes.widgets.widget.AlignmentOptionView
+import com.moblin.android.view.settings.scenes.widgets.widget.AlignmentPickerView
 import com.moblin.android.view.settings.scenes.widgets.widget.SaveLoadLayoutView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.CloseToolbar
@@ -223,59 +223,7 @@ private fun LayoutView(
                     .width(1.dp)
                     .background(formPalette().separator),
             )
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(3.dp),
-                ) {
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.topLeft,
-                    )
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.topCenter,
-                    )
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.topRight,
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(3.dp),
-                ) {
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.leftCenter,
-                    )
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.center,
-                    )
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.rightCenter,
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(3.dp),
-                ) {
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.bottomLeft,
-                    )
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.bottomCenter,
-                    )
-                    AlignmentOptionView(
-                        layout = layout,
-                        alignment = SettingsAlignment.bottomRight,
-                    )
-                }
-            }
+            AlignmentPickerView(layout = layout)
         }
     }
 

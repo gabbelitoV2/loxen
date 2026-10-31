@@ -50,6 +50,7 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateOrDeleteHelpView
+import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
 import com.moblin.android.various.model.getSelectedScene
 import com.moblin.android.various.model.remoteSceneSettingsUpdated
@@ -302,6 +303,15 @@ private fun GraphicsDetail(
 }
 
 @Composable
+fun OpenSceneEditorButtonView(model: Model = LocalModel.current) {
+    Section {
+        TextButtonView("Scene editor") {
+            model.presentingSceneEditor.value = true
+        }
+    }
+}
+
+@Composable
 fun SceneNameView(scene: SettingsScene) {
     Text(scene.name)
 }
@@ -317,6 +327,7 @@ fun ScenesSettingsView(
             model.showWidgetOutlines()
         }
         ScenesListView(model = model, database = database, onNavigate = onNavigate)
+        OpenSceneEditorButtonView(model = model)
         WidgetsSettingsView(database = database)
         if (database.showAllSettings) {
             SceneSwitching(

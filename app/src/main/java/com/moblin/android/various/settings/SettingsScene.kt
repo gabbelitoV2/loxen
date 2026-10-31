@@ -757,6 +757,8 @@ enum class SettingsAlignment(val rawValue: String) {
 
     fun isVerticalCenter(): Boolean = this == leftCenter || this == rightCenter || this == center
 
+    fun isHorizontalOrVerticalCenter(): Boolean = isHorizontalCenter() || isVerticalCenter()
+
     fun isTop(): Boolean = this == topLeft || this == topRight || this == topCenter
 
     fun mirrorPositionHorizontally(): Boolean =

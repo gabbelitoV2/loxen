@@ -342,6 +342,28 @@ fun Model.toggleWidgetOnOff(id: UUID) {
     sceneUpdated()
 }
 
+fun Model.sceneUpdatedThrottled() {
+    if (sceneUpdateThrottled) {
+        throttledSceneUpdatePending = true
+    } else {
+        throttledSceneUpdate()
+    }
+}
+
+private fun Model.throttledSceneUpdate() {
+    sceneUpdateThrottled = true
+    throttledSceneUpdatePending = false
+    sceneUpdated()
+    mainScope.launch {
+        delay(33)
+        if (throttledSceneUpdatePending) {
+            throttledSceneUpdate()
+        } else {
+            sceneUpdateThrottled = false
+        }
+    }
+}
+
 fun Model.sceneUpdated(attachCamera: Boolean = false, updateRemoteScene: Boolean = true) {
     val scene = getSelectedScene()
     if (scene == null) {
@@ -1372,10 +1394,10 @@ private fun Model.addSceneEffects(
     }
 }
 
-fun Model.getDrawnSceneWidgets(scene: SettingsScene): List<DrawnSceneWidget> {
+fun Model.getDrawnSceneWidgets(scene: SettingsScene, includeDisabled: Boolean = false): List<DrawnSceneWidget> {
     val drawnWidgets = mutableListOf<DrawnSceneWidget>()
     val addedScenes = mutableListOf<SettingsScene>()
-    getDrawnSceneWidgetsInternal(scene, drawnWidgets, addedScenes)
+    getDrawnSceneWidgetsInternal(scene, drawnWidgets, addedScenes, includeDisabled)
     val remoteSceneWidget = remoteSceneWidgets.firstOrNull()
     if (remoteSceneWidget != null) {
         val remoteScene = getLocalAndRemoteScenes()
@@ -1390,7 +1412,8 @@ fun Model.getDrawnSceneWidgets(scene: SettingsScene): List<DrawnSceneWidget> {
 private fun Model.getDrawnSceneWidgetsInternal(
     scene: SettingsScene,
     drawnWidgets: MutableList<DrawnSceneWidget>,
-    addedScenes: MutableList<SettingsScene>
+    addedScenes: MutableList<SettingsScene>,
+    includeDisabled: Boolean = false
 ) {
     if (addedScenes.contains(scene)) {
         return
@@ -1398,7 +1421,7 @@ private fun Model.getDrawnSceneWidgetsInternal(
     addedScenes.add(scene)
     for (sceneWidget in scene.widgets) {
         val widget = findWidget(id = sceneWidget.widgetId) ?: continue
-        if (!widget.enabled) {
+        if (!widget.enabled && !(includeDisabled && widget.type != SettingsWidgetType.scene)) {
             continue
         }
         if (widget.type == SettingsWidgetType.scene) {

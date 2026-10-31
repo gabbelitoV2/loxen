@@ -13,6 +13,7 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
+import com.moblin.android.view.settings.scenes.OpenSceneEditorButtonView
 import com.moblin.android.view.settings.scenes.scene.SceneWidgetSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.bingocard.WidgetBingoCardQuickButtonControlsView
 import com.moblin.android.view.settings.scenes.widgets.widget.pomodorotimer.WidgetPomodoroTimerQuickButtonControlsView
@@ -106,6 +107,7 @@ fun QuickButtonSceneWidgetsView(
                 )
             }
         }
+        OpenSceneEditorButtonView(model = model)
         ShortcutSectionView {
             ScenesShortcutView(model = model, database = model.database)
         }

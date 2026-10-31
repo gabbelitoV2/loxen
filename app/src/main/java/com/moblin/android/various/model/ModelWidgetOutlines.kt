@@ -15,20 +15,25 @@ fun Model.showWidgetOutlines() {
     if (showingPanel.value != ShowingPanel.settings) {
         return
     }
-    setWidgetOutlinesEnabled(true)
+    setWidgetOutlinesEnabled(widgetOutlines, true)
 }
 
 fun Model.hideWidgetOutlines() {
-    setWidgetOutlinesEnabled(false)
+    setWidgetOutlinesEnabled(widgetOutlines, false)
 }
 
 fun Model.updateWidgetOutlinesForShowingPanel() {
     setWidgetOutlinesEnabled(
+        widgetOutlines,
         listOf(ShowingPanel.sceneWidgets, ShowingPanel.sceneSettings).contains(showingPanel.value),
     )
 }
 
-private fun Model.setWidgetOutlinesEnabled(enabled: Boolean) {
+fun Model.setSceneEditorWidgetOutlinesEnabled(enabled: Boolean) {
+    setWidgetOutlinesEnabled(sceneEditorWidgetOutlines, enabled)
+}
+
+private fun Model.setWidgetOutlinesEnabled(widgetOutlines: WidgetOutlines, enabled: Boolean) {
     if (enabled == widgetOutlines.enabled.value) {
         return
     }
@@ -42,10 +47,19 @@ private fun Model.setWidgetOutlinesEnabled(enabled: Boolean) {
 }
 
 fun Model.updateWidgetOutlines() {
-    if (!widgetOutlines.enabled.value) {
-        return
+    if (widgetOutlines.enabled.value) {
+        updateWidgetOutlines(widgetOutlines, getSelectedScene(), false)
     }
-    val scene = getSelectedScene()
+    if (sceneEditorWidgetOutlines.enabled.value) {
+        updateWidgetOutlines(sceneEditorWidgetOutlines, sceneEditorScene(), true)
+    }
+}
+
+private fun Model.updateWidgetOutlines(
+    widgetOutlines: WidgetOutlines,
+    scene: SettingsScene?,
+    includeDisabled: Boolean,
+) {
     if (scene == null) {
         widgetOutlines.outlines.value = emptyList()
         return
@@ -57,13 +71,13 @@ fun Model.updateWidgetOutlines() {
         widgetOutlines.canvasSize.value = canvasSize
     }
     val outlines = mutableListOf<WidgetOutline>()
-    for (drawnWidget in getDrawnSceneWidgets(scene = scene)) {
+    for (drawnWidget in getDrawnSceneWidgets(scene = scene, includeDisabled = includeDisabled)) {
         val widget = drawnWidget.widget
         if (!widget.hasPosition()) {
             continue
         }
         val layout = drawnWidget.sceneWidget.layout
-        val size = widgetOutlineSize(widget = widget, layout = layout, canvasSize = canvasSize)
+        val size = widgetOutlineSize(widgetOutlines, widget, layout, canvasSize)
         val outlineSize = size ?: CGSize.zero
         outlines.add(
             WidgetOutline(
@@ -75,6 +89,7 @@ fun Model.updateWidgetOutlines() {
                 ),
                 sized = size != null,
                 inScene = drawnWidget.scene === scene,
+                enabled = widget.enabled,
             ),
         )
     }
@@ -84,6 +99,7 @@ fun Model.updateWidgetOutlines() {
 }
 
 private fun Model.widgetOutlineSize(
+    widgetOutlines: WidgetOutlines,
     widget: SettingsWidget,
     layout: SettingsWidgetLayout,
     canvasSize: CGSize,
@@ -105,7 +121,7 @@ private fun Model.widgetOutlineSize(
             canvasSize,
         ) ?: box
         SettingsWidgetType.image -> {
-            val imageSize = widgetImageSize(widget = widget)
+            val imageSize = widgetImageSize(widgetOutlines, widget)
             if (imageSize == null) {
                 box
             } else {
@@ -155,10 +171,11 @@ private fun Model.fitInLayout(
 
 fun Model.imageWidgetUpdated(id: UUID) {
     widgetOutlines.imageSizes.remove(id)
+    sceneEditorWidgetOutlines.imageSizes.remove(id)
     updateWidgetOutlines()
 }
 
-private fun Model.widgetImageSize(widget: SettingsWidget): CGSize? {
+private fun Model.widgetImageSize(widgetOutlines: WidgetOutlines, widget: SettingsWidget): CGSize? {
     val cached = widgetOutlines.imageSizes[widget.id]
     if (cached != null) {
         return cached
@@ -202,6 +219,7 @@ private fun widgetOutlinesEqual(first: List<WidgetOutline>, second: List<WidgetO
             a.rect.size.width == b.rect.size.width &&
             a.rect.size.height == b.rect.size.height &&
             a.sized == b.sized &&
-            a.inScene == b.inScene
+            a.inScene == b.inScene &&
+            a.enabled == b.enabled
     }
 }

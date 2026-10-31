@@ -57,6 +57,7 @@ fun Model.isQuickButtonAllowed(type: SettingsQuickButtonType): Boolean {
         SettingsQuickButtonType.videoPreview -> false
         SettingsQuickButtonType.previewStream -> false
         SettingsQuickButtonType.photoShoot -> false
+        SettingsQuickButtonType.sceneEditor -> false
         else -> true
     }
 }

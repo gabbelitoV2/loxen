@@ -97,6 +97,7 @@ import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coregraphics.toCGSize
 import com.moblin.android.platform.swiftui.ButtonRole
 import com.moblin.android.platform.swiftui.ConfirmationDialog
+import com.moblin.android.platform.swiftui.FullScreenCover
 import com.moblin.android.platform.swiftui.Menu
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Sheet
@@ -119,6 +120,7 @@ import com.moblin.android.various.model.Toast
 import com.moblin.android.various.model.changeZoomX
 import com.moblin.android.various.model.commitZoomX
 import com.moblin.android.various.model.navigation
+import com.moblin.android.various.model.sceneEditorPresentationChanged
 import com.moblin.android.various.model.setAutoFocus
 import com.moblin.android.various.model.setFocusPointOfInterest
 import com.moblin.android.various.model.setPhotoShootInterval
@@ -147,6 +149,7 @@ import com.moblin.android.view.controlbar.quickbutton.QuickButtonStreamSwitcherV
 import com.moblin.android.view.controlbar.quickbutton.chat.PredefinedMessagesView
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatModerationView
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatView
+import com.moblin.android.view.controlbar.quickbutton.sceneeditor.SceneEditorView
 import com.moblin.android.view.controlbar.remotecontrolassistant.ControlBarRemoteControlAssistantView
 import com.moblin.android.view.main.KeyPressView
 import com.moblin.android.view.main.LockScreenView
@@ -759,6 +762,7 @@ fun MainView(
     val showTwitchAuth by model.showTwitchAuth.collectAsState()
     val presentingModeration by model.presentingModeration.collectAsState()
     val presentingPredefinedMessages by model.presentingPredefinedMessages.collectAsState()
+    val presentingSceneEditor by model.presentingSceneEditor.collectAsState()
     val presentingSettingsImportConfirmation by model.presentingSettingsImportConfirmation.collectAsState()
     val presentingStreamImportCollisionConfirmation by model.presentingStreamImportCollisionConfirmation
         .collectAsState()
@@ -854,6 +858,22 @@ fun MainView(
             onPresentingPredefinedMessagesChange = { model.presentingPredefinedMessages.value = it },
             messageToSend = messageToSend,
             onMessageToSendChange = { messageToSend = it }
+        )
+    }
+    FullScreenCover(
+        isPresented = presentingSceneEditor,
+        onDismissRequest = {
+            model.presentingSceneEditor.value = false
+            model.sceneEditorPresentationChanged()
+        }
+    ) {
+        SceneEditorView(
+            model = model,
+            database = model.database,
+            sceneSelector = model.sceneSelector,
+            widgetOutlines = model.sceneEditorWidgetOutlines,
+            streamOverlay = model.streamOverlay,
+            sceneEditor = model.sceneEditor
         )
     }
     ConfirmationDialog(

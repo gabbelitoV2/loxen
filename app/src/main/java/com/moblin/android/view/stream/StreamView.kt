@@ -31,10 +31,14 @@ class SharedUiViewContainerView(
     context: Context,
     private val sharedView: View,
 ) : FrameLayout(context) {
+    private var previousOwner: SharedUiViewContainerView? = null
+    var canAttach: () -> Boolean = { true }
+
     fun attachSharedView() {
-        if (!isAttachedToWindow || sharedView.parent === this) {
+        if (!isAttachedToWindow || sharedView.parent === this || !canAttach()) {
             return
         }
+        previousOwner = sharedView.parent as? SharedUiViewContainerView
         (sharedView.parent as? ViewGroup)?.removeView(sharedView)
         addView(
             sharedView,
@@ -45,6 +49,13 @@ class SharedUiViewContainerView(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         attachSharedView()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        if (sharedView.parent === this) {
+            previousOwner?.attachSharedView()
+        }
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -58,11 +69,15 @@ class SharedUiViewContainerView(
     }
 }
 
-class StreamPreviewView(private val model: Model) {
+class StreamPreviewView(private val model: Model, var sceneEditor: Boolean = false) {
     @Composable
     fun body() {
         AndroidView(
-            factory = { context -> SharedUiViewContainerView(context, model.streamPreviewView) },
+            factory = { context ->
+                SharedUiViewContainerView(context, model.streamPreviewView).also { view ->
+                    view.canAttach = { model.presentingSceneEditor.value == sceneEditor }
+                }
+            },
             modifier = Modifier.fillMaxSize(),
             update = { it.attachSharedView() },
         )

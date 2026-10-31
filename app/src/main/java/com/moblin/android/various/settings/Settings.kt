@@ -2321,6 +2321,13 @@ private fun addMissingQuickButtonsPageOne(database: Database) {
     )
     updateQuickButton(database, button)
     button = SettingsQuickButton(
+        type = SettingsQuickButtonType.sceneEditor,
+        imageOn = "rectangle.3.group.fill",
+        imageOff = "rectangle.3.group",
+        page = page,
+    )
+    updateQuickButton(database, button)
+    button = SettingsQuickButton(
         type = SettingsQuickButtonType.localOverlays,
         imageOn = "square.stack.3d.up.slash.fill",
         imageOff = "square.stack.3d.up.slash",

@@ -569,7 +569,7 @@ fun Model.updateLutsButtonState() {
 }
 
 fun Model.updateShowCameraPreview(): Boolean {
-    val show = shouldShowCameraPreview()
+    val show = shouldShowCameraPreview() && !presentingSceneEditor.value
     if (show != this.show.cameraPreview.value) {
         this.show.cameraPreview.value = show
     }
@@ -584,7 +584,7 @@ fun Model.toggleCameraPreview() {
     }
 }
 
-private fun Model.shouldShowCameraPreview(): Boolean {
+fun Model.shouldShowCameraPreview(): Boolean {
     val isOn: Boolean = getQuickButton(SettingsQuickButtonType.cameraPreview)?.isOn?.value ?: false
     if (!isOn) {
         return false

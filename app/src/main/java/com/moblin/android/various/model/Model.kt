@@ -421,9 +421,14 @@ data class WidgetOutline(
     val rect: com.moblin.android.platform.coregraphics.CGRect,
     val sized: Boolean,
     val inScene: Boolean,
+    val enabled: Boolean,
 ) {
     val id: UUID
         get() = sceneWidget.id
+}
+
+class SceneEditor {
+    val sceneId = MutableStateFlow<UUID?>(null)
 }
 
 class WidgetOutlines {
@@ -546,6 +551,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val showModerationAuth = MutableStateFlow(false)
     val presentingModeration = MutableStateFlow(false)
     val presentingPredefinedMessages = MutableStateFlow(false)
+    val presentingSceneEditor = MutableStateFlow(false)
     val presentingSettingsImportConfirmation = MutableStateFlow(false)
     var pendingSettingsImportAction: (() -> Unit)? = null
     val presentingStreamImportCollisionConfirmation = MutableStateFlow(false)
@@ -602,6 +608,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val show = Show()
     val streamOverlay = StreamOverlay()
     val widgetOutlines = WidgetOutlines()
+    val sceneEditorWidgetOutlines = WidgetOutlines()
+    val sceneEditor = SceneEditor()
     val sceneSelector = SceneSelector()
     val toast = Toast()
     val statusOther = StatusOther()
@@ -657,6 +665,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var youTubePlatformStatus: PlatformStatus = PlatformStatus.unknown
     var youTubeStreamUpdateTimePollDelta: Duration = Duration.ofSeconds(15)
     var youTubeStreamUpdateTime = Instant.now()
+    var sceneUpdateThrottled = false
+    var throttledSceneUpdatePending = false
     var obsWebSocket: ObsWebSocket? = null
     var chatPostId = 0
     val chat = ChatProvider()
@@ -3042,7 +3052,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val isMirrored = getVideoMirroredOnScreen()
         val devices = getBuiltinCameraDevices(scene = scene, sceneDevice = cameraDevice)
         val showCameraPreview = updateShowCameraPreview()
-        val attachCameraPreview = showCameraPreview || database.alwaysAttachCameraPreview
+        val attachCameraPreview = shouldShowCameraPreview() || database.alwaysAttachCameraPreview
         if (attachCameraPreview) {
             cameraPreviewView.setDevices(
                 ids = getCameraPreviewDeviceIds(

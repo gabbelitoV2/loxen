@@ -40,8 +40,19 @@ import com.moblin.android.various.model.WidgetOutlines
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsWidget
 
+fun widgetOutlineViewRect(rect: CGRect, canvasSize: CGSize, mirror: Boolean, size: CGSize): CGRect {
+    val scale = canvasSize.width / size.width
+    val x = if (mirror) canvasSize.width - rect.maxX else rect.minX
+    return CGRect(
+        x = x / scale,
+        y = rect.minY / scale,
+        width = rect.width / scale,
+        height = rect.height / scale,
+    )
+}
+
 @Composable
-private fun WidgetOutlineLabelView(widget: SettingsWidget) {
+fun WidgetOutlineLabelView(widget: SettingsWidget) {
     Row(
         modifier = Modifier
             .wrapContentSize(unbounded = true)
@@ -155,14 +166,7 @@ private fun anchorView(outline: WidgetOutline, rect: CGRect, mirror: Boolean) {
 
 @Composable
 private fun WidgetOutlineView(outline: WidgetOutline, canvasSize: CGSize, mirror: Boolean, size: CGSize) {
-    val scale = canvasSize.width / size.width
-    val x = if (mirror) canvasSize.width - outline.rect.maxX else outline.rect.minX
-    val rect = CGRect(
-        x = x / scale,
-        y = outline.rect.minY / scale,
-        width = outline.rect.width / scale,
-        height = outline.rect.height / scale,
-    )
+    val rect = widgetOutlineViewRect(outline.rect, canvasSize, mirror, size)
     Box(modifier = Modifier.fillMaxSize()) {
         if (outline.sized) {
             sizedView(outline = outline, rect = rect)

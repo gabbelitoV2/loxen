@@ -568,6 +568,10 @@ fun QuickButtonsInnerView(
         model.togglePhotoShoot()
     }
 
+    fun sceneEditorAction() {
+        model.presentingSceneEditor.value = true
+    }
+
     Column(
         modifier = Modifier.rotate(180.0f),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -991,6 +995,11 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.photoShoot -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             photoShootAction()
+                        }
+                    }
+                    SettingsQuickButtonType.sceneEditor -> {
+                        QuickButtonImage(model, quickButtonsSettings, button, size) {
+                            sceneEditorAction()
                         }
                     }
                 }
