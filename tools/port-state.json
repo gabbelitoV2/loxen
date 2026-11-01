@@ -12360,24 +12360,22 @@
   },
   "Moblin/VideoEffects/PngTuberEffect.swift": {
     "status": "ok",
-    "sha256": "7d6d073e10839f45a2136c909d8092f5f8ea6ad512b7af9cb439aae4cb370458",
-    "moblin_commit": "13df78b9956af458a9396b3a282bf0465dfdcb7a",
+    "sha256": "1fb049c9f7d0768b3530d60e32a899c72ccd91609dc5c0f85035cc6b0f531f32",
+    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt",
     "notes": [
-      "Replaced the inline scale min() computation with the shared layoutScale(layout, size, streamSize) helper from EffectUtils.kt.",
-      "Replaced the metalPetalLayerPosition call with the shared layoutCenter(layout, size, streamSize) helper, which returns a CGPoint widget centre.",
-      "Both helpers already live in the same package com.moblin.android.videoeffects, so no new imports are required.",
-      "Everything else in the file, including the hand-written PngCoordinate regex decoding, base64 image decoding and the face-detection pose logic, is unchanged."
+      "The Swift diff only removes the SceneKit and VRMSceneKit imports; the Kotlin file never imported those, so no Kotlin change is needed.",
+      "The file is returned byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 60757,
-    "tokens_out": 3250,
-    "seconds": 9.7,
-    "ported_at": "2026-10-02T23:57:31+00:00"
+    "tokens_in": 60570,
+    "tokens_out": 2842,
+    "seconds": 9.3,
+    "ported_at": "2026-11-01T23:09:47+00:00"
   },
   "Moblin/VideoEffects/LutEffect.swift": {
     "status": "ok",
@@ -14237,25 +14235,24 @@
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "5f656ecf66c3bad792ebdd0f8342b56aa4ea574f5fefa7947772c33d4c28b39a",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "7b6d4bb5f512a96cab9d22f1fb329a324c0e6b5ba8ddace010564f8938322e4c",
+    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
     "notes": [
-      "Applied only the four guard-merge changes from the diff; every other line is byte-identical to the existing Kotlin file.",
-      "Swift's combined `guard let a = ..., let b = ...` is written as a nullable local plus one `if (a == null || b == null) return`, which keeps Kotlin smart casts on the val.",
-      "The merged guard inside the widget command's completion lambda returns with `return@executeIfUserAllowedToUseChatBot`, matching Swift's early `return` from the closure.",
-      "In the widget timer guard the two emptiness checks stay before the `popFirstInt` call so the argument range is still evaluated only after the list is known to be non-empty, as in Swift.",
-      "The gimbal preset guard resolves the preset through `presetName?.let { ... }` so the lookup is skipped when the name is missing, like the Swift condition list."
+      "The Swift diff only reformats the body of triggerAppleReaction and adds makeSceneResolver() to getBuiltinCameraDevices; that loop lives inside a body whose Android translation is a stub, so no Kotlin line changes.",
+      "The Kotlin file is returned byte-identical: every line of the changed Swift hunk maps to the hand-written Android stub triggerAppleReaction(reaction: Any) { Unit }, which has no AVCaptureReactionType counterpart.",
+      "triggerReaction still dispatches glasses/sparkle through triggerGlasses()/triggerSparkle() and ignores other reactions, as before.",
+      "No new imports, declarations or call sites are introduced by this diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 67170,
-    "tokens_out": 10664,
-    "seconds": 32.4,
-    "ported_at": "2026-10-22T22:51:42+00:00"
+    "tokens_in": 66914,
+    "tokens_out": 10111,
+    "seconds": 31.9,
+    "ported_at": "2026-11-01T23:10:03+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -15556,19 +15553,24 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "43b4f2299ee82a184303ad7db46eb8ddbce2b0ab36dbbb9637b961849ae0462e",
-    "moblin_commit": "22dd74423222001b242fc23921a91b0e366c88fb",
+    "sha256": "1405087d8dc321735f93edc95b04160ce72dfecb818090eda398a406cccf544c",
+    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
-    "notes": [],
+    "notes": [
+      "The Swift diff only adds Equatable conformance to the remote-scene settings structs and enums; in Kotlin these are data classes, sealed classes and enums that already have structural equals, so no code change is needed.",
+      "The Kotlin file is returned byte-identical to the current version because no changed Swift line maps to a Kotlin construct.",
+      "All hand-written Android behaviour (Android Location instead of CLLocation, Base64/MessageDigest/Cipher instead of CryptoKit, remoteControlJson instead of JSONEncoder/JSONDecoder) is preserved.",
+      "Wire names for the case-name enums (RemoteControlReaction, RemoteControlFilter, RemoteControlResult, RemoteControlRemoteSceneSettingsHorizontalAlignment) are unchanged so persisted JSON stays compatible."
+    ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 88114,
-    "tokens_out": 22083,
-    "seconds": 64.9,
-    "ported_at": "2026-10-30T23:19:28+00:00"
+    "tokens_in": 88855,
+    "tokens_out": 21873,
+    "seconds": 62.6,
+    "ported_at": "2026-11-01T23:10:57+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -16067,23 +16069,24 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
-    "sha256": "f6e6ad0deed9982b8476411af319da99ddb0a61a7c78e1fa01069456f445c19d",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "c3056693275c2cb03b3895505cf94616ba6ede164aec149d4392ba4cd55320eb",
+    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/vtuber/WidgetVTuberSettingsView.kt",
     "notes": [
-      "WidgetVTuberSettingsView now takes a videoSources: VideoSources parameter, placed after vTuber like the Swift @ObservedObject.",
-      "The video source picker reads videoSources.all() instead of model.listCameras(excludeBuiltin: false); the listCameras import was dropped and VideoSources added.",
-      "Everything else (local remember state mirroring vTuber fields, Sheet handling, effect settings) is unchanged."
+      "Only the WidgetVTuberPickerView Section footer changed: the single Text became a VStack, so the footer argument carries the new lead sentence.",
+      "The `if #unavailable(iOS 18)` branch is dropped: Android has no iOS 18 gate, so the 'VRM models require iOS 18 or later.' line never shows and the remaining single Text keeps the plain `footer` string.",
+      "Text is now 'Most VRM 0.x and 1.0 files and zipped Live2D Cubism models are supported.'",
+      "Everything else in the file is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 46573,
-    "tokens_out": 3276,
-    "seconds": 11.2,
-    "ported_at": "2026-09-29T23:53:47+00:00"
+    "tokens_in": 47094,
+    "tokens_out": 3155,
+    "seconds": 12.5,
+    "ported_at": "2026-11-01T23:10:16+00:00"
   },
   "Moblin/View/Settings/Chat/ChatSettingsView.swift": {
     "status": "ok",
@@ -16483,23 +16486,23 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVideoSourceSettingsView.swift": {
     "status": "ok",
-    "sha256": "ceee09c71de2b8511a47fed841c952bc2adf01c998a5277a84a591370ef0eaed",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "e554a5553d120021e3f61ad4a3753c29a142dcc7f57b9b1cafd3092840bc698b",
+    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardVideoSourceSettingsView.kt",
     "notes": [
-      "Added the new `videoSources: VideoSources` parameter to WidgetWizardVideoSourceSettingsView, placed after `videoSource` and before `presentingCreateWizard`, matching the Swift property order.",
-      "The picker items now come from the `VideoSources` model object instead of `Model.listCameras(excludeBuiltin:)`, so the `listCameras` import was dropped and `VideoSources` added.",
-      "Everything else in the file is unchanged, including the hand-written `onCameraChange(model, videoSource, cameraId)` helper and the PickerView wrapper."
+      "Renamed the file-private PickerView composable to WizardVideoSourcePickerView and made it public, matching the Swift rename and removal of `private`.",
+      "Updated the call site in WidgetWizardVideoSourceSettingsView's Section.",
+      "All other Kotlin lines, imports and declaration order are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47127,
-    "tokens_out": 1738,
-    "seconds": 6.9,
-    "ported_at": "2026-09-29T23:53:35+00:00"
+    "tokens_in": 47722,
+    "tokens_out": 1216,
+    "seconds": 5.3,
+    "ported_at": "2026-11-01T23:10:09+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift": {
     "status": "ok",

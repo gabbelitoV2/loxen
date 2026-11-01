@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-10-31T22:52:44+00:00",
+  "generated": "2026-11-01T23:09:00+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4846,29 +4846,6 @@
       "wave": 5
     },
     {
-      "path": "Moblin/Various/Model/ModelSpeechToText.swift",
-      "lines": 187,
-      "sha256": "bfaa41da29454a364c7da67de5766f2b21e0e8e0ba33bb8d621e951946a05a7d",
-      "imports": [
-        "Foundation",
-        "Translation"
-      ],
-      "tier": "logic",
-      "declared_types": [],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.various.model",
-      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSpeechToText.kt",
-      "deps": [
-        "Moblin/Various/Model/Model.swift",
-        "Moblin/Various/SpeechToText.swift",
-        "Moblin/Various/Subtitles/TextAligner.swift",
-        "Moblin/Various/Subtitles/Translator.swift"
-      ],
-      "wave": 5
-    },
-    {
       "path": "Moblin/Various/Model/ModelStealthMode.swift",
       "lines": 32,
       "sha256": "d35a998f7b86b5df6bea8dff0f8cc89f47c16e42696847406d037602925c0fca",
@@ -6975,8 +6952,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelVideoPreview.swift",
-      "lines": 61,
-      "sha256": "2f6aa5503bea35e5f53e2ab9cd374515159ffdec45e02abda4351d0b6686767d",
+      "lines": 63,
+      "sha256": "d5ecd12b9f0471832aa2f4bb77903678732f30bcaebc4e42ae34bbd998a0c3dc",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -9027,19 +9004,30 @@
       "wave": 13
     },
     {
-      "path": "Moblin/Various/Model/ModelSceneEditor.swift",
-      "lines": 139,
-      "sha256": "db8cebbca428cabdef5768b7d2b108f0627b41a691e9fcddd2df55ce3367c53b",
+      "path": "Moblin/Various/Model/ModelResolvedScene.swift",
+      "lines": 234,
+      "sha256": "f33608cee5affcbeee84c5a835d684343dcfd55e009f57aee9df3aaf8a36ea80",
       "imports": [
         "Foundation"
       ],
       "tier": "logic",
-      "declared_types": [],
-      "private_types": [],
+      "declared_types": [
+        "ResolvedSceneWidget",
+        "ResolvedScene",
+        "SceneWidgetsChange",
+        "SceneResolveKey",
+        "SceneResolver",
+        "SceneWalk"
+      ],
+      "private_types": [
+        "SceneWidgetsChange",
+        "SceneResolveKey",
+        "SceneWalk"
+      ],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.various.model",
-      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSceneEditor.kt",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelResolvedScene.kt",
       "deps": [
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsScene.swift"
@@ -9093,6 +9081,30 @@
         "Moblin/Various/Network/NetworkUtils.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/Various/Utils/Utils.swift"
+      ],
+      "wave": 13
+    },
+    {
+      "path": "Moblin/Various/Model/ModelSpeechToText.swift",
+      "lines": 199,
+      "sha256": "d3051a4ff8a602d1f26d54d932294abb051b2ad8cdd6b60ec08e102741977ff1",
+      "imports": [
+        "Foundation",
+        "Translation"
+      ],
+      "tier": "logic",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSpeechToText.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/SpeechToText.swift",
+        "Moblin/Various/Subtitles/TextAligner.swift",
+        "Moblin/Various/Subtitles/Translator.swift"
       ],
       "wave": 13
     },
@@ -9617,6 +9629,39 @@
       "deps": [
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/Settings.swift"
+      ],
+      "wave": 13
+    },
+    {
+      "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometry.swift",
+      "lines": 136,
+      "sha256": "20490fb5e75bae5e84dd5cce16062db3e1f986e2cc58ded488ab067c6549449c",
+      "imports": [
+        "CoreGraphics",
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "SceneEditorSnap",
+        "SceneEditorResizeSnap"
+      ],
+      "private_types": [],
+      "declared_functions": [
+        "sceneEditorSnapAxis",
+        "sceneEditorSnapResizeAxis",
+        "sceneEditorHandlePoint",
+        "sceneEditorFixedPoint",
+        "sceneEditorResizedRect",
+        "sceneEditorLayout",
+        "sceneEditorAlignedLayout",
+        "sceneEditorTapSelection"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.controlbar.quickbutton.sceneeditor",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorGeometry.kt",
+      "deps": [
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/VideoEffects/EffectUtils.swift"
       ],
       "wave": 13
     },
@@ -11301,6 +11346,27 @@
       "wave": 15
     },
     {
+      "path": "Moblin/Various/Model/ModelSceneEditor.swift",
+      "lines": 89,
+      "sha256": "b877eab1fe753c51e539d846def29c50265d50bd9f2d76f5c60e3df1e120211b",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSceneEditor.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometry.swift"
+      ],
+      "wave": 15
+    },
+    {
       "path": "Moblin/Various/Model/ModelSoop.swift",
       "lines": 60,
       "sha256": "7cabec52ecd2eac75c587b6a43b1cb560fc8a0e0b695a83b5276da57896ddba9",
@@ -11419,8 +11485,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelWidgetOutlines.swift",
-      "lines": 177,
-      "sha256": "09579a6c03f835939c5e2b2a00b14226e1aace2a1a048f8c92eb044dc319d821",
+      "lines": 199,
+      "sha256": "d96a5ebe1013bf7900bc9992e14c06da49acc08a94dda1fab74d857795760ded",
       "imports": [
         "Foundation",
         "ImageIO"
@@ -11434,6 +11500,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWidgetOutlines.kt",
       "deps": [
         "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelResolvedScene.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/VideoEffects/EffectUtils.swift"
       ],
@@ -11502,17 +11569,28 @@
     },
     {
       "path": "Moblin/VideoEffects/VTuber/VTuberVrmEffect.swift",
-      "lines": 86,
-      "sha256": "62ed37f4a0a2b4058b73a8bb54eb4a27eb4d3dc3748c490d3046389141605e43",
+      "lines": 278,
+      "sha256": "c1e3916edc23c8db12e98ba4c67938c57c51e5f25294d8ca16a5898d913145cb",
       "imports": [
-        "SceneKit",
-        "SwiftUI"
+        "CoreVideo",
+        "Metal",
+        "RealityKit",
+        "VRMRealityKit"
       ],
       "tier": "media",
       "declared_types": [
+        "VTuberVrmPose",
+        "VTuberVrmBoneRest",
+        "VTuberVrmRenderer",
+        "RenderedPixelBuffer",
         "VTuberVrmEffect"
       ],
-      "private_types": [],
+      "private_types": [
+        "VTuberVrmPose",
+        "VTuberVrmBoneRest",
+        "VTuberVrmRenderer",
+        "RenderedPixelBuffer"
+      ],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.videoeffects.vtuber",
@@ -11595,6 +11673,56 @@
         "Moblin/Various/ChatPost.swift",
         "Moblin/Various/Model/Chat/ChatProvider.swift",
         "Moblin/Various/Model/ModelChat.swift"
+      ],
+      "wave": 15
+    },
+    {
+      "path": "MoblinTests/Moblin/Various/Model/SceneResolverSuite.swift",
+      "lines": 147,
+      "sha256": "4ded61234321f2834c3bf13251c6dc10183fcd54cb30621b85500df9d8615814",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "SceneResolverSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/model/SceneResolverSuite.kt",
+      "deps": [
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/ModelResolvedScene.swift",
+        "Moblin/Various/Settings/SettingsScene.swift"
+      ],
+      "wave": 15
+    },
+    {
+      "path": "MoblinTests/Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometrySuite.swift",
+      "lines": 184,
+      "sha256": "834b486c455eb15382ffc08b1185020f5b9127a613c6ed496677b9acbaaedc4f",
+      "imports": [
+        "CoreGraphics",
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "SceneEditorGeometrySuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.controlbar.quickbutton.sceneeditor",
+      "kotlin_path": "app/src/test/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorGeometrySuite.kt",
+      "deps": [
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/VideoEffects/EffectUtils.swift",
+        "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometry.swift",
+        "MoblinTests/TestUtils.swift"
       ],
       "wave": 15
     },
@@ -17183,8 +17311,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
-      "lines": 1077,
-      "sha256": "5f656ecf66c3bad792ebdd0f8342b56aa4ea574f5fefa7947772c33d4c28b39a",
+      "lines": 1080,
+      "sha256": "7b6d4bb5f512a96cab9d22f1fb329a324c0e6b5ba8ddace010564f8938322e4c",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -17341,8 +17469,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScoreboard.swift",
-      "lines": 819,
-      "sha256": "df377f498960cc550fdf4c37056bd9f48d7b3368f5f47e08ea5bf4314449b496",
+      "lines": 813,
+      "sha256": "8ebff36511db8d821b6bee3fa26e5fa15adf183070f7092c0df247ce595d6aea",
       "imports": [
         "Foundation",
         "Network"
@@ -17366,8 +17494,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScreenCapture.swift",
-      "lines": 120,
-      "sha256": "d4e1da5dcbcc4667b475e687dc584f0824c666ffcf4ac4dd5b52e8b1b7d88511",
+      "lines": 97,
+      "sha256": "6470b308d3b0f80f43f4b6b9cc7ca08f32afc88279fd08655addab7846c2a7a2",
       "imports": [
         "AVFoundation",
         "ReplayKit"
@@ -17382,6 +17510,7 @@
       "deps": [
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Model/ModelResolvedScene.swift",
         "Moblin/Various/Settings/SettingsScene.swift"
       ],
       "wave": 29
@@ -17725,13 +17854,11 @@
     },
     {
       "path": "Moblin/VideoEffects/PngTuberEffect.swift",
-      "lines": 250,
-      "sha256": "7d6d073e10839f45a2136c909d8092f5f8ea6ad512b7af9cb439aae4cb370458",
+      "lines": 248,
+      "sha256": "1fb049c9f7d0768b3530d60e32a899c72ccd91609dc5c0f85035cc6b0f531f32",
       "imports": [
         "MetalPetal",
-        "SceneKit",
         "SwiftUI",
-        "VRMSceneKit",
         "Vision"
       ],
       "tier": "media",
@@ -17953,7 +18080,7 @@
     {
       "path": "Moblin/VideoEffects/VTuber/VTuberEffect.swift",
       "lines": 134,
-      "sha256": "c6aec417dacc119bdd94004522667d21fe0dc25d38fab2c449bc6762ea84eedd",
+      "sha256": "05e0e85ae3acf415a6f84e2e658001b659a5b49406b88b71a2236c85c08fcc24",
       "imports": [
         "CoreImage",
         "MetalPetal",
@@ -19133,7 +19260,7 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Scene/WidgetSceneSettingsView.swift",
       "lines": 27,
-      "sha256": "11080247f7c673ae87c77feae1597e95a07ba5ec24f0955983f34c91dc15162d",
+      "sha256": "ba4ee5c6d63a4c5cf89d0143fa47d66506fe28408988d2628411e4f9334c5b05",
       "imports": [
         "SwiftUI"
       ],
@@ -19717,7 +19844,7 @@
     {
       "path": "Moblin/View/Stream/WidgetOutlinesView.swift",
       "lines": 118,
-      "sha256": "dcbbb09371c7aff345647e3376ddd531c9eec5b3ecc607cdf8339cb852cad4fc",
+      "sha256": "048177aeec1bd8fa5e14acad10f63879043d65111551f5053befaefd49744f90",
       "imports": [
         "SwiftUI"
       ],
@@ -20490,7 +20617,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
       "lines": 1248,
-      "sha256": "43b4f2299ee82a184303ad7db46eb8ddbce2b0ab36dbbb9637b961849ae0462e",
+      "sha256": "1405087d8dc321735f93edc95b04160ce72dfecb818090eda398a406cccf544c",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20838,8 +20965,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelStream.swift",
-      "lines": 1141,
-      "sha256": "4ecf849116668d0cc074bb2f71ee9ca86a4b357e24e0d10871ffcba9930e1dee",
+      "lines": 1142,
+      "sha256": "a2f3a0145786fcbe5de03fd67041778fcd62dac82cdf79bec67485e672ca0a25",
       "imports": [
         "AVFoundation",
         "Foundation",
@@ -21125,8 +21252,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1652,
-      "sha256": "fb52ac03bbe122fb8e3cbf749e8a97859a4e2b8dd3e2919ef7d5c4b0ba8f8bb3",
+      "lines": 1656,
+      "sha256": "c998edcf965c0433a8239edfdb2a5f6a896e66eaad903119882a4653467b9012",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21166,8 +21293,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
-      "lines": 1837,
-      "sha256": "083958a9d60976ac16a2826e7790021e7ac91158ce405fc91f800890a61a3c34",
+      "lines": 1737,
+      "sha256": "5f3f759ee170f84e4bb93d2054cb5ee3dd87ead2609e070fe44062af97f5a429",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21176,8 +21303,7 @@
       "tier": "media",
       "declared_types": [
         "CreateWidgetWizard",
-        "DrawnSceneWidget",
-        "WidgetInScene"
+        "CreateSceneWizard"
       ],
       "private_types": [],
       "declared_functions": [],
@@ -21194,11 +21320,11 @@
         "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Model/ModelResolvedScene.swift",
         "Moblin/Various/Settings/SettingsMacros.swift",
         "Moblin/Various/Settings/SettingsQuickButtons.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/Various/Utils/Utils.swift",
-        "Moblin/Various/Variables.swift",
         "Moblin/VideoEffects/Alerts/AlertsEffect.swift",
         "Moblin/VideoEffects/Alerts/AlertsEffectFace.swift",
         "Moblin/VideoEffects/AnamorphicLensEffect.swift",
@@ -21807,8 +21933,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3555,
-      "sha256": "1b53d816b9987b01970a5915abff419d42794cfb2bebbbcfa37d4da760e6237e",
+      "lines": 3569,
+      "sha256": "3dd1e4a9f05ea8dc6462d68f791ff31c14bebce3749c1d4a5d9a1f10a4986491",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -21972,6 +22098,7 @@
         "Moblin/Various/Model/ModelRecording.swift",
         "Moblin/Various/Model/ModelRemoteControl.swift",
         "Moblin/Various/Model/ModelReplay.swift",
+        "Moblin/Various/Model/ModelResolvedScene.swift",
         "Moblin/Various/Model/ModelScene.swift",
         "Moblin/Various/Model/ModelSnapshot.swift",
         "Moblin/Various/Model/ModelStore.swift",
@@ -22325,8 +22452,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift",
-      "lines": 186,
-      "sha256": "f6e6ad0deed9982b8476411af319da99ddb0a61a7c78e1fa01069456f445c19d",
+      "lines": 191,
+      "sha256": "c3056693275c2cb03b3895505cf94616ba6ede164aec149d4392ba4cd55320eb",
       "imports": [
         "SwiftUI",
         "ZipArchive"
@@ -23183,18 +23310,16 @@
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVideoSourceSettingsView.swift",
       "lines": 59,
-      "sha256": "ceee09c71de2b8511a47fed841c952bc2adf01c998a5277a84a591370ef0eaed",
+      "sha256": "e554a5553d120021e3f61ad4a3753c29a142dcc7f57b9b1cafd3092840bc698b",
       "imports": [
         "SwiftUI"
       ],
       "tier": "ui",
       "declared_types": [
-        "PickerView",
+        "WizardVideoSourcePickerView",
         "WidgetWizardVideoSourceSettingsView"
       ],
-      "private_types": [
-        "PickerView"
-      ],
+      "private_types": [],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.view.settings.scenes.widgets.widget.wizard",
@@ -23507,6 +23632,45 @@
         "Moblin/View/Utils/TextEditNavigationView.swift",
         "Moblin/View/Utils/TextItemView.swift",
         "Moblin/View/Utils/WiFiSsidEditView.swift"
+      ],
+      "wave": 45
+    },
+    {
+      "path": "Moblin/View/Settings/Scenes/Scene/SceneWizardSettingsView.swift",
+      "lines": 140,
+      "sha256": "a9f382a109e66a4fe9ac80e69fd5c6624b13cf9e271ba5394f3d5b3fcb49477b",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "SelectWidgetView",
+        "SelectWidgetsView",
+        "SceneWizardSettingsView",
+        "SceneWizardSheetView"
+      ],
+      "private_types": [
+        "SelectWidgetView",
+        "SelectWidgetsView",
+        "SceneWizardSettingsView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings.scenes.scene",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/scene/SceneWizardSettingsView.kt",
+      "deps": [
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Model/ModelScene.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVideoSourceSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift",
+        "Moblin/View/Utils/ButtonView.swift",
+        "Moblin/View/Utils/CloseToolbarView.swift",
+        "Moblin/View/Utils/IconAndTextView.swift",
+        "Moblin/View/Utils/InlinePickerView.swift"
       ],
       "wave": 45
     },
@@ -24517,8 +24681,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift",
-      "lines": 75,
-      "sha256": "6c8ccfde2681f860bb37c4ff57beb83f8bd255033ef117ec30f5e4286574fb8c",
+      "lines": 71,
+      "sha256": "e8143d75379a4592e0e7ba0afddfb4786f795db9fa3cf7f8c8d72765a4cf2faf",
       "imports": [
         "SwiftUI"
       ],
@@ -24641,8 +24805,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
-      "lines": 252,
-      "sha256": "690131e541c7cab5adcb15ecc4f0836113a7fef8167e8a3c04bdf75cb18eea48",
+      "lines": 254,
+      "sha256": "735ced828eab7659d5e015b77104dc70e31cb3b06b25ee15f924d962f257012c",
       "imports": [
         "SwiftUI"
       ],
@@ -24682,6 +24846,7 @@
         "Moblin/View/Settings/Scenes/AutoSwitchers/AutoSwitchersSettingsView.swift",
         "Moblin/View/Settings/Scenes/DisconnectProtection/DisconnectProtectionSettingsView.swift",
         "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift",
+        "Moblin/View/Settings/Scenes/Scene/SceneWizardSettingsView.swift",
         "Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift",
         "Moblin/View/Utils/ContextMenuDeleteButtonView.swift",
@@ -24841,7 +25006,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift",
       "lines": 78,
-      "sha256": "bfbd45d9a1cdf03fff61ea35fd417c87c26e056731709697f5f4f6ad2a3e2262",
+      "sha256": "e40c419e0398852b2f3d74c5c07a49122f7f1c3c748aba083d9c08abb8010938",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -24963,69 +25128,9 @@
       "wave": 51
     },
     {
-      "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
-      "lines": 804,
-      "sha256": "edd06bacae20225f45a19c031333adf8d71c08d1b91dc72b6d83ae1333ec1a07",
-      "imports": [
-        "SwiftUI"
-      ],
-      "tier": "ui",
-      "declared_types": [
-        "SceneEditorEditMode",
-        "SceneEditorEdit",
-        "SceneEditorSelectedWidget",
-        "SceneEditorSelection",
-        "SceneEditorSnap",
-        "SceneEditorResizeSnap",
-        "SceneEditorCanvasView",
-        "SceneEditorButtonView",
-        "SceneEditorEnableButtonView",
-        "SceneEditorPopoverRowView",
-        "SceneEditorPopoverListView",
-        "SceneEditorScenesButtonView",
-        "SceneEditorAddWidgetButtonView",
-        "SceneEditorToolbarView",
-        "SceneEditorView"
-      ],
-      "private_types": [
-        "SceneEditorEditMode",
-        "SceneEditorEdit",
-        "SceneEditorSelectedWidget",
-        "SceneEditorSelection",
-        "SceneEditorSnap",
-        "SceneEditorResizeSnap",
-        "SceneEditorCanvasView",
-        "SceneEditorButtonView",
-        "SceneEditorEnableButtonView",
-        "SceneEditorPopoverRowView",
-        "SceneEditorPopoverListView",
-        "SceneEditorScenesButtonView",
-        "SceneEditorAddWidgetButtonView",
-        "SceneEditorToolbarView"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.view.controlbar.quickbutton.sceneeditor",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorView.kt",
-      "deps": [
-        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
-        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
-        "Moblin/Various/Model/Model.swift",
-        "Moblin/Various/Settings/Settings.swift",
-        "Moblin/Various/Settings/SettingsScene.swift",
-        "Moblin/View/Settings/Scenes/Scene/SceneWidgetSettingsView.swift",
-        "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
-        "Moblin/View/Settings/SettingsView.swift",
-        "Moblin/View/Stream/StreamView.swift",
-        "Moblin/View/Stream/WidgetOutlinesView.swift",
-        "Moblin/View/Utils/IconAndTextView.swift"
-      ],
-      "wave": 52
-    },
-    {
       "path": "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift",
       "lines": 394,
-      "sha256": "d5d8eba98719dd0759f12db0104923cb5a5e145ac226b7d06ff7e9a347cfac35",
+      "sha256": "b83dd9385197f036896aa1095de3646ce681c6d1d9877b2443890922449ef76e",
       "imports": [
         "SwiftUI"
       ],
@@ -25084,6 +25189,68 @@
         "Moblin/View/Utils/VideoSourceRotationView.swift"
       ],
       "wave": 52
+    },
+    {
+      "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
+      "lines": 851,
+      "sha256": "bd52537a3769792659bc585a6e16faebd7388e66720afaffe4a280cc329fa28e",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "SceneEditorEditMode",
+        "SceneEditorEdit",
+        "SceneEditorSelection",
+        "SceneEditorCanvasView",
+        "SceneEditorButtonView",
+        "SceneEditorEnableButtonView",
+        "SceneEditorAlignmentButtonView",
+        "SceneEditorPopoverRowView",
+        "SceneEditorPopoverListView",
+        "SceneEditorScenesButtonView",
+        "SceneEditorDeleteSceneButtonView",
+        "SceneEditorAddWidgetButtonView",
+        "SceneEditorToolbarView",
+        "SceneEditorView"
+      ],
+      "private_types": [
+        "SceneEditorEditMode",
+        "SceneEditorEdit",
+        "SceneEditorSelection",
+        "SceneEditorCanvasView",
+        "SceneEditorButtonView",
+        "SceneEditorEnableButtonView",
+        "SceneEditorAlignmentButtonView",
+        "SceneEditorPopoverRowView",
+        "SceneEditorPopoverListView",
+        "SceneEditorScenesButtonView",
+        "SceneEditorDeleteSceneButtonView",
+        "SceneEditorAddWidgetButtonView",
+        "SceneEditorToolbarView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.controlbar.quickbutton.sceneeditor",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorView.kt",
+      "deps": [
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometry.swift",
+        "Moblin/View/MainView.swift",
+        "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift",
+        "Moblin/View/Settings/Scenes/Scene/SceneWidgetSettingsView.swift",
+        "Moblin/View/Settings/Scenes/Scene/SceneWizardSettingsView.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
+        "Moblin/View/Settings/SettingsView.swift",
+        "Moblin/View/Stream/StreamView.swift",
+        "Moblin/View/Stream/WidgetOutlinesView.swift",
+        "Moblin/View/Utils/IconAndTextView.swift"
+      ],
+      "wave": 53
     },
     {
       "path": "Moblin/View/MainView.swift",

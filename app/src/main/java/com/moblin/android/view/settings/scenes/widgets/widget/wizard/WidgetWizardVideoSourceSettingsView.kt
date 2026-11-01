@@ -22,7 +22,7 @@ import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.getCameraId
 
 @Composable
-private fun PickerView(
+fun WizardVideoSourcePickerView(
     onChange: (String) -> Unit,
     items: List<InlinePickerItem>,
     selectedId: String,
@@ -64,7 +64,7 @@ fun WidgetWizardVideoSourceSettingsView(
         },
     ) {
         Section {
-            PickerView(
+            WizardVideoSourcePickerView(
                 onChange = { cameraId ->
                     onCameraChange(
                         model = model,

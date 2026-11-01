@@ -128,7 +128,7 @@ fun WidgetVTuberPickerView(
 
     Section(
         header = localized("Model"),
-        footer = localized("Most VRM 0.0 files and zipped Live2D Cubism models are supported."),
+        footer = localized("Most VRM 0.x and 1.0 files and zipped Live2D Cubism models are supported."),
     ) {
         TextButtonView(
             title = if (vTuber.modelName.isEmpty()) localized("Select model") else vTuber.modelName,
