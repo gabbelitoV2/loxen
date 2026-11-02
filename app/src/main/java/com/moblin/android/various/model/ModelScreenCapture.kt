@@ -33,7 +33,7 @@ fun Model.isNoneCamera(cameraId: CameraId): Boolean {
     return cameraId == noneCameraId.toString()
 }
 
-fun Model.sceneNeedsMacScreenCapture(scene: SettingsScene): Boolean {
+fun Model.sceneNeedsMacScreenCapture(scene: SettingsScene, resolver: SceneResolver): Boolean {
     return false
 }
 

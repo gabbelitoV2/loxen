@@ -141,7 +141,7 @@ private fun sizedView(outline: WidgetOutline, rect: CGRect) {
 
 @Composable
 private fun anchorView(outline: WidgetOutline, rect: CGRect, mirror: Boolean) {
-    val leading = outline.sceneWidget.layout.alignment.isLeft() != mirror
+    val leading = outline.alignment.isLeft() != mirror
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier

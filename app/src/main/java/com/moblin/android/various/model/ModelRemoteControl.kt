@@ -1149,6 +1149,10 @@ fun Model.remoteControlStreamerStopPreview() {
 }
 
 fun Model.remoteControlStreamerSetRemoteSceneSettings(data: RemoteControlRemoteSceneSettings) {
+    if (data == remoteSceneSettings) {
+        return
+    }
+    remoteSceneSettings = data
     val (scenes, widgets, selectedSceneId) = data.toSettings()
     if (selectedSceneId != null) {
         val widget = SettingsWidget(name = "")
@@ -1158,8 +1162,7 @@ fun Model.remoteControlStreamerSetRemoteSceneSettings(data: RemoteControlRemoteS
         remoteSceneWidgets = (listOf(widget) + widgets).toMutableList()
         resetSelectedScene(changeScene = false)
     } else if (remoteSceneScenes.isNotEmpty()) {
-        remoteSceneScenes = mutableListOf()
-        remoteSceneWidgets = mutableListOf()
+        clearRemoteSceneSettingsAndData()
         resetSelectedScene(changeScene = false)
     }
 }
@@ -1184,6 +1187,7 @@ fun Model.remoteControlStreamerSaveReplay() {
 }
 
 fun Model.clearRemoteSceneSettingsAndData() {
+    remoteSceneSettings = null
     remoteSceneScenes = mutableListOf()
     remoteSceneWidgets = mutableListOf()
     remoteSceneData.textStats = null

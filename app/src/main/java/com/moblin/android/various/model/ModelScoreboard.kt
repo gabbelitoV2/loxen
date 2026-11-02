@@ -430,14 +430,7 @@ fun Model.handleUpdateGenericScoreboard(action: WatchProtocolGenericScoreboardAc
 }
 
 fun Model.getEnabledScoreboardWidgetsInSelectedScene(): List<SettingsWidget> {
-    val scene = getSelectedScene()
-    return if (scene != null) {
-        getSceneWidgets(scene = scene, onlyEnabled = true)
-            .filter { it.widget.type == SettingsWidgetType.scoreboard }
-            .map { it.widget }
-    } else {
-        emptyList()
-    }
+    return drawnWidgetsInSelectedScene().filter { it.type == SettingsWidgetType.scoreboard }
 }
 
 fun Model.updateScoreboardEffects() {

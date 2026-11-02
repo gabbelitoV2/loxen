@@ -27,6 +27,7 @@ import com.moblin.android.platform.swiftui.HorizontalEdge
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.SwipeActions
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
@@ -42,6 +43,7 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.scenes.autoswitchers.AutoSwitchersSettingsView
 import com.moblin.android.view.settings.scenes.disconnectprotection.DisconnectProtectionSettingsView
 import com.moblin.android.view.settings.scenes.scene.SceneSettingsView
+import com.moblin.android.view.settings.scenes.scene.SceneWizardSheetView
 import com.moblin.android.view.settings.scenes.widgets.WidgetsSettingsView
 import com.moblin.android.view.utils.ContextMenuDeleteButtonView
 import com.moblin.android.view.utils.ContextMenuDuplicateButtonView
@@ -52,6 +54,7 @@ import com.moblin.android.view.utils.SwipeLeftToDuplicateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateOrDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
+import com.moblin.android.various.model.deleteScene
 import com.moblin.android.various.model.getSelectedScene
 import com.moblin.android.various.model.remoteSceneSettingsUpdated
 import com.moblin.android.various.model.resetSelectedScene
@@ -72,11 +75,7 @@ private fun SceneItemView(
     }
 
     fun delete() {
-        val deletedCurrentScene = model.getSelectedScene() === scene
-        database.scenes.removeAll { it === scene }
-        if (deletedCurrentScene) {
-            model.resetSelectedScene()
-        }
+        model.deleteScene(scene = scene)
     }
 
     ContextMenu(
@@ -127,6 +126,8 @@ private fun ScenesListView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
+    var presentingCreateWizard by remember { mutableStateOf(false) }
+
     Section(
         header = "Scenes",
         footerContent = {
@@ -147,9 +148,19 @@ private fun ScenesListView(
             )
         }
         CreateButtonView {
-            val name = makeUniqueName(SettingsScene.baseName, database.scenes)
-            val scene = SettingsScene(name)
-            database.scenes.add(scene)
+            model.createSceneWizard.reset()
+            presentingCreateWizard = true
+        }
+        Sheet(
+            isPresented = presentingCreateWizard,
+            onDismissRequest = { presentingCreateWizard = false },
+        ) {
+            SceneWizardSheetView(
+                model = model,
+                database = database,
+                presentingCreateWizard = presentingCreateWizard,
+                onPresentingCreateWizardChange = { presentingCreateWizard = it },
+            )
         }
     }
 }

@@ -8,7 +8,8 @@
       "op": "replace",
       "old": "    val newSpeechToText = SpeechToText(AppDelegate.context)",
       "new": "    val newSpeechToText = SpeechToText()",
-      "note": "Swift speechToText = SpeechToText(); SpeechToText.kt is a port of the Swift file on the SFSpeechRecognizer shim, which takes no Context."
+      "note": "Swift speechToText = SpeechToText(); SpeechToText.kt is a port of the Swift file on the SFSpeechRecognizer shim, which takes no Context.",
+      "scope_occurrence": 2
     }
   ]
 }

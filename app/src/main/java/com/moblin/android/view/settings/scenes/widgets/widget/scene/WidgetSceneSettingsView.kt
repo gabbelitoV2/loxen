@@ -14,6 +14,7 @@ import com.moblin.android.various.settings.SettingsWidget
 import java.util.UUID
 import com.moblin.android.localized
 import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.selectableScenes
 
 @Composable
 fun WidgetSceneSettingsView(
@@ -22,7 +23,7 @@ fun WidgetSceneSettingsView(
     selectedSceneId: UUID,
 ) {
     var sceneId by remember { mutableStateOf(selectedSceneId) }
-    val scenes = model.database.scenes
+    val scenes = model.selectableScenes(widget = widget)
     Section(header = localized("Scene")) {
         Picker(
             title = "",

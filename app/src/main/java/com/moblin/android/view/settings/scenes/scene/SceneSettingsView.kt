@@ -33,6 +33,7 @@ import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.VideoSources
+import com.moblin.android.various.model.addableWidgets
 import com.moblin.android.various.model.appendWidgetToScene
 import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.findWidget
@@ -360,7 +361,7 @@ private fun WidgetsView(
 ) {
     var presentingAddWidget by remember { mutableStateOf(false) }
     var presentingCreateWizard by remember { mutableStateOf(false) }
-    val widgets = database.widgets
+    val widgets = model.addableWidgets(scene = scene)
 
     fun deleteSceneWidget(offsets: IndexSet) {
         var attachCamera = false

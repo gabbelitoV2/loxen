@@ -105,6 +105,16 @@
       "owner": "E5",
       "milestone": "none",
       "note": "Android TextToSpeech has no PCM buffer callback; SpeechSynthesizer speaks the utterance directly through AVSpeechSynthesizer.speak with the volume on the utterance, so the AVAudioFile and AudioPlayer replay path is not needed."
+    },
+    {
+      "check": "types",
+      "name": "VRMEntity*",
+      "files": [
+        "Moblin/VideoEffects/VTuber/VTuberVrmEffect.swift"
+      ],
+      "owner": "E11",
+      "milestone": "none",
+      "note": "Upstream moved VTuberVrmEffect from VRMScene/SceneKit to VRMEntity/VRMEntityLoader on RealityKit's RealityRenderer, which has no Android counterpart. The Kotlin keeps rendering through the existing platform.scenekit VRMScene and VRMSceneLoader shims, which produce the same pose and image."
     }
   ]
 }

@@ -27,7 +27,7 @@ import com.moblin.android.various.model.getBingoCardEffect
 import com.moblin.android.various.model.isCaptureDeviceWidget
 import com.moblin.android.various.model.reloadSpeechToText
 import com.moblin.android.various.model.sceneUpdated
-import com.moblin.android.various.model.widgetsInCurrentScene
+import com.moblin.android.various.model.sceneWidgetsInSelectedScene
 
 @Composable
 private fun WidgetView(
@@ -98,7 +98,7 @@ fun QuickButtonSceneWidgetsView(
 ) {
     Form(title = "Scene widgets") {
         Section {
-            model.widgetsInCurrentScene(onlyEnabled = false).forEach { widget ->
+            model.sceneWidgetsInSelectedScene().forEach { widget ->
                 WidgetView(
                     model = model,
                     database = model.database,

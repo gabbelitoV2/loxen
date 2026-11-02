@@ -101,6 +101,7 @@ import com.moblin.android.AppDelegate
 import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coregraphics.toCGSize
+import com.moblin.android.various.utils.makeUniqueName
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -130,15 +131,16 @@ class CreateWidgetWizard {
     }
 }
 
-data class DrawnSceneWidget(
-    val scene: SettingsScene,
-    val sceneWidget: SettingsSceneWidget,
-    val widget: SettingsWidget,
-)
+class CreateSceneWizard {
+    val name = MutableStateFlow("")
+    val widgetIds = MutableStateFlow<Set<UUID>>(emptySet())
+    var scene: SettingsScene = SettingsScene(name = "")
 
-data class WidgetInScene(val widget: SettingsWidget, val sceneWidget: SettingsSceneWidget) {
-    val id: UUID
-        get() = widget.id
+    fun reset() {
+        name.value = ""
+        widgetIds.value = emptySet()
+        scene = SettingsScene(name = "")
+    }
 }
 
 const val defaultScoreboardSize = 18.52
@@ -374,16 +376,20 @@ fun Model.sceneUpdated(attachCamera: Boolean = false, updateRemoteScene: Boolean
     for (browserEffect in browserEffects.values) {
         browserEffect.stop()
     }
-    sceneUpdatedOn(scene = scene, attachCamera = attachCamera)
-    startWeatherManager()
-    startGeographyManager()
-    startGForceManager()
+    val resolver = makeSceneResolver()
+    sceneUpdatedOn(scene = scene, resolver = resolver, attachCamera = attachCamera)
+    val drawnWidgets = drawnWidgetsInSelectedAndRemoteScene(resolver = resolver)
+    startWeatherManager(drawnWidgets = drawnWidgets)
+    startGeographyManager(drawnWidgets = drawnWidgets)
+    startGForceManager(drawnWidgets = drawnWidgets)
     if (updateRemoteScene) {
         remoteSceneSettingsUpdated()
     }
     updateStatusCameraText()
-    updateSpeechToText()
-    updateWidgetOutlines()
+    updateSpeechToText(
+        drawnWidgets = resolver.resolve(scene, includeRemote = true).localDrawnWidgets().map { it.widget }
+    )
+    updateWidgetOutlines(resolver = resolver)
 }
 
 fun Model.getSceneName(id: UUID?): String? {
@@ -392,6 +398,40 @@ fun Model.getSceneName(id: UUID?): String? {
 
 fun Model.getWidgetName(id: UUID?): String? {
     return database.widgets.firstOrNull { it.id == id }?.name
+}
+
+fun Model.createScene(): SettingsScene {
+    val scene = createSceneWizard.scene
+    scene.name = if (createSceneWizard.name.value.isEmpty()) {
+        makeUniqueName(name = SettingsScene.baseName, existingNames = database.scenes)
+    } else {
+        createSceneWizard.name.value
+    }
+    database.scenes.add(scene)
+    for (widget in database.widgets) {
+        if (createSceneWizard.widgetIds.value.contains(widget.id)) {
+            appendWidgetToScene(scene = scene, widget = widget)
+        }
+    }
+    return scene
+}
+
+fun Model.deleteScene(scene: SettingsScene) {
+    val deletedSelectedScene = getSelectedScene() === scene
+    database.scenes.removeAll { it === scene }
+    if (sceneEditor.sceneId == scene.id) {
+        sceneEditor.sceneId.value = null
+    }
+    if (deletedSelectedScene) {
+        resetSelectedScene()
+    }
+    updateWidgetOutlines()
+}
+
+fun Model.deleteWidget(widget: SettingsWidget) {
+    database.widgets.removeAll { it === widget }
+    removeDeadWidgetsFromScenes()
+    resetSelectedScene()
 }
 
 fun Model.removeDeadWidgetsFromScenes() {
@@ -405,7 +445,7 @@ fun Model.remoteSceneSettingsUpdated() {
     updateRemoteSceneSettings()
 }
 
-fun Model.attachSingleLayout(scene: SettingsScene) {
+fun Model.attachSingleLayout(scene: SettingsScene, resolver: SceneResolver) {
     if (isChatPhone()) {
         return
     }
@@ -413,33 +453,49 @@ fun Model.attachSingleLayout(scene: SettingsScene) {
     deactivateAllMediaPlayers()
     when (scene.videoSource.cameraPosition) {
         SettingsSceneCameraPosition.back ->
-            attachCamera(scene = scene, position = CameraSelector.LENS_FACING_BACK)
+            attachCamera(
+                scene = scene,
+                position = CameraSelector.LENS_FACING_BACK,
+                resolver = resolver
+            )
         SettingsSceneCameraPosition.front -> {
-            attachCamera(scene = scene, position = CameraSelector.LENS_FACING_FRONT)
+            attachCamera(
+                scene = scene,
+                position = CameraSelector.LENS_FACING_FRONT,
+                resolver = resolver
+            )
             streamOverlay.isFrontCameraSelected.value = true
         }
         SettingsSceneCameraPosition.rtmp ->
-            attachBufferedCamera(cameraId = scene.videoSource.rtmpCameraId, scene = scene)
+            attachBufferedCamera(cameraId = scene.videoSource.rtmpCameraId, scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.srtla ->
-            attachBufferedCamera(cameraId = scene.videoSource.srtlaCameraId, scene = scene)
+            attachBufferedCamera(cameraId = scene.videoSource.srtlaCameraId, scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.srtClient ->
-            attachBufferedCamera(cameraId = scene.videoSource.srtClientCameraId, scene = scene)
+            attachBufferedCamera(
+                cameraId = scene.videoSource.srtClientCameraId,
+                scene = scene,
+                resolver = resolver
+            )
         SettingsSceneCameraPosition.rist ->
-            attachBufferedCamera(cameraId = scene.videoSource.ristCameraId, scene = scene)
+            attachBufferedCamera(cameraId = scene.videoSource.ristCameraId, scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.rtsp ->
-            attachBufferedCamera(cameraId = scene.videoSource.rtspCameraId, scene = scene)
+            attachBufferedCamera(cameraId = scene.videoSource.rtspCameraId, scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.whip ->
-            attachBufferedCamera(cameraId = scene.videoSource.whipCameraId, scene = scene)
+            attachBufferedCamera(cameraId = scene.videoSource.whipCameraId, scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.whep ->
-            attachBufferedCamera(cameraId = scene.videoSource.whepCameraId, scene = scene)
+            attachBufferedCamera(cameraId = scene.videoSource.whepCameraId, scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.mediaPlayer -> {
             mediaPlayers[scene.videoSource.mediaPlayerCameraId]?.activate()
-            attachBufferedCamera(cameraId = scene.videoSource.mediaPlayerCameraId, scene = scene)
+            attachBufferedCamera(
+                cameraId = scene.videoSource.mediaPlayerCameraId,
+                scene = scene,
+                resolver = resolver
+            )
         }
         SettingsSceneCameraPosition.external ->
-            attachExternalCamera(scene = scene)
+            attachExternalCamera(scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.screenCapture ->
-            attachBufferedCamera(cameraId = screenCaptureCameraId, scene = scene)
+            attachBufferedCamera(cameraId = screenCaptureCameraId, scene = scene, resolver = resolver)
         SettingsSceneCameraPosition.backTripleLowEnergy ->
             attachBackTripleLowEnergyCamera()
         SettingsSceneCameraPosition.backDualLowEnergy ->
@@ -447,7 +503,7 @@ fun Model.attachSingleLayout(scene: SettingsScene) {
         SettingsSceneCameraPosition.backWideDualLowEnergy ->
             attachBackWideDualLowEnergyCamera()
         SettingsSceneCameraPosition.none ->
-            attachBufferedCamera(cameraId = noneCameraId, scene = scene)
+            attachBufferedCamera(cameraId = noneCameraId, scene = scene, resolver = resolver)
     }
 }
 
@@ -489,52 +545,35 @@ fun Model.findEnabledSceneIndex(id: UUID): Int? {
     return if (index == -1) null else index
 }
 
-fun Model.isCaptureDeviceWidget(widget: SettingsWidget): Boolean {
-    val addedSceneIds = mutableSetOf<UUID>()
-    return isCaptureDeviceWidgetInternal(widget = widget, addedSceneIds = addedSceneIds)
-}
-
 fun Model.getFillFrame(scene: SettingsScene): Boolean {
     return scene.fillFrame
 }
 
-fun Model.widgetsInCurrentSceneOrRemoteScene(onlyEnabled: Boolean): List<WidgetInScene> {
-    val widgets = mutableListOf<WidgetInScene>()
-    getSelectedScene()?.let { scene ->
-        widgets.addAll(getSceneWidgets(scene = scene, onlyEnabled = onlyEnabled))
-    }
-    val remoteSceneId = database.remoteSceneId
-    if (remoteSceneId != null) {
-        val scene = database.scenes.firstOrNull { it.id == remoteSceneId }
-        if (scene != null) {
-            widgets.addAll(getSceneWidgets(scene = scene, onlyEnabled = onlyEnabled))
-        }
-    }
-    return removeDuplicatedWidgets(widgets = widgets)
+fun Model.drawnWidgetsInSelectedAndRemoteScene(): List<SettingsWidget> {
+    return drawnWidgetsInSelectedAndRemoteScene(resolver = makeSceneResolver())
 }
 
-fun Model.widgetsInCurrentScene(onlyEnabled: Boolean): List<WidgetInScene> {
+private fun Model.drawnWidgetsInSelectedAndRemoteScene(resolver: SceneResolver): List<SettingsWidget> {
+    var widgets = mutableListOf<SettingsWidget>()
+    val scene = getSelectedScene()
+    if (scene != null) {
+        widgets = resolver.resolve(scene, includeRemote = true).localDrawnWidgets()
+            .map { it.widget }
+            .toMutableList()
+    }
+    val remoteScene = database.scenes.firstOrNull { it.id == database.remoteSceneId } ?: return widgets
+    val widgetIds = widgets.map { it.id }.toMutableSet()
+    for (widget in resolver.resolve(remoteScene).drawnWidgets().map { it.widget }) {
+        if (widgetIds.add(widget.id)) {
+            widgets.add(widget)
+        }
+    }
+    return widgets
+}
+
+fun Model.sceneWidgetsInSelectedScene(): List<ResolvedSceneWidget> {
     val scene = getSelectedScene() ?: return emptyList()
-    val widgets = getSceneWidgets(scene = scene, onlyEnabled = onlyEnabled)
-    return removeDuplicatedWidgets(widgets = widgets)
-}
-
-private fun Model.removeDuplicatedWidgets(widgets: List<WidgetInScene>): List<WidgetInScene> {
-    val found = mutableListOf<UUID>()
-    val result = mutableListOf<WidgetInScene>()
-    for (widget in widgets) {
-        if (found.contains(widget.widget.id)) {
-            continue
-        }
-        found.add(widget.widget.id)
-        result.add(widget)
-    }
-    return result
-}
-
-fun Model.getSceneWidgets(scene: SettingsScene, onlyEnabled: Boolean): List<WidgetInScene> {
-    val addedSceneIds = mutableSetOf<UUID>()
-    return getSceneWidgetsInternal(scene = scene, onlyEnabled = onlyEnabled, addedSceneIds = addedSceneIds)
+    return resolveScene(scene, includeDisabledSceneWidgets = true).firstWidgets()
 }
 
 fun Model.switchToNextSceneRoundRobin() {
@@ -547,6 +586,9 @@ fun Model.switchToNextSceneRoundRobin() {
 }
 
 fun Model.appendWidgetToScene(scene: SettingsScene, widget: SettingsWidget) {
+    if (addableWidgets(scene = scene).none { it === widget }) {
+        return
+    }
     scene.widgets.add(SettingsSceneWidget(widget = widget))
     var attachCamera = false
     if (scene.id == getSelectedScene()?.id) {
@@ -613,20 +655,19 @@ fun Model.updateMapEffects() {
     if (mapEffects.isEmpty()) {
         return
     }
-    val location: Location
-    val remoteSceneLocation = remoteSceneData.location
-    if (remoteSceneLocation != null) {
-        location = remoteSceneLocation.toLocation()
-    } else {
-        var latestKnownLocation = locationManager.getLatestKnownLocation() ?: return
-        if (isLocationInPrivacyRegion(location = latestKnownLocation)) {
-            latestKnownLocation = Location("").apply { time = System.currentTimeMillis() }
-        }
-        remoteControlAssistantSetRemoteSceneDataLocation(location = latestKnownLocation)
-        location = latestKnownLocation
+    var location = locationManager.getLatestKnownLocation()
+    if (location != null && isLocationInPrivacyRegion(location = location)) {
+        location = Location("").apply { time = System.currentTimeMillis() }
     }
-    for (mapEffect in mapEffects.values) {
-        mapEffect.updateLocation(location = location)
+    if (location != null) {
+        remoteControlAssistantSetRemoteSceneDataLocation(location = location)
+    }
+    val remoteLocation = remoteSceneData.location?.toLocation()
+    for ((widgetId, mapEffect) in mapEffects) {
+        val widgetLocation = if (isRemoteSceneWidget(id = widgetId)) remoteLocation else location
+        if (widgetLocation != null) {
+            mapEffect.updateLocation(location = widgetLocation)
+        }
     }
 }
 
@@ -662,13 +703,16 @@ fun Model.isSceneVideoSourceActive(sceneId: UUID): Boolean {
     return isSceneVideoSourceActive(scene = scene)
 }
 
-fun Model.getBuiltinCameraDevices(scene: SettingsScene, sceneDevice: CaptureDevice?): CaptureDevices {
+fun Model.getBuiltinCameraDevices(
+    scene: SettingsScene,
+    sceneDevice: CaptureDevice?,
+    resolver: SceneResolver
+): CaptureDevices {
     val devices = CaptureDevices(hasSceneDevice = false, devices = mutableListOf())
     if (sceneDevice != null) {
         devices.hasSceneDevice = true
         devices.devices.add(makeCaptureDevice(device = sceneDevice))
     }
-    val addedSceneIds = mutableSetOf<UUID>()
     val quickSwitchGroup = scene.quickSwitchGroup
     if (quickSwitchGroup != null) {
         for (otherScene in enabledScenes) {
@@ -677,51 +721,56 @@ fun Model.getBuiltinCameraDevices(scene: SettingsScene, sceneDevice: CaptureDevi
                 getBuiltinCameraDevicesInScene(
                     scene = otherScene,
                     devices = devices.devices,
-                    addedSceneIds = addedSceneIds
+                    resolver = resolver
                 )
             }
         }
     }
-    getBuiltinCameraDevicesInScene(scene = scene, devices = devices.devices, addedSceneIds = addedSceneIds)
+    getBuiltinCameraDevicesInScene(scene = scene, devices = devices.devices, resolver = resolver)
     return devices
 }
 
-fun Model.getCameraPreviewDeviceIds(scene: SettingsScene, sceneDevice: CaptureDevice?): List<UUID> {
+fun Model.getCameraPreviewDeviceIds(
+    scene: SettingsScene,
+    sceneDevice: CaptureDevice?,
+    resolver: SceneResolver
+): List<UUID> {
     val deviceIds = mutableSetOf<UUID>()
     if (sceneDevice != null) {
         deviceIds.add(makeCaptureDevice(device = sceneDevice).id)
     }
-    for (otherScene in getQuickSwitchScenes(scene = scene)) {
+    for (otherScene in getQuickSwitchScenes(scene = scene, resolver = resolver)) {
         val devices = mutableListOf<CaptureDevice>()
         getBuiltinCameraDevices(videoSource = otherScene.videoSource, devices = devices)
         deviceIds.addAll(devices.map { it.id })
-        deviceIds.addAll(getCameraPreviewWidgets(scene = otherScene).map { it.deviceId })
+        deviceIds.addAll(
+            getCameraPreviewWidgets(resolvedScene = resolver.resolve(otherScene)).map { it.deviceId }
+        )
     }
     return deviceIds.toList()
 }
 
-private fun Model.getQuickSwitchScenes(scene: SettingsScene): List<SettingsScene> {
-    val deviceIds = getSceneBuiltinCameraDeviceIds(scene = scene)
+private fun Model.getQuickSwitchScenes(scene: SettingsScene, resolver: SceneResolver): List<SettingsScene> {
+    val deviceIds = getSceneBuiltinCameraDeviceIds(scene = scene, resolver = resolver)
     return enabledScenes.filter { otherScene ->
         val quickSwitchGroup = scene.quickSwitchGroup
         if (quickSwitchGroup != null && otherScene.quickSwitchGroup == quickSwitchGroup) {
             return@filter true
         }
-        getSceneBuiltinCameraDeviceIds(scene = otherScene) == deviceIds
+        getSceneBuiltinCameraDeviceIds(scene = otherScene, resolver = resolver) == deviceIds
     }
 }
 
-private fun Model.getSceneBuiltinCameraDeviceIds(scene: SettingsScene): Set<UUID> {
+private fun Model.getSceneBuiltinCameraDeviceIds(scene: SettingsScene, resolver: SceneResolver): Set<UUID> {
     val devices = mutableListOf<CaptureDevice>()
     getBuiltinCameraDevices(videoSource = scene.videoSource, devices = devices)
-    val addedSceneIds = mutableSetOf<UUID>()
-    getBuiltinCameraDevicesInScene(scene = scene, devices = devices, addedSceneIds = addedSceneIds)
+    getBuiltinCameraDevicesInScene(scene = scene, devices = devices, resolver = resolver)
     return devices.map { it.id }.toSet()
 }
 
-fun Model.getCameraPreviewWidgets(scene: SettingsScene): List<CameraPreviewWidget> {
+private fun Model.getCameraPreviewWidgets(resolvedScene: ResolvedScene): List<CameraPreviewWidget> {
     val widgets = mutableListOf<CameraPreviewWidget>()
-    for (widget in removeDuplicatedWidgets(widgets = getSceneWidgets(scene = scene, onlyEnabled = true))) {
+    for (widget in resolvedScene.localDrawnWidgets()) {
         if (widget.widget.type != SettingsWidgetType.videoSource) {
             continue
         }
@@ -756,8 +805,12 @@ fun Model.getCameraPreviewWidgets(scene: SettingsScene): List<CameraPreviewWidge
 
 fun Model.updateCameraPreviewWidgets() {
     val scene = getSelectedScene() ?: return
+    updateCameraPreviewWidgets(resolvedScene = resolveScene(scene))
+}
+
+private fun Model.updateCameraPreviewWidgets(resolvedScene: ResolvedScene) {
     cameraPreviewView.setWidgets(
-        widgets = getCameraPreviewWidgets(scene = scene),
+        widgets = getCameraPreviewWidgets(resolvedScene = resolvedScene),
         canvasSize = media.getCanvasSize().toCGSize()
     )
 }
@@ -1270,11 +1323,8 @@ private fun Model.sceneUpdatedOff() {
     }
 }
 
-private fun Model.findSceneWidget(scene: SettingsScene, widgetId: UUID): SettingsSceneWidget? {
-    return scene.widgets.firstOrNull { it.widgetId == widgetId }
-}
-
-private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
+private fun Model.sceneUpdatedOn(scene: SettingsScene, resolver: SceneResolver, attachCamera: Boolean) {
+    val resolvedScene = resolver.resolve(scene, includeRemote = true)
     val effects = mutableListOf<VideoEffect>()
     if (database.color.lutEnabled && database.color.space == SettingsColorSpace.appleLog) {
         effects.add(lutEffect)
@@ -1287,27 +1337,20 @@ private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
         effects.add(lutEffect)
     }
     effects.addAll(registerGlobalVideoEffects(scene = scene))
-    val addedScenes = mutableListOf<SettingsScene>()
     val needsSpeechToText = BooleanArray(1)
     enabledAlertsEffects.clear()
     enabledSnapshotEffects.clear()
     enabledChatEffects.clear()
     enabledChatEmoteComboEffects.clear()
-    var effectiveScene = scene
-    val remoteSceneWidget = remoteSceneWidgets.firstOrNull()
-    if (remoteSceneWidget != null) {
-        effectiveScene = scene.clone()
-        effectiveScene.widgets.add(SettingsSceneWidget(widgetId = remoteSceneWidget.id))
-    }
-    addSceneEffects(effectiveScene, effects, addedScenes, needsSpeechToText)
+    addSceneEffects(resolvedScene.drawnWidgets(), effects, needsSpeechToText)
     if (drawOnStream.lines.value.isNotEmpty()) {
         effects.add(drawOnStreamEffect)
     }
     effects.addAll(registerGlobalVideoEffectsOnTop())
     media.setPendingAfterAttachEffects(
         effects = effects,
-        rotation = effectiveScene.videoSourceRotation,
-        mirror = effectiveScene.mirror
+        rotation = scene.videoSourceRotation,
+        mirror = scene.mirror
     )
     for (effect in browserEffects.values) {
         if (!effects.contains(effect)) {
@@ -1333,10 +1376,10 @@ private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
     }
     media.setSpeechToText(enabled = needsSpeechToText[0])
     if (attachCamera) {
-        attachSingleLayout(scene = effectiveScene)
+        attachSingleLayout(scene = scene, resolver = resolver)
     } else {
         media.usePendingAfterAttachEffects()
-        updateCameraPreviewWidgets()
+        updateCameraPreviewWidgets(resolvedScene = resolvedScene)
     }
     if (drawOnStream.lines.value.isNotEmpty()) {
         drawOnStreamEffect.updateOverlay(
@@ -1349,33 +1392,26 @@ private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
 }
 
 private fun Model.addSceneEffects(
-    scene: SettingsScene,
+    drawnWidgets: List<ResolvedSceneWidget>,
     effects: MutableList<VideoEffect>,
-    addedScenes: MutableList<SettingsScene>,
     needsSpeechToText: BooleanArray
 ) {
-    if (addedScenes.contains(scene)) {
-        return
-    }
-    addedScenes.add(scene)
-    for (sceneWidget in scene.widgets) {
-        val widget = findWidget(id = sceneWidget.widgetId)
-        if (widget == null || !widget.enabled) {
-            continue
-        }
+    for (drawnWidget in drawnWidgets) {
+        val sceneWidget = drawnWidget.sceneWidget
+        val widget = drawnWidget.widget
         when (widget.type) {
             SettingsWidgetType.image -> addSceneImageEffects(sceneWidget, widget, effects)
             SettingsWidgetType.text -> addSceneTextEffects(sceneWidget, widget, effects, needsSpeechToText)
             SettingsWidgetType.browser -> addSceneBrowserEffects(
                 sceneWidget,
                 widget,
-                scene,
+                drawnWidgets,
                 effects,
                 needsSpeechToText
             )
-            SettingsWidgetType.crop -> addSceneCropEffects(widget, scene, effects)
+            SettingsWidgetType.crop -> addSceneCropEffects(widget, drawnWidgets, effects)
             SettingsWidgetType.map -> addSceneMapEffects(sceneWidget, widget, effects)
-            SettingsWidgetType.scene -> addSceneSceneEffects(widget, effects, addedScenes, needsSpeechToText)
+            SettingsWidgetType.scene -> {}
             SettingsWidgetType.slideshow -> addSceneSlideshowEffects(sceneWidget, widget, effects)
             SettingsWidgetType.qrCode -> addSceneQrCodeEffects(sceneWidget, widget, effects)
             SettingsWidgetType.alerts -> addSceneAlertsEffects(sceneWidget, widget, effects, needsSpeechToText)
@@ -1390,48 +1426,6 @@ private fun Model.addSceneEffects(
             SettingsWidgetType.wheelOfLuck -> addSceneWheelOfLuckEffects(sceneWidget, widget, effects)
             SettingsWidgetType.bingoCard -> addSceneBingoCardEffects(sceneWidget, widget, effects)
             SettingsWidgetType.pomodoroTimer -> addScenePomodoroTimerEffects(sceneWidget, widget, effects)
-        }
-    }
-}
-
-fun Model.getDrawnSceneWidgets(scene: SettingsScene, includeDisabled: Boolean = false): List<DrawnSceneWidget> {
-    val drawnWidgets = mutableListOf<DrawnSceneWidget>()
-    val addedScenes = mutableListOf<SettingsScene>()
-    getDrawnSceneWidgetsInternal(scene, drawnWidgets, addedScenes, includeDisabled)
-    val remoteSceneWidget = remoteSceneWidgets.firstOrNull()
-    if (remoteSceneWidget != null) {
-        val remoteScene = getLocalAndRemoteScenes()
-            .firstOrNull { it.id == remoteSceneWidget.scene.sceneId }
-        if (remoteScene != null) {
-            getDrawnSceneWidgetsInternal(remoteScene, drawnWidgets, addedScenes)
-        }
-    }
-    return drawnWidgets
-}
-
-private fun Model.getDrawnSceneWidgetsInternal(
-    scene: SettingsScene,
-    drawnWidgets: MutableList<DrawnSceneWidget>,
-    addedScenes: MutableList<SettingsScene>,
-    includeDisabled: Boolean = false
-) {
-    if (addedScenes.contains(scene)) {
-        return
-    }
-    addedScenes.add(scene)
-    for (sceneWidget in scene.widgets) {
-        val widget = findWidget(id = sceneWidget.widgetId) ?: continue
-        if (!widget.enabled && !(includeDisabled && widget.type != SettingsWidgetType.scene)) {
-            continue
-        }
-        if (widget.type == SettingsWidgetType.scene) {
-            val nestedScene = getLocalAndRemoteScenes()
-                .firstOrNull { it.id == widget.scene.sceneId }
-            if (nestedScene != null) {
-                getDrawnSceneWidgetsInternal(nestedScene, drawnWidgets, addedScenes)
-            }
-        } else if (drawnWidgets.none { it.widget.id == widget.id }) {
-            drawnWidgets.add(DrawnSceneWidget(scene = scene, sceneWidget = sceneWidget, widget = widget))
         }
     }
 }
@@ -1469,7 +1463,7 @@ private fun Model.addSceneTextEffects(
 private fun Model.addSceneBrowserEffects(
     sceneWidget: SettingsSceneWidget,
     widget: SettingsWidget,
-    scene: SettingsScene,
+    drawnWidgets: List<ResolvedSceneWidget>,
     effects: MutableList<VideoEffect>,
     needsSpeechToText: BooleanArray
 ) {
@@ -1479,7 +1473,7 @@ private fun Model.addSceneBrowserEffects(
     }
     effect.setSceneWidget(
         sceneWidget = sceneWidget.clone(),
-        crops = findWidgetCrops(scene = scene, sourceWidgetId = widget.id)
+        crops = findWidgetCrops(drawnWidgets = drawnWidgets, sourceWidgetId = widget.id)
     )
     effects.add(effect)
     if (widget.browser.moblinAccess && widget.browser.speechToText) {
@@ -1489,22 +1483,18 @@ private fun Model.addSceneBrowserEffects(
 
 private fun Model.addSceneCropEffects(
     widget: SettingsWidget,
-    scene: SettingsScene,
+    drawnWidgets: List<ResolvedSceneWidget>,
     effects: MutableList<VideoEffect>
 ) {
-    val effect = browserEffects[widget.crop.sourceWidgetId] ?: return
+    val sourceWidgetId = widget.crop.sourceWidgetId
+    val effect = browserEffects[sourceWidgetId] ?: return
     if (effects.contains(effect)) {
         return
     }
-    val sceneWidget: SettingsSceneWidget? =
-        if (findWidget(id = widget.crop.sourceWidgetId)?.enabled == true) {
-            findSceneWidget(scene = scene, widgetId = widget.crop.sourceWidgetId)
-        } else {
-            null
-        }
+    val sceneWidget = drawnWidgets.firstOrNull { it.widget.id == sourceWidgetId }?.sceneWidget
     effect.setSceneWidget(
         sceneWidget = sceneWidget?.clone(),
-        crops = findWidgetCrops(scene = scene, sourceWidgetId = widget.crop.sourceWidgetId)
+        crops = findWidgetCrops(drawnWidgets = drawnWidgets, sourceWidgetId = sourceWidgetId)
     )
     effects.add(effect)
 }
@@ -1520,16 +1510,6 @@ private fun Model.addSceneMapEffects(
     }
     effect.setSceneWidget(sceneWidget = sceneWidget.clone())
     effects.add(effect)
-}
-
-private fun Model.addSceneSceneEffects(
-    widget: SettingsWidget,
-    effects: MutableList<VideoEffect>,
-    addedScenes: MutableList<SettingsScene>,
-    needsSpeechToText: BooleanArray
-) {
-    val sceneWidgetScene = getLocalAndRemoteScenes().firstOrNull { it.id == widget.scene.sceneId } ?: return
-    addSceneEffects(sceneWidgetScene, effects, addedScenes, needsSpeechToText)
 }
 
 private fun Model.addSceneSlideshowEffects(
@@ -1762,86 +1742,38 @@ private fun Model.updateRemoteSceneSettings() {
     }
 }
 
-private fun Model.getLocalAndRemoteScenes(): List<SettingsScene> {
-    return database.scenes + remoteSceneScenes
+private fun Model.isRemoteSceneWidget(id: UUID): Boolean {
+    return remoteSceneWidgets.any { it.id == id }
 }
 
 private fun Model.getLocalAndRemoteWidgets(): List<SettingsWidget> {
     return database.widgets + remoteSceneWidgets
 }
 
-private fun Model.findWidgetCrops(scene: SettingsScene, sourceWidgetId: UUID): List<WidgetCrop> {
-    val crops = mutableListOf<WidgetCrop>()
-    for (widget in getSceneWidgets(scene = scene, onlyEnabled = true)) {
-        if (widget.widget.type != SettingsWidgetType.crop) {
-            continue
+private fun Model.findWidgetCrops(
+    drawnWidgets: List<ResolvedSceneWidget>,
+    sourceWidgetId: UUID
+): List<WidgetCrop> {
+    return drawnWidgets
+        .filter {
+            it.widget.type == SettingsWidgetType.crop && it.widget.crop.sourceWidgetId == sourceWidgetId
         }
-        val crop = widget.widget.crop
-        if (crop.sourceWidgetId != sourceWidgetId) {
-            continue
-        }
-        crops.add(WidgetCrop(crop = crop.clone(), sceneWidget = widget.sceneWidget.clone()))
-    }
-    return crops
+        .map { WidgetCrop(crop = it.widget.crop.clone(), sceneWidget = it.sceneWidget.clone()) }
 }
 
-private fun Model.isCaptureDeviceWidgetInternal(
-    widget: SettingsWidget,
-    addedSceneIds: MutableSet<UUID>
-): Boolean {
+fun Model.isCaptureDeviceWidget(widget: SettingsWidget): Boolean {
     when (widget.type) {
         SettingsWidgetType.scene -> {
-            if (addedSceneIds.contains(widget.scene.sceneId)) {
-                return false
+            val scene = database.scenes.firstOrNull { it.id == widget.scene.sceneId } ?: return false
+            return resolveScene(scene, includeDisabledSceneWidgets = true).widgets.any {
+                it.widget.type != SettingsWidgetType.scene && isCaptureDeviceWidget(widget = it.widget)
             }
-            addedSceneIds.add(widget.scene.sceneId)
-            val scene = database.scenes.firstOrNull { it.id == widget.scene.sceneId }
-            if (scene != null) {
-                for (sceneWidget in getSceneWidgets(scene = scene, onlyEnabled = false)) {
-                    if (isCaptureDeviceWidgetInternal(
-                            widget = sceneWidget.widget,
-                            addedSceneIds = addedSceneIds
-                        )
-                    ) {
-                        return true
-                    }
-                }
-            }
-            return false
         }
         SettingsWidgetType.videoSource -> return widget.videoSource.videoSource.isCaptureDevice()
         SettingsWidgetType.vTuber -> return widget.vTuber.videoSource.isCaptureDevice()
         SettingsWidgetType.pngTuber -> return widget.pngTuber.videoSource.isCaptureDevice()
         else -> return false
     }
-}
-
-private fun Model.getSceneWidgetsInternal(
-    scene: SettingsScene,
-    onlyEnabled: Boolean,
-    addedSceneIds: MutableSet<UUID>
-): List<WidgetInScene> {
-    val widgets = mutableListOf<WidgetInScene>()
-    for (sceneWidget in scene.widgets) {
-        val widget = findWidget(id = sceneWidget.widgetId)
-        if (widget == null || (onlyEnabled && !widget.enabled)) {
-            continue
-        }
-        if (widget.type == SettingsWidgetType.scene) {
-            if (addedSceneIds.contains(widget.scene.sceneId)) {
-                continue
-            }
-            widgets.add(WidgetInScene(widget = widget, sceneWidget = sceneWidget))
-            addedSceneIds.add(widget.scene.sceneId)
-            val nestedScene = database.scenes.firstOrNull { it.id == widget.scene.sceneId }
-            if (nestedScene != null) {
-                widgets.addAll(getSceneWidgetsInternal(nestedScene, onlyEnabled, addedSceneIds))
-            }
-        } else {
-            widgets.add(WidgetInScene(widget = widget, sceneWidget = sceneWidget))
-        }
-    }
-    return widgets
 }
 
 private fun Model.updateTextWidgetsLapTimes(now: Instant) {
@@ -1873,21 +1805,23 @@ fun Model.updateTextEffects(now: Instant, timestamp: TimeSource.Monotonic.ValueT
     if (textEffects.isEmpty()) {
         return
     }
-    val variables: Variables
-    val textStats = remoteSceneData.textStats
-    if (textStats != null) {
-        variables = textStats.toVariables()
-    } else {
-        updateTextWidgetsLapTimes(now = now)
-        variables = createVariables(now = now, timestamp = timestamp)
-        remoteControlAssistantSetRemoteSceneDataVariables(variables = variables)
-    }
-    for (effect in textEffects.values) {
-        effect.updateVariables(variables = variables)
+    updateTextWidgetsLapTimes(now = now)
+    val variables = createVariables(now = now, timestamp = timestamp)
+    remoteControlAssistantSetRemoteSceneDataVariables(variables = variables)
+    val remoteVariables = remoteSceneData.textStats?.toVariables()
+    for ((widgetId, effect) in textEffects) {
+        val effectVariables = if (isRemoteSceneWidget(id = widgetId)) remoteVariables else variables
+        if (effectVariables != null) {
+            effect.updateVariables(variables = effectVariables)
+        }
     }
     for (effect in slideshowEffects.values) {
         for (slide in effect.slides) {
-            (slide.effect as? TextEffect)?.updateVariables(variables = variables)
+            val textEffect = slide.effect as? TextEffect ?: continue
+            val slideVariables = if (isRemoteSceneWidget(id = slide.widgetId)) remoteVariables else variables
+            if (slideVariables != null) {
+                textEffect.updateVariables(variables = slideVariables)
+            }
         }
     }
 }
@@ -1895,17 +1829,10 @@ fun Model.updateTextEffects(now: Instant, timestamp: TimeSource.Monotonic.ValueT
 private fun Model.getBuiltinCameraDevicesInScene(
     scene: SettingsScene,
     devices: MutableList<CaptureDevice>,
-    addedSceneIds: MutableSet<UUID>
+    resolver: SceneResolver
 ) {
-    if (addedSceneIds.contains(scene.id)) {
-        return
-    }
-    addedSceneIds.add(scene.id)
-    for (sceneWidget in scene.widgets) {
-        val widget = findWidget(id = sceneWidget.widgetId) ?: continue
-        if (!widget.enabled) {
-            continue
-        }
+    for (drawnWidget in resolver.resolve(scene).drawnWidgets()) {
+        val widget = drawnWidget.widget
         when (widget.type) {
             SettingsWidgetType.videoSource ->
                 getBuiltinCameraDevices(videoSource = widget.videoSource.videoSource, devices = devices)
@@ -1913,11 +1840,6 @@ private fun Model.getBuiltinCameraDevicesInScene(
                 getBuiltinCameraDevices(videoSource = widget.vTuber.videoSource, devices = devices)
             SettingsWidgetType.pngTuber ->
                 getBuiltinCameraDevices(videoSource = widget.pngTuber.videoSource, devices = devices)
-            SettingsWidgetType.scene -> getBuiltinCameraDevicesForSceneWidget(
-                scene = widget.scene,
-                devices = devices,
-                addedSceneIds = addedSceneIds
-            )
             else -> {}
         }
     }
@@ -1933,15 +1855,6 @@ private fun Model.getBuiltinCameraDevices(
         return
     }
     devices.add(makeCaptureDevice(device = device))
-}
-
-private fun Model.getBuiltinCameraDevicesForSceneWidget(
-    scene: SettingsWidgetScene,
-    devices: MutableList<CaptureDevice>,
-    addedSceneIds: MutableSet<UUID>
-) {
-    val found = database.scenes.firstOrNull { it.id == scene.sceneId } ?: return
-    getBuiltinCameraDevicesInScene(scene = found, devices = devices, addedSceneIds = addedSceneIds)
 }
 
 private fun Model.updateTimers(

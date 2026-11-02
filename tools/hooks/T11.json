@@ -384,8 +384,8 @@
       "file": "various/model/Model.kt",
       "scope": "fun attachExternalCamera",
       "op": "replace",
-      "old": "        attachCamera(scene = scene, position = CameraSelector.LENS_FACING_FRONT)",
-      "new": "        attachCamera(scene = scene, position = com.moblin.android.platform.avfoundation.AVCaptureDevice.Position.unspecified.ordinal)",
+      "old": "        attachCamera(scene = scene, position = CameraSelector.LENS_FACING_FRONT, resolver = resolver)",
+      "new": "        attachCamera(scene = scene, position = com.moblin.android.platform.avfoundation.AVCaptureDevice.Position.unspecified.ordinal, resolver = resolver)",
       "occurrence": 1
     },
     {
@@ -460,16 +460,6 @@
       "old": "            Instant.now().plusNanos((utcTimeDeltaFromNow(it.endTime) * 1_000_000_000.0).toLong()).toEpochMilli()",
       "new": "            com.moblin.android.platform.core.ContinuousClock.now.advanced(bySeconds = utcTimeDeltaFromNow(it.endTime))",
       "occurrence": 1
-    },
-    {
-      "id": "R11.1",
-      "file": "various/model/ModelScene.kt",
-      "scope": "fun Model.updateMapEffects",
-      "op": "replace",
-      "old": "        mapEffect.updateLocation(location = TODO(\"no Android counterpart for MapLocation conversion\"))",
-      "new": "        mapEffect.updateLocation(location = location)",
-      "occurrence": 1,
-      "note": "ME1 line; until MapEffect.kt is regenerated, E7's interim HE7.1/HE7.2 convert the Location."
     },
     {
       "id": "R11.7",
@@ -642,16 +632,6 @@
       "new": "        fixedHorizonEffect.start(portrait = stream.value.portrait)",
       "occurrence": 1,
       "note": "ME1: Swift ModelScene.swift:618 passes stream.portrait (the stream's orientation), not the UI's database.portrait."
-    },
-    {
-      "id": "R11.27",
-      "file": "various/model/ModelScene.kt",
-      "scope": "fun Model.updateMapEffects",
-      "op": "replace",
-      "old": "            latestKnownLocation = Location(\"\")",
-      "new": "            latestKnownLocation = Location(\"\").apply { time = System.currentTimeMillis() }",
-      "occurrence": 1,
-      "note": "E7 request: Swift ModelScene.swift replaces a location in a privacy region with CLLocation(), whose timestamp is now; MapEffect compares location timestamps."
     },
     {
       "id": "R11.6a",

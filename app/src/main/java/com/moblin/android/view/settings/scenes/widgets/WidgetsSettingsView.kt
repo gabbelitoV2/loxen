@@ -36,9 +36,8 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.various.model.deleteWidget
 import com.moblin.android.various.model.isCaptureDeviceWidget
-import com.moblin.android.various.model.removeDeadWidgetsFromScenes
-import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.sceneUpdated
 
 @Composable
@@ -57,9 +56,7 @@ private fun WidgetsSettingsItemView(
     )
     ContextMenuDeleteButton(
         action = {
-            database.widgets.removeAll { it === widget }
-            model.removeDeadWidgetsFromScenes()
-            model.resetSelectedScene()
+            model.deleteWidget(widget = widget)
         },
     ) {
         SwipeActions(
@@ -67,9 +64,7 @@ private fun WidgetsSettingsItemView(
             allowsFullSwipe = false,
             actions = {
                 SwipeLeftToDeleteButtonView {
-                    database.widgets.removeAll { it === widget }
-                    model.removeDeadWidgetsFromScenes()
-                    model.resetSelectedScene()
+                    model.deleteWidget(widget = widget)
                 }
             },
         ) {

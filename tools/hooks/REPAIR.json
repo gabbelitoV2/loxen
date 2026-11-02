@@ -1,0 +1,56 @@
+{
+  "task": "REPAIR",
+  "hooks": [
+    {
+      "id": "HREP.1",
+      "file": "various/model/ModelScene.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.various.utils.makeUniqueName"
+    },
+    {
+      "id": "HREP.2",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.deleteScene",
+      "op": "replace",
+      "old": "        sceneEditor.sceneId = null",
+      "new": "        sceneEditor.sceneId.value = null",
+      "occurrence": 1
+    },
+    {
+      "id": "HREP.3",
+      "file": "view/settings/scenes/scene/SceneWizardSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.various.model.createScene"
+    },
+    {
+      "id": "HREP.4",
+      "file": "view/settings/scenes/scene/SceneWizardSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.various.model.getCameraId"
+    },
+    {
+      "id": "HREP.5",
+      "file": "view/settings/scenes/scene/SceneWizardSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.various.model.cameraIdToSettingsCameraId"
+    },
+    {
+      "id": "HREP.6",
+      "file": "videoeffects/vtuber/VTuberVrmEffect.kt",
+      "scope": "fun renderModel",
+      "op": "replace",
+      "old": "                toPixels(layoutSize.width, size.width),",
+      "new": "                toPixels(layoutSize, size.width),",
+      "occurrence": 1
+    },
+    {
+      "id": "HREP.7",
+      "file": "videoeffects/vtuber/VTuberVrmEffect.kt",
+      "scope": "fun renderModel",
+      "op": "replace",
+      "old": "                toPixels(layoutSize.height, size.height),",
+      "new": "                toPixels(layoutSize, size.height),",
+      "occurrence": 1
+    }
+  ]
+}

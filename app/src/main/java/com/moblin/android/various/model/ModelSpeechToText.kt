@@ -1,5 +1,6 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.SpeechToText
 import com.moblin.android.various.SpeechToTextDelegate
@@ -16,6 +17,10 @@ fun Model.reloadSpeechToText() {
 }
 
 fun Model.startSpeechToText() {
+    startSpeechToText(drawnWidgets = drawnWidgetsInSelectedScene())
+}
+
+private fun Model.startSpeechToText(drawnWidgets: List<SettingsWidget>) {
     val newSpeechToText = SpeechToText()
     speechToText = newSpeechToText
     newSpeechToText.delegate = object : SpeechToTextDelegate {
@@ -30,10 +35,10 @@ fun Model.startSpeechToText() {
     newSpeechToText.start { message ->
         makeErrorToast(title = message)
     }
-    for (widget in widgetsInCurrentScene(onlyEnabled = true)) {
-        when (widget.widget.type) {
+    for (widget in drawnWidgets) {
+        when (widget.type) {
             SettingsWidgetType.text -> {
-                val languageIdentifiers = widget.widget.text.subtitles.map { it.identifier }.toSet()
+                val languageIdentifiers = widget.text.subtitles.map { it.identifier }.toSet()
                 for (languageIdentifier in languageIdentifiers) {
                     if (languageIdentifier != null) {
                         addTranslator(targetIdentifier = languageIdentifier)
@@ -59,9 +64,13 @@ fun Model.stopSpeechToText() {
 }
 
 fun Model.updateSpeechToText() {
-    if (isSpeechToTextNeeded()) {
+    updateSpeechToText(drawnWidgets = drawnWidgetsInSelectedScene())
+}
+
+fun Model.updateSpeechToText(drawnWidgets: List<SettingsWidget>) {
+    if (isSpeechToTextNeeded(drawnWidgets = drawnWidgets)) {
         if (speechToText == null) {
-            startSpeechToText()
+            startSpeechToText(drawnWidgets = drawnWidgets)
         }
     } else if (speechToText != null) {
         stopSpeechToText()
@@ -69,20 +78,24 @@ fun Model.updateSpeechToText() {
 }
 
 fun Model.isSpeechToTextNeeded(): Boolean {
-    for (widget in widgetsInCurrentScene(onlyEnabled = true)) {
-        when (widget.widget.type) {
+    return isSpeechToTextNeeded(drawnWidgets = drawnWidgetsInSelectedScene())
+}
+
+private fun Model.isSpeechToTextNeeded(drawnWidgets: List<SettingsWidget>): Boolean {
+    for (widget in drawnWidgets) {
+        when (widget.type) {
             SettingsWidgetType.text -> {
-                if (widget.widget.text.needsSubtitles) {
+                if (widget.text.needsSubtitles) {
                     return true
                 }
             }
             SettingsWidgetType.alerts -> {
-                if (widget.widget.alerts.needsSubtitles) {
+                if (widget.alerts.needsSubtitles) {
                     return true
                 }
             }
             SettingsWidgetType.browser -> {
-                if (widget.widget.browser.moblinAccess && widget.widget.browser.speechToText) {
+                if (widget.browser.moblinAccess && widget.browser.speechToText) {
                     return true
                 }
             }

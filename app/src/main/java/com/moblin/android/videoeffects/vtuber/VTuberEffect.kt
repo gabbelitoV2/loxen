@@ -36,7 +36,8 @@ open class VTuberEffect : VideoEffect() {
     private var videoSourceId: UUID = UUID.randomUUID()
     private var mirror: Boolean = false
     private var sensitivity = SettingsSensitivity()
-    private var sceneWidget: SettingsSceneWidget? = null
+    var sceneWidget: SettingsSceneWidget? = null
+        private set
     private var timeStampRebaser = TimeStampRebaser()
     private var previousPresentationTimeStamp = 0.0
     private var face = VTuberFace()

@@ -2,6 +2,7 @@ package com.moblin.android.various.model
 
 import android.graphics.BitmapFactory
 import android.media.ExifInterface
+import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coregraphics.toCGSize
@@ -46,19 +47,24 @@ private fun Model.setWidgetOutlinesEnabled(widgetOutlines: WidgetOutlines, enabl
     }
 }
 
-fun Model.updateWidgetOutlines() {
+fun Model.updateWidgetOutlines(resolver: SceneResolver? = null) {
+    if (!widgetOutlines.enabled.value && !sceneEditorWidgetOutlines.enabled.value) {
+        return
+    }
+    val resolver = resolver ?: makeSceneResolver()
     if (widgetOutlines.enabled.value) {
-        updateWidgetOutlines(widgetOutlines, getSelectedScene(), false)
+        updateWidgetOutlines(widgetOutlines, getSelectedScene(), resolver, sceneEditor = false)
     }
     if (sceneEditorWidgetOutlines.enabled.value) {
-        updateWidgetOutlines(sceneEditorWidgetOutlines, sceneEditorScene(), true)
+        updateWidgetOutlines(sceneEditorWidgetOutlines, sceneEditorScene(), resolver, sceneEditor = true)
     }
 }
 
 private fun Model.updateWidgetOutlines(
     widgetOutlines: WidgetOutlines,
     scene: SettingsScene?,
-    includeDisabled: Boolean,
+    resolver: SceneResolver,
+    sceneEditor: Boolean,
 ) {
     if (scene == null) {
         widgetOutlines.outlines.value = emptyList()
@@ -71,9 +77,31 @@ private fun Model.updateWidgetOutlines(
         widgetOutlines.canvasSize.value = canvasSize
     }
     val outlines = mutableListOf<WidgetOutline>()
-    for (drawnWidget in getDrawnSceneWidgets(scene = scene, includeDisabled = includeDisabled)) {
+    val resolved = resolver.resolve(scene, includeRemote = true, includeDisabledSceneWidgets = sceneEditor)
+    if (sceneEditor) {
+        for (drawnWidget in resolved.firstWidgets()) {
+            if (drawnWidget.widget.type != SettingsWidgetType.scene) {
+                continue
+            }
+            if (scene.widgets.none { it === drawnWidget.sceneWidget }) {
+                continue
+            }
+            outlines.add(
+                WidgetOutline(
+                    sceneWidget = drawnWidget.sceneWidget,
+                    widget = drawnWidget.widget,
+                    rect = CGRect(origin = CGPoint.zero, size = canvasSize),
+                    alignment = drawnWidget.sceneWidget.layout.alignment,
+                    sized = true,
+                    inScene = true,
+                    enabled = drawnWidget.widget.enabled,
+                ),
+            )
+        }
+    }
+    for (drawnWidget in resolved.firstWidgets()) {
         val widget = drawnWidget.widget
-        if (!widget.hasPosition()) {
+        if (!(sceneEditor || drawnWidget.enabled) || !widget.hasPosition()) {
             continue
         }
         val layout = drawnWidget.sceneWidget.layout
@@ -87,9 +115,10 @@ private fun Model.updateWidgetOutlines(
                     origin = layoutPosition(layout = layout, size = outlineSize, streamSize = canvasSize),
                     size = outlineSize,
                 ),
+                alignment = layout.alignment,
                 sized = size != null,
                 inScene = drawnWidget.scene === scene,
-                enabled = widget.enabled,
+                enabled = drawnWidget.enabled,
             ),
         )
     }
@@ -218,6 +247,7 @@ private fun widgetOutlinesEqual(first: List<WidgetOutline>, second: List<WidgetO
             a.rect.origin.y == b.rect.origin.y &&
             a.rect.size.width == b.rect.size.width &&
             a.rect.size.height == b.rect.size.height &&
+            a.alignment == b.alignment &&
             a.sized == b.sized &&
             a.inScene == b.inScene &&
             a.enabled == b.enabled

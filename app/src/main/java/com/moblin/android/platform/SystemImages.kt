@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Air
@@ -186,6 +187,9 @@ import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Umbrella
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.UnfoldMore
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.VerticalAlignBottom
+import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material.icons.filled.VerticalSplit
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.Videocam
@@ -284,6 +288,10 @@ private val symbols: Map<String, ImageVector> = controllerSymbols + mapOf(
     "magnifyingglass" to Icons.Filled.Search,
     "plus" to Icons.Filled.Add,
     "plus.square.on.square" to Icons.Filled.LibraryAdd,
+    "plus.square.dashed" to Icons.Filled.AddBox,
+    "square.2.layers.3d.top.filled" to Icons.Filled.VerticalAlignTop,
+    "square.2.layers.3d.bottom.filled" to Icons.Filled.VerticalAlignBottom,
+    "slider.horizontal.3" to Icons.Filled.Tune,
     "minus" to Icons.Filled.Remove,
     "plus.circle" to Icons.Filled.AddCircle,
     "minus.circle" to Icons.Filled.RemoveCircle,

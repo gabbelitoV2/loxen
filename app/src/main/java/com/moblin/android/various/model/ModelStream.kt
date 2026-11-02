@@ -558,6 +558,7 @@ fun Model.setCurrentStream(stream: SettingsStream) {
         }
     }
     currentStreamId.value = stream.id
+    updateIsPortrait()
     updateOrientationLock()
     updateStatusStreamText()
     reloadCameraLevel()

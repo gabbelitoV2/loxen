@@ -54,11 +54,13 @@ import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Divider
 import com.moblin.android.platform.swiftui.LocalTint
 import com.moblin.android.platform.swiftui.NavigationStack
-import com.moblin.android.platform.swiftui.NavigationToolbar
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Visibility
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.view.CloseButtonView
+import com.moblin.android.view.settings.scenes.scene.SceneSettingsView
 import com.moblin.android.view.settings.scenes.scene.SceneWidgetSettingsView
+import com.moblin.android.view.settings.scenes.scene.SceneWizardSheetView
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSheetView
 import com.moblin.android.view.settings.settingsHalfWidth
 import com.moblin.android.view.stream.StreamPreviewView
@@ -77,15 +79,16 @@ import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidget
+import com.moblin.android.various.settings.SettingsWidgetType
 import java.util.UUID
-import kotlin.math.abs
 import kotlin.math.hypot
-import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.moblin.android.LocalModel
+import com.moblin.android.various.model.addableWidgets
 import com.moblin.android.various.model.appendWidgetToScene
-import com.moblin.android.various.model.findWidget
+import com.moblin.android.various.model.deleteScene
+import com.moblin.android.various.model.deleteWidget
 import com.moblin.android.various.model.sceneEditorMoveWidget
 import com.moblin.android.various.model.sceneEditorMoveWidgetInDrawOrder
 import com.moblin.android.various.model.sceneEditorPresentationChanged
@@ -93,6 +96,7 @@ import com.moblin.android.various.model.sceneEditorRemoveWidget
 import com.moblin.android.various.model.sceneEditorResizeWidget
 import com.moblin.android.various.model.sceneEditorScene
 import com.moblin.android.various.model.sceneEditorSelectScene
+import com.moblin.android.various.model.sceneEditorSetWidgetAlignment
 import com.moblin.android.various.model.sceneEditorToggleWidgetEnabled
 
 private enum class SceneEditorEditMode {
@@ -105,13 +109,8 @@ private data class SceneEditorEdit(
     val mode: SceneEditorEditMode,
     val startSize: Double,
     val rect: CGRect,
-    val snapX: SceneEditorSnap? = null,
-    val snapY: SceneEditorSnap? = null,
-)
-
-private data class SceneEditorSelectedWidget(
-    val sceneWidget: SettingsSceneWidget,
-    val widget: SettingsWidget,
+    val guideX: Double? = null,
+    val guideY: Double? = null,
 )
 
 private class SceneEditorSelection {
@@ -122,80 +121,7 @@ private class SceneEditorSelection {
         get() = sceneWidgetIdFlow.value
         set(value) {
             sceneWidgetIdFlow.value = value
-            if (value == null) {
-                showingSettings.value = false
-            }
         }
-}
-
-private data class SceneEditorSnap(
-    val position: Double,
-    val centered: Boolean = false,
-    val guide: Double? = null,
-)
-
-private fun snapAxis(
-    position: Double,
-    length: Double,
-    total: Double,
-    threshold: Double,
-    canCenter: Boolean,
-    targets: List<Double>,
-): SceneEditorSnap {
-    val maximum = max(total - length, 0.0)
-    val positionClamped = position.coerceIn(0.0, maximum)
-    val candidates = mutableListOf(
-        SceneEditorSnap(position = 0.0),
-        SceneEditorSnap(position = maximum),
-    )
-    if (canCenter) {
-        candidates.add(SceneEditorSnap(position = maximum / 2, centered = true, guide = total / 2))
-    }
-    for (target in targets) {
-        for (anchor in listOf(0.0, length / 2, length)) {
-            if (target - anchor >= 0.0 && target - anchor <= maximum) {
-                candidates.add(SceneEditorSnap(position = target - anchor, guide = target))
-            }
-        }
-    }
-    val closest = candidates.minByOrNull { abs(it.position - positionClamped) }
-    if (closest != null && abs(closest.position - positionClamped) < threshold) {
-        return closest
-    }
-    return SceneEditorSnap(position = positionClamped)
-}
-
-private data class SceneEditorResizeSnap(
-    val factor: Double,
-    val distance: Double,
-    val guide: Double,
-)
-
-private fun snapResizeAxis(
-    edges: List<Double>,
-    fixed: Double,
-    factor: Double,
-    factors: ClosedFloatingPointRange<Double>,
-    threshold: Double,
-    targets: List<Double>,
-): SceneEditorResizeSnap? {
-    var closest: SceneEditorResizeSnap? = null
-    for (edge in edges) {
-        if (abs(edge - fixed) <= 1) {
-            continue
-        }
-        for (target in targets) {
-            val snapFactor = (target - fixed) / (edge - fixed)
-            val snapDistance = abs(snapFactor - factor)
-            if (snapDistance < threshold &&
-                snapFactor >= factors.start && snapFactor <= factors.endInclusive &&
-                snapDistance < (closest?.distance ?: Double.POSITIVE_INFINITY) - 1e-9
-            ) {
-                closest = SceneEditorResizeSnap(factor = snapFactor, distance = snapDistance, guide = target)
-            }
-        }
-    }
-    return closest
 }
 
 private fun distance(first: CGPoint, second: CGPoint): Double =
@@ -220,6 +146,7 @@ private fun SceneEditorCanvasView(
     val canvasSize by widgetOutlines.canvasSize.collectAsState()
     val selectedId by selection.sceneWidgetIdFlow.collectAsState()
     var edit by remember { mutableStateOf<SceneEditorEdit?>(null) }
+    var lastTapLocation by remember { mutableStateOf<CGPoint?>(null) }
 
     val scale = if (size.width != 0.0) canvasSize.width / size.width else 1.0
     val snapThreshold = 8 * scale
@@ -252,7 +179,7 @@ private fun SceneEditorCanvasView(
                 dy = min(0.0, (rect.height - 44) / 2),
             )
         }
-        val alignment = outline.sceneWidget.layout.alignment
+        val alignment = outline.alignment
         val width = 120.0
         val height = 60.0
         val x = if (alignment.isHorizontalCenter()) {
@@ -279,34 +206,21 @@ private fun SceneEditorCanvasView(
         .sortedBy { it.second.width * it.second.height }
         .map { it.first }
 
-    fun outlineForTap(location: CGPoint): WidgetOutline? {
-        val hits = outlinesAt(location)
-        val index = hits.indexOfFirst { it.id == selectedId }
-        if (index < 0) {
-            return hits.firstOrNull()
-        }
-        if (index + 1 >= hits.size) {
-            return null
-        }
-        return hits[index + 1]
+    fun selectOutline(location: CGPoint) {
+        val sameLocation = lastTapLocation?.let { distance(it, location) < 10 } ?: false
+        lastTapLocation = location
+        selection.sceneWidgetId = sceneEditorTapSelection(
+            hitIds = outlinesAt(location).map { it.id },
+            selectedId = selectedId,
+            sameLocation = sameLocation,
+        )
     }
 
     fun isResizable(outline: WidgetOutline): Boolean = outline.sized && outline.widget.hasSize()
 
-    fun fixedPoint(outline: WidgetOutline): CGPoint {
-        val rect = outline.rect
-        val alignment = outline.sceneWidget.layout.alignment
-        val x = if (alignment.isHorizontalCenter()) rect.midX else if (alignment.isLeft()) rect.minX else rect.maxX
-        val y = if (alignment.isVerticalCenter()) rect.midY else if (alignment.isTop()) rect.minY else rect.maxY
-        return CGPoint(x = x, y = y)
-    }
+    fun fixedPoint(outline: WidgetOutline): CGPoint = sceneEditorFixedPoint(outline.rect, outline.alignment)
 
-    fun handlePoint(outline: WidgetOutline, rect: CGRect): CGPoint {
-        val alignment = outline.sceneWidget.layout.alignment
-        val x = if (alignment.mirrorPositionHorizontally()) rect.minX else rect.maxX
-        val y = if (alignment.mirrorPositionVertically()) rect.minY else rect.maxY
-        return CGPoint(x = x, y = y)
-    }
+    fun handlePoint(outline: WidgetOutline, rect: CGRect): CGPoint = sceneEditorHandlePoint(rect, outline.alignment)
 
     fun startEdit(outline: WidgetOutline, mode: SceneEditorEditMode) {
         edit = SceneEditorEdit(
@@ -328,7 +242,7 @@ private fun SceneEditorCanvasView(
             x = if (alignment.isLeft()) 0.0 else canvasSize.width - widgetSize.width,
             y = if (alignment.isTop()) 0.0 else canvasSize.height - widgetSize.height,
         )
-        val maximum = max(min(canvasSize.width - widgetSize.width, canvasSize.height - widgetSize.height), 0.0)
+        val maximum = min(canvasSize.width, canvasSize.height)
         var offset = ((position.x - start.x) * direction.width + (position.y - start.y) * direction.height) / 2
         offset = offset.coerceIn(0.0, maximum)
         if (offset < threshold) {
@@ -346,6 +260,9 @@ private fun SceneEditorCanvasView(
     fun moveChanged(value: CGSize) {
         if (edit == null) {
             val outline = selectedOutline ?: return
+            if (!outline.widget.hasPosition()) {
+                return
+            }
             startEdit(outline, SceneEditorEditMode.move)
         }
         var currentEdit = edit ?: return
@@ -360,37 +277,41 @@ private fun SceneEditorCanvasView(
             val moved = diagonalPosition(layout.alignment, rect.size, position, snapThreshold)
             currentEdit = currentEdit.copy(rect = currentEdit.rect.copy(x = moved.x, y = moved.y))
         } else {
-            val others = editableOutlines.filter { it.id != currentEdit.outline.id }
-            val x = snapAxis(
-                position = position.x,
-                length = rect.width,
-                total = canvasSize.width,
-                threshold = snapThreshold,
-                canCenter = currentEdit.outline.sized,
-                targets = others.flatMap { snapTargetsX(it) },
-            )
-            val y = snapAxis(
-                position = position.y,
-                length = rect.height,
-                total = canvasSize.height,
-                threshold = snapThreshold,
-                canCenter = currentEdit.outline.sized,
-                targets = others.flatMap { snapTargetsY(it) },
-            )
+            val others = allOutlines.filter { it.id != currentEdit.outline.id }
+            val x = if (layout.alignment.isHorizontalCenter()) {
+                SceneEditorSnap(position = rect.minX)
+            } else {
+                sceneEditorSnapAxis(
+                    position = position.x,
+                    length = rect.width,
+                    total = canvasSize.width,
+                    threshold = snapThreshold,
+                    canCenter = currentEdit.outline.sized,
+                    near = layout.alignment.isLeft(),
+                    targets = others.flatMap { snapTargetsX(it) },
+                )
+            }
+            val y = if (layout.alignment.isVerticalCenter()) {
+                SceneEditorSnap(position = rect.minY)
+            } else {
+                sceneEditorSnapAxis(
+                    position = position.y,
+                    length = rect.height,
+                    total = canvasSize.height,
+                    threshold = snapThreshold,
+                    canCenter = currentEdit.outline.sized,
+                    near = layout.alignment.isTop(),
+                    targets = others.flatMap { snapTargetsY(it) },
+                )
+            }
             currentEdit = currentEdit.copy(
                 rect = currentEdit.rect.copy(x = x.position, y = y.position),
-                snapX = x,
-                snapY = y,
+                guideX = x.guide,
+                guideY = y.guide,
             )
         }
         edit = currentEdit
-        model.sceneEditorMoveWidget(
-            sceneWidget = currentEdit.outline.sceneWidget,
-            position = currentEdit.rect.origin,
-            size = rect.size,
-            centeredHorizontal = currentEdit.snapX?.centered ?: false,
-            centeredVertical = currentEdit.snapY?.centered ?: false,
-        )
+        model.sceneEditorMoveWidget(sceneWidget = currentEdit.outline.sceneWidget, rect = currentEdit.rect)
     }
 
     fun resize(factor: Double) {
@@ -398,13 +319,13 @@ private fun SceneEditorCanvasView(
         if (currentEdit.mode != SceneEditorEditMode.resize) {
             return
         }
-        val factors = (1 / currentEdit.startSize)..(100 / currentEdit.startSize)
-        var newFactor = factor.coerceIn(factors)
         val rect = currentEdit.outline.rect
         val fixed = fixedPoint(currentEdit.outline)
-        val others = editableOutlines.filter { it.id != currentEdit.outline.id }
+        val factors = (1 / currentEdit.startSize)..(100 / currentEdit.startSize)
+        var newFactor = factor.coerceIn(factors)
+        val others = allOutlines.filter { it.id != currentEdit.outline.id }
         val threshold = snapThreshold / distance(handlePoint(currentEdit.outline, rect), fixed)
-        val x = snapResizeAxis(
+        val x = sceneEditorSnapResizeAxis(
             edges = listOf(rect.minX, rect.maxX, rect.midX),
             fixed = fixed.x,
             factor = newFactor,
@@ -412,7 +333,7 @@ private fun SceneEditorCanvasView(
             threshold = threshold,
             targets = listOf(0.0, canvasSize.width / 2, canvasSize.width) + others.flatMap { snapTargetsX(it) },
         )
-        val y = snapResizeAxis(
+        val y = sceneEditorSnapResizeAxis(
             edges = listOf(rect.minY, rect.maxY, rect.midY),
             fixed = fixed.y,
             factor = newFactor,
@@ -420,22 +341,15 @@ private fun SceneEditorCanvasView(
             threshold = threshold,
             targets = listOf(0.0, canvasSize.height / 2, canvasSize.height) + others.flatMap { snapTargetsY(it) },
         )
-        currentEdit = currentEdit.copy(snapX = null, snapY = null)
+        currentEdit = currentEdit.copy(guideX = null, guideY = null)
         if (x != null && x.distance < (y?.distance ?: Double.POSITIVE_INFINITY)) {
             newFactor = x.factor
-            currentEdit = currentEdit.copy(snapX = SceneEditorSnap(position = x.guide, guide = x.guide))
+            currentEdit = currentEdit.copy(guideX = x.guide)
         } else if (y != null) {
             newFactor = y.factor
-            currentEdit = currentEdit.copy(snapY = SceneEditorSnap(position = y.guide, guide = y.guide))
+            currentEdit = currentEdit.copy(guideY = y.guide)
         }
-        currentEdit = currentEdit.copy(
-            rect = CGRect(
-                x = fixed.x + (rect.minX - fixed.x) * newFactor,
-                y = fixed.y + (rect.minY - fixed.y) * newFactor,
-                width = rect.width * newFactor,
-                height = rect.height * newFactor,
-            ),
-        )
+        currentEdit = currentEdit.copy(rect = sceneEditorResizedRect(rect, fixed, newFactor))
         edit = currentEdit
         model.sceneEditorResizeWidget(
             sceneWidget = currentEdit.outline.sceneWidget,
@@ -460,7 +374,7 @@ private fun SceneEditorCanvasView(
     }
 
     val onCanvasTap by rememberUpdatedState(newValue = { location: CGPoint ->
-        selection.sceneWidgetId = outlineForTap(location)?.id
+        selectOutline(location)
     })
     val onMoveDrag by rememberUpdatedState(newValue = { translation: CGSize ->
         moveChanged(translation)
@@ -506,7 +420,7 @@ private fun SceneEditorCanvasView(
             for (outline in allOutlines) {
                 val selected = outline.id == selectedId
                 val rect = viewRect(currentRect(outline))
-                val color = if (selected) palette.accent else Color.White
+                val color = if (selected) palette.accent else if (outline.inScene) Color.White else palette.gray
                 val dash = if (outline.inScene && outline.enabled) null else floatArrayOf(4f, 4f)
                 val strokeWidth = if (selected) 2.dp.toPx() else 1.dp.toPx()
                 if (outline.sized) {
@@ -514,6 +428,12 @@ private fun SceneEditorCanvasView(
                     val rectSize = Size(rect.width.dp.toPx(), rect.height.dp.toPx())
                     if (selected) {
                         drawRect(color = selectedFill, topLeft = topLeft, size = rectSize)
+                    } else if (outline.widget.type == SettingsWidgetType.scene) {
+                        drawRect(
+                            color = Color.White.copy(alpha = 0.1f),
+                            topLeft = topLeft,
+                            size = rectSize,
+                        )
                     }
                     drawRect(
                         color = color,
@@ -532,14 +452,13 @@ private fun SceneEditorCanvasView(
                     if (selected) {
                         drawCircle(color = selectedFill, radius = radius, center = center)
                     }
-                    val circleDash = if (selected) dash else floatArrayOf(4f, 4f)
                     drawCircle(
                         color = color,
                         radius = radius,
                         center = center,
                         style = Stroke(
                             width = strokeWidth,
-                            pathEffect = circleDash?.let { values ->
+                            pathEffect = dash?.let { values ->
                                 PathEffect.dashPathEffect(values.map { it.dp.toPx() }.toFloatArray())
                             },
                         ),
@@ -553,7 +472,7 @@ private fun SceneEditorCanvasView(
             }
             val currentEdit = edit
             if (currentEdit != null) {
-                val guideX = currentEdit.snapX?.guide
+                val guideX = currentEdit.guideX
                 if (guideX != null) {
                     val a = viewPoint(CGPoint(guideX, 0.0))
                     val b = viewPoint(CGPoint(guideX, canvasSize.height))
@@ -564,7 +483,7 @@ private fun SceneEditorCanvasView(
                         strokeWidth = 1.dp.toPx(),
                     )
                 }
-                val guideY = currentEdit.snapY?.guide
+                val guideY = currentEdit.guideY
                 if (guideY != null) {
                     val a = viewPoint(CGPoint(0.0, guideY))
                     val b = viewPoint(CGPoint(canvasSize.width, guideY))
@@ -662,6 +581,64 @@ private fun SceneEditorEnableButtonView(model: Model = LocalModel.current, widge
     }
 }
 
+private fun alignmentImage(alignment: SettingsAlignment): String = when (alignment) {
+    SettingsAlignment.topLeft -> "square.grid.3x3.topleft.filled"
+    SettingsAlignment.topCenter -> "square.grid.3x3.topmiddle.filled"
+    SettingsAlignment.topRight -> "square.grid.3x3.topright.filled"
+    SettingsAlignment.leftCenter -> "square.grid.3x3.middleleft.filled"
+    SettingsAlignment.center -> "square.grid.3x3.middle.filled"
+    SettingsAlignment.rightCenter -> "square.grid.3x3.middleright.filled"
+    SettingsAlignment.bottomLeft -> "square.grid.3x3.bottomleft.filled"
+    SettingsAlignment.bottomCenter -> "square.grid.3x3.bottommiddle.filled"
+    SettingsAlignment.bottomRight -> "square.grid.3x3.bottomright.filled"
+}
+
+@Composable
+private fun SceneEditorAlignmentButtonView(
+    model: Model = LocalModel.current,
+    sceneWidget: SettingsSceneWidget,
+    size: CGSize,
+) {
+    var presentingAlignment by remember { mutableStateOf(false) }
+    val option: @Composable (SettingsAlignment) -> Unit = { alignment ->
+        Button(action = {
+            model.sceneEditorSetWidgetAlignment(sceneWidget = sceneWidget, size = size, alignment = alignment)
+        }) {
+            Box(modifier = Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+                SystemImage(
+                    name = if (sceneWidget.layout.alignment == alignment) "square.fill" else "square",
+                    fontSize = 28.sp,
+                )
+            }
+        }
+    }
+    SceneEditorButtonView(image = alignmentImage(sceneWidget.layout.alignment)) {
+        presentingAlignment = true
+    }
+    Sheet(isPresented = presentingAlignment, onDismissRequest = { presentingAlignment = false }) {
+        Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                option(SettingsAlignment.topLeft)
+                option(SettingsAlignment.topCenter)
+                option(SettingsAlignment.topRight)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                option(SettingsAlignment.leftCenter)
+                option(SettingsAlignment.center)
+                option(SettingsAlignment.rightCenter)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                option(SettingsAlignment.bottomLeft)
+                option(SettingsAlignment.bottomCenter)
+                option(SettingsAlignment.bottomRight)
+            }
+        }
+    }
+}
+
 @Composable
 private fun SceneEditorPopoverRowView(
     image: String,
@@ -707,11 +684,21 @@ private fun SceneEditorScenesButtonView(
     selection: SceneEditorSelection,
 ) {
     var presentingScenes by remember { mutableStateOf(false) }
+    var presentingCreateWizard by remember { mutableStateOf(false) }
     SceneEditorButtonView(image = "photo.on.rectangle") {
         presentingScenes = true
     }
     Sheet(isPresented = presentingScenes, onDismissRequest = { presentingScenes = false }) {
         SceneEditorPopoverListView {
+            SceneEditorPopoverRowView(
+                image = "plus.square.dashed",
+                text = localized("Create scene"),
+            ) {
+                presentingScenes = false
+                model.createSceneWizard.reset()
+                presentingCreateWizard = true
+            }
+            Divider()
             database.scenes.forEach { itemScene ->
                 key(itemScene.id) {
                     CompositionLocalProvider(LocalTint provides formPalette().label) {
@@ -729,6 +716,43 @@ private fun SceneEditorScenesButtonView(
                     }
                 }
             }
+        }
+    }
+    Sheet(isPresented = presentingCreateWizard, onDismissRequest = { presentingCreateWizard = false }) {
+        SceneWizardSheetView(
+            database = database,
+            presentingCreateWizard = presentingCreateWizard,
+            onPresentingCreateWizardChange = { presentingCreateWizard = it },
+            onCreated = { createdScene ->
+                selection.sceneWidgetId = null
+                model.sceneEditorSelectScene(id = createdScene.id)
+            },
+            model = model,
+        )
+    }
+}
+
+@Composable
+private fun SceneEditorDeleteSceneButtonView(
+    model: Model = LocalModel.current,
+    scene: SettingsScene,
+    selection: SceneEditorSelection,
+) {
+    var presentingDeleteSceneConfirmation by remember { mutableStateOf(false) }
+    CompositionLocalProvider(LocalTint provides formPalette().red) {
+        SceneEditorButtonView(image = "trash", role = ButtonRole.destructive) {
+            presentingDeleteSceneConfirmation = true
+        }
+    }
+    ConfirmationDialog(
+        title = localized("Delete scene ${scene.name}?"),
+        isPresented = presentingDeleteSceneConfirmation,
+        onDismissRequest = { presentingDeleteSceneConfirmation = false },
+        titleVisibility = Visibility.visible,
+    ) {
+        Button(title = "Delete", role = ButtonRole.destructive) {
+            selection.sceneWidgetId = null
+            model.deleteScene(scene = scene)
         }
     }
 }
@@ -756,7 +780,7 @@ private fun SceneEditorAddWidgetButtonView(
                 presentingCreateWizard = true
             }
             Divider()
-            database.widgets.forEach { widget ->
+            model.addableWidgets(scene = scene).forEach { widget ->
                 key(widget.id) {
                     CompositionLocalProvider(LocalTint provides formPalette().label) {
                         SceneEditorPopoverRowView(image = widget.image(), text = widget.name) {
@@ -795,7 +819,7 @@ private fun SceneEditorToolbarView(
     model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene?,
-    selected: SceneEditorSelectedWidget?,
+    selected: WidgetOutline?,
     selection: SceneEditorSelection,
     vertical: Boolean,
 ) {
@@ -811,12 +835,21 @@ private fun SceneEditorToolbarView(
         if (scene != null) {
             if (selected != null) {
                 SceneEditorToolbarDivider(vertical = vertical)
-                SceneEditorEnableButtonView(model = model, widget = selected.widget)
+                val sceneWidget = selected.sceneWidget
+                val widget = selected.widget
+                SceneEditorEnableButtonView(model = model, widget = widget)
+                if (widget.hasAlignment()) {
+                    SceneEditorAlignmentButtonView(
+                        model = model,
+                        sceneWidget = sceneWidget,
+                        size = selected.rect.size,
+                    )
+                }
                 SceneEditorButtonView(image = "square.2.layers.3d.top.filled") {
-                    model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = selected.sceneWidget, up = true)
+                    model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = sceneWidget, up = true)
                 }
                 SceneEditorButtonView(image = "square.2.layers.3d.bottom.filled") {
-                    model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = selected.sceneWidget, up = false)
+                    model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = sceneWidget, up = false)
                 }
                 SceneEditorButtonView(image = "slider.horizontal.3") {
                     selection.showingSettings.value = !selection.showingSettings.value
@@ -827,14 +860,18 @@ private fun SceneEditorToolbarView(
                     }
                 }
                 ConfirmationDialog(
-                    title = localized("Remove widget ${selected.widget.name} from scene ${scene.name}?"),
+                    title = widget.name,
                     isPresented = presentingRemoveWidgetConfirmation,
                     onDismissRequest = { presentingRemoveWidgetConfirmation = false },
                     titleVisibility = Visibility.visible,
                 ) {
-                    Button(title = "Remove", role = ButtonRole.destructive) {
-                        model.sceneEditorRemoveWidget(scene = scene, sceneWidget = selected.sceneWidget)
+                    Button(title = "Remove widget from scene", role = ButtonRole.destructive) {
+                        model.sceneEditorRemoveWidget(scene = scene, sceneWidget = sceneWidget)
                         selection.sceneWidgetId = null
+                    }
+                    Button(title = "Delete widget", role = ButtonRole.destructive) {
+                        selection.sceneWidgetId = null
+                        model.deleteWidget(widget = widget)
                     }
                 }
             } else {
@@ -844,6 +881,10 @@ private fun SceneEditorToolbarView(
                     scene = scene,
                     selection = selection,
                 )
+                SceneEditorButtonView(image = "slider.horizontal.3") {
+                    selection.showingSettings.value = !selection.showingSettings.value
+                }
+                SceneEditorDeleteSceneButtonView(model = model, scene = scene, selection = selection)
             }
         }
     }
@@ -928,24 +969,34 @@ private fun videoArea(
 private fun settingsPanel(
     model: Model = LocalModel.current,
     database: Database,
-    selected: SceneEditorSelectedWidget,
+    scene: SettingsScene?,
+    selected: WidgetOutline?,
     selection: SceneEditorSelection,
 ) {
-    key(selected.sceneWidget.id) {
-        NavigationStack {
-            SceneWidgetSettingsView(
-                model = model,
-                database = database,
-                sceneWidget = selected.sceneWidget,
-                widget = selected.widget,
-            )
-            NavigationToolbar {
-                Button(action = {
-                    selection.showingSettings.value = false
-                }) {
-                    SystemImage(name = "xmark", fontSize = 17.sp)
+    Box(contentAlignment = Alignment.TopEnd) {
+        key(selected?.sceneWidget?.id ?: scene?.id) {
+            NavigationStack {
+                if (selected != null) {
+                    SceneWidgetSettingsView(
+                        model = model,
+                        database = database,
+                        sceneWidget = selected.sceneWidget,
+                        widget = selected.widget,
+                    )
+                } else if (scene != null) {
+                    SceneSettingsView(database = database, scene = scene)
+                } else {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = localized("No widget selected"),
+                            color = formPalette().secondaryLabel,
+                        )
+                    }
                 }
             }
+        }
+        CloseButtonView {
+            selection.showingSettings.value = false
         }
     }
 }
@@ -964,6 +1015,7 @@ fun SceneEditorView(
     val selectedSceneWidgetId by selection.sceneWidgetIdFlow.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
     val canvasSize by widgetOutlines.canvasSize.collectAsState()
+    val allOutlines by widgetOutlines.outlines.collectAsState()
 
     fun mirror(scene: SettingsScene?): Boolean {
         if (database.mirrorFrontCameraOnStream) {
@@ -983,14 +1035,11 @@ fun SceneEditorView(
         return CGSize(width = canvasSize.width * scale, height = canvasSize.height * scale)
     }
 
-    fun selectedWidget(scene: SettingsScene?): SceneEditorSelectedWidget? {
-        val sceneWidget = scene?.widgets?.firstOrNull { it.id == selectedSceneWidgetId } ?: return null
-        val widget = model.findWidget(id = sceneWidget.widgetId) ?: return null
-        return SceneEditorSelectedWidget(sceneWidget = sceneWidget, widget = widget)
-    }
+    fun selectedOutline(): WidgetOutline? =
+        allOutlines.firstOrNull { it.id == selectedSceneWidgetId && it.inScene }
 
     val scene = model.sceneEditorScene()
-    val selected = selectedWidget(scene)
+    val selected = selectedOutline()
 
     BoxWithConstraints(
         modifier = Modifier
@@ -1018,11 +1067,12 @@ fun SceneEditorView(
                         mirror = mirror(scene),
                     )
                 }
-                if (showingSettings && selected != null) {
+                if (showingSettings) {
                     Box(modifier = Modifier.width(settingsHalfWidth.dp)) {
                         settingsPanel(
                             model = model,
                             database = database,
+                            scene = scene,
                             selected = selected,
                             selection = selection,
                         )
@@ -1051,11 +1101,12 @@ fun SceneEditorView(
                         mirror = mirror(scene),
                     )
                 }
-                if (showingSettings && selected != null) {
+                if (showingSettings) {
                     Box(modifier = Modifier.height((metricsHeight * 0.45).dp)) {
                         settingsPanel(
                             model = model,
                             database = database,
+                            scene = scene,
                             selected = selected,
                             selection = selection,
                         )
