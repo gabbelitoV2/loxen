@@ -93,7 +93,8 @@ class ModelSpeechToTextSuite {
 
     @Test
     fun streamAudioReachesTheRecognizerThroughMediaOnAudioBuffer() {
-        model.startSpeechToText()
+        addSubtitlesWidget()
+        model.reloadSpeechToText()
         runMain()
         val engine = speech.engine
         val source = assertNotNull(engine.audioSource)
@@ -115,7 +116,7 @@ class ModelSpeechToTextSuite {
     @Test
     fun subtitlesAreTranslatedIntoTheLanguagesOfTheTextWidgets() {
         addSubtitlesWidget(null, "sv", "sv", "de")
-        model.startSpeechToText()
+        model.reloadSpeechToText()
         runMain()
         assertEquals(2, Translator.translators.size)
         speech.engine.partial("hello " + "x".repeat(200))
@@ -132,11 +133,11 @@ class ModelSpeechToTextSuite {
 
     @Test
     fun speechToTextIsOnlyStartedWhenAWidgetNeedsIt() {
-        assertTrue(!model.isSpeechToTextNeeded())
-        model.updateSpeechToText()
+        assertTrue(model.drawnWidgetsInSelectedScene().isEmpty())
+        model.updateSpeechToText(drawnWidgets = model.drawnWidgetsInSelectedScene())
         assertNull(model.speechToText)
         addSubtitlesWidget()
-        model.updateSpeechToText()
+        model.updateSpeechToText(drawnWidgets = model.drawnWidgetsInSelectedScene())
         runMain()
         assertNotNull(model.speechToText)
         assertEquals(1, speech.engines.size)

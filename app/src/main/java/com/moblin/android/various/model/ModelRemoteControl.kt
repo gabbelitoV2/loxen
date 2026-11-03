@@ -1207,17 +1207,13 @@ fun Model.remoteControlStreamerStopStatus() {
 fun Model.remoteControlStreamerStartStats(filter: RemoteControlStartStatsFilter?) {
     isRemoteControlAssistantRequestingStats = true
     remoteControlAssistantRequestingStatsFilter = filter ?: remoteControlStartStatsFilterAllEnabled
-    startWeatherManager()
-    startGeographyManager()
-    startGForceManager()
+    startTextVariableManagers()
 }
 
 fun Model.remoteControlStreamerStopStats() {
     isRemoteControlAssistantRequestingStats = false
     remoteControlAssistantRequestingStatsFilter = RemoteControlStartStatsFilter()
-    startWeatherManager()
-    startGeographyManager()
-    startGForceManager()
+    startTextVariableManagers()
 }
 
 fun Model.remoteControlStreamerStartMacro(id: UUID) {

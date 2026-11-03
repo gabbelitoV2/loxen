@@ -11,13 +11,10 @@ import com.moblin.android.AppDelegate
 
 fun Model.reloadSpeechToText() {
     stopSpeechToText()
-    if (isSpeechToTextNeeded()) {
-        startSpeechToText()
+    val drawnWidgets = drawnWidgetsInSelectedScene()
+    if (isSpeechToTextNeeded(drawnWidgets = drawnWidgets)) {
+        startSpeechToText(drawnWidgets = drawnWidgets)
     }
-}
-
-fun Model.startSpeechToText() {
-    startSpeechToText(drawnWidgets = drawnWidgetsInSelectedScene())
 }
 
 private fun Model.startSpeechToText(drawnWidgets: List<SettingsWidget>) {
@@ -63,10 +60,6 @@ fun Model.stopSpeechToText() {
     speechToTextTextAligners.clear()
 }
 
-fun Model.updateSpeechToText() {
-    updateSpeechToText(drawnWidgets = drawnWidgetsInSelectedScene())
-}
-
 fun Model.updateSpeechToText(drawnWidgets: List<SettingsWidget>) {
     if (isSpeechToTextNeeded(drawnWidgets = drawnWidgets)) {
         if (speechToText == null) {
@@ -75,10 +68,6 @@ fun Model.updateSpeechToText(drawnWidgets: List<SettingsWidget>) {
     } else if (speechToText != null) {
         stopSpeechToText()
     }
-}
-
-fun Model.isSpeechToTextNeeded(): Boolean {
-    return isSpeechToTextNeeded(drawnWidgets = drawnWidgetsInSelectedScene())
 }
 
 private fun Model.isSpeechToTextNeeded(drawnWidgets: List<SettingsWidget>): Boolean {

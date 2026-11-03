@@ -578,9 +578,7 @@ fun Model.chatBotCustomCommandsTextChanged() {
         customCommand.needsGeography = parts.isGeographyVariable()
         customCommand.needsGForce = parts.isGForceVariable()
     }
-    startWeatherManager()
-    startGeographyManager()
-    startGForceManager()
+    startTextVariableManagers()
 }
 
 private fun Model.handleChatBotMessageCustom(command: ChatBotCommand) {

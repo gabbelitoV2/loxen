@@ -1423,8 +1423,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         autoStartCatPrinters()
         autoStartWorkoutDevices()
         autoStartBlackSharkCoolerDevices()
-        startWeatherManager()
-        startGeographyManager()
         twitchAuth.setOnAccessToken(onAccessToken = { accessToken -> handleTwitchAccessToken(accessToken) })
         MoblinShortcuts.updateAppShortcutParameters()
         bonding.statisticsFormatter.setNetworkInterfaceNames(database.networkInterfaceNames)
@@ -1449,7 +1447,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         goPro.rtmpUrlSelection.value = database.goPro.selectedRtmpUrl
         replay.speed.value = database.replay.speed
         gForceManager = GForceManager(motionManager = motionManager)
-        startGForceManager()
+        startTextVariableManagers()
         chatBotCustomCommandsTextChanged()
         macrosTextFormatChanged()
         autoStartMacros()
@@ -1496,8 +1494,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         }
     }
 
-    fun startGForceManager() {
-        startGForceManager(drawnWidgets = drawnWidgetsInSelectedAndRemoteScene())
+    fun startTextVariableManagers(resolver: SceneResolver? = null) {
+        val drawnWidgets = drawnWidgetsInSelectedAndRemoteScene(resolver = resolver)
+        startWeatherManager(drawnWidgets = drawnWidgets)
+        startGeographyManager(drawnWidgets = drawnWidgets)
+        startGForceManager(drawnWidgets = drawnWidgets)
     }
 
     fun startGForceManager(drawnWidgets: List<SettingsWidget>) {
@@ -1614,10 +1615,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         return false
     }
 
-    fun startWeatherManager() {
-        startWeatherManager(drawnWidgets = drawnWidgetsInSelectedAndRemoteScene())
-    }
-
     fun startWeatherManager(drawnWidgets: List<SettingsWidget>) {
         weatherManager.setEnabled(value = isWeatherNeeded(drawnWidgets = drawnWidgets))
         weatherManager.start()
@@ -1651,10 +1648,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             return true
         }
         return false
-    }
-
-    fun startGeographyManager() {
-        startGeographyManager(drawnWidgets = drawnWidgetsInSelectedAndRemoteScene())
     }
 
     fun startGeographyManager(drawnWidgets: List<SettingsWidget>) {
@@ -1815,9 +1808,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 reloadDjiDevices()
                 reloadBrowserWidgets()
                 chatTextToSpeech.reset(running = true)
-                startWeatherManager()
-                startGeographyManager()
-                startGForceManager()
+                startTextVariableManagers()
                 if (isRecording.value) {
                     resumeRecording()
                 }
@@ -2397,9 +2388,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 widget.alerts.speechToText.strings.any { it.alert.enabled }
             getAlertsEffect(id = widget.id)?.setSettings(settings = widget.alerts.clone())
         }
-        if (isSpeechToTextNeeded()) {
-            reloadSpeechToText()
-        }
+        reloadSpeechToText()
         sceneUpdated()
     }
 

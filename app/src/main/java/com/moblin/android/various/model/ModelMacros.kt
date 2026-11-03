@@ -169,9 +169,7 @@ fun Model.macrosTextFormatChanged() {
         action.needsGeography = parts.isGeographyVariable()
         action.needsGForce = parts.isGForceVariable()
     }
-    startWeatherManager()
-    startGeographyManager()
-    startGForceManager()
+    startTextVariableManagers()
 }
 
 private fun Model.macrosTextFormatActions(): List<SettingsMacrosAction> {

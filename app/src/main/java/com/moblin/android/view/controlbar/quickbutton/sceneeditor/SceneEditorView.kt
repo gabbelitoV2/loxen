@@ -89,6 +89,7 @@ import com.moblin.android.various.model.addableWidgets
 import com.moblin.android.various.model.appendWidgetToScene
 import com.moblin.android.various.model.deleteScene
 import com.moblin.android.various.model.deleteWidget
+import com.moblin.android.various.model.sceneEditorCanMoveWidgetInDrawOrder
 import com.moblin.android.various.model.sceneEditorMoveWidget
 import com.moblin.android.various.model.sceneEditorMoveWidgetInDrawOrder
 import com.moblin.android.various.model.sceneEditorPresentationChanged
@@ -286,7 +287,6 @@ private fun SceneEditorCanvasView(
                     length = rect.width,
                     total = canvasSize.width,
                     threshold = snapThreshold,
-                    canCenter = currentEdit.outline.sized,
                     near = layout.alignment.isLeft(),
                     targets = others.flatMap { snapTargetsX(it) },
                 )
@@ -299,7 +299,6 @@ private fun SceneEditorCanvasView(
                     length = rect.height,
                     total = canvasSize.height,
                     threshold = snapThreshold,
-                    canCenter = currentEdit.outline.sized,
                     near = layout.alignment.isTop(),
                     targets = others.flatMap { snapTargetsY(it) },
                 )
@@ -417,7 +416,7 @@ private fun SceneEditorCanvasView(
             },
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            for (outline in allOutlines) {
+            fun drawOutline(outline: WidgetOutline) {
                 val selected = outline.id == selectedId
                 val rect = viewRect(currentRect(outline))
                 val color = if (selected) palette.accent else if (outline.inScene) Color.White else palette.gray
@@ -470,6 +469,10 @@ private fun SceneEditorCanvasView(
                     )
                 }
             }
+            for (outline in allOutlines.filter { it.id != selectedId }) {
+                drawOutline(outline)
+            }
+            allOutlines.firstOrNull { it.id == selectedId }?.let { drawOutline(it) }
             val currentEdit = edit
             if (currentEdit != null) {
                 val guideX = currentEdit.guideX
@@ -517,15 +520,24 @@ private fun SceneEditorCanvasView(
                 }
             }
         }
-        for (outline in allOutlines) {
+        val outlineLabel: @Composable (WidgetOutline) -> Unit = { outline ->
+            val selected = outline.id == selectedId
+            val rect = viewRect(currentRect(outline))
+            val labelY = if (rect.minY > 24 && !outline.sized) rect.minY - 24 else rect.minY + 4
+            Box(
+                modifier = Modifier.offset(x = (rect.minX + 4).dp, y = labelY.dp),
+            ) {
+                WidgetOutlineLabelView(widget = outline.widget, selected = selected)
+            }
+        }
+        for (outline in allOutlines.filter { it.id != selectedId }) {
             key(outline.id) {
-                val rect = viewRect(currentRect(outline))
-                val labelY = if (rect.minY > 24 && !outline.sized) rect.minY - 24 else rect.minY + 4
-                Box(
-                    modifier = Modifier.offset(x = (rect.minX + 4).dp, y = labelY.dp),
-                ) {
-                    WidgetOutlineLabelView(widget = outline.widget)
-                }
+                outlineLabel(outline)
+            }
+        }
+        allOutlines.firstOrNull { it.id == selectedId }?.let { outline ->
+            key(outline.id) {
+                outlineLabel(outline)
             }
         }
         if (selectedOutline != null && isResizable(selectedOutline) && edit?.mode != SceneEditorEditMode.move) {
@@ -565,8 +577,13 @@ private fun SceneEditorCanvasView(
 }
 
 @Composable
-private fun SceneEditorButtonView(image: String, role: ButtonRole? = null, action: () -> Unit) {
-    Button(action = action, role = role) {
+private fun SceneEditorButtonView(
+    image: String,
+    role: ButtonRole? = null,
+    disabled: Boolean = false,
+    action: () -> Unit,
+) {
+    Button(action = action, role = role, enabled = !disabled) {
         Box(modifier = Modifier.size(44.dp), contentAlignment = Alignment.Center) {
             SystemImage(name = image, fontSize = 20.sp)
         }
@@ -578,6 +595,34 @@ private fun SceneEditorEnableButtonView(model: Model = LocalModel.current, widge
     val enabled = widget.enabled
     SceneEditorButtonView(image = if (enabled) "eye" else "eye.slash") {
         model.sceneEditorToggleWidgetEnabled(widget = widget)
+    }
+}
+
+@Composable
+private fun SceneEditorDrawOrderButtonsView(
+    model: Model = LocalModel.current,
+    scene: SettingsScene,
+    sceneWidget: SettingsSceneWidget,
+) {
+    SceneEditorButtonView(
+        image = "square.2.layers.3d.top.filled",
+        disabled = !model.sceneEditorCanMoveWidgetInDrawOrder(
+            scene = scene,
+            sceneWidget = sceneWidget,
+            up = true,
+        ),
+    ) {
+        model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = sceneWidget, up = true)
+    }
+    SceneEditorButtonView(
+        image = "square.2.layers.3d.bottom.filled",
+        disabled = !model.sceneEditorCanMoveWidgetInDrawOrder(
+            scene = scene,
+            sceneWidget = sceneWidget,
+            up = false,
+        ),
+    ) {
+        model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = sceneWidget, up = false)
     }
 }
 
@@ -845,12 +890,7 @@ private fun SceneEditorToolbarView(
                         size = selected.rect.size,
                     )
                 }
-                SceneEditorButtonView(image = "square.2.layers.3d.top.filled") {
-                    model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = sceneWidget, up = true)
-                }
-                SceneEditorButtonView(image = "square.2.layers.3d.bottom.filled") {
-                    model.sceneEditorMoveWidgetInDrawOrder(scene = scene, sceneWidget = sceneWidget, up = false)
-                }
+                SceneEditorDrawOrderButtonsView(model = model, scene = scene, sceneWidget = sceneWidget)
                 SceneEditorButtonView(image = "slider.horizontal.3") {
                     selection.showingSettings.value = !selection.showingSettings.value
                 }
@@ -949,7 +989,7 @@ private fun videoArea(
                     Text(
                         text = localized("Disabled scene"),
                         color = Color.White,
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                         modifier = Modifier.padding(4.dp),
                     )
                 }

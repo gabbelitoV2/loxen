@@ -149,13 +149,13 @@ class SceneEditorGeometrySuite {
 
     @Test
     fun snapAxisKeepsOffsetWithinBounds() {
-        assertEquals(0.0, sceneEditorSnapAxis(-300.0, 400.0, 1920.0, 10.0, true, true, emptyList()).position, 0.001)
-        assertEquals(1800.0, sceneEditorSnapAxis(1800.0, 400.0, 1920.0, 10.0, true, true, emptyList()).position, 0.001)
-        assertEquals(1920.0, sceneEditorSnapAxis(2500.0, 400.0, 1920.0, 10.0, true, true, emptyList()).position, 0.001)
-        assertEquals(-300.0, sceneEditorSnapAxis(-300.0, 400.0, 1920.0, 10.0, true, false, emptyList()).position, 0.001)
-        assertEquals(-400.0, sceneEditorSnapAxis(-500.0, 400.0, 1920.0, 10.0, true, false, emptyList()).position, 0.001)
-        assertEquals(1520.0, sceneEditorSnapAxis(1800.0, 400.0, 1920.0, 10.0, true, false, emptyList()).position, 0.001)
-        assertEquals(300.0, sceneEditorSnapAxis(300.0, 2000.0, 1920.0, 10.0, true, true, emptyList()).position, 0.001)
+        assertEquals(0.0, sceneEditorSnapAxis(-300.0, 400.0, 1920.0, 10.0, true, emptyList()).position, 0.001)
+        assertEquals(1800.0, sceneEditorSnapAxis(1800.0, 400.0, 1920.0, 10.0, true, emptyList()).position, 0.001)
+        assertEquals(1920.0, sceneEditorSnapAxis(2500.0, 400.0, 1920.0, 10.0, true, emptyList()).position, 0.001)
+        assertEquals(-300.0, sceneEditorSnapAxis(-300.0, 400.0, 1920.0, 10.0, false, emptyList()).position, 0.001)
+        assertEquals(-400.0, sceneEditorSnapAxis(-500.0, 400.0, 1920.0, 10.0, false, emptyList()).position, 0.001)
+        assertEquals(1520.0, sceneEditorSnapAxis(1800.0, 400.0, 1920.0, 10.0, false, emptyList()).position, 0.001)
+        assertEquals(300.0, sceneEditorSnapAxis(300.0, 2000.0, 1920.0, 10.0, true, emptyList()).position, 0.001)
     }
 
     @Test
@@ -170,8 +170,8 @@ class SceneEditorGeometrySuite {
         for (alignment in alignments) {
             val positions = listOf(CGPoint(x = -1000.0, y = -1000.0), CGPoint(x = 3000.0, y = 3000.0))
             for (position in positions) {
-                val x = sceneEditorSnapAxis(position.x, size.width, 1920.0, 10.0, true, alignment.isLeft(), emptyList())
-                val y = sceneEditorSnapAxis(position.y, size.height, 1080.0, 10.0, true, alignment.isTop(), emptyList())
+                val x = sceneEditorSnapAxis(position.x, size.width, 1920.0, 10.0, alignment.isLeft(), emptyList())
+                val y = sceneEditorSnapAxis(position.y, size.height, 1080.0, 10.0, alignment.isTop(), emptyList())
                 val rect = CGRect(origin = CGPoint(x = x.position, y = y.position), size = size)
                 val layout = sceneEditorLayout(makeLayout(alignment), rect, canvasSize)
                 assertTrue(layout.x in 0.0..100.0)
@@ -184,17 +184,19 @@ class SceneEditorGeometrySuite {
 
     @Test
     fun snapAxisSnapsToEdgesAndCenter() {
-        assertEquals(0.0, sceneEditorSnapAxis(-5.0, 400.0, 1920.0, 10.0, true, true, emptyList()).position, 0.001)
-        assertEquals(1520.0, sceneEditorSnapAxis(1525.0, 400.0, 1920.0, 10.0, true, true, emptyList()).position, 0.001)
-        val center = sceneEditorSnapAxis(765.0, 400.0, 1920.0, 10.0, true, true, emptyList())
+        assertEquals(0.0, sceneEditorSnapAxis(-5.0, 400.0, 1920.0, 10.0, true, emptyList()).position, 0.001)
+        assertEquals(1520.0, sceneEditorSnapAxis(1525.0, 400.0, 1920.0, 10.0, true, emptyList()).position, 0.001)
+        val center = sceneEditorSnapAxis(765.0, 400.0, 1920.0, 10.0, true, emptyList())
         assertEquals(760.0, center.position, 0.001)
         assertTrue(center.guide == 960.0)
-        assertEquals(765.0, sceneEditorSnapAxis(765.0, 400.0, 1920.0, 10.0, false, true, emptyList()).position, 0.001)
+        val unsized = sceneEditorSnapAxis(955.0, 0.0, 1920.0, 10.0, true, emptyList())
+        assertEquals(960.0, unsized.position, 0.001)
+        assertTrue(unsized.guide == 960.0)
     }
 
     @Test
     fun snapAxisSnapsToOtherWidgets() {
-        val snap = sceneEditorSnapAxis(1003.0, 400.0, 1920.0, 10.0, true, true, listOf(1000.0))
+        val snap = sceneEditorSnapAxis(1003.0, 400.0, 1920.0, 10.0, true, listOf(1000.0))
         assertEquals(1000.0, snap.position, 0.001)
         assertTrue(snap.guide == 1000.0)
     }

@@ -370,6 +370,7 @@ fun Model.sceneUpdated(attachCamera: Boolean = false, updateRemoteScene: Boolean
     val scene = getSelectedScene()
     if (scene == null) {
         sceneUpdatedOff()
+        startTextVariableManagers()
         updateWidgetOutlines()
         return
     }
@@ -378,10 +379,7 @@ fun Model.sceneUpdated(attachCamera: Boolean = false, updateRemoteScene: Boolean
     }
     val resolver = makeSceneResolver()
     sceneUpdatedOn(scene = scene, resolver = resolver, attachCamera = attachCamera)
-    val drawnWidgets = drawnWidgetsInSelectedAndRemoteScene(resolver = resolver)
-    startWeatherManager(drawnWidgets = drawnWidgets)
-    startGeographyManager(drawnWidgets = drawnWidgets)
-    startGForceManager(drawnWidgets = drawnWidgets)
+    startTextVariableManagers(resolver = resolver)
     if (updateRemoteScene) {
         remoteSceneSettingsUpdated()
     }
@@ -549,11 +547,8 @@ fun Model.getFillFrame(scene: SettingsScene): Boolean {
     return scene.fillFrame
 }
 
-fun Model.drawnWidgetsInSelectedAndRemoteScene(): List<SettingsWidget> {
-    return drawnWidgetsInSelectedAndRemoteScene(resolver = makeSceneResolver())
-}
-
-private fun Model.drawnWidgetsInSelectedAndRemoteScene(resolver: SceneResolver): List<SettingsWidget> {
+fun Model.drawnWidgetsInSelectedAndRemoteScene(resolver: SceneResolver? = null): List<SettingsWidget> {
+    val resolver = resolver ?: makeSceneResolver()
     var widgets = mutableListOf<SettingsWidget>()
     val scene = getSelectedScene()
     if (scene != null) {
@@ -608,9 +603,9 @@ fun Model.textWidgetTextChanged(widget: SettingsWidget) {
         updateLapTimes(widget.text, effect, parts)
         updateSubtitles(widget.text, effect, parts)
     }
-    updateNeedsWeather(widget.text, parts)
-    updateNeedsGeography(widget.text, parts)
-    updateNeedsGForce(widget.text, parts)
+    widget.text.needsWeather = parts.isWeatherVariable()
+    widget.text.needsGeography = parts.isGeographyVariable()
+    widget.text.needsGForce = parts.isGForceVariable()
     sceneUpdated()
 }
 
@@ -1953,21 +1948,6 @@ private fun Model.updateSubtitles(
     }
     text.needsSubtitles = text.subtitles.isNotEmpty()
     reloadSpeechToText()
-}
-
-private fun Model.updateNeedsWeather(text: SettingsWidgetText, parts: List<TextFormatPart>) {
-    text.needsWeather = parts.isWeatherVariable()
-    startWeatherManager()
-}
-
-private fun Model.updateNeedsGeography(text: SettingsWidgetText, parts: List<TextFormatPart>) {
-    text.needsGeography = parts.isGeographyVariable()
-    startGeographyManager()
-}
-
-private fun Model.updateNeedsGForce(text: SettingsWidgetText, parts: List<TextFormatPart>) {
-    text.needsGForce = parts.isGForceVariable()
-    startGForceManager()
 }
 
 private fun List<TextFormatPart>.isWeatherVariable(): Boolean {

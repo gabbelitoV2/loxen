@@ -80,7 +80,7 @@ class ModelGForceSuite {
         assertEquals("- - -", model.formatPlainText(format))
         createGForceManagerLikeSetup()
         addTextWidget(format)
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         send(-1.0)
         assertEquals("1.0 1.0 1.0", model.formatPlainText(format))
         send(-2.5)
@@ -94,21 +94,21 @@ class ModelGForceSuite {
     @Test
     fun accelerometerRunsOnlyWhileAnEnabledTextWidgetInTheSceneNeedsIt() {
         createGForceManagerLikeSetup()
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         assertTrue(sensors.accelerometerListeners().isEmpty())
         val clock = addTextWidget("{shortTime}")
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         assertTrue(sensors.accelerometerListeners().isEmpty())
         clock.enabled = false
         val widget = addTextWidget("Now {gForce} g")
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         val listener = sensors.accelerometerListeners().single()
         assertTrue(sensors.isRegistered(listener, sensors.accelerometerSensor))
         assertTrue(motionManager.isAccelerometerActive)
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         assertEquals(listener, sensors.accelerometerListeners().single())
         widget.enabled = false
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         assertTrue(sensors.accelerometerListeners().isEmpty())
         assertFalse(motionManager.isAccelerometerActive)
     }
@@ -122,7 +122,7 @@ class ModelGForceSuite {
         model.chatBotCustomCommandsTextChanged()
         assertEquals(1, sensors.accelerometerListeners().size)
         chat.botEnabled = false
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         assertTrue(sensors.accelerometerListeners().isEmpty())
     }
 
@@ -130,7 +130,7 @@ class ModelGForceSuite {
     fun tapToFocusMotionAndGForceShareModelsMotionManager() {
         createGForceManagerLikeSetup()
         addTextWidget("{gForce}")
-        model.startGForceManager()
+        model.startGForceManager(drawnWidgets = model.drawnWidgetsInSelectedScene())
         model.startMotionDetection()
         assertTrue(motionManager.isDeviceMotionActive)
         assertTrue(motionManager.isAccelerometerActive)

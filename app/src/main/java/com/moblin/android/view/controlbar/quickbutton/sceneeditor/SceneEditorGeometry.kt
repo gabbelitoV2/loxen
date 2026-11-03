@@ -16,7 +16,6 @@ fun sceneEditorSnapAxis(
     length: Double,
     total: Double,
     threshold: Double,
-    canCenter: Boolean,
     near: Boolean,
     targets: List<Double>,
 ): SceneEditorSnap {
@@ -29,10 +28,8 @@ fun sceneEditorSnapAxis(
     val candidates = mutableListOf(
         SceneEditorSnap(position = 0.0),
         SceneEditorSnap(position = total - length),
+        SceneEditorSnap(position = (total - length) / 2, guide = total / 2),
     )
-    if (canCenter) {
-        candidates.add(SceneEditorSnap(position = (total - length) / 2, guide = total / 2))
-    }
     for (target in targets) {
         for (anchor in listOf(0.0, length / 2, length)) {
             candidates.add(SceneEditorSnap(position = target - anchor, guide = target))
