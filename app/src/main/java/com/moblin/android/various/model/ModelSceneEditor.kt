@@ -82,14 +82,14 @@ fun Model.sceneEditorRemoveWidget(scene: SettingsScene, sceneWidget: SettingsSce
     sceneSettingsPanelSceneId.value += 1
 }
 
-fun Model.sceneEditorMoveWidgetInDrawOrder(
+private fun Model.sceneEditorDrawOrderTargetIndex(
     scene: SettingsScene,
     sceneWidget: SettingsSceneWidget,
     up: Boolean,
-) {
+): Int? {
     val index = scene.widgets.indexOfFirst { it.id == sceneWidget.id }
     if (index == -1) {
-        return
+        return null
     }
     val shownSceneWidgetIds = sceneEditorWidgetOutlines.outlines.value
         .filter { it.inScene }
@@ -101,6 +101,25 @@ fun Model.sceneEditorMoveWidgetInDrawOrder(
         newIndex += step
     }
     if (newIndex !in scene.widgets.indices) {
+        return null
+    }
+    return newIndex
+}
+
+fun Model.sceneEditorCanMoveWidgetInDrawOrder(
+    scene: SettingsScene,
+    sceneWidget: SettingsSceneWidget,
+    up: Boolean,
+): Boolean = sceneEditorDrawOrderTargetIndex(scene = scene, sceneWidget = sceneWidget, up = up) != null
+
+fun Model.sceneEditorMoveWidgetInDrawOrder(
+    scene: SettingsScene,
+    sceneWidget: SettingsSceneWidget,
+    up: Boolean,
+) {
+    val index = scene.widgets.indexOfFirst { it.id == sceneWidget.id }
+    val newIndex = sceneEditorDrawOrderTargetIndex(scene = scene, sceneWidget = sceneWidget, up = up)
+    if (index == -1 || newIndex == null) {
         return
     }
     val movedWidget = scene.widgets.removeAt(index)

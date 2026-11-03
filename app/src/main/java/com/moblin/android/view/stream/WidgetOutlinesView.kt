@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.StreamOverlay
 import com.moblin.android.various.model.WidgetOutline
 import com.moblin.android.various.model.WidgetOutlines
@@ -52,21 +54,23 @@ fun widgetOutlineViewRect(rect: CGRect, canvasSize: CGSize, mirror: Boolean, siz
 }
 
 @Composable
-fun WidgetOutlineLabelView(widget: SettingsWidget) {
+fun WidgetOutlineLabelView(widget: SettingsWidget, selected: Boolean = false) {
+    val backgroundColor = if (selected) formPalette().accent else Color.Black.copy(alpha = 0.6f)
     Row(
         modifier = Modifier
             .wrapContentSize(unbounded = true)
             .clip(RoundedCornerShape(3.dp))
-            .background(Color.Black.copy(alpha = 0.6f))
-            .padding(horizontal = 4.dp, vertical = 1.dp),
+            .background(backgroundColor)
+            .padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SystemImage(name = widget.image(), fontSize = 11.sp)
+        SystemImage(name = widget.image(), fontSize = 13.sp)
         Text(
             text = widget.name,
             color = Color.White,
-            fontSize = 11.sp,
+            fontSize = 13.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

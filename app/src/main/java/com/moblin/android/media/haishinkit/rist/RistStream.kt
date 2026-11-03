@@ -184,7 +184,7 @@ class RistStream(
                 val connection = BondingConnection(name = peer.bondingConnectionName(), usage = 0L, rtt = null)
                 val stats = peer.stats
                 if (stats != null) {
-                    connection.usage = (stats.bandwidth + stats.retryBandwidth).toLong()
+                    connection.usage = ((stats.bandwidth + stats.retryBandwidth) / 8uL).toLong()
                     connection.rtt = stats.rtt.toInt()
                 }
                 connections.add(connection)

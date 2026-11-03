@@ -1,9 +1,115 @@
 {
-  "upstream": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+  "upstream": "a04b3ed01577174ed701e23996f459631354b418",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "Moblin/Various/Model/Model.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/Model.kt",
+      "reason": "dependency",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelChatBot.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
+      "reason": "compile",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [
+        "581: Unresolved reference 'startTextVariableManagers'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelMacros.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelMacros.kt",
+      "reason": "compile",
+      "ported_from": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+      "errors": [
+        "172: Unresolved reference 'startTextVariableManagers'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelRemoteControl.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
+      "reason": "compile",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [
+        "1210: Unresolved reference 'startTextVariableManagers'.",
+        "1216: Unresolved reference 'startTextVariableManagers'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelScene.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
+      "reason": "dependency",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelSpeechToText.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelSpeechToText.kt",
+      "reason": "hook",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": [
+        "HSTT.1 (STT.json) various/model/ModelSpeechToText.kt [fun Model.startSpeechToText]: scope not found"
+      ]
+    },
+    {
+      "swift": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometry.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorGeometry.kt",
+      "reason": "dependency",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorView.kt",
+      "reason": "compile",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [
+        "292: No value passed for parameter 'canCenter'.",
+        "304: No value passed for parameter 'canCenter'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometrySuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorGeometrySuite.kt",
+      "reason": "compile",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [
+        "152: Argument type mismatch: actual type is 'Boolean', but 'List<Double>' was expected.",
+        "152: Cannot infer type for this parameter. Specify it explicitly.",
+        "152: Too many arguments for 'fun sceneEditorSnapAxis(position: Double, length: Double, total: Double, threshold: Double, near: Boolean, targets: List<Double>): SceneEditorSnap'.",
+        "153: Argument type mismatch: actual type is 'Boolean', but 'List<Double>' was expected.",
+        "153: Cannot infer type for this parameter. Specify it explicitly.",
+        "153: Too many arguments for 'fun sceneEditorSnapAxis(position: Double, length: Double, total: Double, threshold: Double, near: Boolean, targets: List<Double>): SceneEditorSnap'.",
+        "154: Argument type mismatch: actual type is 'Boolean', but 'List<Double>' was expected.",
+        "154: Cannot infer type for this parameter. Specify it explicitly.",
+        "154: Too many arguments for 'fun sceneEditorSnapAxis(position: Double, length: Double, total: Double, threshold: Double, near: Boolean, targets: List<Double>): SceneEditorSnap'.",
+        "155: Argument type mismatch: actual type is 'Boolean', but 'List<Double>' was expected.",
+        "155: Cannot infer type for this parameter. Specify it explicitly.",
+        "155: Too many arguments for 'fun sceneEditorSnapAxis(position: Double, length: Double, total: Double, threshold: Double, near: Boolean, targets: List<Double>): SceneEditorSnap'.",
+        "156: Argument type mismatch: actual type is 'Boolean', but 'List<Double>' was expected.",
+        "156: Cannot infer type for this parameter. Specify it explicitly.",
+        "156: Too many arguments for 'fun sceneEditorSnapAxis(position: Double, length: Double, total: Double, threshold: Double, near: Boolean, targets: List<Double>): SceneEditorSnap'.",
+        "157: Argument type mismatch: actual type is 'Boolean', but 'List<Double>' was expected.",
+        "157: Cannot infer type for this parameter. Specify it explicitly.",
+        "157: Too many arguments for 'fun sceneEditorSnapAxis(position: Double, length: Double, total: Double, threshold: Double, near: Boolean, targets: List<Double>): SceneEditorSnap'.",
+        "158: Argument type mismatch: actual type is 'Boolean', but 'List<Double>' was expected.",
+        "158: Cannot infer type for this parameter. Specify it explicitly."
+      ],
+      "hooks": []
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

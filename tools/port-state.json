@@ -5803,28 +5803,23 @@
   },
   "Moblin/Media/HaishinKit/Rist/RistStream.swift": {
     "status": "ok",
-    "sha256": "7121cd7d202a7c9ba7145e2c0494afca9dd9092698141bbba211ed6956d34e66",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "dc103862971aa7ae2824643b55176fbb93f229b0ddcce386f5ae9b790e09fb32",
+    "moblin_commit": "a04b3ed01577174ed701e23996f459631354b418",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rist/RistStream.kt",
     "notes": [
-      "The Swift diff only merges two consecutive `guard` statements into one; the behaviour of `makeRistBondingUrl` and `makeRistMoblinkBondingUrl` is unchanged, so the hand-written Android `Uri` implementation stays byte-identical.",
-      "`makeRistBondingUrl` keeps the Android fix: `Uri.parse` + `buildUpon().appendQueryParameter` instead of URLComponents, which preserves the existing query and appends `miface`/`weight`.",
-      "`makeRistMoblinkBondingUrl` keeps the Android fix using `encodedAuthority` so host and port are set together exactly like the Swift `url.host`/`url.port` pair.",
-      "RIST C API calls go through the `com.moblin.android.platform.rist` shim (`RistSenderContext`, `RistPeer`, `RistSenderStats`), never external functions.",
-      "The Swift `deinit` of `RistRemotePeer` becomes `close()`, which also closes the native peer, called wherever peers are removed or the stream stops.",
-      "`ristQueue` is a single-thread `CoroutineDispatcher`; `ristQueue.sync` becomes `runBlocking(ristQueue)` and `async` becomes `CoroutineScope(ristQueue).launch`.",
-      "`UInt32` peer ids and RIST weights are `UInt`/`ULong` in the shim; `Int(clamping:)` style conversions are done with `coerceIn`.",
-      "Logging uses the `Log.i`/`Log.d` shim with the file TAG as required."
+      "Single-line change: bonding connection usage now divides the peer bandwidth by 8 to report bytes per second instead of bits per second.",
+      "Division uses ULong arithmetic (8uL) before converting to Long, keeping the unsigned semantics of the Swift UInt64 values.",
+      "Everything else in the file is unchanged and kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44745,
-    "tokens_out": 4720,
-    "seconds": 15.4,
-    "ported_at": "2026-10-22T22:50:12+00:00"
+    "tokens_in": 44609,
+    "tokens_out": 4116,
+    "seconds": 14.3,
+    "ported_at": "2026-11-03T01:52:20+00:00"
   },
   "Moblin/Media/Srtla/Client/RemoteConnection.swift": {
     "status": "ok",
@@ -18279,46 +18274,46 @@
   },
   "Moblin/View/Stream/WidgetOutlinesView.swift": {
     "status": "ok",
-    "sha256": "048177aeec1bd8fa5e14acad10f63879043d65111551f5053befaefd49744f90",
-    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+    "sha256": "ba6ac6764c771f7fd65178998e888e84f015bb6c0edf6522d2bd70f74dda4005",
+    "moblin_commit": "a04b3ed01577174ed701e23996f459631354b418",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
     "notes": [
-      "One-line change: the anchor view now reads outline.alignment instead of outline.sceneWidget.layout.alignment.",
-      "Everything else (layout helpers, label placement, outline drawing) is untouched, so the rest of the Kotlin file is byte-identical.",
-      "isLeft() is called directly on WidgetOutline.alignment as in the new Swift source."
+      "WidgetOutlineLabelView gained a `selected: Boolean = false` parameter; existing call sites (labelOutside and sizedView) keep passing nothing and get the default, as in Swift.",
+      "The label font moved from caption2 (11.sp) to footnote (13.sp); both the SystemImage icon and the Text now use 13.sp because Swift applies .font to the whole HStack.",
+      "Selected labels use FontWeight.SemiBold and the accent background formPalette().accent; unselected keep the black 60% background, matching Color.accentColor vs .black.opacity(0.6).",
+      "Compose modifier order is reversed from SwiftUI, so the accent background is still applied before the padding and clipped to the 3.dp rounded corners.",
+      "Vertical padding grew from 1.dp to 2.dp as in the Swift change.",
+      "No other members changed: widgetOutlineViewRect, labelOutside, sizedView, anchorView, WidgetOutlineView and WidgetOutlinesView are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51133,
-    "tokens_out": 2141,
-    "seconds": 8.0,
-    "ported_at": "2026-11-01T23:36:47+00:00"
+    "tokens_in": 51274,
+    "tokens_out": 3213,
+    "seconds": 13.9,
+    "ported_at": "2026-11-03T01:52:20+00:00"
   },
   "Moblin/Various/Model/ModelSceneEditor.swift": {
     "status": "ok",
-    "sha256": "b877eab1fe753c51e539d846def29c50265d50bd9f2d76f5c60e3df1e120211b",
-    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+    "sha256": "c48dca95da5ea795ccd320b16235fe936941203211c105d79afef4fb59f1aa73",
+    "moblin_commit": "a04b3ed01577174ed701e23996f459631354b418",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSceneEditor.kt",
     "notes": [
-      "Removed the private makeAlignment and layoutOffsetFromPosition helpers, which the new geometry helpers in SceneEditorGeometry.kt replace.",
-      "sceneEditorMoveWidget now takes a CGRect and delegates to sceneEditorLayout; the alignment math lives in the hand-written geometry file.",
-      "New sceneEditorSetWidgetAlignment delegates to sceneEditorAlignedLayout and calls sceneUpdated() (not the throttled variant), matching Swift.",
-      "sceneEditorMoveWidgetInDrawOrder now skips widgets that are not shown in the outlines and uses removeAt/add instead of a swap.",
-      "sceneEditorWidgetOutlines.canvasSize and .outlines are read through .value, as canvasSize already was in this port.",
-      "Imports for CGRect, sceneEditorLayout and sceneEditorAlignedLayout were added; the CGPoint import is gone."
+      "Added the private sceneEditorDrawOrderTargetIndex helper returning the target index or null.",
+      "Added sceneEditorCanMoveWidgetInDrawOrder, which delegates to the helper.",
+      "Refactored sceneEditorMoveWidgetInDrawOrder to reuse the helper while keeping the original index lookup and early return."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45044,
-    "tokens_out": 2716,
-    "seconds": 12.2,
-    "ported_at": "2026-11-01T23:35:03+00:00"
+    "tokens_in": 44307,
+    "tokens_out": 1918,
+    "seconds": 9.0,
+    "ported_at": "2026-11-03T01:52:15+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift": {
     "status": "ok",

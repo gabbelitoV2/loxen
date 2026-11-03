@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-01T23:32:25+00:00",
+  "generated": "2026-11-03T01:51:54+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -9086,8 +9086,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSpeechToText.swift",
-      "lines": 199,
-      "sha256": "d3051a4ff8a602d1f26d54d932294abb051b2ad8cdd6b60ec08e102741977ff1",
+      "lines": 188,
+      "sha256": "c7463e7fd19983f770e9bb63963764bf7b114ef0c9a719e1a3337246336c7097",
       "imports": [
         "Foundation",
         "Translation"
@@ -9635,7 +9635,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometry.swift",
       "lines": 136,
-      "sha256": "20490fb5e75bae5e84dd5cce16062db3e1f986e2cc58ded488ab067c6549449c",
+      "sha256": "25960ac89a2c88f7611c2d591b594558a6d0718bf650457445f94fc68c2f0bdd",
       "imports": [
         "CoreGraphics",
         "Foundation"
@@ -11347,8 +11347,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSceneEditor.swift",
-      "lines": 89,
-      "sha256": "b877eab1fe753c51e539d846def29c50265d50bd9f2d76f5c60e3df1e120211b",
+      "lines": 108,
+      "sha256": "c48dca95da5ea795ccd320b16235fe936941203211c105d79afef4fb59f1aa73",
       "imports": [
         "Foundation"
       ],
@@ -11702,8 +11702,8 @@
     },
     {
       "path": "MoblinTests/Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometrySuite.swift",
-      "lines": 184,
-      "sha256": "834b486c455eb15382ffc08b1185020f5b9127a613c6ed496677b9acbaaedc4f",
+      "lines": 186,
+      "sha256": "bf164918cb043a38095b38d2d65f7ca0c3148fb487d7691027f8193ede03a4b0",
       "imports": [
         "CoreGraphics",
         "Foundation",
@@ -11812,7 +11812,7 @@
     {
       "path": "Moblin/Media/HaishinKit/Rist/RistStream.swift",
       "lines": 428,
-      "sha256": "7121cd7d202a7c9ba7145e2c0494afca9dd9092698141bbba211ed6956d34e66",
+      "sha256": "dc103862971aa7ae2824643b55176fbb93f229b0ddcce386f5ae9b790e09fb32",
       "imports": [
         "Foundation",
         "Network"
@@ -17311,8 +17311,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
-      "lines": 1080,
-      "sha256": "7b6d4bb5f512a96cab9d22f1fb329a324c0e6b5ba8ddace010564f8938322e4c",
+      "lines": 1078,
+      "sha256": "b532bfd04180f41f4a9154b3fb7be15b3561b422e627f507fcbe6651c47fa7fa",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -19843,8 +19843,8 @@
     },
     {
       "path": "Moblin/View/Stream/WidgetOutlinesView.swift",
-      "lines": 118,
-      "sha256": "048177aeec1bd8fa5e14acad10f63879043d65111551f5053befaefd49744f90",
+      "lines": 120,
+      "sha256": "ba6ac6764c771f7fd65178998e888e84f015bb6c0edf6522d2bd70f74dda4005",
       "imports": [
         "SwiftUI"
       ],
@@ -20939,8 +20939,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMacros.swift",
-      "lines": 480,
-      "sha256": "de75c5262b402076757a18739010f4a170579137f2f0f4f5cc0c0e67f25ad1ac",
+      "lines": 478,
+      "sha256": "1ab2e2d78b4085083c64e3844d3e2178461a474f9702efc7dfd4b27a20587554",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -21252,8 +21252,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1656,
-      "sha256": "c998edcf965c0433a8239edfdb2a5f6a896e66eaad903119882a4653467b9012",
+      "lines": 1652,
+      "sha256": "dc69042c2adf7c2490f235a1a6b3d66749e61c5cdae6c3097fc8ace0e1ac66ac",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21293,8 +21293,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
-      "lines": 1737,
-      "sha256": "5f3f759ee170f84e4bb93d2054cb5ee3dd87ead2609e070fe44062af97f5a429",
+      "lines": 1717,
+      "sha256": "f85e7755fbd7bfff58baa718733d9e61cc698fedb938ce795809faa419c8bf35",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21933,8 +21933,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3569,
-      "sha256": "3dd1e4a9f05ea8dc6462d68f791ff31c14bebce3749c1d4a5d9a1f10a4986491",
+      "lines": 3558,
+      "sha256": "39d2d636525c180bd82a6d2522f57ce4a268d6ceb5c9a54ff25425e28d4377f4",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -25192,8 +25192,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
-      "lines": 851,
-      "sha256": "bd52537a3769792659bc585a6e16faebd7388e66720afaffe4a280cc329fa28e",
+      "lines": 872,
+      "sha256": "18f8f8ff539411f59e6e1f5817c329e695cdcc6aa9a90cdbefccad3319bd34ae",
       "imports": [
         "SwiftUI"
       ],
@@ -25205,6 +25205,7 @@
         "SceneEditorCanvasView",
         "SceneEditorButtonView",
         "SceneEditorEnableButtonView",
+        "SceneEditorDrawOrderButtonsView",
         "SceneEditorAlignmentButtonView",
         "SceneEditorPopoverRowView",
         "SceneEditorPopoverListView",
@@ -25221,6 +25222,7 @@
         "SceneEditorCanvasView",
         "SceneEditorButtonView",
         "SceneEditorEnableButtonView",
+        "SceneEditorDrawOrderButtonsView",
         "SceneEditorAlignmentButtonView",
         "SceneEditorPopoverRowView",
         "SceneEditorPopoverListView",
