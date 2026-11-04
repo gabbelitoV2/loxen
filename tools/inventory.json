@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-03T02:04:44+00:00",
+  "generated": "2026-11-04T00:14:42+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -10971,8 +10971,8 @@
     },
     {
       "path": "Common/Various/CommonUtils.swift",
-      "lines": 889,
-      "sha256": "380d55d58c52699ce2d01c95cd3acffcce89975045fb621a0451d981fc3a090b",
+      "lines": 894,
+      "sha256": "fa9b23adfcb9d96a9bd789a3bd686763d6421ae37086c8f652cc7baa298e8e6d",
       "imports": [
         "AVFoundation",
         "AVKit",
@@ -11348,7 +11348,7 @@
     {
       "path": "Moblin/Various/Model/ModelSceneEditor.swift",
       "lines": 108,
-      "sha256": "c48dca95da5ea795ccd320b16235fe936941203211c105d79afef4fb59f1aa73",
+      "sha256": "55084aa4ceb617f462ddb76bbe21f2d83f1049f1d77a666192525727d28ac55f",
       "imports": [
         "Foundation"
       ],
@@ -14109,42 +14109,6 @@
       "wave": 22
     },
     {
-      "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
-      "lines": 801,
-      "sha256": "35bfe8668597ca392c8a27ac21ded3c12f7840cef167d8fa326876b56c3fd9db",
-      "imports": [
-        "Collections",
-        "CryptoKit",
-        "Foundation",
-        "Network"
-      ],
-      "tier": "platform",
-      "declared_types": [
-        "RemoteControlAssistantDelegate",
-        "RemoteControlRequestResponse",
-        "RemoteControlAssistant"
-      ],
-      "private_types": [
-        "RemoteControlRequestResponse"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.remotecontrol",
-      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
-        "Moblin/RemoteControl/RemoteControl.swift",
-        "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift",
-        "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift",
-        "Moblin/Various/ChatPost.swift",
-        "Moblin/Various/MainTimer.swift",
-        "Moblin/Various/Settings/SettingsStream.swift",
-        "Moblin/Various/Utils/Utils.swift"
-      ],
-      "wave": 22
-    },
-    {
       "path": "Moblin/StreamingPlatforms/Soop/SoopChat.swift",
       "lines": 292,
       "sha256": "5b5282c9283dc751697de2f5f85572e5fb36be49f2f76d67a0c6b0ba70852a65",
@@ -14699,33 +14663,6 @@
       "wave": 25
     },
     {
-      "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
-      "lines": 500,
-      "sha256": "5183c5979f2f8b2ca6a9d8b4e63f353d7f235080b1e0eaff944c6ae1d5660599",
-      "imports": [
-        "Foundation",
-        "Network"
-      ],
-      "tier": "platform",
-      "declared_types": [
-        "RemoteControlStreamerDelegate",
-        "RemoteControlStreamer"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.remotecontrol",
-      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
-      "deps": [
-        "Moblin/RemoteControl/RemoteControl.swift",
-        "Moblin/Various/MainTimer.swift",
-        "Moblin/Various/Network/WebSocketClient.swift",
-        "Moblin/Various/Settings/SettingsGameController.swift",
-        "Moblin/Various/Settings/SettingsStream.swift"
-      ],
-      "wave": 25
-    },
-    {
       "path": "Moblin/RemoteControl/RemoteControlWeb.swift",
       "lines": 538,
       "sha256": "5d6a1e2af906f6336752dffdd335f0b05e94674445c772c495b484a001a3f50d",
@@ -14994,8 +14931,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsDeepLinkCreator.swift",
-      "lines": 341,
-      "sha256": "e171f5bc0cbe092c3be04358751d996e15815b75864e0aeae7f9fb34a6b07025",
+      "lines": 338,
+      "sha256": "bed56791f317db9b2a3b36d29b0e2f62e835a158f193846b3bf9127138972e2f",
       "imports": [
         "Foundation"
       ],
@@ -17246,6 +17183,44 @@
       "wave": 29
     },
     {
+      "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
+      "lines": 922,
+      "sha256": "722e638121969d4fac88ba1d308c7bad56a45301dafe3455c80c4ada6cf1c7eb",
+      "imports": [
+        "Collections",
+        "CryptoKit",
+        "Foundation",
+        "Network"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "RemoteControlAssistantDelegate",
+        "RemoteControlRequestResponse",
+        "RemoteControlAssistant"
+      ],
+      "private_types": [
+        "RemoteControlRequestResponse"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/RemoteControl/RemoteControl.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift",
+        "Moblin/Various/ChatPost.swift",
+        "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Utils/Utils.swift"
+      ],
+      "wave": 29
+    },
+    {
       "path": "Moblin/Various/Model/ModelAppleWatch.swift",
       "lines": 657,
       "sha256": "ac467e6502813ef15a29d142b36aca59ce3a57d9172f3299738914f92d6d8c20",
@@ -17276,7 +17251,7 @@
     {
       "path": "Moblin/Various/Model/ModelCamera.swift",
       "lines": 957,
-      "sha256": "fd2c0ab43b09a4a3d820bee22565c11fdbc40b364964fff5bb15681c1c86a4ce",
+      "sha256": "0c5363891e1c591fb7ce91302415b6c5e38f2dc4bb071d72abcc7c0a8b3dab20",
       "imports": [
         "Foundation"
       ],
@@ -19199,8 +19174,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/PomodoroTimer/WidgetPomodoroTimerSettingsView.swift",
-      "lines": 217,
-      "sha256": "52718626c1b43b196bed81927635cfc2399ee0c3bb3a7d5cbdb11f1d25a6e063",
+      "lines": 218,
+      "sha256": "a5257fdf2af8a311b2fc1151dcc5fc3cca3544b4a4aa18fa96521e62cc3002bb",
       "imports": [
         "AVFAudio",
         "SwiftUI"
@@ -20330,8 +20305,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsGameController.swift",
-      "lines": 479,
-      "sha256": "96e35e9368421e5127e6c8eb5c210cab2f6b4004b80563435d8298c4582b4d5c",
+      "lines": 486,
+      "sha256": "82d6b58c28df4d67f987a38952ec807aef0369527c28818a21e4b0780030f6e7",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -20478,8 +20453,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsQuickButtons.swift",
-      "lines": 362,
-      "sha256": "66bdcd4d4707b41a6cbd7fc58997d28c87c776e949f5727cbd81269c79fea355",
+      "lines": 363,
+      "sha256": "aaa8bad53290d41eb467da83224fbe652a5cc269691eb05d6c18652cec2dc63f",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -20615,116 +20590,9 @@
       "wave": 36
     },
     {
-      "path": "Moblin/RemoteControl/RemoteControl.swift",
-      "lines": 1248,
-      "sha256": "1405087d8dc321735f93edc95b04160ce72dfecb818090eda398a406cccf544c",
-      "imports": [
-        "AVFoundation",
-        "CoreLocation",
-        "CryptoKit",
-        "Foundation",
-        "WeatherKit"
-      ],
-      "tier": "media",
-      "declared_types": [
-        "RemoteControlStartStatusFilter",
-        "RemoteControlStartStatsFilter",
-        "RemoteControlRequest",
-        "RemoteControlTipKind",
-        "RemoteControlResponse",
-        "RemoteControlEvent",
-        "RemoteControlWheelOfLuckOption",
-        "RemoteControlWheelOfLuck",
-        "RemoteControlStats",
-        "RemoteControlChatHighlight",
-        "RemoteControlChatMessage",
-        "RemoteControlMusicCommand",
-        "RemoteControlMusicSong",
-        "RemoteControlMusicFoundSong",
-        "RemoteControlMusicStatus",
-        "RemoteControlReaction",
-        "RemoteControlFilter",
-        "RemoteControlRemoteSceneSettings",
-        "RemoteControlRemoteSceneSettingsScene",
-        "RemoteControlRemoteSceneSettingsSceneWidgetLayout",
-        "RemoteControlRemoteSceneSettingsSceneWidget",
-        "RemoteControlRemoteSceneSettingsWidget",
-        "RemoteControlRemoteSceneSettingsWidgetType",
-        "RemoteControlRemoteSceneSettingsWidgetTypeBrowser",
-        "RemoteControlRemoteSceneSettingsWidgetTypeText",
-        "RemoteControlRemoteSceneSettingsHorizontalAlignment",
-        "RemoteControlRemoteSceneSettingsWidgetTypeMap",
-        "RemoteControlRemoteSceneSettingsWidgetTypeScene",
-        "RemoteControlRemoteSceneData",
-        "RemoteControlRemoteSceneDataVariables",
-        "RemoteControlRemoteSceneDataLocation",
-        "RemoteControlStatusItem",
-        "RemoteControlStatusGeneralFlame",
-        "RemoteControlStatusTopRightAudioLevel",
-        "RemoteControlStatusTopRightAudioInfo",
-        "RemoteControlStatusGeneral",
-        "RemoteControlStatusTopLeft",
-        "RemoteControlStatusTopRightBitrateInfo",
-        "RemoteControlStatusTopRightBondingConnection",
-        "RemoteControlStatusTopRight",
-        "RemoteControlSettingsStream",
-        "RemoteControlSettingsScene",
-        "RemoteControlSettingsAutoSceneSwitcher",
-        "RemoteControlSettingsBitratePreset",
-        "RemoteControlSettingsMic",
-        "RemoteControlSettingsSrtConnectionPriority",
-        "RemoteControlSettingsSrt",
-        "RemoteControlSettingsGimbalPreset",
-        "RemoteControlSettings",
-        "RemoteControlStateAutoSceneSwitcher",
-        "RemoteControlZoomPreset",
-        "RemoteControlMacro",
-        "RemoteControlAssistantStreamerState",
-        "RemoteControlScoreboardControl",
-        "RemoteControlScoreboardTeam",
-        "RemoteControlScoreboardGlobalStats",
-        "RemoteControlScoreboardMatchConfig",
-        "RemoteControlGolfPlayer",
-        "RemoteControlGolfScoreboard",
-        "RemoteControlAuthentication",
-        "RemoteControlAppAttest",
-        "RemoteControlResult",
-        "RemoteControlMessageToStreamer",
-        "RemoteControlMessageToAssistant",
-        "RemoteControlEncryption"
-      ],
-      "private_types": [],
-      "declared_functions": [
-        "remoteControlHashPassword"
-      ],
-      "declared_globals": [
-        "remoteControlApiVersion",
-        "remoteControlStartStatsFilterAllEnabled"
-      ],
-      "kotlin_package": "com.moblin.android.remotecontrol",
-      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Integrations/WorkoutDevice/WorkoutDeviceRunning.swift",
-        "Moblin/StreamingPlatforms/Platform.swift",
-        "Moblin/Various/ChatPost.swift",
-        "Moblin/Various/Managers/GForceManager.swift",
-        "Moblin/Various/Model/ModelCamera.swift",
-        "Moblin/Various/Settings/SettingsGameController.swift",
-        "Moblin/Various/Settings/SettingsMacros.swift",
-        "Moblin/Various/Settings/SettingsQuickButtons.swift",
-        "Moblin/Various/Settings/SettingsScene.swift",
-        "Moblin/Various/Settings/SettingsStream.swift",
-        "Moblin/Various/Storages/StreamingHistory.swift",
-        "Moblin/Various/Utils/Utils.swift",
-        "Moblin/Various/Variables.swift"
-      ],
-      "wave": 37
-    },
-    {
       "path": "Moblin/Various/Settings/Settings.swift",
-      "lines": 2494,
-      "sha256": "ecc9a0e1c1589aad07b37c32dbc13aa9c52f798d5a2a62cd5aa7e43f56ad7296",
+      "lines": 2504,
+      "sha256": "62d75fd4a5ffa796f25bb402ef3494197bd9442b24ddcf4c586313adca66ace6",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -20938,6 +20806,152 @@
       "wave": 37
     },
     {
+      "path": "Moblin/RemoteControl/RemoteControl.swift",
+      "lines": 1322,
+      "sha256": "797d4ff15c0b4501fb2b4d87c755367030402b5e0acb0c3b979c439382056639",
+      "imports": [
+        "AVFoundation",
+        "CoreLocation",
+        "CryptoKit",
+        "Foundation",
+        "WeatherKit"
+      ],
+      "tier": "media",
+      "declared_types": [
+        "RemoteControlStartStatusFilter",
+        "RemoteControlStartStatsFilter",
+        "RemoteControlRequest",
+        "RemoteControlTipKind",
+        "RemoteControlResponse",
+        "RemoteControlEvent",
+        "RemoteControlWheelOfLuckOption",
+        "RemoteControlWheelOfLuck",
+        "RemoteControlStats",
+        "RemoteControlChatHighlight",
+        "RemoteControlChatMessage",
+        "RemoteControlMusicCommand",
+        "RemoteControlMusicSong",
+        "RemoteControlMusicFoundSong",
+        "RemoteControlMusicStatus",
+        "RemoteControlReaction",
+        "RemoteControlFilter",
+        "RemoteControlRemoteSceneSettings",
+        "RemoteControlRemoteSceneSettingsScene",
+        "RemoteControlRemoteSceneSettingsSceneWidgetLayout",
+        "RemoteControlRemoteSceneSettingsSceneWidget",
+        "RemoteControlRemoteSceneSettingsWidget",
+        "RemoteControlRemoteSceneSettingsWidgetType",
+        "RemoteControlRemoteSceneSettingsWidgetTypeBrowser",
+        "RemoteControlRemoteSceneSettingsWidgetTypeText",
+        "RemoteControlRemoteSceneSettingsHorizontalAlignment",
+        "RemoteControlRemoteSceneSettingsWidgetTypeMap",
+        "RemoteControlRemoteSceneSettingsWidgetTypeScene",
+        "RemoteControlRemoteSceneData",
+        "RemoteControlRemoteSceneDataVariables",
+        "RemoteControlRemoteSceneDataLocation",
+        "RemoteControlStatusItem",
+        "RemoteControlStatusGeneralFlame",
+        "RemoteControlStatusTopRightAudioLevel",
+        "RemoteControlStatusTopRightAudioInfo",
+        "RemoteControlStatusGeneral",
+        "RemoteControlStatusTopLeft",
+        "RemoteControlStatusTopRightBitrateInfo",
+        "RemoteControlStatusTopRightBondingConnection",
+        "RemoteControlStatusTopRight",
+        "RemoteControlSettingsStream",
+        "RemoteControlSettingsScene",
+        "RemoteControlSettingsAutoSceneSwitcher",
+        "RemoteControlSettingsBitratePreset",
+        "RemoteControlSettingsMic",
+        "RemoteControlSettingsSrtConnectionPriority",
+        "RemoteControlSettingsSrt",
+        "RemoteControlSettingsGimbalPreset",
+        "RemoteControlVideoSource",
+        "RemoteControlSize",
+        "RemoteControlFontFamily",
+        "RemoteControlNamedItem",
+        "RemoteControlWebRemote",
+        "RemoteControlAppleVoice",
+        "RemoteControlAppleVoices",
+        "RemoteControlEditorOptions",
+        "RemoteControlSettings",
+        "RemoteControlStateAutoSceneSwitcher",
+        "RemoteControlZoomPreset",
+        "RemoteControlMacro",
+        "RemoteControlAssistantStreamerState",
+        "RemoteControlScoreboardControl",
+        "RemoteControlScoreboardTeam",
+        "RemoteControlScoreboardGlobalStats",
+        "RemoteControlScoreboardMatchConfig",
+        "RemoteControlGolfPlayer",
+        "RemoteControlGolfScoreboard",
+        "RemoteControlAuthentication",
+        "RemoteControlAppAttest",
+        "RemoteControlResult",
+        "RemoteControlMessageToStreamer",
+        "RemoteControlMessageToAssistant",
+        "RemoteControlEncryption"
+      ],
+      "private_types": [],
+      "declared_functions": [
+        "remoteControlHashPassword"
+      ],
+      "declared_globals": [
+        "remoteControlApiVersion",
+        "remoteControlStartStatsFilterAllEnabled"
+      ],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/WorkoutDevice/WorkoutDeviceRunning.swift",
+        "Moblin/StreamingPlatforms/Platform.swift",
+        "Moblin/Various/ChatPost.swift",
+        "Moblin/Various/Managers/GForceManager.swift",
+        "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsGameController.swift",
+        "Moblin/Various/Settings/SettingsMacros.swift",
+        "Moblin/Various/Settings/SettingsQuickButtons.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Storages/StreamingHistory.swift",
+        "Moblin/Various/Utils/UiUtils.swift",
+        "Moblin/Various/Utils/Utils.swift",
+        "Moblin/Various/Variables.swift"
+      ],
+      "wave": 38
+    },
+    {
+      "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
+      "lines": 570,
+      "sha256": "92f42ab3f9040b0d9b88cdc423dc5a02562332aa8237cb0e50dddb3667cd5450",
+      "imports": [
+        "Foundation",
+        "Network"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "RemoteControlStreamerDelegate",
+        "RemoteControlStreamer"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
+      "deps": [
+        "Moblin/RemoteControl/RemoteControl.swift",
+        "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Network/WebSocketClient.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsGameController.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Settings/SettingsStream.swift"
+      ],
+      "wave": 39
+    },
+    {
       "path": "Moblin/Various/Model/ModelMacros.swift",
       "lines": 478,
       "sha256": "1ab2e2d78b4085083c64e3844d3e2178461a474f9702efc7dfd4b27a20587554",
@@ -20961,7 +20975,7 @@
         "Moblin/Various/Settings/SettingsQuickButtons.swift",
         "Moblin/VideoEffects/Text/TextFormatStringLoader.swift"
       ],
-      "wave": 38
+      "wave": 39
     },
     {
       "path": "Moblin/Various/Model/ModelStream.swift",
@@ -21010,7 +21024,7 @@
         "Moblin/Various/Utils/UiUtils.swift",
         "Moblin/Various/Utils/Utils.swift"
       ],
-      "wave": 38
+      "wave": 39
     },
     {
       "path": "Moblin/Various/Model/ModelZoom.swift",
@@ -21039,7 +21053,7 @@
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Utils/CameraUtils.swift"
       ],
-      "wave": 38
+      "wave": 39
     },
     {
       "path": "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
@@ -21092,7 +21106,7 @@
         "Moblin/View/Utils/VoicesView.swift",
         "MoblinTests/TestUtils.swift"
       ],
-      "wave": 39
+      "wave": 40
     },
     {
       "path": "Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift",
@@ -21124,7 +21138,7 @@
         "Moblin/View/Utils/RgbColorPickerView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
-      "wave": 39
+      "wave": 40
     },
     {
       "path": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift",
@@ -21156,7 +21170,7 @@
         "Moblin/Various/Utils/UiUtils.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift"
       ],
-      "wave": 39
+      "wave": 40
     },
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayLeftView.swift",
@@ -21200,12 +21214,49 @@
         "Moblin/Various/Model/ModelZoom.swift",
         "Moblin/Various/Settings/Settings.swift"
       ],
-      "wave": 39
+      "wave": 40
+    },
+    {
+      "path": "Moblin/RemoteControl/RemoteControlSceneConfigValidation.swift",
+      "lines": 479,
+      "sha256": "14af1c97ccf8b91b162109ab8f3a7eb4daa4938fd21e6ab743a0e991826c010f",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "RemoteControlCameras"
+      ],
+      "private_types": [],
+      "declared_functions": [
+        "remoteControlAllAlerts",
+        "isValidRemoteControlName",
+        "hasUniqueRemoteControlIds",
+        "isValidRemoteControlWidgetUpdate",
+        "isValidRemoteControlSceneUpdate",
+        "isValidRemoteControlScene",
+        "remoteControlMergeSceneWidgets"
+      ],
+      "declared_globals": [
+        "remoteControlVideoSourceRotations"
+      ],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlSceneConfigValidation.kt",
+      "deps": [
+        "Common/Various/Validate.swift",
+        "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Model/ModelResolvedScene.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Utils/Utils.swift",
+        "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift"
+      ],
+      "wave": 41
     },
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
-      "lines": 734,
-      "sha256": "872796ffbb90b7c77d287d51cac43d21981f86648336baf43684301f35e025da",
+      "lines": 793,
+      "sha256": "39e2bb76b48465901f4065ad5b7cbc86bcea99a4d9f10f7f2e2587e4fe1d2d16",
       "imports": [
         "CryptoKit",
         "DeviceCheck",
@@ -21242,18 +21293,19 @@
         "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Network/HttpUrlSession.swift",
+        "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Settings/SettingsGameController.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/Various/Storages/SimpleStorage.swift",
         "Moblin/Various/Utils/UiUtils.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1652,
-      "sha256": "dc69042c2adf7c2490f235a1a6b3d66749e61c5cdae6c3097fc8ace0e1ac66ac",
+      "lines": 1704,
+      "sha256": "90ad8fdd7f4855523740e3dee332c0031e20a466c44b57c97055765cebef610a",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21281,6 +21333,7 @@
         "Moblin/Various/ChatPost.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelMusic.swift",
+        "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Settings/SettingsGameController.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
@@ -21289,12 +21342,12 @@
         "Moblin/Various/Variables.swift",
         "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
-      "lines": 1717,
-      "sha256": "f85e7755fbd7bfff58baa718733d9e61cc698fedb938ce795809faa419c8bf35",
+      "lines": 1725,
+      "sha256": "ed806ce8af0e07e8868649d4a0e17437c68f69dd75cff501356e6c856bafafa0",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21367,12 +21420,12 @@
         "Moblin/VideoEffects/WhirlpoolEffect.swift",
         "Moblin/View/Stream/StreamView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/Various/Settings/SettingsScene.swift",
-      "lines": 4307,
-      "sha256": "e8f5d004fca5b414a7cd0fdd45102a4e66f0204e732394e3a70b4f405d086029",
+      "lines": 4335,
+      "sha256": "1699b77a8b6639ba0e98d4f605c2ae4f9befe0dc2f4556f968aef3a62a5ed61e",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -21448,6 +21501,7 @@
         "SettingsWidgetLayout",
         "SettingsSceneWidget",
         "SettingsSceneCameraPosition",
+        "SettingsVideoSourceCodingKeys",
         "SettingsVideoSource",
         "SettingsWidgetVideoSource",
         "SettingsWidgetScoreboardSport",
@@ -21512,7 +21566,7 @@
         "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift",
         "Moblin/View/Utils/FontPickerViews.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/ControlBar/ControlBarPortraitView.swift",
@@ -21557,7 +21611,7 @@
         "Moblin/View/ControlBar/StreamButton.swift",
         "Moblin/View/ControlBar/ThermalStateSheetView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/ControlBar/StreamButton.swift",
@@ -21591,7 +21645,7 @@
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift",
@@ -21640,7 +21694,7 @@
         "Moblin/View/Utils/TextEditView.swift",
         "Moblin/View/Utils/TextItemView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift",
@@ -21676,7 +21730,7 @@
         "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift",
         "Moblin/View/Utils/IconAndTextView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift",
@@ -21703,7 +21757,7 @@
         "Moblin/Various/Settings/SettingsSelfieStick.swift",
         "Moblin/View/Settings/GameControllers/GameControllersControllerButtonSettingsView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
@@ -21786,7 +21840,7 @@
         "Moblin/View/Utils/TextEditView.swift",
         "Moblin/View/Utils/TextItemView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
@@ -21893,7 +21947,7 @@
         "Moblin/View/Stream/Overlay/Right/ZoomPresetSelctorView.swift",
         "Moblin/View/Stream/Overlay/Right/ZoomSliderView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/View/Stream/StreamOverlayView.swift",
@@ -21929,12 +21983,12 @@
         "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
         "Moblin/View/Utils/BannersView.swift"
       ],
-      "wave": 40
+      "wave": 41
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3558,
-      "sha256": "39d2d636525c180bd82a6d2522f57ce4a268d6ceb5c9a54ff25425e28d4377f4",
+      "lines": 3550,
+      "sha256": "15f285bade1f6eb7eeca0f2c037fe6d9796a227a956f3b3fa1dbae80419e2245",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -22178,7 +22232,65 @@
         "Moblin/View/Stream/DrawOnStreamView.swift",
         "Moblin/View/Stream/StreamView.swift"
       ],
-      "wave": 41
+      "wave": 42
+    },
+    {
+      "path": "Moblin/Various/Model/ModelRemoteControlScenes.swift",
+      "lines": 206,
+      "sha256": "06590e0b02f31f2307519b2c3e0cede2818aeb27a9a83f8b8059a78b532966b3",
+      "imports": [
+        "AVFoundation",
+        "Foundation",
+        "UIKit"
+      ],
+      "tier": "media",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControlScenes.kt",
+      "deps": [
+        "Moblin/RemoteControl/RemoteControl.swift",
+        "Moblin/RemoteControl/RemoteControlSceneConfigValidation.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Network/NetworkUtils.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Utils/UiUtils.swift",
+        "Moblin/Various/Utils/Utils.swift"
+      ],
+      "wave": 43
+    },
+    {
+      "path": "Moblin/Various/Model/ModelRemoteControlSettingsUpdate.swift",
+      "lines": 810,
+      "sha256": "40182d978d33808760461b1eb3ab4fc50f3efeaa54f384a0226ad10da8178c52",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "RemoteControlWidgetUpdate",
+        "ChangeTracker"
+      ],
+      "private_types": [
+        "ChangeTracker"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControlSettingsUpdate.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/RemoteControl/RemoteControlSceneConfigValidation.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Utils/Utils.swift",
+        "Moblin/VideoEffects/Text/TextFormatStringLoader.swift"
+      ],
+      "wave": 43
     },
     {
       "path": "Moblin/View/Main/StealthModeView.swift",
@@ -22210,7 +22322,7 @@
         "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
         "Moblin/View/Stream/StreamOverlayView.swift"
       ],
-      "wave": 42
+      "wave": 43
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/PngTuber/WidgetPngTuberSettingsView.swift",
@@ -22243,7 +22355,7 @@
         "Moblin/View/Utils/HCenter.swift",
         "Moblin/View/Utils/InlinePickerView.swift"
       ],
-      "wave": 42
+      "wave": 43
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift",
@@ -22349,7 +22461,40 @@
         "Moblin/View/Utils/TextEditView.swift",
         "Moblin/View/Utils/TextItemView.swift"
       ],
-      "wave": 42
+      "wave": 43
+    },
+    {
+      "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSceneConfigValidationSuite.swift",
+      "lines": 724,
+      "sha256": "dcdba97059955f8eb8fcdfc080fb5a76bb40887762c8bb704dd5d9cb782e915d",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "RemoteControlSceneConfigValidationSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSceneConfigValidationSuite.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/Emotes/Emotes.swift",
+        "Moblin/RemoteControl/RemoteControlSceneConfigValidation.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelAudio.swift",
+        "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsAudio.swift",
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
+        "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift"
+      ],
+      "wave": 43
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
@@ -22448,7 +22593,7 @@
         "Moblin/View/Utils/TextEditView.swift",
         "Moblin/View/Utils/TextItemView.swift"
       ],
-      "wave": 43
+      "wave": 44
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift",
@@ -22482,7 +22627,7 @@
         "Moblin/View/Utils/ButtonView.swift",
         "Moblin/View/Utils/InlinePickerView.swift"
       ],
-      "wave": 43
+      "wave": 44
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift",
@@ -22528,7 +22673,7 @@
         "Moblin/View/Utils/HCenter.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift",
@@ -22632,7 +22777,7 @@
         "Moblin/View/Utils/CloseToolbarView.swift",
         "Moblin/View/Utils/HCenter.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Audio/AudioSettingsView.swift",
@@ -22670,7 +22815,7 @@
         "Moblin/View/Utils/ShortcutView.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatSettingsView.swift",
@@ -22709,7 +22854,7 @@
         "Moblin/View/Utils/TextEditView.swift",
         "Moblin/View/Utils/TextItemView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Display/DisplaySettingsView.swift",
@@ -22753,7 +22898,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/VideoSource/WidgetVideoSourceSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift",
@@ -22790,7 +22935,7 @@
         "Moblin/View/Utils/RgbColorPickerView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/DjiDevices/DjiDeviceSettingsView.swift",
@@ -22855,7 +23000,7 @@
         "Moblin/View/Utils/TextItemView.swift",
         "Moblin/View/Utils/WiFiSsidEditView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Macros/MacrosSettingsView.swift",
@@ -22909,12 +23054,12 @@
         "Moblin/View/Utils/TextEditNavigationView.swift",
         "Moblin/View/Utils/TextItemView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsImageSettingsView.swift",
       "lines": 203,
-      "sha256": "4cc9310097e3376f35cb750cf850942bc69eae1317b37910ee2638fb706db3ca",
+      "sha256": "78ed2be45027b7e903f302d2d49f3ce03deecd6121269d479c005a1150a8ad5c",
       "imports": [
         "AVFAudio",
         "PhotosUI",
@@ -22952,12 +23097,12 @@
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift",
       "lines": 172,
-      "sha256": "bc50e8a3be5eda362a604f95ad78ff36c2d34c33943ea77b61b55b6fe1a480d2",
+      "sha256": "9cb063af40f1d341c226e3db808ee7506a348e5b84930b72e4a97f8e63a3c001",
       "imports": [
         "AVFAudio",
         "SwiftUI",
@@ -22993,7 +23138,7 @@
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift",
@@ -23033,7 +23178,7 @@
         "Moblin/View/Utils/DraggableItemPrefixView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardGenericSettingsView.swift",
@@ -23073,7 +23218,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift",
@@ -23116,7 +23261,7 @@
         "Moblin/View/Utils/MultiLineTextFieldView.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardBingoCardSettingsView.swift",
@@ -23143,7 +23288,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardBrowserSettingsView.swift",
@@ -23170,7 +23315,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardImageSettingsView.swift",
@@ -23198,7 +23343,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardPngTuberSettingsView.swift",
@@ -23225,7 +23370,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardScoreboardSettingsView.swift",
@@ -23251,7 +23396,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardTextSettingsView.swift",
@@ -23278,7 +23423,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVTuberSettingsView.swift",
@@ -23305,7 +23450,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVideoSourceSettingsView.swift",
@@ -23336,7 +23481,7 @@
         "Moblin/View/Utils/CloseToolbarView.swift",
         "Moblin/View/Utils/InlinePickerView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Replay/StreamReplaySettingsView.swift",
@@ -23381,7 +23526,7 @@
         "Moblin/View/Utils/PositionEditView.swift",
         "Moblin/View/Utils/SizeEditView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift",
@@ -23408,7 +23553,7 @@
         "Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Streams/StreamsSettingsView.swift",
@@ -23446,7 +23591,7 @@
         "Moblin/View/Utils/SwipeLeftToDuplicateButtonView.swift",
         "Moblin/View/Utils/SwipeLeftToDuplicateOrDeleteHelpView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/Settings/Talkback/TalkbackSettingsView.swift",
@@ -23473,7 +23618,7 @@
         "Moblin/View/Utils/InlinePickerView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 44
+      "wave": 45
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonDjiDevicesView.swift",
@@ -23502,7 +23647,7 @@
         "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonMacrosView.swift",
@@ -23530,7 +23675,7 @@
         "Moblin/View/Settings/Macros/MacrosSettingsView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Gimbal/GimbalSettingsView.swift",
@@ -23569,7 +23714,7 @@
         "Moblin/View/Utils/NameEditView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/GoPro/GoProBleDeviceSettingsView.swift",
@@ -23633,7 +23778,7 @@
         "Moblin/View/Utils/TextItemView.swift",
         "Moblin/View/Utils/WiFiSsidEditView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Scenes/Scene/SceneWizardSettingsView.swift",
@@ -23672,12 +23817,12 @@
         "Moblin/View/Utils/IconAndTextView.swift",
         "Moblin/View/Utils/InlinePickerView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift",
       "lines": 386,
-      "sha256": "49b3b9e51f7705a60aeb8b83ba6f5427f8a11a416c8b5d5dd070a85d9a137797",
+      "sha256": "6437643c50164c6b946676c5d5ede0eb4de23817cae41e06e6134c84999fc071",
       "imports": [
         "AVFAudio",
         "PhotosUI",
@@ -23733,7 +23878,7 @@
         "Moblin/View/Utils/TextItemView.swift",
         "Moblin/View/Utils/VoicesView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Map/WidgetMapSettingsView.swift",
@@ -23760,7 +23905,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardPadelSettingsView.swift",
@@ -23800,7 +23945,7 @@
         "Moblin/View/Utils/NameEditView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/VideoSource/WidgetVideoSourceSettingsView.swift",
@@ -23836,7 +23981,7 @@
         "Moblin/View/Utils/InlinePickerView.swift",
         "Moblin/View/Utils/VideoSourceRotationView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift",
@@ -23863,7 +24008,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRistSettingsView.swift",
@@ -23892,7 +24037,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift",
         "Moblin/View/Utils/FormFieldError.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRtmpSettingsView.swift",
@@ -23922,7 +24067,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift",
         "Moblin/View/Utils/FormFieldError.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSrtSettingsView.swift",
@@ -23953,7 +24098,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift",
         "Moblin/View/Utils/FormFieldError.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomWhipSettingsView.swift",
@@ -23982,7 +24127,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift",
         "Moblin/View/Utils/FormFieldError.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupDirectSettingsView.swift",
@@ -24011,7 +24156,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift",
         "Moblin/View/Utils/FormFieldError.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardMobcamSettingsView.swift",
@@ -24036,7 +24181,7 @@
         "Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardObsRemoteControlSettingsView.swift",
@@ -24066,7 +24211,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift",
         "Moblin/View/Utils/FormFieldError.swift"
       ],
-      "wave": 45
+      "wave": 46
     },
     {
       "path": "Moblin/View/Settings/Camera/CameraSettingsView.swift",
@@ -24122,7 +24267,7 @@
         "Moblin/View/Utils/NameEditView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/Settings/GoPro/GoProSettingsView.swift",
@@ -24189,7 +24334,7 @@
         "Moblin/View/Utils/TextItemView.swift",
         "Moblin/View/Utils/WiFiSsidEditView.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardSettingsView.swift",
@@ -24223,7 +24368,7 @@
         "Moblin/View/Utils/RgbColorPickerView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSettingsView.swift",
@@ -24252,7 +24397,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomWhipSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersRtmpSettingsView.swift",
@@ -24281,7 +24426,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardObsRemoteControlSettingsView.swift",
         "Moblin/View/Utils/FormFieldError.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersSrtSettingsView.swift",
@@ -24307,7 +24452,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSrtSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardObsRemoteControlSettingsView.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupBelaboxSettingsView.swift",
@@ -24337,7 +24482,7 @@
         "Moblin/View/Utils/FormFieldError.swift",
         "Moblin/View/Utils/HCenter.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupObsSettingsView.swift",
@@ -24366,7 +24511,7 @@
         "Moblin/View/Utils/FormFieldError.swift",
         "Moblin/View/Utils/HCenter.swift"
       ],
-      "wave": 46
+      "wave": 47
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonGoProView.swift",
@@ -24407,7 +24552,7 @@
         "Moblin/View/Utils/QrCodeImageView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 47
+      "wave": 48
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonLutsView.swift",
@@ -24434,7 +24579,7 @@
         "Moblin/View/Settings/Camera/CameraSettingsView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 47
+      "wave": 48
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/LutEffectView.swift",
@@ -24459,7 +24604,7 @@
         "Moblin/View/Settings/Camera/CameraSettingsView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 47
+      "wave": 48
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift",
@@ -24512,7 +24657,7 @@
         "Moblin/View/Utils/PositionEditView.swift",
         "Moblin/View/Utils/SizeEditView.swift"
       ],
-      "wave": 47
+      "wave": 48
     },
     {
       "path": "Moblin/View/Settings/SettingsView.swift",
@@ -24589,7 +24734,7 @@
         "Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift",
         "Moblin/View/Utils/InfoBannerView.swift"
       ],
-      "wave": 47
+      "wave": 48
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersSettingsView.swift",
@@ -24614,7 +24759,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersRtmpSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersSrtSettingsView.swift"
       ],
-      "wave": 47
+      "wave": 48
     },
     {
       "path": "Moblin/View/Settings/GameControllers/GameControllersControllerButtonSettingsView.swift",
@@ -24640,7 +24785,7 @@
         "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift"
       ],
-      "wave": 48
+      "wave": 49
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Slideshow/WidgetSlideshowSettingsView.swift",
@@ -24677,7 +24822,7 @@
         "Moblin/View/Utils/ShortcutView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
-      "wave": 48
+      "wave": 49
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift",
@@ -24711,7 +24856,7 @@
         "Moblin/View/Utils/SwipeLeftToDeleteButtonView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
-      "wave": 48
+      "wave": 49
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupSettingsView.swift",
@@ -24739,7 +24884,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupDirectSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupObsSettingsView.swift"
       ],
-      "wave": 48
+      "wave": 49
     },
     {
       "path": "Moblin/View/Utils/ShortcutView.swift",
@@ -24775,12 +24920,12 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift"
       ],
-      "wave": 48
+      "wave": 49
     },
     {
       "path": "Moblin/View/Settings/Scenes/Scene/SceneWidgetSettingsView.swift",
       "lines": 28,
-      "sha256": "338cd3b00aaca0703c79cdbe9f7aaf7a5830eabe31323775069b4c3e83ed15ca",
+      "sha256": "c09f735325c2cfd7240f8256a620d5260ac9c477e05b1a4fc16d0c360c95a2a7",
       "imports": [
         "SwiftUI"
       ],
@@ -24801,7 +24946,7 @@
         "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 49
+      "wave": 50
     },
     {
       "path": "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
@@ -24857,7 +25002,7 @@
         "Moblin/View/Utils/SwipeLeftToDuplicateButtonView.swift",
         "Moblin/View/Utils/SwipeLeftToDuplicateOrDeleteHelpView.swift"
       ],
-      "wave": 49
+      "wave": 50
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardSlideshowSettingsView.swift",
@@ -24892,7 +25037,7 @@
         "Moblin/View/Utils/CloseToolbarView.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
-      "wave": 49
+      "wave": 50
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardKickSettingsView.swift",
@@ -24919,7 +25064,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift"
       ],
-      "wave": 49
+      "wave": 50
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardSoopSettingsView.swift",
@@ -24945,7 +25090,7 @@
         "Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupSettingsView.swift"
       ],
-      "wave": 49
+      "wave": 50
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardTwitchSettingsView.swift",
@@ -24973,7 +25118,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift"
       ],
-      "wave": 49
+      "wave": 50
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardYouTubeSettingsView.swift",
@@ -25001,7 +25146,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift"
       ],
-      "wave": 49
+      "wave": 50
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift",
@@ -25037,7 +25182,7 @@
         "Moblin/View/Utils/IconAndTextView.swift",
         "Moblin/View/Utils/ShortcutView.swift"
       ],
-      "wave": 50
+      "wave": 51
     },
     {
       "path": "Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift",
@@ -25074,7 +25219,7 @@
         "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardMobcamSettingsView.swift",
         "Moblin/View/Utils/HCenter.swift"
       ],
-      "wave": 50
+      "wave": 51
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
@@ -25125,12 +25270,12 @@
         "Moblin/View/Utils/ButtonView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift"
       ],
-      "wave": 51
+      "wave": 52
     },
     {
       "path": "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift",
       "lines": 394,
-      "sha256": "b83dd9385197f036896aa1095de3646ce681c6d1d9877b2443890922449ef76e",
+      "sha256": "6aeed45456a5937b7b051a61f5d8fba8dbd2c4bf2c7ddfe56dbafb544af077cc",
       "imports": [
         "SwiftUI"
       ],
@@ -25188,7 +25333,7 @@
         "Moblin/View/Utils/SwipeLeftToRemoveHelpView.swift",
         "Moblin/View/Utils/VideoSourceRotationView.swift"
       ],
-      "wave": 52
+      "wave": 53
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
@@ -25252,7 +25397,7 @@
         "Moblin/View/Stream/WidgetOutlinesView.swift",
         "Moblin/View/Utils/IconAndTextView.swift"
       ],
-      "wave": 53
+      "wave": 54
     },
     {
       "path": "Moblin/View/MainView.swift",
@@ -25353,7 +25498,7 @@
         "Moblin/View/Stream/WidgetOutlinesView.swift",
         "Moblin/View/WebBrowser/WebBrowserView.swift"
       ],
-      "wave": 53
+      "wave": 54
     }
   ]
 }

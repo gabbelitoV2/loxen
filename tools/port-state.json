@@ -4583,27 +4583,22 @@
   },
   "Moblin/Various/Settings/SettingsDeepLinkCreator.swift": {
     "status": "ok",
-    "sha256": "e171f5bc0cbe092c3be04358751d996e15815b75864e0aeae7f9fb34a6b07025",
+    "sha256": "bed56791f317db9b2a3b36d29b0e2f62e835a158f193846b3bf9127138972e2f",
+    "moblin_commit": "013f290d6d1de69bfc765cce10845750f571f324",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsDeepLinkCreator.kt",
     "notes": [
-      "Hand-written Codable encode(to:)/init(from:) with CodingKeys is translated to @Serializable classes with @SerialName per key; every property keeps the same default the Swift decoder used for a missing key.",
-      "@Published / ObservableObject is not mapped to MutableStateFlow here because these model objects are persisted with kotlinx.serialization (StateFlow fields cannot be serialized); the properties stay plain mutable vars and are observed by the Compose settings layer.",
-      "UInt32 bitrate is mapped to Int and Int32 to Int since no wire-format/byte-parsing code is involved.",
-      "kotlinx.serialization has no built-in serializer for java.util.UUID, so a top-level UuidSerializer (KSerializer<UUID>, encoded as a string exactly like Swift's Codable UUID) was added and applied to every id property.",
-      "DeepLinkCreatorStreamAudio.bitrateFloat is not encoded in Swift and was derived from bitrate in init(from:), so it is a @Transient computed property here.",
-      "DeepLinkCreatorStream.baseName is a static let, translated to a companion object property built with localized(\"My stream\").",
-      "[T] arrays are MutableList because the settings objects are mutated; .init() becomes ClassName().",
-      "Identifiable has no Kotlin counterpart; the id property is kept and the class only declares the Named interface (from com.moblin.android.various.utils)."
+      "Removed the id key from DeepLinkCreatorQuickButton's encode/decode, matching the new Swift CodingKeys; the id property itself stays and keeps its random default.",
+      "Nested coder classes (video, audio, srt, obs, twitch, kick) keep their explicit serializers when decoded inside DeepLinkCreatorStream, as before."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6277,
-    "tokens_out": 16145,
-    "seconds": 67.4,
-    "ported_at": "2026-09-22T12:56:10+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46797,
+    "tokens_out": 3333,
+    "seconds": 10.4,
+    "ported_at": "2026-11-04T00:15:07+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift": {
     "status": "ok",
@@ -4797,25 +4792,22 @@
   },
   "Moblin/Various/Model/ModelCamera.swift": {
     "status": "ok",
-    "sha256": "fd2c0ab43b09a4a3d820bee22565c11fdbc40b364964fff5bb15681c1c86a4ce",
-    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "sha256": "0c5363891e1c591fb7ce91302415b6c5e38f2dc4bb071d72abcc7c0a8b3dab20",
+    "moblin_commit": "013f290d6d1de69bfc765cce10845750f571f324",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelCamera.kt",
     "notes": [
-      "Only the two diffed lines changed: updateShowCameraPreview now ANDs with !presentingSceneEditor, and shouldShowCameraPreview is now public (private removed).",
-      "presentingSceneEditor is the existing Model property from the scene editor port; no new declaration was needed.",
-      "Everything else in the Kotlin file is unchanged, including the Android-specific CaptureDevice wrappers, observe() KVO holders and the mainScope.launch handlers.",
-      "The Swift `stream.portrait` access keeps the Kotlin `stream.value.portrait` form.",
-      "setColorSpace keeps the Android MediaFormat color-space call instead of the Swift switch, unchanged by this diff."
+      "Only change: Model.getCameraId(settingsCameraId) is no longer private, so its `private` modifier was dropped.",
+      "Everything else is byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 72839,
-    "tokens_out": 9687,
-    "seconds": 28.5,
-    "ported_at": "2026-10-31T22:53:28+00:00"
+    "tokens_in": 72793,
+    "tokens_out": 9423,
+    "seconds": 26.3,
+    "ported_at": "2026-11-04T00:15:23+00:00"
   },
   "Moblin/Various/Network/DnsLookup.swift": {
     "status": "ok",
@@ -15363,23 +15355,24 @@
   },
   "Moblin/Various/Settings/SettingsQuickButtons.swift": {
     "status": "ok",
-    "sha256": "66bdcd4d4707b41a6cbd7fc58997d28c87c776e949f5727cbd81269c79fea355",
-    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "sha256": "aaa8bad53290d41eb467da83224fbe652a5cc269691eb05d6c18652cec2dc63f",
+    "moblin_commit": "013f290d6d1de69bfc765cce10845750f571f324",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsQuickButtons.kt",
     "notes": [
-      "Only the diff is applied: a new enum entry sceneEditor and its toString branch; the rest of the file is unchanged.",
-      "sceneEditor is appended after photoShoot in the enum, so the trailing semicolon moves to the new last entry.",
-      "toString() gains a sceneEditor branch after photoShoot, in the same order as the Swift switch."
+      "encode() now writes only type, isOn (conditionally), enabled, backgroundColor and page; name, id, systemImageNameOn and systemImageNameOff are no longer persisted.",
+      "decode() derives name from type.toString(), blanks imageOn/imageOff, and reads isOn only for the three interactive types.",
+      "New private isOnStored(type) lives in the companion object next to decode().",
+      "No other declarations change, so the rest of the file is byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51554,
-    "tokens_out": 2935,
-    "seconds": 9.7,
-    "ported_at": "2026-10-31T22:53:09+00:00"
+    "tokens_in": 51942,
+    "tokens_out": 3620,
+    "seconds": 12.2,
+    "ported_at": "2026-11-04T00:15:08+00:00"
   },
   "Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift": {
     "status": "ok",

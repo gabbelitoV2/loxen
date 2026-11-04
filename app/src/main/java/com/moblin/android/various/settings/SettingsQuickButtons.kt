@@ -228,12 +228,10 @@ class SettingsQuickButton {
     }
 
     fun encode(): JsonObject = encodeContainer {
-        encode("name", name)
-        encode("id", id)
         encode("type", type)
-        encode("systemImageNameOn", imageOn)
-        encode("systemImageNameOff", imageOff)
-        encode("isOn", isOn)
+        if (isOnStored(type)) {
+            encode("isOn", isOn)
+        }
         encode("enabled", enabled)
         encode("backgroundColor", backgroundColor)
         encode("page", page)
@@ -242,17 +240,26 @@ class SettingsQuickButton {
     companion object {
         fun decode(container: JsonObject): SettingsQuickButton {
             val button = SettingsQuickButton(type = SettingsQuickButtonType.unknown, imageOn = "")
-            button.name = container.decode("name", "")
-            button.id = container.decode("id", UUID.randomUUID())
             button.type = container.decode("type", SettingsQuickButtonType.unknown)
-            button.imageOn = container.decode("systemImageNameOn", "")
-            button.imageOff = container.decode("systemImageNameOff", "")
-            button.isOn.value = container.decode("isOn", false)
+            button.name = button.type.toString()
+            button.imageOn = ""
+            button.imageOff = ""
+            if (isOnStored(button.type)) {
+                button.isOn.value = container.decode("isOn", false)
+            } else {
+                button.isOn.value = false
+            }
             button.enabled.value = container.decode("enabled", true)
             button.backgroundColor = container.decode("backgroundColor", defaultQuickButtonColor)
             button.color.value = button.backgroundColor.color()
             button.page.value = container.decode("page", 1)
             return button
+        }
+
+        private fun isOnStored(type: SettingsQuickButtonType): Boolean {
+            return type == SettingsQuickButtonType.interactiveChat ||
+                type == SettingsQuickButtonType.cameraPreview ||
+                type == SettingsQuickButtonType.interactiveBrowserWidgets
         }
     }
 

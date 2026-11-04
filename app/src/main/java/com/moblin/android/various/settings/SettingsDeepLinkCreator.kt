@@ -245,7 +245,6 @@ class DeepLinkCreatorQuickButton {
     var page: Int by Published(1)
 
     fun encode(): JsonObject = encodeContainer {
-        encode("id", id)
         encode("type", type)
         encode("enabled", enabled)
         encode("page", page)
@@ -254,7 +253,6 @@ class DeepLinkCreatorQuickButton {
     companion object {
         fun decode(container: JsonObject): DeepLinkCreatorQuickButton {
             val button = DeepLinkCreatorQuickButton()
-            button.id = container.decode("id", UUID.randomUUID())
             button.type = container.decode("type", SettingsQuickButtonType.unknown)
             button.enabled = container.decode("enabled", false)
             button.page = container.decode("page", 1)

@@ -763,7 +763,7 @@ fun Model.cameraIdToSettingsCameraId(cameraId: UUID): SettingsCameraId? {
     return null
 }
 
-private fun Model.getCameraId(settingsCameraId: SettingsCameraId?): CameraId {
+fun Model.getCameraId(settingsCameraId: SettingsCameraId?): CameraId {
     if (settingsCameraId == null) {
         return ""
     }
