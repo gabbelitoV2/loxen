@@ -11,6 +11,7 @@ import com.moblin.android.media.haishinkit.media.video.SceneSwitchTransition
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.KeyedEncodingContainer
 import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
@@ -22,6 +23,7 @@ import com.moblin.android.various.MainTimer
 import com.moblin.android.various.model.CameraId
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.defaultScoreboardSize
+import com.moblin.android.various.utils.Identifiable
 import com.moblin.android.various.utils.Named
 import com.moblin.android.various.utils.bestBackCameraId
 import com.moblin.android.various.utils.bestFrontCameraId
@@ -521,7 +523,7 @@ class SettingsVideoEffectMask(
 
 @Serializable(with = SettingsVideoEffect.Serializer::class)
 class SettingsVideoEffect(
-    var id: UUID = UUID.randomUUID(),
+    override var id: UUID = UUID.randomUUID(),
     enabled: Boolean = true,
     type: SettingsVideoEffectType = SettingsVideoEffectType.shape,
     var removeBackground: SettingsVideoEffectRemoveBackground = SettingsVideoEffectRemoveBackground(),
@@ -531,7 +533,7 @@ class SettingsVideoEffect(
     var lut: SettingsVideoEffectLut = SettingsVideoEffectLut(),
     var opacity: SettingsVideoEffectOpacity = SettingsVideoEffectOpacity(),
     var mask: SettingsVideoEffectMask = SettingsVideoEffectMask()
-) {
+) : Identifiable<UUID> {
     var enabled: Boolean by Published(enabled)
     var type: SettingsVideoEffectType by Published(type)
 
@@ -539,13 +541,26 @@ class SettingsVideoEffect(
         encode("id", id)
         encode("enabled", enabled)
         encode("type", type)
-        encode("removeBackground", removeBackground, SettingsVideoEffectRemoveBackground.serializer())
-        encode("shape", shape, SettingsVideoEffectShape.serializer())
-        encode("dewarp360", dewarp360, SettingsVideoEffectDewarp360.serializer())
-        encode("anamorphicLens", anamorphicLens, SettingsVideoEffectAnamorphicLens.serializer())
-        encode("lut", lut, SettingsVideoEffectLut.serializer())
-        encode("opacity", opacity, SettingsVideoEffectOpacity.serializer())
-        encode("mask", mask, SettingsVideoEffectMask.serializer())
+        when (type) {
+            SettingsVideoEffectType.removeBackground ->
+                encode("removeBackground", removeBackground, SettingsVideoEffectRemoveBackground.serializer())
+            SettingsVideoEffectType.shape ->
+                encode("shape", shape, SettingsVideoEffectShape.serializer())
+            SettingsVideoEffectType.dewarp360 ->
+                encode("dewarp360", dewarp360, SettingsVideoEffectDewarp360.serializer())
+            SettingsVideoEffectType.anamorphicLens ->
+                encode("anamorphicLens", anamorphicLens, SettingsVideoEffectAnamorphicLens.serializer())
+            SettingsVideoEffectType.lut ->
+                encode("lut", lut, SettingsVideoEffectLut.serializer())
+            SettingsVideoEffectType.opacity ->
+                encode("opacity", opacity, SettingsVideoEffectOpacity.serializer())
+            SettingsVideoEffectType.mask ->
+                encode("mask", mask, SettingsVideoEffectMask.serializer())
+            SettingsVideoEffectType.grayScale,
+            SettingsVideoEffectType.sepia,
+            SettingsVideoEffectType.whirlpool,
+            SettingsVideoEffectType.pinch -> {}
+        }
     }
 
     companion object {
@@ -1164,11 +1179,11 @@ class SettingsWidgetCrop(
     companion object {
         fun decode(container: JsonObject): SettingsWidgetCrop {
             val crop = SettingsWidgetCrop()
-            crop.sourceWidgetId = container.decodeSynthesized("sourceWidgetId")
-            crop.x = container.decodeSynthesized("x")
-            crop.y = container.decodeSynthesized("y")
-            crop.width = container.decodeSynthesized("width")
-            crop.height = container.decodeSynthesized("height")
+            crop.sourceWidgetId = container.decode("sourceWidgetId", UUID.randomUUID())
+            crop.x = container.decode("x", 0)
+            crop.y = container.decode("y", 0)
+            crop.width = container.decode("width", 200)
+            crop.height = container.decode("height", 200)
             return crop
         }
     }
@@ -2247,19 +2262,7 @@ class SettingsWidgetVTuber(
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("type", type)
-        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
-        encode("backCameraId", videoSource.backCameraId)
-        encode("frontCameraId", videoSource.frontCameraId)
-        encode("rtmpCameraId", videoSource.rtmpCameraId)
-        encode("srtlaCameraId", videoSource.srtlaCameraId)
-        encode("srtClientCameraId", videoSource.srtClientCameraId)
-        encode("ristCameraId", videoSource.ristCameraId)
-        encode("rtspCameraId", videoSource.rtspCameraId)
-        encode("whipCameraId", videoSource.whipCameraId)
-        encode("whepCameraId", videoSource.whepCameraId)
-        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
-        encode("externalCameraId", videoSource.externalCameraId)
-        encode("externalCameraName", videoSource.externalCameraName)
+        videoSource.encode(this)
         encode("cameraPositionY", cameraPositionY)
         encode("cameraFieldOfView", cameraFieldOfView)
         encode("modelName", modelName)
@@ -2273,21 +2276,7 @@ class SettingsWidgetVTuber(
             val vTuber = SettingsWidgetVTuber()
             vTuber.id = container.decode("id", UUID.randomUUID())
             vTuber.type = container.decode("type", SettingsWidgetVTuberType.vrm)
-            vTuber.videoSource = SettingsVideoSource(
-                cameraPosition = decodeCameraPosition(container, "cameraPosition", SettingsSceneCameraPosition.none),
-                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
-                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
-                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
-                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
-                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
-                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
-                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
-                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
-                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
-                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
-                externalCameraId = container.decode("externalCameraId", ""),
-                externalCameraName = container.decode("externalCameraName", ""),
-            )
+            vTuber.videoSource = SettingsVideoSource(container, SettingsSceneCameraPosition.none)
             vTuber.cameraPositionY = container.decode("cameraPositionY", 1.37)
             vTuber.cameraFieldOfView = container.decode("cameraFieldOfView", 18.0)
             vTuber.modelName = container.decode("modelName", "")
@@ -2326,19 +2315,7 @@ class SettingsWidgetPngTuber(
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
-        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
-        encode("backCameraId", videoSource.backCameraId)
-        encode("frontCameraId", videoSource.frontCameraId)
-        encode("rtmpCameraId", videoSource.rtmpCameraId)
-        encode("srtlaCameraId", videoSource.srtlaCameraId)
-        encode("srtClientCameraId", videoSource.srtClientCameraId)
-        encode("ristCameraId", videoSource.ristCameraId)
-        encode("rtspCameraId", videoSource.rtspCameraId)
-        encode("whipCameraId", videoSource.whipCameraId)
-        encode("whepCameraId", videoSource.whepCameraId)
-        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
-        encode("externalCameraId", videoSource.externalCameraId)
-        encode("externalCameraName", videoSource.externalCameraName)
+        videoSource.encode(this)
         encode("modelName", modelName)
         encode("mirror", mirror)
         encode("sensitivity", sensitivity, SettingsSensitivity.serializer())
@@ -2348,21 +2325,7 @@ class SettingsWidgetPngTuber(
         fun decode(container: JsonObject): SettingsWidgetPngTuber {
             val pngTuber = SettingsWidgetPngTuber()
             pngTuber.id = container.decode("id", UUID.randomUUID())
-            pngTuber.videoSource = SettingsVideoSource(
-                cameraPosition = decodeCameraPosition(container, "cameraPosition", SettingsSceneCameraPosition.none),
-                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
-                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
-                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
-                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
-                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
-                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
-                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
-                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
-                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
-                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
-                externalCameraId = container.decode("externalCameraId", ""),
-                externalCameraName = container.decode("externalCameraName", ""),
-            )
+            pngTuber.videoSource = SettingsVideoSource(container, SettingsSceneCameraPosition.none)
             pngTuber.modelName = container.decode("modelName", "")
             pngTuber.mirror = container.decode("mirror", false)
             pngTuber.sensitivity = container.decode(
@@ -3073,7 +3036,7 @@ class SettingsWidgetChatEmoteCombo(
 @Serializable(with = SettingsWidget.Serializer::class)
 class SettingsWidget(
     name: String = baseName,
-    var id: UUID = UUID.randomUUID(),
+    override var id: UUID = UUID.randomUUID(),
     type: SettingsWidgetType = SettingsWidgetType.text,
     var text: SettingsWidgetText = SettingsWidgetText(),
     var browser: SettingsWidgetBrowser = SettingsWidgetBrowser(),
@@ -3095,7 +3058,7 @@ class SettingsWidget(
     var pomodoroTimer: SettingsWidgetPomodoroTimer = SettingsWidgetPomodoroTimer(),
     enabled: Boolean = true,
     effects: List<SettingsVideoEffect> = emptyList()
-) : Named {
+) : Named, Identifiable<UUID> {
     override var name: String by Published(name)
     var type: SettingsWidgetType by Published(type)
     var enabled: Boolean by Published(enabled)
@@ -3109,24 +3072,32 @@ class SettingsWidget(
         encode("name", name)
         encode("id", id)
         encode("type", type)
-        encode("text", text, SettingsWidgetText.serializer())
-        encode("browser", browser, SettingsWidgetBrowser.serializer())
-        encode("crop", crop, SettingsWidgetCrop.serializer())
-        encode("map", map, SettingsWidgetMap.serializer())
-        encode("scene", scene, SettingsWidgetScene.serializer())
-        encode("qrCode", qrCode, SettingsWidgetQrCode.serializer())
-        encode("alerts", alerts, SettingsWidgetAlerts.serializer())
-        encode("videoSource", videoSource, SettingsWidgetVideoSource.serializer())
-        encode("scoreboard", scoreboard, SettingsWidgetScoreboard.serializer())
-        encode("vTuber", vTuber, SettingsWidgetVTuber.serializer())
-        encode("pngTuber", pngTuber, SettingsWidgetPngTuber.serializer())
-        encode("snapshot", snapshot, SettingsWidgetSnapshot.serializer())
-        encode("chat", chat, SettingsWidgetChat.serializer())
-        encode("chatEmoteCombo", chatEmoteCombo, SettingsWidgetChatEmoteCombo.serializer())
-        encode("slideshow", slideshow, SettingsWidgetSlideshow.serializer())
-        encode("wheelOfLuck", wheelOfLuck, SettingsWidgetWheelOfLuck.serializer())
-        encode("bingoCard", bingoCard, SettingsWidgetBingoCard.serializer())
-        encode("pomodoroTimer", pomodoroTimer, SettingsWidgetPomodoroTimer.serializer())
+        when (type) {
+            SettingsWidgetType.text -> encode("text", text, SettingsWidgetText.serializer())
+            SettingsWidgetType.browser -> encode("browser", browser, SettingsWidgetBrowser.serializer())
+            SettingsWidgetType.crop -> encode("crop", crop, SettingsWidgetCrop.serializer())
+            SettingsWidgetType.map -> encode("map", map, SettingsWidgetMap.serializer())
+            SettingsWidgetType.scene -> encode("scene", scene, SettingsWidgetScene.serializer())
+            SettingsWidgetType.qrCode -> encode("qrCode", qrCode, SettingsWidgetQrCode.serializer())
+            SettingsWidgetType.alerts -> encode("alerts", alerts, SettingsWidgetAlerts.serializer())
+            SettingsWidgetType.videoSource ->
+                encode("videoSource", videoSource, SettingsWidgetVideoSource.serializer())
+            SettingsWidgetType.scoreboard ->
+                encode("scoreboard", scoreboard, SettingsWidgetScoreboard.serializer())
+            SettingsWidgetType.vTuber -> encode("vTuber", vTuber, SettingsWidgetVTuber.serializer())
+            SettingsWidgetType.pngTuber -> encode("pngTuber", pngTuber, SettingsWidgetPngTuber.serializer())
+            SettingsWidgetType.snapshot -> encode("snapshot", snapshot, SettingsWidgetSnapshot.serializer())
+            SettingsWidgetType.chat -> encode("chat", chat, SettingsWidgetChat.serializer())
+            SettingsWidgetType.chatEmoteCombo ->
+                encode("chatEmoteCombo", chatEmoteCombo, SettingsWidgetChatEmoteCombo.serializer())
+            SettingsWidgetType.slideshow -> encode("slideshow", slideshow, SettingsWidgetSlideshow.serializer())
+            SettingsWidgetType.wheelOfLuck ->
+                encode("wheelOfLuck", wheelOfLuck, SettingsWidgetWheelOfLuck.serializer())
+            SettingsWidgetType.bingoCard -> encode("bingoCard", bingoCard, SettingsWidgetBingoCard.serializer())
+            SettingsWidgetType.pomodoroTimer ->
+                encode("pomodoroTimer", pomodoroTimer, SettingsWidgetPomodoroTimer.serializer())
+            SettingsWidgetType.image -> {}
+        }
         encode("enabled", enabled)
         encode("effects", effects, ListSerializer(SettingsVideoEffect.serializer()))
     }
@@ -3320,9 +3291,9 @@ data class SettingsWidgetLayout(
 @Serializable(with = SettingsSceneWidget.Serializer::class)
 class SettingsSceneWidget(
     widgetId: UUID = UUID.randomUUID(),
-    var id: UUID = UUID.randomUUID(),
+    override var id: UUID = UUID.randomUUID(),
     layout: SettingsWidgetLayout = SettingsWidgetLayout()
-) {
+) : Identifiable<UUID> {
     var widgetId: UUID by Published(widgetId)
     var layout: SettingsWidgetLayout by Published(layout)
 
@@ -3483,6 +3454,51 @@ data class SettingsVideoSource(
     val externalCameraId: CameraId = "",
     val externalCameraName: String = ""
 ) {
+    constructor(
+        container: JsonObject,
+        defaultCameraPosition: SettingsSceneCameraPosition
+    ) : this(
+        cameraPosition = decodeCameraPosition(container, "cameraPosition", defaultCameraPosition),
+        backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
+        frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
+        rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
+        srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
+        srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
+        ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
+        rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
+        whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
+        whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
+        mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
+        externalCameraId = container.decode("externalCameraId", ""),
+        externalCameraName = container.decode("externalCameraName", ""),
+    )
+
+    fun encode(container: KeyedEncodingContainer) {
+        container.encode("cameraPosition", cameraPosition, SettingsSceneCameraPosition.serializer())
+        when (cameraPosition) {
+            SettingsSceneCameraPosition.back -> container.encode("backCameraId", backCameraId)
+            SettingsSceneCameraPosition.front -> container.encode("frontCameraId", frontCameraId)
+            SettingsSceneCameraPosition.rtmp -> container.encode("rtmpCameraId", rtmpCameraId)
+            SettingsSceneCameraPosition.srtla -> container.encode("srtlaCameraId", srtlaCameraId)
+            SettingsSceneCameraPosition.srtClient -> container.encode("srtClientCameraId", srtClientCameraId)
+            SettingsSceneCameraPosition.rist -> container.encode("ristCameraId", ristCameraId)
+            SettingsSceneCameraPosition.rtsp -> container.encode("rtspCameraId", rtspCameraId)
+            SettingsSceneCameraPosition.whip -> container.encode("whipCameraId", whipCameraId)
+            SettingsSceneCameraPosition.whep -> container.encode("whepCameraId", whepCameraId)
+            SettingsSceneCameraPosition.mediaPlayer ->
+                container.encode("mediaPlayerCameraId", mediaPlayerCameraId)
+            SettingsSceneCameraPosition.`external` -> {
+                container.encode("externalCameraId", externalCameraId)
+                container.encode("externalCameraName", externalCameraName)
+            }
+            SettingsSceneCameraPosition.screenCapture,
+            SettingsSceneCameraPosition.backTripleLowEnergy,
+            SettingsSceneCameraPosition.backDualLowEnergy,
+            SettingsSceneCameraPosition.backWideDualLowEnergy,
+            SettingsSceneCameraPosition.none -> {}
+        }
+    }
+
     fun toCameraId(): SettingsCameraId = when (cameraPosition) {
         SettingsSceneCameraPosition.back -> SettingsCameraId.Back(backCameraId)
         SettingsSceneCameraPosition.front -> SettingsCameraId.Front(frontCameraId)
@@ -3597,19 +3613,7 @@ class SettingsWidgetVideoSource(
 
     fun encode(): JsonObject = encodeContainer {
         encode("cornerRadius", cornerRadius)
-        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
-        encode("backCameraId", videoSource.backCameraId)
-        encode("frontCameraId", videoSource.frontCameraId)
-        encode("rtmpCameraId", videoSource.rtmpCameraId)
-        encode("srtlaCameraId", videoSource.srtlaCameraId)
-        encode("srtClientCameraId", videoSource.srtClientCameraId)
-        encode("ristCameraId", videoSource.ristCameraId)
-        encode("rtspCameraId", videoSource.rtspCameraId)
-        encode("whipCameraId", videoSource.whipCameraId)
-        encode("whepCameraId", videoSource.whepCameraId)
-        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
-        encode("externalCameraId", videoSource.externalCameraId)
-        encode("externalCameraName", videoSource.externalCameraName)
+        videoSource.encode(this)
         encode("cropEnabled", cropEnabled)
         encode("cropX", cropX)
         encode("cropY", cropY)
@@ -3627,21 +3631,7 @@ class SettingsWidgetVideoSource(
         fun decode(container: JsonObject): SettingsWidgetVideoSource {
             val videoSource = SettingsWidgetVideoSource()
             videoSource.cornerRadius = container.decode("cornerRadius", 0f)
-            videoSource.videoSource = SettingsVideoSource(
-                cameraPosition = decodeCameraPosition(container, "cameraPosition", SettingsSceneCameraPosition.none),
-                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
-                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
-                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
-                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
-                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
-                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
-                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
-                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
-                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
-                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
-                externalCameraId = container.decode("externalCameraId", ""),
-                externalCameraName = container.decode("externalCameraName", ""),
-            )
+            videoSource.videoSource = SettingsVideoSource(container, SettingsSceneCameraPosition.none)
             videoSource.cropEnabled = container.decode("cropEnabled", false)
             videoSource.cropX = container.decode("cropX", 0.25)
             videoSource.cropY = container.decode("cropY", 0.0)
@@ -3739,9 +3729,9 @@ enum class SettingsWidgetScoreboardLayout {
 
 @Serializable(with = SettingsWidgetScoreboardPlayer.Serializer::class)
 class SettingsWidgetScoreboardPlayer(
-    var id: UUID = UUID.randomUUID(),
+    override var id: UUID = UUID.randomUUID(),
     name: String = baseName
-) : Named {
+) : Named, Identifiable<UUID> {
     override var name: String by Published(name)
 
     fun encode(): JsonObject = encodeContainer {
@@ -4536,7 +4526,7 @@ enum class SettingsWidgetType(val rawValue: String) {
 @Serializable(with = SettingsScene.Serializer::class)
 class SettingsScene(
     name: String = baseName,
-    var id: UUID = UUID.randomUUID(),
+    override var id: UUID = UUID.randomUUID(),
     enabled: Boolean = true,
     videoSource: SettingsVideoSource = SettingsVideoSource(),
     widgets: List<SettingsSceneWidget> = emptyList(),
@@ -4549,7 +4539,7 @@ class SettingsScene(
     quickSwitchGroup: Int? = null,
     mirror: Boolean = false,
     var backgroundColor: RgbColor = defaultSegmentedPickerSelectedColor
-) : Named {
+) : Named, Identifiable<UUID> {
     override var name: String by Published(name)
     var enabled: Boolean by Published(enabled)
     var videoSource: SettingsVideoSource by Published(videoSource)
@@ -4572,19 +4562,7 @@ class SettingsScene(
         encode("name", name)
         encode("id", id)
         encode("enabled", enabled)
-        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
-        encode("backCameraId", videoSource.backCameraId)
-        encode("frontCameraId", videoSource.frontCameraId)
-        encode("rtmpCameraId", videoSource.rtmpCameraId)
-        encode("srtlaCameraId", videoSource.srtlaCameraId)
-        encode("srtClientCameraId", videoSource.srtClientCameraId)
-        encode("ristCameraId", videoSource.ristCameraId)
-        encode("rtspCameraId", videoSource.rtspCameraId)
-        encode("whipCameraId", videoSource.whipCameraId)
-        encode("whepCameraId", videoSource.whepCameraId)
-        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
-        encode("externalCameraId", videoSource.externalCameraId)
-        encode("externalCameraName", videoSource.externalCameraName)
+        videoSource.encode(this)
         encode("widgets", widgets, ListSerializer(SettingsSceneWidget.serializer()))
         encode("videoSourceRotation", videoSourceRotation)
         encode("videoStabilizationMode", videoStabilizationMode)
@@ -4605,21 +4583,7 @@ class SettingsScene(
             scene.name = container.decode("name", baseName)
             scene.id = container.decode("id", UUID.randomUUID())
             scene.enabled = container.decode("enabled", true)
-            scene.videoSource = SettingsVideoSource(
-                cameraPosition = decodeCameraPosition(container, "cameraPosition", defaultBackCameraPosition),
-                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
-                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
-                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
-                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
-                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
-                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
-                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
-                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
-                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
-                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
-                externalCameraId = container.decode("externalCameraId", ""),
-                externalCameraName = container.decode("externalCameraName", ""),
-            )
+            scene.videoSource = SettingsVideoSource(container, defaultBackCameraPosition)
             scene.widgets = container.decode("widgets", ListSerializer(SettingsSceneWidget.serializer()), emptyList())
                 .toMutableList()
             scene.videoSourceRotation = container.decode("videoSourceRotation", 0.0)

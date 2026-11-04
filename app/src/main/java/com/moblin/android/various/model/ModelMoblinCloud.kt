@@ -7,6 +7,7 @@ import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.core.CharacterSet
 import com.moblin.android.platform.core.addingPercentEncoding
 import com.moblin.android.remotecontrol.RemoteControlChatMessage
+import com.moblin.android.remotecontrol.RemoteControlEditorOptions
 import com.moblin.android.remotecontrol.RemoteControlFilter
 import com.moblin.android.remotecontrol.RemoteControlMusicCommand
 import com.moblin.android.remotecontrol.RemoteControlReaction
@@ -25,14 +26,18 @@ import com.moblin.android.remotecontrol.RemoteControlStatusTopRight
 import com.moblin.android.remotecontrol.RemoteControlStreamer
 import com.moblin.android.remotecontrol.RemoteControlStreamerDelegate
 import com.moblin.android.remotecontrol.RemoteControlTipKind
+import com.moblin.android.remotecontrol.RemoteControlVideoSource
 import com.moblin.android.remotecontrol.RemoteControlWheelOfLuck
 import com.moblin.android.remotecontrol.RemoteControlWheelOfLuckOption
 import com.moblin.android.various.AudioPlayer
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.makeChatPostTextSegments
+import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
+import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsWidget
+import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.videoeffects.alerts.AlertsEffectAlert
 import java.net.URI
@@ -330,9 +335,11 @@ fun Model.updateMoblinCloudStatus() {
 
 fun Model.getMoblinCloudWheelOfLuckWidget(): SettingsWidget? {
     val id = database.moblinCloud.wheelOfLuckWidgetId ?: return null
-    return database.widgets.firstOrNull {
-        it.id == id && it.type == SettingsWidgetType.wheelOfLuck
+    val widget = database.findWidget(id = id) ?: return null
+    if (widget.type != SettingsWidgetType.wheelOfLuck) {
+        return null
     }
+    return widget
 }
 
 fun Model.isMoblinCloudWheelOfLuckWidget(widget: SettingsWidget): Boolean {
@@ -829,5 +836,62 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
             kind = kind,
             requestId = requestId,
         )
+    }
+
+    override fun remoteControlStreamerGetScenes(): List<SettingsScene> {
+        return model?.remoteControlGetScenes() ?: emptyList()
+    }
+
+    override fun remoteControlStreamerGetWidgets(): List<SettingsWidget> {
+        return model?.remoteControlGetWidgets() ?: emptyList()
+    }
+
+    override fun remoteControlStreamerCreateScene(scene: SettingsScene): Boolean {
+        return model?.remoteControlCreateScene(scene = scene) ?: false
+    }
+
+    override fun remoteControlStreamerUpdateScene(scene: SettingsScene): Boolean {
+        return model?.remoteControlUpdateScene(scene = scene) ?: false
+    }
+
+    override fun remoteControlStreamerDeleteScene(id: UUID): Boolean {
+        return model?.remoteControlDeleteScene(id = id) ?: false
+    }
+
+    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean {
+        return model?.remoteControlCreateWidget(widget = widget) ?: false
+    }
+
+    override fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {
+        return model?.remoteControlUpdateWidget(widget = widget) ?: false
+    }
+
+    override fun remoteControlStreamerDeleteWidget(id: UUID): Boolean {
+        return model?.remoteControlDeleteWidget(id = id) ?: false
+    }
+
+    override fun remoteControlStreamerGetAlertsMediaGallery(): SettingsAlertsMediaGallery {
+        return model?.remoteControlGetAlertsMediaGallery() ?: SettingsAlertsMediaGallery()
+    }
+
+    override fun remoteControlStreamerGetVideoSources(): List<RemoteControlVideoSource> {
+        return model?.remoteControlGetVideoSources() ?: emptyList()
+    }
+
+    override fun remoteControlStreamerGetEditorOptions(): RemoteControlEditorOptions {
+        return model?.remoteControlGetEditorOptions() ?: emptyRemoteControlEditorOptions()
+    }
+
+    override fun remoteControlStreamerSetScoreboardPlayers(players: List<SettingsWidgetScoreboardPlayer>): Boolean {
+        return model?.remoteControlSetScoreboardPlayers(players = players) ?: false
+    }
+
+    override fun remoteControlStreamerGetVideoSourceSnapshot(id: UUID, onCompleted: (ByteArray?) -> Unit) {
+        val model = model
+        if (model == null) {
+            onCompleted(null)
+            return
+        }
+        model.remoteControlGetVideoSourceSnapshot(id = id, onCompleted = onCompleted)
     }
 }

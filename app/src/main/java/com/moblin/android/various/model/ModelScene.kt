@@ -391,11 +391,17 @@ fun Model.sceneUpdated(attachCamera: Boolean = false, updateRemoteScene: Boolean
 }
 
 fun Model.getSceneName(id: UUID?): String? {
-    return database.scenes.firstOrNull { it.id == id }?.name
+    if (id == null) {
+        return null
+    }
+    return database.findScene(id = id)?.name
 }
 
 fun Model.getWidgetName(id: UUID?): String? {
-    return database.widgets.firstOrNull { it.id == id }?.name
+    if (id == null) {
+        return null
+    }
+    return database.findWidget(id = id)?.name
 }
 
 fun Model.createScene(): SettingsScene {
@@ -556,7 +562,8 @@ fun Model.drawnWidgetsInSelectedAndRemoteScene(resolver: SceneResolver? = null):
             .map { it.widget }
             .toMutableList()
     }
-    val remoteScene = database.scenes.firstOrNull { it.id == database.remoteSceneId } ?: return widgets
+    val remoteSceneId = database.remoteSceneId ?: return widgets
+    val remoteScene = database.findScene(id = remoteSceneId) ?: return widgets
     val widgetIds = widgets.map { it.id }.toMutableSet()
     for (widget in resolver.resolve(remoteScene).drawnWidgets().map { it.widget }) {
         if (widgetIds.add(widget.id)) {
@@ -1759,7 +1766,7 @@ private fun Model.findWidgetCrops(
 fun Model.isCaptureDeviceWidget(widget: SettingsWidget): Boolean {
     when (widget.type) {
         SettingsWidgetType.scene -> {
-            val scene = database.scenes.firstOrNull { it.id == widget.scene.sceneId } ?: return false
+            val scene = database.findScene(id = widget.scene.sceneId) ?: return false
             return resolveScene(scene, includeDisabledSceneWidgets = true).widgets.any {
                 it.widget.type != SettingsWidgetType.scene && isCaptureDeviceWidget(widget = it.widget)
             }

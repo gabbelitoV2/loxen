@@ -247,9 +247,8 @@ class ControlsCodableSuite {
             gimbalMotion = SettingsGimbalMotion.WAKEUP,
         )
         assertEquals(
-            """{"id":"${upper(button.id)}","name":"a.circle","text":"A","function":"Gimbal preset",""" +
-                """"sceneId":null,"widgetId":null,"gimbalPresetId":"${ID_2.uppercase()}",""" +
-                """"gimbalMotion":{"wakeup":{}},"macroId":null,"streamDeckLayoutId":null}""",
+            """{"name":"a.circle","text":"A","function":"Gimbal preset",""" +
+                """"gimbalPresetId":"${ID_2.uppercase()}"}""",
             toJson(SettingsGameControllerButton.serializer(), button),
         )
         val key = SettingsKeyboardKey()
@@ -455,7 +454,6 @@ class ControlsCodableSuite {
         assertEquals(UUID.fromString(ID_1), controller.id)
         assertEquals(1, controller.buttons.value.size)
         val button = controller.buttons.value[0]
-        assertEquals(UUID.fromString(ID_2), button.id)
         assertEquals("a.circle", button.name)
         assertEquals("A", button.text)
         assertEquals(SettingsControllerFunction.GIMBAL_PRESET, button.function.value)
@@ -586,7 +584,6 @@ class ControlsCodableSuite {
         assertFalse(deepLinkCreator.quickButtons.enableScroll)
         assertEquals(1, deepLinkCreator.quickButtons.buttons.size)
         val button = deepLinkCreator.quickButtons.buttons[0]
-        assertEquals(UUID.fromString(ID_2), button.id)
         assertEquals(SettingsQuickButtonType.chat, button.type)
         assertTrue(button.enabled)
         assertEquals(2, button.page)
@@ -604,29 +601,17 @@ class ControlsCodableSuite {
              "enabled":false,"backgroundColor":{"red":10,"green":20,"blue":30},"page":3}
         """.trimIndent()
         val button = fromJson(SettingsQuickButton.serializer(), json)
-        assertEquals("Torch", button.name)
-        assertEquals(UUID.fromString(ID_1), button.id)
         assertEquals(SettingsQuickButtonType.torch, button.type)
-        assertEquals("flashlight.on.fill", button.imageOn)
-        assertEquals("flashlight.off.fill", button.imageOff)
-        assertTrue(button.isOn.value)
+        assertEquals("", button.imageOn)
+        assertEquals("", button.imageOff)
+        assertFalse(button.isOn.value)
         assertFalse(button.enabled.value)
         assertEquals(RgbColor(red = 10, green = 20, blue = 30), button.backgroundColor)
         assertEquals(10f / 255f, button.color.value.red, 0.01f)
         assertEquals(3, button.page.value)
         val encoded = codableJson.parseToJsonElement(toJson(SettingsQuickButton.serializer(), button)) as JsonObject
         assertEquals(
-            listOf(
-                "name",
-                "id",
-                "type",
-                "systemImageNameOn",
-                "systemImageNameOff",
-                "isOn",
-                "enabled",
-                "backgroundColor",
-                "page",
-            ),
+            listOf("type", "enabled", "backgroundColor", "page"),
             encoded.keys.toList(),
         )
         val quickButtons = fromJson(
@@ -700,7 +685,6 @@ class ControlsCodableSuite {
             SettingsGameControllerButton.serializer(),
             """{"id":"$ID_1","name":2,"text":null,"function":"Fly","sceneId":"x","gimbalMotion":"yes"}""",
         )
-        assertEquals(UUID.fromString(ID_1), button.id)
         assertEquals("", button.name)
         assertEquals("", button.text)
         assertEquals(SettingsControllerFunction.UNUSED, button.function.value)
@@ -737,7 +721,6 @@ class ControlsCodableSuite {
             SettingsQuickButton.serializer(),
             """{"name":1,"type":7,"isOn":"yes","enabled":0,"backgroundColor":"red","page":"two"}""",
         )
-        assertEquals("", button.name)
         assertEquals(SettingsQuickButtonType.unknown, button.type)
         assertFalse(button.isOn.value)
         assertTrue(button.enabled.value)
@@ -895,7 +878,7 @@ class ControlsCodableSuite {
             keysOf(DeepLinkCreatorStream.serializer(), DeepLinkCreatorStream()),
         )
         assertEquals(
-            listOf("id", "type", "enabled", "page"),
+            listOf("type", "enabled", "page"),
             keysOf(DeepLinkCreatorQuickButton.serializer(), DeepLinkCreatorQuickButton()),
         )
         val key = SettingsStreamDeckKey(

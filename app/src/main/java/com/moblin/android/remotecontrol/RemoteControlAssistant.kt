@@ -29,8 +29,12 @@ import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationCh
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.MainTimer
+import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsHttpHeader
+import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsStreamChat
+import com.moblin.android.various.settings.SettingsWidget
+import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.utils.randomString
 import java.io.BufferedInputStream
 import java.io.InputStream
@@ -260,6 +264,157 @@ class RemoteControlAssistant(
             data = RemoteControlRequest.ImportSettings(data = data),
             onSuccess = { _ -> onSuccess() },
             onError = { error -> onError(error) }
+        )
+    }
+
+    fun getScenes(onSuccess: (List<SettingsScene>) -> Unit) {
+        performRequest(
+            data = RemoteControlRequest.GetScenes,
+            onSuccess = { response ->
+                when (response) {
+                    is RemoteControlResponse.GetScenes -> onSuccess(response.scenes)
+                    else -> {}
+                }
+            },
+            onError = { error ->
+                Log.i(assistantLogTag, "remote-control-assistant: Get scenes failed with $error")
+            }
+        )
+    }
+
+    fun getWidgets(onSuccess: (List<SettingsWidget>) -> Unit) {
+        performRequest(
+            data = RemoteControlRequest.GetWidgets,
+            onSuccess = { response ->
+                when (response) {
+                    is RemoteControlResponse.GetWidgets -> onSuccess(response.widgets)
+                    else -> {}
+                }
+            },
+            onError = { error ->
+                Log.i(assistantLogTag, "remote-control-assistant: Get widgets failed with $error")
+            }
+        )
+    }
+
+    fun createScene(
+        scene: SettingsScene,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        performRequestNoResponseData(
+            data = RemoteControlRequest.CreateScene(scene = scene),
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    fun updateScene(
+        scene: SettingsScene,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        performRequestNoResponseData(
+            data = RemoteControlRequest.UpdateScene(scene = scene),
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    fun deleteScene(id: java.util.UUID, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        performRequestNoResponseData(
+            data = RemoteControlRequest.DeleteScene(id = id),
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    fun createWidget(
+        widget: SettingsWidget,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        performRequestNoResponseData(
+            data = RemoteControlRequest.CreateWidget(widget = widget),
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    fun updateWidget(
+        widget: SettingsWidget,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        performRequestNoResponseData(
+            data = RemoteControlRequest.UpdateWidget(widget = widget),
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    fun deleteWidget(id: java.util.UUID, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        performRequestNoResponseData(
+            data = RemoteControlRequest.DeleteWidget(id = id),
+            onSuccess = onSuccess,
+            onError = onError
+        )
+    }
+
+    fun getAlertsMediaGallery(onSuccess: (SettingsAlertsMediaGallery) -> Unit) {
+        performRequest(
+            data = RemoteControlRequest.GetAlertsMediaGallery,
+            onSuccess = { response ->
+                when (response) {
+                    is RemoteControlResponse.GetAlertsMediaGallery -> onSuccess(response.gallery)
+                    else -> {}
+                }
+            },
+            onError = { error ->
+                Log.i(assistantLogTag, "remote-control-assistant: Get alerts media gallery failed with $error")
+            }
+        )
+    }
+
+    fun getVideoSources(onSuccess: (List<RemoteControlVideoSource>) -> Unit) {
+        performRequest(
+            data = RemoteControlRequest.GetVideoSources,
+            onSuccess = { response ->
+                when (response) {
+                    is RemoteControlResponse.GetVideoSources -> onSuccess(response.videoSources)
+                    else -> {}
+                }
+            },
+            onError = { error ->
+                Log.i(assistantLogTag, "remote-control-assistant: Get video sources failed with $error")
+            }
+        )
+    }
+
+    fun getEditorOptions(onSuccess: (RemoteControlEditorOptions) -> Unit) {
+        performRequest(
+            data = RemoteControlRequest.GetEditorOptions,
+            onSuccess = { response ->
+                when (response) {
+                    is RemoteControlResponse.GetEditorOptions -> onSuccess(response.options)
+                    else -> {}
+                }
+            },
+            onError = { error ->
+                Log.i(assistantLogTag, "remote-control-assistant: Get editor options failed with $error")
+            }
+        )
+    }
+
+    fun setScoreboardPlayers(
+        players: List<SettingsWidgetScoreboardPlayer>,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        performRequestNoResponseData(
+            data = RemoteControlRequest.SetScoreboardPlayers(players = players),
+            onSuccess = onSuccess,
+            onError = onError
         )
     }
 
@@ -754,6 +909,14 @@ class RemoteControlAssistant(
 
     private fun performRequestNoResponseData(data: RemoteControlRequest, onSuccess: () -> Unit) {
         performRequest(data = data, onSuccess = { _ -> onSuccess() }, onError = { _ -> })
+    }
+
+    private fun performRequestNoResponseData(
+        data: RemoteControlRequest,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        performRequest(data = data, onSuccess = { _ -> onSuccess() }, onError = { error -> onError(error) })
     }
 
     private fun getNextId(): Int {

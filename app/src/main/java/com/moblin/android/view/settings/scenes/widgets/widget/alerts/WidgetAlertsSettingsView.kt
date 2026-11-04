@@ -144,11 +144,11 @@ fun AlertTextToSpeechView(
 }
 
 private fun getImageName(model: Model, id: UUID?): String {
-    return model.getAllAlertImages().firstOrNull { it.id == id }?.name ?: ""
+    return model.database.alertsMediaGallery.allImages().firstOrNull { it.id == id }?.name ?: ""
 }
 
 private fun getSoundName(model: Model, id: UUID?): String {
-    return model.getAllAlertSounds().firstOrNull { it.id == id }?.name ?: ""
+    return model.database.alertsMediaGallery.allSounds().firstOrNull { it.id == id }?.name ?: ""
 }
 
 @Composable

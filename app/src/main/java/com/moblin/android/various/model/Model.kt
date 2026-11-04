@@ -2229,11 +2229,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private fun updateViewersCompact(newNumberOfViewers: Int, hasCount: Boolean): String =
         if (hasCount) countFormatter.format(newNumberOfViewers) else noValue
 
-    private fun fixAlert(alert: SettingsWidgetAlertsAlert) {
-        if (getAllAlertImages().firstOrNull { it.id == alert.imageId } == null) {
+    fun fixAlert(alert: SettingsWidgetAlertsAlert) {
+        if (database.alertsMediaGallery.allImages().firstOrNull { it.id == alert.imageId } == null) {
             alert.imageId = database.alertsMediaGallery.bundledImages[0].id
         }
-        if (getAllAlertSounds().firstOrNull { it.id == alert.soundId } == null) {
+        if (database.alertsMediaGallery.allSounds().firstOrNull { it.id == alert.soundId } == null) {
             alert.soundId = database.alertsMediaGallery.bundledSounds[0].id
         }
     }
@@ -2297,12 +2297,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             }
         }
     }
-
-    fun getAllAlertImages(): List<SettingsAlertsMediaGalleryItem> =
-        database.alertsMediaGallery.bundledImages + database.alertsMediaGallery.customImages
-
-    fun getAllAlertSounds(): List<SettingsAlertsMediaGalleryItem> =
-        database.alertsMediaGallery.bundledSounds + database.alertsMediaGallery.customSounds
 
     fun getAlertSoundUrl(soundId: UUID): String? {
         val bundledSound = database.alertsMediaGallery.bundledSounds.firstOrNull { it.id == soundId }

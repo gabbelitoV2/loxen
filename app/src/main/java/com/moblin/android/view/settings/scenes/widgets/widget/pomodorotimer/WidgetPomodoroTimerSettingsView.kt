@@ -47,7 +47,7 @@ import kotlin.math.roundToInt
 import com.moblin.android.various.model.updateWidgetOutlines
 
 private fun getPomodoroSoundName(model: Model, soundId: UUID?): String {
-    return model.getAllAlertSounds().firstOrNull { it.id == soundId }?.name ?: localized("-- None --")
+    return model.database.alertsMediaGallery.allSounds().firstOrNull { it.id == soundId }?.name ?: localized("-- None --")
 }
 
 @Composable
@@ -66,7 +66,7 @@ fun PomodoroSoundSelectorView(
     }
     Form(title = localized("Sound")) {
         Section {
-            for (sound in model.getAllAlertSounds()) {
+            for (sound in model.database.alertsMediaGallery.allSounds()) {
                 FormRow(onClick = { onChange(sound.id) }) {
                     Text(sound.name)
                     Spacer(modifier = Modifier.weight(1f))

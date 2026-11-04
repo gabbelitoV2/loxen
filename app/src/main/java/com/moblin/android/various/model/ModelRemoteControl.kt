@@ -18,6 +18,7 @@ import com.moblin.android.remotecontrol.RemoteControlAssistant
 import com.moblin.android.remotecontrol.RemoteControlAssistantDelegate
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlChatMessage
+import com.moblin.android.remotecontrol.RemoteControlEditorOptions
 import com.moblin.android.remotecontrol.RemoteControlFilter
 import com.moblin.android.remotecontrol.RemoteControlGolfScoreboard
 import com.moblin.android.remotecontrol.RemoteControlMacro
@@ -59,6 +60,7 @@ import com.moblin.android.remotecontrol.RemoteControlStatusTopRightBondingConnec
 import com.moblin.android.remotecontrol.RemoteControlStreamer
 import com.moblin.android.remotecontrol.RemoteControlStreamerDelegate
 import com.moblin.android.remotecontrol.RemoteControlTipKind
+import com.moblin.android.remotecontrol.RemoteControlVideoSource
 import com.moblin.android.remotecontrol.RemoteControlWeb
 import com.moblin.android.remotecontrol.RemoteControlWebDelegate
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
@@ -66,11 +68,14 @@ import com.moblin.android.remotecontrol.remoteControlStartStatsFilterAllEnabled
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.Variables
 import com.moblin.android.various.makeChatPostTextSegments
+import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsQuickButtonType
+import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetScoreboard
+import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.utils.emojiFlag
@@ -1352,6 +1357,58 @@ fun Model.remoteControlStreamerImportSettings(settings: ByteArray, onCompleted: 
     importSettingsFromData(context = AppDelegate.context, settings = settings) { onCompleted(it) }
 }
 
+fun Model.remoteControlStreamerGetScenes(): List<SettingsScene> {
+    return remoteControlGetScenes()
+}
+
+fun Model.remoteControlStreamerGetWidgets(): List<SettingsWidget> {
+    return remoteControlGetWidgets()
+}
+
+fun Model.remoteControlStreamerCreateScene(scene: SettingsScene): Boolean {
+    return remoteControlCreateScene(scene = scene)
+}
+
+fun Model.remoteControlStreamerUpdateScene(scene: SettingsScene): Boolean {
+    return remoteControlUpdateScene(scene = scene)
+}
+
+fun Model.remoteControlStreamerDeleteScene(id: UUID): Boolean {
+    return remoteControlDeleteScene(id = id)
+}
+
+fun Model.remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean {
+    return remoteControlCreateWidget(widget = widget)
+}
+
+fun Model.remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {
+    return remoteControlUpdateWidget(widget = widget)
+}
+
+fun Model.remoteControlStreamerDeleteWidget(id: UUID): Boolean {
+    return remoteControlDeleteWidget(id = id)
+}
+
+fun Model.remoteControlStreamerGetAlertsMediaGallery(): SettingsAlertsMediaGallery {
+    return remoteControlGetAlertsMediaGallery()
+}
+
+fun Model.remoteControlStreamerGetVideoSources(): List<RemoteControlVideoSource> {
+    return remoteControlGetVideoSources()
+}
+
+fun Model.remoteControlStreamerGetEditorOptions(): RemoteControlEditorOptions {
+    return remoteControlGetEditorOptions()
+}
+
+fun Model.remoteControlStreamerSetScoreboardPlayers(players: List<SettingsWidgetScoreboardPlayer>): Boolean {
+    return remoteControlSetScoreboardPlayers(players = players)
+}
+
+fun Model.remoteControlStreamerGetVideoSourceSnapshot(id: UUID, onCompleted: (ByteArray?) -> Unit) {
+    remoteControlGetVideoSourceSnapshot(id = id, onCompleted = onCompleted)
+}
+
 fun Model.remoteControlAssistantConnected() {
     makeToast(title = localized("Remote control streamer connected"))
     remoteControlAssistantStreamerState.filters = mutableMapOf()
@@ -1912,6 +1969,58 @@ private class RemoteControlStreamerDelegateAdapter(
 
     override fun remoteControlStreamerImportSettings(settings: ByteArray, onCompleted: (Boolean) -> Unit) {
         model.remoteControlStreamerImportSettings(settings = settings, onCompleted = onCompleted)
+    }
+
+    override fun remoteControlStreamerGetScenes(): List<SettingsScene> {
+        return model.remoteControlStreamerGetScenes()
+    }
+
+    override fun remoteControlStreamerGetWidgets(): List<SettingsWidget> {
+        return model.remoteControlStreamerGetWidgets()
+    }
+
+    override fun remoteControlStreamerCreateScene(scene: SettingsScene): Boolean {
+        return model.remoteControlStreamerCreateScene(scene = scene)
+    }
+
+    override fun remoteControlStreamerUpdateScene(scene: SettingsScene): Boolean {
+        return model.remoteControlStreamerUpdateScene(scene = scene)
+    }
+
+    override fun remoteControlStreamerDeleteScene(id: UUID): Boolean {
+        return model.remoteControlStreamerDeleteScene(id = id)
+    }
+
+    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean {
+        return model.remoteControlStreamerCreateWidget(widget = widget)
+    }
+
+    override fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {
+        return model.remoteControlStreamerUpdateWidget(widget = widget)
+    }
+
+    override fun remoteControlStreamerDeleteWidget(id: UUID): Boolean {
+        return model.remoteControlStreamerDeleteWidget(id = id)
+    }
+
+    override fun remoteControlStreamerGetAlertsMediaGallery(): SettingsAlertsMediaGallery {
+        return model.remoteControlStreamerGetAlertsMediaGallery()
+    }
+
+    override fun remoteControlStreamerGetVideoSources(): List<RemoteControlVideoSource> {
+        return model.remoteControlStreamerGetVideoSources()
+    }
+
+    override fun remoteControlStreamerGetEditorOptions(): RemoteControlEditorOptions {
+        return model.remoteControlStreamerGetEditorOptions()
+    }
+
+    override fun remoteControlStreamerSetScoreboardPlayers(players: List<SettingsWidgetScoreboardPlayer>): Boolean {
+        return model.remoteControlStreamerSetScoreboardPlayers(players = players)
+    }
+
+    override fun remoteControlStreamerGetVideoSourceSnapshot(id: UUID, onCompleted: (ByteArray?) -> Unit) {
+        model.remoteControlStreamerGetVideoSourceSnapshot(id = id, onCompleted = onCompleted)
     }
 
     override fun remoteControlStreamerStartStats(filter: RemoteControlStartStatsFilter?) {

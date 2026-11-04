@@ -860,7 +860,9 @@ fun <T> JsonObject.decode(
     defaultValue: T,
     isValid: (T) -> Boolean,
 ): T {
-    val value = decode(key, serializer, defaultValue)
+    val value = this[key]?.let { element ->
+        runCatching { Json.decodeFromJsonElement(serializer, element) }.getOrNull()
+    } ?: return defaultValue
     return if (isValid(value)) value else defaultValue
 }
 

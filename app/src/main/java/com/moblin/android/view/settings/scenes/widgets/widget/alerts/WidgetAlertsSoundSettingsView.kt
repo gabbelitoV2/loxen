@@ -166,7 +166,7 @@ fun AlertSoundSelectorView(
     onSoundIdChange: (UUID) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val sounds = gallery.bundledSounds + gallery.customSounds
+    val sounds = gallery.allSounds()
 
     Form(title = "Sound") {
         Section {

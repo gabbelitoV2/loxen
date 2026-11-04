@@ -6,16 +6,27 @@ import com.moblin.android.localized
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
+import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
+import com.moblin.android.various.settings.SettingsScene
+import com.moblin.android.various.settings.SettingsWidget
+import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.storages.SimpleStorageContext
 import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
 
 private const val TAG = "RemoteControlStreamer"
+
+private val undecodableJson = Json { ignoreUnknownKeys = true }
 
 interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerConnected()
@@ -72,6 +83,19 @@ interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerAnimateGimbal(motion: SettingsGimbalMotion)
     fun remoteControlStreamerSaveGimbalPreset()
     fun remoteControlStreamerImportSettings(settings: ByteArray, onCompleted: (Boolean) -> Unit)
+    fun remoteControlStreamerGetScenes(): List<SettingsScene>
+    fun remoteControlStreamerGetWidgets(): List<SettingsWidget>
+    fun remoteControlStreamerCreateScene(scene: SettingsScene): Boolean
+    fun remoteControlStreamerUpdateScene(scene: SettingsScene): Boolean
+    fun remoteControlStreamerDeleteScene(id: UUID): Boolean
+    fun remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean
+    fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean
+    fun remoteControlStreamerDeleteWidget(id: UUID): Boolean
+    fun remoteControlStreamerGetAlertsMediaGallery(): SettingsAlertsMediaGallery
+    fun remoteControlStreamerGetVideoSources(): List<RemoteControlVideoSource>
+    fun remoteControlStreamerGetEditorOptions(): RemoteControlEditorOptions
+    fun remoteControlStreamerSetScoreboardPlayers(players: List<SettingsWidgetScoreboardPlayer>): Boolean
+    fun remoteControlStreamerGetVideoSourceSnapshot(id: UUID, onCompleted: (ByteArray?) -> Unit)
     fun remoteControlStreamerStartStats(filter: RemoteControlStartStatsFilter?)
     fun remoteControlStreamerStopStats()
     fun remoteControlStreamerStartMacro(id: UUID)
@@ -264,7 +288,24 @@ class RemoteControlStreamer(
         } catch (error: Exception) {
             Log.i(TAG, "remote-control-streamer: Decode failed")
             connectionErrorMessage = error.message ?: ""
+            undecodableRequestId(message)?.let { id ->
+                send(
+                    RemoteControlMessageToAssistant.Response(
+                        id,
+                        remoteControlResult("unknownRequest"),
+                        null,
+                    ),
+                )
+            }
         }
+    }
+
+    private fun undecodableRequestId(message: String): Int? {
+        val json = runCatching {
+            undecodableJson.parseToJsonElement(message).jsonObject
+        }.getOrNull() ?: return null
+        val request = json["request"] as? JsonObject ?: return null
+        return (request["id"] as? JsonPrimitive)?.intOrNull
     }
 
     private fun handleHello(apiVersion: String, authentication: RemoteControlAuthentication) {
@@ -578,11 +619,106 @@ class RemoteControlStreamer(
                 )
                 sendEmptyOkResponse(id)
             }
+            is RemoteControlRequest.GetScenes -> {
+                val scenes = delegate.remoteControlStreamerGetScenes()
+                send(
+                    RemoteControlMessageToAssistant.Response(
+                        id,
+                        remoteControlResult("ok"),
+                        RemoteControlResponse.GetScenes(scenes),
+                    ),
+                )
+            }
+            is RemoteControlRequest.GetWidgets -> {
+                val widgets = delegate.remoteControlStreamerGetWidgets()
+                send(
+                    RemoteControlMessageToAssistant.Response(
+                        id,
+                        remoteControlResult("ok"),
+                        RemoteControlResponse.GetWidgets(widgets),
+                    ),
+                )
+            }
+            is RemoteControlRequest.CreateScene -> {
+                sendResultResponse(id, delegate.remoteControlStreamerCreateScene(data.scene))
+            }
+            is RemoteControlRequest.UpdateScene -> {
+                sendResultResponse(id, delegate.remoteControlStreamerUpdateScene(data.scene))
+            }
+            is RemoteControlRequest.DeleteScene -> {
+                sendResultResponse(id, delegate.remoteControlStreamerDeleteScene(data.id))
+            }
+            is RemoteControlRequest.CreateWidget -> {
+                sendResultResponse(id, delegate.remoteControlStreamerCreateWidget(data.widget))
+            }
+            is RemoteControlRequest.UpdateWidget -> {
+                sendResultResponse(id, delegate.remoteControlStreamerUpdateWidget(data.widget))
+            }
+            is RemoteControlRequest.DeleteWidget -> {
+                sendResultResponse(id, delegate.remoteControlStreamerDeleteWidget(data.id))
+            }
+            is RemoteControlRequest.GetAlertsMediaGallery -> {
+                val gallery = delegate.remoteControlStreamerGetAlertsMediaGallery()
+                send(
+                    RemoteControlMessageToAssistant.Response(
+                        id,
+                        remoteControlResult("ok"),
+                        RemoteControlResponse.GetAlertsMediaGallery(gallery),
+                    ),
+                )
+            }
+            is RemoteControlRequest.GetVideoSources -> {
+                val videoSources = delegate.remoteControlStreamerGetVideoSources()
+                send(
+                    RemoteControlMessageToAssistant.Response(
+                        id,
+                        remoteControlResult("ok"),
+                        RemoteControlResponse.GetVideoSources(videoSources),
+                    ),
+                )
+            }
+            is RemoteControlRequest.GetEditorOptions -> {
+                val options = delegate.remoteControlStreamerGetEditorOptions()
+                send(
+                    RemoteControlMessageToAssistant.Response(
+                        id,
+                        remoteControlResult("ok"),
+                        RemoteControlResponse.GetEditorOptions(options),
+                    ),
+                )
+            }
+            is RemoteControlRequest.SetScoreboardPlayers -> {
+                sendResultResponse(
+                    id,
+                    delegate.remoteControlStreamerSetScoreboardPlayers(data.players),
+                )
+            }
+            is RemoteControlRequest.GetVideoSourceSnapshot -> {
+                delegate.remoteControlStreamerGetVideoSourceSnapshot(data.id) { image ->
+                    send(
+                        RemoteControlMessageToAssistant.Response(
+                            id,
+                            remoteControlResult("ok"),
+                            RemoteControlResponse.GetVideoSourceSnapshot(image),
+                        ),
+                    )
+                }
+            }
         }
     }
 
     private fun sendEmptyOkResponse(id: Int) {
         send(RemoteControlMessageToAssistant.Response(id, remoteControlResult("ok"), null))
+    }
+
+    private fun sendResultResponse(id: Int, ok: Boolean) {
+        send(
+            RemoteControlMessageToAssistant.Response(
+                id,
+                if (ok) remoteControlResult("ok") else remoteControlResult("error"),
+                null,
+            ),
+        )
     }
 
     override fun webSocketClientConnected(client: WebSocketClient) {

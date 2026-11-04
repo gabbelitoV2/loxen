@@ -1244,6 +1244,14 @@ class SettingsAlertsMediaGallery(
         return bundledImages[5].id
     }
 
+    fun allImages(): List<SettingsAlertsMediaGalleryItem> {
+        return bundledImages + customImages
+    }
+
+    fun allSounds(): List<SettingsAlertsMediaGalleryItem> {
+        return bundledSounds + customSounds
+    }
+
     fun encode(): JsonObject = encodeContainer {
         encode("bundledImages", bundledImages, ListSerializer(SettingsAlertsMediaGalleryItem.serializer()))
         encode("customImages", customImages, ListSerializer(SettingsAlertsMediaGalleryItem.serializer()))
@@ -2103,19 +2111,19 @@ class Database(
                 addDefaultBitratePresets(database)
             }
             addMissingQuickButtons(database)
-            for (button in database.quickButtons) {
-                if (button.type != SettingsQuickButtonType.interactiveChat &&
-                    button.type != SettingsQuickButtonType.cameraPreview &&
-                    button.type != SettingsQuickButtonType.interactiveBrowserWidgets
-                ) {
-                    button.isOn.value = false
-                }
-            }
             addMissingDeepLinkQuickButtons(database)
             addMissingBundledLuts(database)
             addMissingGoPro(database)
             return database
         }
+    }
+
+    fun findScene(id: UUID): SettingsScene? {
+        return scenes.firstOrNull { it.id == id }
+    }
+
+    fun findWidget(id: UUID): SettingsWidget? {
+        return widgets.firstOrNull { it.id == id }
     }
 
     object Serializer : KSerializer<Database> by JsonObjectSerializer(

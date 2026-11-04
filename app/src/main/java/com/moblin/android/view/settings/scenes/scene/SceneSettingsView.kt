@@ -122,8 +122,7 @@ private fun SceneWidgetView(
     sceneWidget: SettingsSceneWidget,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val widgets = database.widgets
-    val widget = widgets.firstOrNull { it.id == sceneWidget.widgetId } ?: return
+    val widget = database.findWidget(id = sceneWidget.widgetId) ?: return
     val enabled = binding(
         get = { widget.enabled },
         set = { value ->

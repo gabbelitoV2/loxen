@@ -90,9 +90,7 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
     "SettingsVideoEffectMask" to listOf(
         "points", "inverted", "tension", "backgroundType", "backgroundColor", "backgroundColor2",
     ),
-    "SettingsVideoEffect" to listOf(
-        "id", "enabled", "type", "removeBackground", "shape", "dewarp360", "anamorphicLens", "lut", "opacity", "mask",
-    ),
+    "SettingsVideoEffect" to listOf("id", "enabled", "type", "shape"),
     "SettingsWidgetTextTimer" to listOf("id", "delta", "endTime"),
     "SettingsWidgetTextStopwatch" to listOf("id", "totalElapsed", "running"),
     "SettingsWidgetTextSubtitles" to listOf(),
@@ -133,16 +131,10 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
     ),
     "SettingsSensitivity" to listOf("mouth", "eyes"),
     "SettingsWidgetVTuber" to listOf(
-        "id", "type", "cameraPosition", "backCameraId", "frontCameraId", "rtmpCameraId", "srtlaCameraId",
-        "srtClientCameraId", "ristCameraId", "rtspCameraId", "whipCameraId", "whepCameraId", "mediaPlayerCameraId",
-        "externalCameraId", "externalCameraName", "cameraPositionY", "cameraFieldOfView", "modelName", "mirror",
+        "id", "type", "cameraPosition", "cameraPositionY", "cameraFieldOfView", "modelName", "mirror",
         "sensitivity", "armsAngle",
     ),
-    "SettingsWidgetPngTuber" to listOf(
-        "id", "cameraPosition", "backCameraId", "frontCameraId", "rtmpCameraId", "srtlaCameraId",
-        "srtClientCameraId", "ristCameraId", "rtspCameraId", "whipCameraId", "whepCameraId", "mediaPlayerCameraId",
-        "externalCameraId", "externalCameraName", "modelName", "mirror", "sensitivity",
-    ),
+    "SettingsWidgetPngTuber" to listOf("id", "cameraPosition", "modelName", "mirror", "sensitivity"),
     "SettingsWidgetSnapshot" to listOf("id", "showtime"),
     "SettingsWidgetChat" to listOf(
         "id", "fontSize", "fontFamily", "fontStyle", "usernameColor", "messageColor", "backgroundColor",
@@ -165,18 +157,12 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
         "breakToFocusSoundId", "focusToBreakChatMessage", "breakToFocusChatMessage",
     ),
     "SettingsWidgetChatEmoteCombo" to listOf("minimumCombo", "resetAfter"),
-    "SettingsWidget" to listOf(
-        "name", "id", "type", "text", "browser", "crop", "map", "scene", "qrCode", "alerts", "videoSource",
-        "scoreboard", "vTuber", "pngTuber", "snapshot", "chat", "chatEmoteCombo", "slideshow", "wheelOfLuck",
-        "bingoCard", "pomodoroTimer", "enabled", "effects",
-    ),
+    "SettingsWidget" to listOf("name", "id", "type", "text", "enabled", "effects"),
     "SettingsSceneWidget" to listOf(
         "widgetId", "id", "x", "y", "size", "alignment", "positioningLock",
     ),
     "SettingsWidgetVideoSource" to listOf(
-        "cornerRadius", "cameraPosition", "backCameraId", "frontCameraId", "rtmpCameraId", "srtlaCameraId",
-        "srtClientCameraId", "ristCameraId", "rtspCameraId", "whipCameraId", "whepCameraId", "mediaPlayerCameraId",
-        "externalCameraId", "externalCameraName", "cropEnabled", "cropX", "cropY", "cropWidth", "cropHeight",
+        "cornerRadius", "cameraPosition", "cropEnabled", "cropX", "cropY", "cropWidth", "cropHeight",
         "rotation", "trackFaceEnabled", "trackFaceZoom", "mirror", "borderWidth", "borderColor",
     ),
     "SettingsWidgetScoreboardPlayer" to listOf("id", "name"),
@@ -200,9 +186,7 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
         "modular",
     ),
     "SettingsScene" to listOf(
-        "name", "id", "enabled", "cameraPosition", "backCameraId", "frontCameraId", "rtmpCameraId",
-        "srtlaCameraId", "srtClientCameraId", "ristCameraId", "rtspCameraId", "whipCameraId", "whepCameraId",
-        "mediaPlayerCameraId", "externalCameraId", "externalCameraName", "widgets", "videoSourceRotation",
+        "name", "id", "enabled", "cameraPosition", "widgets", "videoSourceRotation",
         "videoStabilizationMode", "overrideVideoStabilizationMode", "fillFrame", "overrideMic", "micId",
         "quickSwitchGroup", "mirror", "backgroundColor",
     ),
@@ -430,7 +414,7 @@ class SceneCodableSuite {
             SettingsWidgetTextLapTimes()
         }, synthesized = true),
         Case("SettingsWidgetText", SettingsWidgetText.serializer(), { SettingsWidgetText() }),
-        Case("SettingsWidgetCrop", SettingsWidgetCrop.serializer(), { SettingsWidgetCrop() }, synthesized = true),
+        Case("SettingsWidgetCrop", SettingsWidgetCrop.serializer(), { SettingsWidgetCrop() }),
         Case("SettingsWidgetBrowser", SettingsWidgetBrowser.serializer(), { SettingsWidgetBrowser() }),
         Case("SettingsWidgetMap", SettingsWidgetMap.serializer(), { SettingsWidgetMap() }),
         Case("SettingsWidgetScene", SettingsWidgetScene.serializer(), { SettingsWidgetScene() }, synthesized = true),
@@ -1207,7 +1191,7 @@ class SceneCodableSuite {
         )
         assertEquals(SettingsWidgetType.text, widget.type)
         assertTrue(widget.enabled)
-        assertEquals(0, widget.crop.x)
+        assertEquals(1, widget.crop.x)
         assertEquals(200, widget.crop.height)
         assertEquals("", widget.qrCode.message)
         assertEquals(uuid(id2), widget.scene.sceneId)

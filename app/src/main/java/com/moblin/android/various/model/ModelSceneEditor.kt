@@ -15,15 +15,15 @@ fun Model.sceneEditorPresentationChanged() {
 }
 
 fun Model.sceneEditorScene(): SettingsScene? {
-    val sceneId = sceneEditor.sceneId
+    val sceneId = sceneEditor.sceneId.value
     if (sceneId != null) {
-        database.scenes.firstOrNull { it.id == sceneId }?.let { return it }
+        database.findScene(id = sceneId)?.let { return it }
     }
     return getSelectedScene()
 }
 
 fun Model.sceneEditorSelectScene(id: UUID) {
-    val scene = database.scenes.firstOrNull { it.id == id } ?: return
+    val scene = database.findScene(id = id) ?: return
     if (scene.enabled) {
         sceneEditor.sceneId.value = null
         selectScene(id = id)

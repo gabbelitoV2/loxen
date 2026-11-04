@@ -285,22 +285,23 @@ class SettingsGameControllerButton {
     }
 
     fun encode(): JsonObject = encodeContainer {
-        encode("id", id)
         encode("name", name)
         encode("text", text)
         encode("function", function)
-        encode("sceneId", functionData.value.sceneId)
-        encode("widgetId", functionData.value.widgetId)
-        encode("gimbalPresetId", functionData.value.gimbalPresetId)
-        encode("gimbalMotion", functionData.value.gimbalMotion)
-        encode("macroId", functionData.value.macroId)
-        encode("streamDeckLayoutId", functionData.value.streamDeckLayoutId)
+        when (function.value) {
+            SettingsControllerFunction.SCENE -> encode("sceneId", functionData.value.sceneId)
+            SettingsControllerFunction.WIDGET -> encode("widgetId", functionData.value.widgetId)
+            SettingsControllerFunction.GIMBAL_PRESET -> encode("gimbalPresetId", functionData.value.gimbalPresetId)
+            SettingsControllerFunction.GIMBAL_ANIMATE -> encode("gimbalMotion", functionData.value.gimbalMotion)
+            SettingsControllerFunction.MACRO -> encode("macroId", functionData.value.macroId)
+            SettingsControllerFunction.STREAM_DECK_LAYOUT -> encode("streamDeckLayoutId", functionData.value.streamDeckLayoutId)
+            else -> Unit
+        }
     }
 
     companion object {
         fun decode(container: JsonObject): SettingsGameControllerButton {
             val button = SettingsGameControllerButton()
-            button.id = container.decode("id", UUID.randomUUID())
             button.name = container.decode("name", "")
             button.text = container.decode("text", "")
             button.function.value = container.decode("function", SettingsControllerFunction.UNUSED)

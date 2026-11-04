@@ -113,3 +113,12 @@ val Bitmap.size: CGSize
 
 val Bitmap.scale: Double
     get() = 1.0
+
+fun Bitmap.jpegData(compressionQuality: Float): ByteArray? {
+    val output = java.io.ByteArrayOutputStream()
+    val quality = (compressionQuality.coerceIn(0f, 1f) * 100).toInt()
+    if (!compress(Bitmap.CompressFormat.JPEG, quality, output)) {
+        return null
+    }
+    return output.toByteArray()
+}

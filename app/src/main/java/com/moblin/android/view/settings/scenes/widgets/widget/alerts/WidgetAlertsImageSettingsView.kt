@@ -197,7 +197,7 @@ fun AlertImageSelectorView(
 
     Form(title = localized("Image")) {
         Section {
-            val images = gallery.bundledImages + gallery.customImages
+            val images = gallery.allImages()
             val selected = images.firstOrNull { it.id == imageId }
             if (selected != null) {
                 Picker(

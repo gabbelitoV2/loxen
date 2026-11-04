@@ -12,6 +12,7 @@ import com.moblin.android.various.ChatHighlightKind
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.Variables
 import com.moblin.android.various.managers.GForce
+import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsAlignment
 import com.moblin.android.various.settings.SettingsFont
 import com.moblin.android.various.settings.SettingsFontDesign
@@ -22,12 +23,14 @@ import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsReaction
 import com.moblin.android.various.settings.SettingsScene
+import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetBrowser
 import com.moblin.android.various.settings.SettingsWidgetBrowserMode
 import com.moblin.android.various.settings.SettingsWidgetMap
 import com.moblin.android.various.settings.SettingsWidgetScene
+import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.settings.SettingsWidgetText
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.utils.clockAsMinutesAndSeconds
@@ -42,6 +45,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -513,6 +517,94 @@ sealed class RemoteControlRequest {
         }
     }
 
+    data object GetScenes : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getScenes") {}
+        }
+    }
+
+    data object GetWidgets : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getWidgets") {}
+        }
+    }
+
+    data class CreateScene(val scene: SettingsScene) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("createScene") {
+                put("scene", remoteControlJson.encodeToJsonElement(scene))
+            }
+        }
+    }
+
+    data class UpdateScene(val scene: SettingsScene) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("updateScene") {
+                put("scene", remoteControlJson.encodeToJsonElement(scene))
+            }
+        }
+    }
+
+    data class DeleteScene(val id: UUID) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("deleteScene") { put("id", id.toString()) }
+        }
+    }
+
+    data class CreateWidget(val widget: SettingsWidget) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("createWidget") {
+                put("widget", remoteControlJson.encodeToJsonElement(widget))
+            }
+        }
+    }
+
+    data class UpdateWidget(val widget: SettingsWidget) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("updateWidget") {
+                put("widget", remoteControlJson.encodeToJsonElement(widget))
+            }
+        }
+    }
+
+    data class DeleteWidget(val id: UUID) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("deleteWidget") { put("id", id.toString()) }
+        }
+    }
+
+    data object GetAlertsMediaGallery : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getAlertsMediaGallery") {}
+        }
+    }
+
+    data object GetVideoSources : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getVideoSources") {}
+        }
+    }
+
+    data object GetEditorOptions : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getEditorOptions") {}
+        }
+    }
+
+    data class SetScoreboardPlayers(val players: List<SettingsWidgetScoreboardPlayer>) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("setScoreboardPlayers") {
+                put("players", remoteControlJson.encodeToJsonElement(players))
+            }
+        }
+    }
+
+    data class GetVideoSourceSnapshot(val id: UUID) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getVideoSourceSnapshot") { put("id", id.toString()) }
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlRequest =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -657,6 +749,35 @@ sealed class RemoteControlRequest {
                     kind = RemoteControlTipKind.fromJsonElement(params.getValue("kind")),
                     requestId = params.getValue("requestId").jsonPrimitive.content,
                 )
+                "getScenes" -> GetScenes
+                "getWidgets" -> GetWidgets
+                "createScene" -> CreateScene(
+                    scene = remoteControlJson.decodeFromJsonElement(params.getValue("scene")),
+                )
+                "updateScene" -> UpdateScene(
+                    scene = remoteControlJson.decodeFromJsonElement(params.getValue("scene")),
+                )
+                "deleteScene" -> DeleteScene(
+                    id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
+                )
+                "createWidget" -> CreateWidget(
+                    widget = remoteControlJson.decodeFromJsonElement(params.getValue("widget")),
+                )
+                "updateWidget" -> UpdateWidget(
+                    widget = remoteControlJson.decodeFromJsonElement(params.getValue("widget")),
+                )
+                "deleteWidget" -> DeleteWidget(
+                    id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
+                )
+                "getAlertsMediaGallery" -> GetAlertsMediaGallery
+                "getVideoSources" -> GetVideoSources
+                "getEditorOptions" -> GetEditorOptions
+                "setScoreboardPlayers" -> SetScoreboardPlayers(
+                    players = remoteControlJson.decodeFromJsonElement(params.getValue("players")),
+                )
+                "getVideoSourceSnapshot" -> GetVideoSourceSnapshot(
+                    id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
+                )
                 else -> throw SerializationException("Unknown request ${entry.key}")
             }
         }
@@ -796,6 +917,60 @@ sealed class RemoteControlResponse {
         }
     }
 
+    data class GetScenes(val scenes: List<SettingsScene>) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getScenes") { put("scenes", remoteControlJson.encodeToJsonElement(scenes)) }
+        }
+    }
+
+    data class GetWidgets(val widgets: List<SettingsWidget>) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getWidgets") { put("widgets", remoteControlJson.encodeToJsonElement(widgets)) }
+        }
+    }
+
+    data class GetAlertsMediaGallery(val gallery: SettingsAlertsMediaGallery) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getAlertsMediaGallery") {
+                put("gallery", remoteControlJson.encodeToJsonElement(gallery))
+            }
+        }
+    }
+
+    data class GetVideoSources(val videoSources: List<RemoteControlVideoSource>) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getVideoSources") {
+                put("videoSources", remoteControlJson.encodeToJsonElement(videoSources))
+            }
+        }
+    }
+
+    data class GetEditorOptions(val options: RemoteControlEditorOptions) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getEditorOptions") {
+                put("options", remoteControlJson.encodeToJsonElement(options))
+            }
+        }
+    }
+
+    data class GetVideoSourceSnapshot(val image: ByteArray?) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getVideoSourceSnapshot") {
+                if (image != null) {
+                    put("image", Base64.encodeToString(image, Base64.NO_WRAP))
+                }
+            }
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is GetVideoSourceSnapshot) return false
+            return image.contentEquals(other.image)
+        }
+
+        override fun hashCode(): Int = image.contentHashCode()
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlResponse =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -833,6 +1008,27 @@ sealed class RemoteControlResponse {
                     song = params["song"]?.let {
                         if (it is JsonNull) null
                         else remoteControlJson.decodeFromJsonElement<RemoteControlMusicFoundSong>(it)
+                    },
+                )
+                "getScenes" -> GetScenes(
+                    scenes = remoteControlJson.decodeFromJsonElement(params.getValue("scenes")),
+                )
+                "getWidgets" -> GetWidgets(
+                    widgets = remoteControlJson.decodeFromJsonElement(params.getValue("widgets")),
+                )
+                "getAlertsMediaGallery" -> GetAlertsMediaGallery(
+                    gallery = remoteControlJson.decodeFromJsonElement(params.getValue("gallery")),
+                )
+                "getVideoSources" -> GetVideoSources(
+                    videoSources = remoteControlJson.decodeFromJsonElement(params.getValue("videoSources")),
+                )
+                "getEditorOptions" -> GetEditorOptions(
+                    options = remoteControlJson.decodeFromJsonElement(params.getValue("options")),
+                )
+                "getVideoSourceSnapshot" -> GetVideoSourceSnapshot(
+                    image = params["image"]?.let {
+                        if (it is JsonNull) null
+                        else Base64.decode(it.jsonPrimitive.content, Base64.NO_WRAP)
                     },
                 )
                 else -> throw SerializationException("Unknown response ${entry.key}")
@@ -2117,6 +2313,73 @@ data class RemoteControlSettingsGimbalPreset(
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
+)
+
+@Serializable
+data class RemoteControlVideoSource(
+    val id: String,
+    val name: String,
+    val position: SettingsSceneCameraPosition,
+)
+
+@Serializable
+data class RemoteControlSize(
+    val width: Double,
+    val height: Double,
+)
+
+@Serializable
+data class RemoteControlFontFamily(
+    val family: String,
+    val styles: List<String>,
+)
+
+@Serializable
+data class RemoteControlNamedItem(
+    @Serializable(with = UUIDSerializer::class)
+    val id: UUID,
+    val name: String,
+)
+
+@Serializable
+data class RemoteControlWebRemote(
+    val enabled: Boolean,
+    val port: UShort,
+    val deviceName: String,
+    val addresses: List<String>,
+)
+
+@Serializable
+data class RemoteControlAppleVoice(
+    val name: String,
+    val identifier: String,
+    val language: String,
+)
+
+@Serializable
+data class RemoteControlAppleVoices(
+    val language: String,
+    val voices: List<RemoteControlAppleVoice>,
+)
+
+private object RemoteControlUuidListSerializer : KSerializer<List<UUID>> by ListSerializer(UUIDSerializer)
+
+@Serializable
+data class RemoteControlEditorOptions(
+    val fonts: List<RemoteControlFontFamily>,
+    val luts: List<RemoteControlNamedItem>,
+    val scoreboardPlayers: List<SettingsWidgetScoreboardPlayer>,
+    val webRemote: RemoteControlWebRemote,
+    val workoutDevices: List<RemoteControlNamedItem>,
+    val streamDeckLayouts: List<RemoteControlNamedItem>,
+    val appleVoices: List<RemoteControlAppleVoices>,
+    val showAllSettings: Boolean,
+    val isPhone: Boolean,
+    val forceSceneSwitchTransition: Boolean,
+    val workoutActive: Boolean,
+    @Serializable(with = RemoteControlUuidListSerializer::class)
+    val inactiveVideoSourceSceneIds: List<UUID>,
+    val canvasSize: RemoteControlSize,
 )
 
 @Serializable

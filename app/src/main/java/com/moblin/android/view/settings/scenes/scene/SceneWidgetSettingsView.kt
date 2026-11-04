@@ -36,7 +36,7 @@ fun SceneWidgetSettingsView(
         ShortcutSectionView {
             WidgetShortcutView(model = model, database = model.database, widget = widget)
             if (widget.type == SettingsWidgetType.scene) {
-                val scene = model.database.scenes.firstOrNull { it.id == widget.scene.sceneId }
+                val scene = model.database.findScene(id = widget.scene.sceneId)
                 if (scene != null) {
                     SceneShortcutView(database = model.database, scene = scene)
                 }
