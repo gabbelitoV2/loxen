@@ -34,6 +34,7 @@ import com.moblin.android.various.model.appendWidgetToScene
 import com.moblin.android.various.model.getSelectedScene
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.textWidgetTextChanged
+import com.moblin.android.various.model.widgetWizardCreate
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsWidget
@@ -93,25 +94,12 @@ private fun SelectScenesView(
 
     fun create() {
         onPresentingCreateWizardChange(false)
-        val name: String = if (createWidgetWizard.name.value.isEmpty()) {
-            makeUniqueName(SettingsWidget.baseName, database.widgets)
-        } else {
-            createWidgetWizard.name.value
-        }
-        val widget = createWidgetWizard.widget
-        widget.type = createWidgetWizard.type.value
-        widget.name = name
-        database.widgets += widget
-        model.fixAlertMedias()
-        model.resetSelectedScene(changeScene = false, attachCamera = false)
-        for (sceneToAddWidgetTo in scenesToAddWidgetTo) {
-            if (sceneToAddWidgetTo.enabled.value) {
-                model.appendWidgetToScene(sceneToAddWidgetTo.scene, widget)
-            }
-        }
-        if (widget.type == SettingsWidgetType.text) {
-            model.textWidgetTextChanged(widget)
-        }
+        model.widgetWizardCreate(
+            type = createWidgetWizard.type.value,
+            name = createWidgetWizard.name.value,
+            widget = createWidgetWizard.widget,
+            scenes = scenesToAddWidgetTo.filter { it.enabled.value }.map { it.scene },
+        )
     }
 
     Form(

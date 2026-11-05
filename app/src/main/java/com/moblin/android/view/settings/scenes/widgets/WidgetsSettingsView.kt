@@ -37,8 +37,7 @@ import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.various.model.deleteWidget
-import com.moblin.android.various.model.isCaptureDeviceWidget
-import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.widgetEnabledChanged
 
 @Composable
 private fun WidgetsSettingsItemView(
@@ -51,7 +50,7 @@ private fun WidgetsSettingsItemView(
         get = { widget.enabled },
         set = { value ->
             widget.enabled = value
-            model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget = widget))
+            model.widgetEnabledChanged(widget = widget)
         },
     )
     ContextMenuDeleteButton(

@@ -469,6 +469,29 @@ fun Model.updateScoreboardEffects() {
     }
 }
 
+fun Model.scoreboardPlayersChanged() {
+    sceneUpdated()
+    sendScoreboardPlayersToWatch()
+}
+
+fun Model.scoreboardWidgetUpdated(widget: SettingsWidget) {
+    val scoreboard = widget.scoreboard
+    when (scoreboard.sport) {
+        SettingsWidgetScoreboardSport.generic ->
+            sendUpdateGenericScoreboardToWatch(id = widget.id, generic = scoreboard.generic)
+        SettingsWidgetScoreboardSport.padel ->
+            sendUpdatePadelScoreboardToWatch(id = widget.id, padel = scoreboard.padel)
+        else -> {}
+    }
+    remoteControlScoreboardUpdate(scoreboard = scoreboard)
+    getScoreboardEffect(id = widget.id)
+        ?.update(
+            scoreboard = scoreboard,
+            config = getModularScoreboardConfig(scoreboard = scoreboard),
+            players = database.scoreboardPlayers
+        )
+}
+
 fun Model.getModularScoreboardConfig(scoreboard: SettingsWidgetScoreboard?): RemoteControlScoreboardMatchConfig {
     val sportId = when (scoreboard?.sport) {
         SettingsWidgetScoreboardSport.basketball -> "basketball"

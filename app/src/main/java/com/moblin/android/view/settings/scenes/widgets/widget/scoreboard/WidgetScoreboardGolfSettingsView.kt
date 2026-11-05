@@ -55,7 +55,7 @@ fun WidgetScoreboardGolfSettingsView(
             options = listOf(9, 18),
             onChange = { value ->
                 golf.numberOfHoles = value
-                golf.currentHole = 0
+                golf.numberOfHolesChanged()
                 updated()
             }
         )

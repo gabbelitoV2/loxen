@@ -17,7 +17,7 @@ import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectDewarp360
 import com.moblin.android.various.settings.SettingsWidget
 import kotlin.math.roundToInt
-import com.moblin.android.various.model.getWidgetDewarp360Effect
+import com.moblin.android.various.model.dewarp360EffectSettingsChanged
 
 @Composable
 fun Dewarp360EffectView(
@@ -27,7 +27,7 @@ fun Dewarp360EffectView(
     dewarp360: SettingsVideoEffectDewarp360,
 ) {
     fun updateWidget() {
-        model.getWidgetDewarp360Effect(widget, effect)?.setSettings(dewarp360.toSettings())
+        model.dewarp360EffectSettingsChanged(widget = widget, effect = effect)
     }
 
     Section(header = "Pan, tilt and zoom") {

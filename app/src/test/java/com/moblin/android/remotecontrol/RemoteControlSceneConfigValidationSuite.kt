@@ -178,6 +178,13 @@ class RemoteControlSceneConfigValidationSuite {
         val edit: (Fixture, SettingsScene) -> Unit,
     )
 
+    class WidgetScenesCase(
+        val testDescription: String,
+        val type: SettingsWidgetType,
+        val scenes: List<String>,
+        val valid: Boolean,
+    )
+
     @Test
     fun createAndEchoEveryWidgetType() {
         for (type in SettingsWidgetType.entries) {
@@ -1088,5 +1095,56 @@ class RemoteControlSceneConfigValidationSuite {
         assertEquals(0, crop.y)
         assertEquals(200, crop.width)
         assertEquals(200, crop.height)
+    }
+
+    @Test
+    fun createWidgetInScenes() {
+        val testCases = listOf(
+            WidgetScenesCase("No scenes", SettingsWidgetType.text, listOf(), true),
+            WidgetScenesCase("One scene", SettingsWidgetType.text, listOf("Main"), true),
+            WidgetScenesCase("Nested scene only", SettingsWidgetType.browser, listOf("Target"), true),
+            WidgetScenesCase(
+                "Scene and its nested scene",
+                SettingsWidgetType.text,
+                listOf("Main", "Target"),
+                false,
+            ),
+            WidgetScenesCase("Same scene twice", SettingsWidgetType.text, listOf("Target", "Target"), false),
+            WidgetScenesCase(
+                "Scene widget into scene already nesting it",
+                SettingsWidgetType.scene,
+                listOf("Main"),
+                true,
+            ),
+            WidgetScenesCase(
+                "Scene widget into its own scene",
+                SettingsWidgetType.scene,
+                listOf("Target"),
+                true,
+            ),
+        )
+        for (widgetScenesCase in testCases) {
+            val fixture = Fixture()
+            assertEquals(
+                widgetScenesCase.valid,
+                isValidRemoteControlWidgetScenes(
+                    widget = fixture.makeWidget(widgetScenesCase.type),
+                    sceneIds = widgetScenesCase.scenes.map { fixture.scene(it).id },
+                    database = fixture.database,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun createWidgetInUnknownScene() {
+        val fixture = Fixture()
+        assertFalse(
+            isValidRemoteControlWidgetScenes(
+                widget = fixture.makeWidget(SettingsWidgetType.text),
+                sceneIds = listOf(UUID.randomUUID()),
+                database = fixture.database,
+            ),
+        )
     }
 }

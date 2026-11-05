@@ -787,23 +787,13 @@ fun MainView(
                 .background(Color.Black),
             contentAlignment = Alignment.Center
         ) {
-            if (isPortrait) {
-                portrait(
-                    model = model,
-                    streamView = streamView,
-                    orientation = orientation,
-                    quickButtons = quickButtons,
-                    safeAreaInsets = streamSafeAreaInsets
-                )
-            } else {
-                landscape(
-                    model = model,
-                    streamView = streamView,
-                    orientation = orientation,
-                    quickButtons = quickButtons,
-                    safeAreaInsets = streamSafeAreaInsets
-                )
-            }
+            main(
+                model = model,
+                streamView = streamView,
+                orientation = orientation,
+                quickButtons = quickButtons,
+                safeAreaInsets = streamSafeAreaInsets
+            )
             WebBrowserAlertsView(model = model)
             if (showStealthMode) {
                 StealthModeView(
@@ -1036,11 +1026,10 @@ private fun streamViewWithWidgets(
 }
 
 @Composable
-private fun portrait(
+private fun streamArea(
     model: Model = LocalModel.current,
     streamView: @Composable () -> Unit,
     orientation: Orientation,
-    quickButtons: SettingsQuickButtons,
     safeAreaInsets: StreamViewInsets,
 ) {
     val isPortrait by orientation.isPortrait.collectAsState()
@@ -1053,180 +1042,194 @@ private fun portrait(
     val showingRemoteControl by model.showingRemoteControl.collectAsState()
     val showingPanel by model.showingPanel.collectAsState()
     val panelHidden by model.panelHidden.collectAsState()
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .magnificationGesture(
-                    onChanged = { amount -> model.changeZoomX(amount = amount) },
-                    onEnded = { amount -> model.commitZoomX(amount = amount) }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            streamViewWithWidgets(model = model, streamView = streamView, safeAreaInsets = safeAreaInsets)
-            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val width = maxWidth.value
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = if (isPortrait) 5.dp else 0.dp)
-                        .opacityAndHitTesting(showLocalOverlays)
-                ) {
-                    StreamOverlayView(
-                        streamOverlay = model.streamOverlay,
-                        chatSettings = model.database.chat,
-                        orientation = orientation,
-                        width = width
-                    )
-                }
-            }
-            if (showDrawOnStream && stream.portrait) {
-                DrawOnStreamView(model = model)
-            }
-            MutedView(audio = model.audio)
-            PhotoShootView(model = model, photoShoot = model.photoShoot, enabled = photoShootEnabled)
-            if (showBrowser) {
-                WebBrowserView(
-                    model = model,
-                    database = model.database,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .magnificationGesture(
+                onChanged = { amount -> model.changeZoomX(amount = amount) },
+                onEnded = { amount -> model.commitZoomX(amount = amount) }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        streamViewWithWidgets(model = model, streamView = streamView, safeAreaInsets = safeAreaInsets)
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val width = maxWidth.value
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = if (isPortrait) 5.dp else 0.dp)
+                    .opacityAndHitTesting(showLocalOverlays)
+            ) {
+                StreamOverlayView(
+                    streamOverlay = model.streamOverlay,
+                    chatSettings = model.database.chat,
                     orientation = orientation,
-                    webBrowserState = model.webBrowserState
-                )
-            }
-            if (showNavigation) {
-                StreamOverlayNavigationView(
-                    model = model,
-                    database = model.database,
-                    navigation = model.navigation()
-                )
-            }
-            if (showingRemoteControl) {
-                ControlBarRemoteControlAssistantView(
-                    model = model,
-                    remoteControlSettings = model.database.remoteControl
-                )
-            }
-            if (showingPanel != ShowingPanel.none) {
-                Box(modifier = Modifier.opacityAndHitTesting(!panelHidden)) {
-                    MenuView(model = model)
-                }
-                val backgroundColor = if (panelHidden) {
-                    showingPanel.buttonsBackgroundColor()
-                } else {
-                    Color.Transparent
-                }
-                PanelButtonsView(
-                    model = model,
-                    backgroundColor = backgroundColor,
-                    modifier = Modifier
-                        .padding(end = 10.dp)
-                        .offset(y = (-7).dp)
+                    width = width
                 )
             }
         }
-        ControlBarPortraitView(model = model, quickButtons = quickButtons)
+        if (showDrawOnStream && (stream.portrait || !isPortrait)) {
+            DrawOnStreamView(model = model)
+        }
+        MutedView(audio = model.audio)
+        PhotoShootView(model = model, photoShoot = model.photoShoot, enabled = photoShootEnabled)
+        if (showBrowser) {
+            WebBrowserView(
+                model = model,
+                database = model.database,
+                orientation = orientation,
+                webBrowserState = model.webBrowserState
+            )
+        }
+        if (showNavigation) {
+            StreamOverlayNavigationView(
+                model = model,
+                database = model.database,
+                navigation = model.navigation()
+            )
+        }
+        if (showingRemoteControl) {
+            ControlBarRemoteControlAssistantView(
+                model = model,
+                remoteControlSettings = model.database.remoteControl
+            )
+        }
+        if (!isPortrait && showingPanel != ShowingPanel.none && panelHidden) {
+            PanelButtonsView(
+                model = model,
+                backgroundColor = showingPanel.buttonsBackgroundColor(),
+                modifier = Modifier.offset(x = 1.dp)
+            )
+        }
     }
 }
 
 @Composable
-private fun landscape(
+private fun panel(model: Model = LocalModel.current, orientation: Orientation) {
+    val isPortrait by orientation.isPortrait.collectAsState()
+    val showingPanel by model.showingPanel.collectAsState()
+    val panelHidden by model.panelHidden.collectAsState()
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .opacityAndHitTesting(!panelHidden)
+                .background(Color.Black)
+        ) {
+            MenuView(model = model)
+        }
+        if (isPortrait) {
+            val backgroundColor = if (panelHidden) {
+                showingPanel.buttonsBackgroundColor()
+            } else {
+                Color.Transparent
+            }
+            PanelButtonsView(
+                model = model,
+                backgroundColor = backgroundColor,
+                modifier = Modifier
+                    .padding(end = 10.dp)
+                    .offset(y = (-7).dp)
+            )
+        } else if (!panelHidden) {
+            PanelButtonsView(model = model, backgroundColor = Color.Transparent)
+        }
+    }
+}
+
+private fun streamAreaTrailingPadding(
+    isPortrait: Boolean,
+    showingPanel: ShowingPanel,
+    panelWidth: Double,
+): Double {
+    return if (isPortrait || showingPanel == ShowingPanel.none) {
+        0.0
+    } else {
+        panelWidth
+    }
+}
+
+@Composable
+private fun streamAndPanel(
+    model: Model = LocalModel.current,
+    streamView: @Composable () -> Unit,
+    orientation: Orientation,
+    safeAreaInsets: StreamViewInsets,
+) {
+    val isPortrait by orientation.isPortrait.collectAsState()
+    val showingPanel by model.showingPanel.collectAsState()
+    val panelHidden by model.panelHidden.collectAsState()
+    val panelWidth = if (panelHidden) 1.0 else settingsHalfWidth
+    val trailingPadding = streamAreaTrailingPadding(
+        isPortrait = isPortrait,
+        showingPanel = showingPanel,
+        panelWidth = panelWidth
+    )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(end = trailingPadding.dp)
+        ) {
+            streamArea(
+                model = model,
+                streamView = streamView,
+                orientation = orientation,
+                safeAreaInsets = safeAreaInsets
+            )
+        }
+        if (showingPanel != ShowingPanel.none) {
+            Box(
+                modifier = if (isPortrait) {
+                    Modifier.fillMaxSize()
+                } else {
+                    Modifier
+                        .fillMaxHeight()
+                        .width(panelWidth.dp)
+                }
+            ) {
+                panel(model = model, orientation = orientation)
+            }
+        }
+    }
+}
+
+@Composable
+private fun main(
     model: Model = LocalModel.current,
     streamView: @Composable () -> Unit,
     orientation: Orientation,
     quickButtons: SettingsQuickButtons,
     safeAreaInsets: StreamViewInsets,
 ) {
-    val showLocalOverlays by model.showLocalOverlays.collectAsState()
-    val showDrawOnStream by model.showDrawOnStream.collectAsState()
-    val photoShootEnabled by model.photoShootEnabled.collectAsState()
-    val showBrowser by model.showBrowser.collectAsState()
-    val showNavigation by model.showNavigation.collectAsState()
-    val showingRemoteControl by model.showingRemoteControl.collectAsState()
-    val showingPanel by model.showingPanel.collectAsState()
-    val panelHidden by model.panelHidden.collectAsState()
-    Row(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(1f)
-                .magnificationGesture(
-                    onChanged = { amount -> model.changeZoomX(amount = amount) },
-                    onEnded = { amount -> model.commitZoomX(amount = amount) }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            streamViewWithWidgets(model = model, streamView = streamView, safeAreaInsets = safeAreaInsets)
-            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val width = maxWidth.value
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .opacityAndHitTesting(showLocalOverlays)
-                ) {
-                    StreamOverlayView(
-                        streamOverlay = model.streamOverlay,
-                        chatSettings = model.database.chat,
-                        orientation = orientation,
-                        width = width
-                    )
-                }
-            }
-            if (showDrawOnStream) {
-                DrawOnStreamView(model = model)
-            }
-            MutedView(audio = model.audio)
-            PhotoShootView(model = model, photoShoot = model.photoShoot, enabled = photoShootEnabled)
-            if (showBrowser) {
-                WebBrowserView(
+    val isPortrait by orientation.isPortrait.collectAsState()
+    if (isPortrait) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                streamAndPanel(
                     model = model,
-                    database = model.database,
+                    streamView = streamView,
                     orientation = orientation,
-                    webBrowserState = model.webBrowserState
+                    safeAreaInsets = safeAreaInsets
                 )
             }
-            if (showNavigation) {
-                StreamOverlayNavigationView(
-                    model = model,
-                    database = model.database,
-                    navigation = model.navigation()
-                )
-            }
-            if (showingRemoteControl) {
-                ControlBarRemoteControlAssistantView(
-                    model = model,
-                    remoteControlSettings = model.database.remoteControl
-                )
-            }
-            if (showingPanel != ShowingPanel.none && panelHidden) {
-                PanelButtonsView(
-                    model = model,
-                    backgroundColor = showingPanel.buttonsBackgroundColor(),
-                    modifier = Modifier.offset(x = 1.dp)
-                )
-            }
+            ControlBarPortraitView(model = model, quickButtons = quickButtons)
         }
-        if (showingPanel != ShowingPanel.none) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(if (panelHidden) 1.dp else settingsHalfWidth.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                ) {
-                    Box(modifier = Modifier.opacityAndHitTesting(!panelHidden)) {
-                        MenuView(model = model)
-                    }
-                }
-                if (!panelHidden) {
-                    PanelButtonsView(model = model, backgroundColor = Color.Transparent)
-                }
+    } else {
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
+                streamAndPanel(
+                    model = model,
+                    streamView = streamView,
+                    orientation = orientation,
+                    safeAreaInsets = safeAreaInsets
+                )
             }
+            ControlBarLandscapeView(model = model, quickButtons = quickButtons)
         }
-        ControlBarLandscapeView(model = model, quickButtons = quickButtons)
     }
 }
 

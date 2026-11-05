@@ -15,6 +15,7 @@ import com.moblin.android.remotecontrol.hasUniqueRemoteControlIds
 import com.moblin.android.remotecontrol.isValidRemoteControlName
 import com.moblin.android.remotecontrol.isValidRemoteControlScene
 import com.moblin.android.remotecontrol.isValidRemoteControlSceneUpdate
+import com.moblin.android.remotecontrol.isValidRemoteControlWidgetScenes
 import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsVideoSource
@@ -96,20 +97,22 @@ fun Model.remoteControlDeleteScene(id: UUID): Boolean {
     return true
 }
 
-fun Model.remoteControlCreateWidget(widget: SettingsWidget): Boolean {
+fun Model.remoteControlCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean {
     if (database.widgets.any { it.id == widget.id }) {
         return false
     }
     val newWidget = remoteControlMakeWidget(widget = widget) ?: return false
-    if (!isValidRemoteControlName(newWidget, database.widgets + newWidget, database.widgets)) {
+    if (!isValidRemoteControlName(newWidget, database.widgets + newWidget, database.widgets) ||
+        !isValidRemoteControlWidgetScenes(newWidget, sceneIds, database = database)
+    ) {
         return false
     }
-    database.widgets.add(newWidget)
-    fixAlertMedias()
-    resetSelectedScene(changeScene = false, attachCamera = false)
-    if (newWidget.type == SettingsWidgetType.text) {
-        textWidgetTextChanged(widget = newWidget)
-    }
+    widgetWizardCreate(
+        type = newWidget.type,
+        name = newWidget.name,
+        widget = newWidget,
+        scenes = database.scenes.filter { sceneIds.contains(it.id) },
+    )
     return true
 }
 
@@ -118,9 +121,8 @@ fun Model.remoteControlUpdateWidget(widget: SettingsWidget): Boolean {
     if (!isValidRemoteControlName(widget, database.widgets, database.widgets)) {
         return false
     }
-    val update = remoteControlApplyWidgetUpdate(widget = oldWidget, new = widget, creating = false)
+    remoteControlApplyWidgetUpdate(widget = oldWidget, new = widget, creating = false)
         ?: return false
-    remoteControlWidgetUpdated(update = update)
     return true
 }
 
@@ -204,8 +206,7 @@ fun Model.remoteControlSetScoreboardPlayers(players: List<SettingsWidgetScoreboa
         return false
     }
     database.scoreboardPlayers = players.toMutableList()
-    sceneUpdated()
-    sendScoreboardPlayersToWatch()
+    scoreboardPlayersChanged()
     return true
 }
 

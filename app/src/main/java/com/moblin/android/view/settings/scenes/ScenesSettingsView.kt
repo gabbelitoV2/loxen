@@ -55,9 +55,9 @@ import com.moblin.android.view.utils.SwipeLeftToDuplicateOrDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
 import com.moblin.android.various.model.deleteScene
-import com.moblin.android.various.model.getSelectedScene
 import com.moblin.android.various.model.remoteSceneSettingsUpdated
 import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.sceneEnabledChanged
 import com.moblin.android.various.model.setGraphicsImplementation
 import com.moblin.android.various.model.showWidgetOutlines
 
@@ -106,11 +106,7 @@ private fun SceneItemView(
                             get = { scene.enabled },
                             set = { value ->
                                 scene.enabled = value
-                                if (model.getSelectedScene() === scene) {
-                                    model.resetSelectedScene()
-                                } else {
-                                    model.sceneSelector.sceneIndex.value += 0
-                                }
+                                model.sceneEnabledChanged(scene = scene)
                             },
                         ),
                     )

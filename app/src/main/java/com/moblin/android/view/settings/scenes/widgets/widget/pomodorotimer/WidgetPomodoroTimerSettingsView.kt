@@ -188,9 +188,7 @@ fun WidgetPomodoroTimerSettingsView(
             text = { value -> "$value min" },
             onChange = { value ->
                 pomodoroTimer.focusDuration = value
-                if (pomodoroTimer.phase == PomodoroPhase.focus && !pomodoroTimer.isRunning) {
-                    pomodoroTimer.secondsRemaining = value * 60
-                }
+                pomodoroTimer.focusDurationChanged()
             },
         )
         Picker(
@@ -200,9 +198,7 @@ fun WidgetPomodoroTimerSettingsView(
             text = { value -> "$value min" },
             onChange = { value ->
                 pomodoroTimer.breakDuration = value
-                if (pomodoroTimer.phase == PomodoroPhase.shortBreak && !pomodoroTimer.isRunning) {
-                    pomodoroTimer.secondsRemaining = value * 60
-                }
+                pomodoroTimer.breakDurationChanged()
             },
         )
     }

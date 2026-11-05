@@ -45,6 +45,8 @@ import kotlinx.coroutines.withContext
 import com.moblin.android.various.model.getVTuberEffect
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.vTuberWidgetSetCamera
+import com.moblin.android.various.model.vTuberWidgetSettingsChanged
 
 private fun unzipLive2DModel(from: String, to: File) {
     to.mkdirs()
@@ -154,20 +156,14 @@ fun WidgetVTuberSettingsView(
     modifier: Modifier = Modifier,
 ) {
     fun onCameraChange(cameraId: String) {
-        vTuber.updateCameraId(
+        model.vTuberWidgetSetCamera(
+            widget = widget,
             settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
         )
-        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
     }
 
     fun setEffectSettings() {
-        model.getVTuberEffect(widget.id)?.setSettings(
-            cameraFieldOfView = vTuber.cameraFieldOfView,
-            cameraPositionY = vTuber.cameraPositionY,
-            mirror = vTuber.mirror,
-            sensitivity = vTuber.sensitivity,
-            armsAngle = vTuber.armsAngle,
-        )
+        model.vTuberWidgetSettingsChanged(widget = widget)
     }
 
     var cameraPositionY by remember { mutableStateOf(vTuber.cameraPositionY) }

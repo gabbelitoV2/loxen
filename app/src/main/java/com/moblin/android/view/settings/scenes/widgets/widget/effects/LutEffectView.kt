@@ -16,22 +16,14 @@ import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.camera.CameraSettingsLutsView
 import com.moblin.android.view.utils.ShortcutSectionView
 import java.util.UUID
-import com.moblin.android.various.model.getLogLutById
-import com.moblin.android.various.model.getWidgetLutEffect
+import com.moblin.android.various.model.lutEffectSettingsChanged
 
 private fun updateWidget(
     model: Model,
     widget: SettingsWidget,
-    effect: SettingsVideoEffect,
-    lut: SettingsVideoEffectLut
+    effect: SettingsVideoEffect
 ) {
-    val logLut = model.getLogLutById(lut.lut)
-    model.getWidgetLutEffect(widget, effect)?.setLut(
-        lut = logLut,
-        imageStorage = model.imageStorage
-    ) { title, subTitle ->
-        model.makeErrorToast(title = title, subTitle = subTitle)
-    }
+    model.lutEffectSettingsChanged(widget = widget, effect = effect)
 }
 
 @Composable
@@ -63,8 +55,7 @@ fun LutEffectView(
                 updateWidget(
                     model = model,
                     widget = widget,
-                    effect = effect,
-                    lut = lut
+                    effect = effect
                 )
             }
         )

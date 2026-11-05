@@ -8,7 +8,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectOpacity
 import com.moblin.android.various.settings.SettingsWidget
-import com.moblin.android.various.model.getWidgetOpacityEffect
+import com.moblin.android.various.model.opacityEffectSettingsChanged
 
 @Composable
 fun OpacityEffectView(
@@ -18,7 +18,7 @@ fun OpacityEffectView(
     opacity: SettingsVideoEffectOpacity
 ) {
     fun updateWidget() {
-        model.getWidgetOpacityEffect(widget, effect)?.setOpacity(opacity.opacity)
+        model.opacityEffectSettingsChanged(widget = widget, effect = effect)
     }
 
     Section {

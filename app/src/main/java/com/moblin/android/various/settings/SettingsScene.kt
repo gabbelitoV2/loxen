@@ -2976,6 +2976,18 @@ class SettingsWidgetPomodoroTimer(
         secondsRemaining = focusDuration * 60
     }
 
+    fun focusDurationChanged() {
+        if (phase == PomodoroPhase.focus && !isRunning) {
+            secondsRemaining = focusDuration * 60
+        }
+    }
+
+    fun breakDurationChanged() {
+        if (phase == PomodoroPhase.shortBreak && !isRunning) {
+            secondsRemaining = breakDuration * 60
+        }
+    }
+
     fun totalSecondsForCurrentPhase(): Int = when (phase) {
         PomodoroPhase.focus -> focusDuration * 60
         PomodoroPhase.shortBreak -> breakDuration * 60
@@ -3985,6 +3997,10 @@ class SettingsWidgetGolfScoreboard(
         }
         this.pars = newPars
     }
+
+    fun numberOfHolesChanged() {
+        currentHole = 0
+    }
 }
 
 @Serializable(with = SettingsWidgetGenericScoreboardClockDirection.Serializer::class)
@@ -4394,6 +4410,10 @@ class SettingsWidgetScoreboard(
         textColorColor = textColor.color()
         primaryBackgroundColorColor = primaryBackgroundColor.color()
         secondaryBackgroundColorColor = secondaryBackgroundColor.color()
+    }
+
+    fun sportChanged() {
+        modular.config = null
     }
 
     fun setModularSport(sportId: String) {

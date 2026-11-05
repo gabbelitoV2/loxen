@@ -32,9 +32,9 @@ import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.getCameraId
 import com.moblin.android.various.model.getCameraPositionName
-import com.moblin.android.various.model.getPngTuberEffect
+import com.moblin.android.various.model.pngTuberWidgetSetCamera
+import com.moblin.android.various.model.pngTuberWidgetSettingsChanged
 import com.moblin.android.various.model.resetSelectedScene
-import com.moblin.android.various.model.sceneUpdated
 
 @Composable
 private fun PickerView(model: Model = LocalModel.current) {
@@ -123,24 +123,20 @@ fun WidgetSensitivityView(
 
 private fun onCameraChange(
     model: Model,
-    pngTuber: SettingsWidgetPngTuber,
+    widget: SettingsWidget,
     cameraId: String,
 ) {
-    pngTuber.updateCameraId(
+    model.pngTuberWidgetSetCamera(
+        widget = widget,
         settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
     )
-    model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
 }
 
 private fun setEffectSettings(
     model: Model,
     widget: SettingsWidget,
-    pngTuber: SettingsWidgetPngTuber,
 ) {
-    model.getPngTuberEffect(id = widget.id)?.setSettings(
-        mirror = pngTuber.mirror,
-        sensitivity = pngTuber.sensitivity,
-    )
+    model.pngTuberWidgetSettingsChanged(widget = widget)
 }
 
 @Composable
@@ -158,7 +154,7 @@ fun WidgetPngTuberSettingsView(
                 destination = {
                     InlinePickerView(
                         title = localized("Video source"),
-                        onChange = { cameraId -> onCameraChange(model, pngTuber, cameraId) },
+                        onChange = { cameraId -> onCameraChange(model, widget, cameraId) },
                         items = videoSources.all().map {
                             InlinePickerItem(id = it.id, text = it.name)
                         },
@@ -181,7 +177,7 @@ fun WidgetPngTuberSettingsView(
             onChange = { newSensitivity ->
                 sensitivity = newSensitivity
                 pngTuber.sensitivity = newSensitivity
-                setEffectSettings(model, widget, pngTuber)
+                setEffectSettings(model, widget)
             },
         )
         Section {
@@ -191,7 +187,7 @@ fun WidgetPngTuberSettingsView(
                 onChange = { newValue ->
                     mirror = newValue
                     pngTuber.mirror = newValue
-                    setEffectSettings(model, widget, pngTuber)
+                    setEffectSettings(model, widget)
                 },
             )
         }

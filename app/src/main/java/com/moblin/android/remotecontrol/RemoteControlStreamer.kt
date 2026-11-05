@@ -88,7 +88,7 @@ interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerCreateScene(scene: SettingsScene): Boolean
     fun remoteControlStreamerUpdateScene(scene: SettingsScene): Boolean
     fun remoteControlStreamerDeleteScene(id: UUID): Boolean
-    fun remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean
+    fun remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean
     fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean
     fun remoteControlStreamerDeleteWidget(id: UUID): Boolean
     fun remoteControlStreamerGetAlertsMediaGallery(): SettingsAlertsMediaGallery
@@ -96,6 +96,8 @@ interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerGetEditorOptions(): RemoteControlEditorOptions
     fun remoteControlStreamerSetScoreboardPlayers(players: List<SettingsWidgetScoreboardPlayer>): Boolean
     fun remoteControlStreamerGetVideoSourceSnapshot(id: UUID, onCompleted: (ByteArray?) -> Unit)
+    fun remoteControlStreamerSetMoblinCloudAlertsWidget(id: UUID?)
+    fun remoteControlStreamerSetMoblinCloudWheelOfLuckWidget(id: UUID?)
     fun remoteControlStreamerStartStats(filter: RemoteControlStartStatsFilter?)
     fun remoteControlStreamerStopStats()
     fun remoteControlStreamerStartMacro(id: UUID)
@@ -450,6 +452,14 @@ class RemoteControlStreamer(
                 delegate.remoteControlStreamerSetSrtConnectionPrioritiesEnabled(data.enabled)
                 sendEmptyOkResponse(id)
             }
+            is RemoteControlRequest.SetMoblinCloudAlertsWidget -> {
+                delegate.remoteControlStreamerSetMoblinCloudAlertsWidget(data.id)
+                sendEmptyOkResponse(id)
+            }
+            is RemoteControlRequest.SetMoblinCloudWheelOfLuckWidget -> {
+                delegate.remoteControlStreamerSetMoblinCloudWheelOfLuckWidget(data.id)
+                sendEmptyOkResponse(id)
+            }
             is RemoteControlRequest.TwitchEventSubNotification -> {
                 delegate.remoteControlStreamerTwitchEventSubNotification(data.message)
                 sendEmptyOkResponse(id)
@@ -649,7 +659,10 @@ class RemoteControlStreamer(
                 sendResultResponse(id, delegate.remoteControlStreamerDeleteScene(data.id))
             }
             is RemoteControlRequest.CreateWidget -> {
-                sendResultResponse(id, delegate.remoteControlStreamerCreateWidget(data.widget))
+                sendResultResponse(
+                    id,
+                    delegate.remoteControlStreamerCreateWidget(data.widget, data.sceneIds),
+                )
             }
             is RemoteControlRequest.UpdateWidget -> {
                 sendResultResponse(id, delegate.remoteControlStreamerUpdateWidget(data.widget))

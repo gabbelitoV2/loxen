@@ -5,7 +5,6 @@ import com.moblin.android.remotecontrol.RemoteControlCameras
 import com.moblin.android.remotecontrol.isValidRemoteControlWidgetUpdate
 import com.moblin.android.remotecontrol.remoteControlAllAlerts
 import com.moblin.android.remotecontrol.remoteControlMergeSceneWidgets
-import com.moblin.android.various.settings.PomodoroPhase
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsVideoEffect
@@ -16,21 +15,12 @@ import com.moblin.android.various.settings.SettingsWidgetAlertsChatBotCommandIma
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboardPlayer
 import com.moblin.android.various.settings.SettingsWidgetModularScoreboardTeam
 import com.moblin.android.various.settings.SettingsWidgetScoreboardClock
-import com.moblin.android.various.settings.SettingsWidgetScoreboardSport
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.utils.removeAllWhitespaces
 import com.moblin.android.videoeffects.text.TextFormatPart
 import com.moblin.android.videoeffects.text.loadTextFormat
 import java.util.UUID
-
-data class RemoteControlWidgetUpdate(
-    var reloadEffects: Boolean = false,
-    var reloadEffectsAttachCamera: Boolean = true,
-    var updateScene: Boolean = false,
-    var attachCamera: Boolean = false,
-    var updateEffects: () -> Unit = {},
-)
 
 private class ChangeTracker {
     var changed = false
@@ -60,7 +50,7 @@ fun Model.remoteControlMakeWidget(widget: SettingsWidget): SettingsWidget? {
     val newWidget = SettingsWidget(name = widget.name)
     newWidget.id = widget.id
     newWidget.type = widget.type
-    if (remoteControlApplyWidgetUpdate(widget = newWidget, new = widget, creating = true) == null) {
+    if (!remoteControlApplyWidgetUpdate(widget = newWidget, new = widget, creating = true)) {
         return null
     }
     return newWidget
@@ -70,7 +60,7 @@ fun Model.remoteControlApplyWidgetUpdate(
     widget: SettingsWidget,
     new: SettingsWidget,
     creating: Boolean,
-): RemoteControlWidgetUpdate? {
+): Boolean {
     if (!isValidRemoteControlWidgetUpdate(
             widget = widget,
             new = new,
@@ -80,28 +70,17 @@ fun Model.remoteControlApplyWidgetUpdate(
             cameras = remoteControlCameras(),
         )
     ) {
-        return null
+        return false
     }
-    var update = applyWidgetTypeUpdate(widget = widget, new = new)
+    applyWidgetTypeUpdate(widget = widget, new = new, creating = creating)
     widget.name = new.name
     if (widget.enabled != new.enabled) {
         widget.enabled = new.enabled
-        update.updateScene = true
-        update.attachCamera = update.attachCamera || isCaptureDeviceWidget(widget = widget)
+        if (!creating) {
+            widgetEnabledChanged(widget = widget)
+        }
     }
-    return update
-}
-
-fun Model.remoteControlWidgetUpdated(update: RemoteControlWidgetUpdate) {
-    if (update.reloadEffects) {
-        resetSelectedScene(
-            changeScene = false,
-            attachCamera = update.reloadEffectsAttachCamera || update.attachCamera,
-        )
-    } else if (update.updateScene) {
-        sceneUpdated(attachCamera = update.attachCamera)
-    }
-    update.updateEffects()
+    return true
 }
 
 private fun Model.remoteControlEditableTextTimers(widget: SettingsWidget, new: SettingsWidget): Int {
@@ -120,87 +99,110 @@ fun Model.remoteControlCameras(): RemoteControlCameras =
 private fun Model.applyWidgetTypeUpdate(
     widget: SettingsWidget,
     new: SettingsWidget,
-): RemoteControlWidgetUpdate = when (widget.type) {
-    SettingsWidgetType.text -> updateTextWidget(widget, new)
-    SettingsWidgetType.browser -> updateBrowserWidget(widget, new)
-    SettingsWidgetType.crop -> updateCropWidget(widget, new)
-    SettingsWidgetType.map -> updateMapWidget(widget, new)
-    SettingsWidgetType.scene -> updateSceneWidget(widget, new)
-    SettingsWidgetType.qrCode -> updateQrCodeWidget(widget, new)
-    SettingsWidgetType.image -> updateImageWidget(widget, new)
-    SettingsWidgetType.snapshot -> updateSnapshotWidget(widget, new)
-    SettingsWidgetType.chat -> updateChatWidget(widget, new)
-    SettingsWidgetType.chatEmoteCombo -> updateChatEmoteComboWidget(widget, new)
-    SettingsWidgetType.slideshow -> updateSlideshowWidget(widget, new)
-    SettingsWidgetType.wheelOfLuck -> updateWheelOfLuckWidget(widget, new)
-    SettingsWidgetType.bingoCard -> updateBingoCardWidget(widget, new)
-    SettingsWidgetType.videoSource -> updateVideoSourceWidget(widget, new)
-    SettingsWidgetType.vTuber -> updateVTuberWidget(widget, new)
-    SettingsWidgetType.pngTuber -> updatePngTuberWidget(widget, new)
-    SettingsWidgetType.pomodoroTimer -> updatePomodoroTimerWidget(widget, new)
-    SettingsWidgetType.scoreboard -> updateScoreboardWidget(widget, new)
-    SettingsWidgetType.alerts -> updateAlertsWidget(widget, new)
-    else -> RemoteControlWidgetUpdate()
+    creating: Boolean,
+) {
+    when (widget.type) {
+        SettingsWidgetType.text -> updateTextWidget(widget, new, creating)
+        SettingsWidgetType.browser -> updateBrowserWidget(widget, new, creating)
+        SettingsWidgetType.crop -> updateCropWidget(widget, new, creating)
+        SettingsWidgetType.map -> updateMapWidget(widget, new, creating)
+        SettingsWidgetType.scene -> updateSceneWidget(widget, new, creating)
+        SettingsWidgetType.qrCode -> updateQrCodeWidget(widget, new, creating)
+        SettingsWidgetType.image -> updateImageWidget(widget, new, creating)
+        SettingsWidgetType.snapshot -> updateSnapshotWidget(widget, new, creating)
+        SettingsWidgetType.chat -> updateChatWidget(widget, new, creating)
+        SettingsWidgetType.chatEmoteCombo -> updateChatEmoteComboWidget(widget, new, creating)
+        SettingsWidgetType.slideshow -> updateSlideshowWidget(widget, new, creating)
+        SettingsWidgetType.wheelOfLuck -> updateWheelOfLuckWidget(widget, new, creating)
+        SettingsWidgetType.bingoCard -> updateBingoCardWidget(widget, new, creating)
+        SettingsWidgetType.videoSource -> updateVideoSourceWidget(widget, new, creating)
+        SettingsWidgetType.vTuber -> updateVTuberWidget(widget, new, creating)
+        SettingsWidgetType.pngTuber -> updatePngTuberWidget(widget, new, creating)
+        SettingsWidgetType.pomodoroTimer -> updatePomodoroTimerWidget(widget, new, creating)
+        SettingsWidgetType.scoreboard -> updateScoreboardWidget(widget, new, creating)
+        SettingsWidgetType.alerts -> updateAlertsWidget(widget, new, creating)
+        else -> {}
+    }
 }
 
-private fun Model.updateTextWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateTextWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val text = widget.text
     val newText = new.text
     val formatChanged = text.formatString != newText.formatString
     text.formatString = newText.formatString
-    val style = ChangeTracker()
-    if (style.apply({ text.backgroundColor }, { text.backgroundColor = it }, newText.backgroundColor)) {
+    val changes = ChangeTracker()
+    val backgroundColorChanged =
+        changes.apply({ text.backgroundColor }, { text.backgroundColor = it }, newText.backgroundColor)
+    if (backgroundColorChanged) {
         text.backgroundColorColor = text.backgroundColor.color()
     }
-    if (style.apply({ text.foregroundColor }, { text.foregroundColor = it }, newText.foregroundColor)) {
+    val foregroundColorChanged =
+        changes.apply({ text.foregroundColor }, { text.foregroundColor = it }, newText.foregroundColor)
+    if (foregroundColorChanged) {
         text.foregroundColorColor = text.foregroundColor.color()
     }
-    if (style.apply({ text.fontSize }, { text.fontSize = it }, newText.fontSize)) {
+    val fontSizeChanged = changes.apply({ text.fontSize }, { text.fontSize = it }, newText.fontSize)
+    if (fontSizeChanged) {
         text.fontSizeFloat = text.fontSize.toFloat()
     }
-    style.apply({ text.font }, { text.font = it }, newText.font)
-    style.apply({ text.fontDesign }, { text.fontDesign = it }, newText.fontDesign)
-    style.apply({ text.fontWeight }, { text.fontWeight = it }, newText.fontWeight)
-    style.apply({ text.fontMonospacedDigits }, { text.fontMonospacedDigits = it }, newText.fontMonospacedDigits)
-    style.apply({ text.horizontalAlignment }, { text.horizontalAlignment = it }, newText.horizontalAlignment)
-    style.apply({ text.widthEnabled }, { text.widthEnabled = it }, newText.widthEnabled)
-    style.apply({ text.width }, { text.width = it }, newText.width)
-    style.apply({ text.cornerRadius }, { text.cornerRadius = it }, newText.cornerRadius)
-    val styleChanged = style.changed
+    val fontChanged = changes.apply({ text.font }, { text.font = it }, newText.font)
+    val fontDesignChanged = changes.apply({ text.fontDesign }, { text.fontDesign = it }, newText.fontDesign)
+    val fontWeightChanged = changes.apply({ text.fontWeight }, { text.fontWeight = it }, newText.fontWeight)
+    val fontMonospacedDigitsChanged = changes.apply(
+        { text.fontMonospacedDigits },
+        { text.fontMonospacedDigits = it },
+        newText.fontMonospacedDigits,
+    )
+    val layout = ChangeTracker()
+    layout.apply({ text.horizontalAlignment }, { text.horizontalAlignment = it }, newText.horizontalAlignment)
+    layout.apply({ text.widthEnabled }, { text.widthEnabled = it }, newText.widthEnabled)
+    layout.apply({ text.width }, { text.width = it }, newText.width)
+    layout.apply({ text.cornerRadius }, { text.cornerRadius = it }, newText.cornerRadius)
     val delayChanged = text.delay != newText.delay
     text.delay = newText.delay
-    return RemoteControlWidgetUpdate(reloadEffects = delayChanged) {
-        if (styleChanged) {
-            for (effect in getTextEffects(id = widget.id)) {
-                effect.setBackgroundColor(color = text.backgroundColor)
-                effect.setForegroundColor(color = text.foregroundColor)
-                effect.setFontSize(size = text.fontSize.toFloat())
-                effect.setFont(font = text.font)
-                effect.setFontDesign(design = text.fontDesign.toUiKit())
-                effect.setFontWeight(weight = text.fontWeight.toSystem())
-                effect.setFontMonospacedDigits(enabled = text.fontMonospacedDigits)
-                effect.setLayout(
-                    alignment = text.horizontalAlignment,
-                    width = if (text.widthEnabled) text.width else null,
-                    cornerRadius = text.cornerRadius.toDouble(),
-                )
-            }
-            remoteSceneSettingsUpdated()
-        }
-        if (formatChanged) {
-            textWidgetTextChanged(widget = widget)
-        }
-        for ((timer, newTimer) in text.timers.zip(newText.timers)) {
-            timer.delta = newTimer.delta
-        }
+    if (creating) {
+        return
+    }
+    if (delayChanged) {
+        resetSelectedScene(changeScene = false)
+    }
+    if (backgroundColorChanged) {
+        textWidgetBackgroundColorChanged(widget = widget)
+    }
+    if (foregroundColorChanged) {
+        textWidgetForegroundColorChanged(widget = widget)
+    }
+    if (fontSizeChanged) {
+        textWidgetFontSizeChanged(widget = widget)
+    }
+    if (fontChanged) {
+        textWidgetFontChanged(widget = widget)
+    }
+    if (fontDesignChanged) {
+        textWidgetFontDesignChanged(widget = widget)
+    }
+    if (fontWeightChanged) {
+        textWidgetFontWeightChanged(widget = widget)
+    }
+    if (fontMonospacedDigitsChanged) {
+        textWidgetFontMonospacedDigitsChanged(widget = widget)
+    }
+    if (layout.changed) {
+        textWidgetLayoutChanged(widget = widget)
+    }
+    if (formatChanged) {
+        textWidgetTextChanged(widget = widget)
+    }
+    for ((timer, newTimer) in text.timers.zip(newText.timers)) {
+        timer.delta = newTimer.delta
     }
 }
 
-private fun Model.updateBrowserWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateBrowserWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val browser = widget.browser
     val newBrowser = new.browser
     val changes = ChangeTracker()
-    val updateVideoEffects = applyEffectsUpdate(widget = widget, new = new, changes = changes)
+    applyEffectsUpdate(widget = widget, new = new, changes = changes)
     changes.apply({ browser.url }, { browser.url = it }, newBrowser.url.trim())
     changes.apply({ browser.styleSheet }, { browser.styleSheet = it }, newBrowser.styleSheet.trim())
     changes.apply({ browser.width }, { browser.width = it }, newBrowser.width)
@@ -210,10 +212,12 @@ private fun Model.updateBrowserWidget(widget: SettingsWidget, new: SettingsWidge
     changes.apply({ browser.baseFps }, { browser.baseFps = it }, newBrowser.baseFps)
     changes.apply({ browser.moblinAccess }, { browser.moblinAccess = it }, newBrowser.moblinAccess)
     changes.apply({ browser.speechToText }, { browser.speechToText = it }, newBrowser.speechToText)
-    return RemoteControlWidgetUpdate(reloadEffects = changes.changed, updateEffects = updateVideoEffects)
+    if (changes.changed && !creating) {
+        resetSelectedScene(changeScene = false)
+    }
 }
 
-private fun Model.updateCropWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateCropWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val crop = widget.crop
     val newCrop = new.crop
     val changes = ChangeTracker()
@@ -222,94 +226,117 @@ private fun Model.updateCropWidget(widget: SettingsWidget, new: SettingsWidget):
     changes.apply({ crop.y }, { crop.y = it }, newCrop.y)
     changes.apply({ crop.width }, { crop.width = it }, newCrop.width)
     changes.apply({ crop.height }, { crop.height = it }, newCrop.height)
-    return RemoteControlWidgetUpdate(reloadEffects = changes.changed)
-}
-
-private fun Model.updateMapWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
-    val map = widget.map
-    val newMap = new.map
-    val changes = ChangeTracker()
-    val updateVideoEffects = applyEffectsUpdate(widget = widget, new = new, changes = changes)
-    changes.apply({ map.northUp }, { map.northUp = it }, newMap.northUp)
-    changes.apply({ map.size }, { map.size = it }, newMap.size)
-    changes.apply({ map.delay }, { map.delay = it }, newMap.delay)
-    return RemoteControlWidgetUpdate(reloadEffects = changes.changed, updateEffects = updateVideoEffects)
-}
-
-private fun Model.updateSceneWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
-    val changes = ChangeTracker()
-    changes.apply({ widget.scene.sceneId }, { widget.scene.sceneId = it }, new.scene.sceneId)
-    return RemoteControlWidgetUpdate(reloadEffects = changes.changed)
-}
-
-private fun Model.updateQrCodeWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
-    val changes = ChangeTracker()
-    val updateVideoEffects = applyEffectsUpdate(widget = widget, new = new, changes = changes)
-    changes.apply({ widget.qrCode.message }, { widget.qrCode.message = it }, new.qrCode.message)
-    return RemoteControlWidgetUpdate(reloadEffects = changes.changed, updateEffects = updateVideoEffects)
-}
-
-private fun Model.updateImageWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
-    val changes = ChangeTracker()
-    val updateVideoEffects = applyEffectsUpdate(widget = widget, new = new, changes = changes)
-    return RemoteControlWidgetUpdate(reloadEffects = changes.changed, updateEffects = updateVideoEffects)
-}
-
-private fun Model.updateSnapshotWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
-    val effects = ChangeTracker()
-    val updateVideoEffects = applyEffectsUpdate(widget = widget, new = new, changes = effects)
-    val showtimeChanged = widget.snapshot.showtime != new.snapshot.showtime
-    widget.snapshot.showtime = new.snapshot.showtime
-    return RemoteControlWidgetUpdate(reloadEffects = effects.changed) {
-        updateVideoEffects()
-        if (showtimeChanged) {
-            getSnapshotEffect(id = widget.id)?.setSettings(showtime = widget.snapshot.showtime)
-        }
+    if (changes.changed && !creating) {
+        resetSelectedScene(changeScene = false)
     }
 }
 
-private fun Model.updateChatWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateMapWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
+    val map = widget.map
+    val newMap = new.map
+    val changes = ChangeTracker()
+    applyEffectsUpdate(widget = widget, new = new, changes = changes)
+    changes.apply({ map.northUp }, { map.northUp = it }, newMap.northUp)
+    changes.apply({ map.size }, { map.size = it }, newMap.size)
+    changes.apply({ map.delay }, { map.delay = it }, newMap.delay)
+    if (changes.changed && !creating) {
+        resetSelectedScene(changeScene = false)
+    }
+}
+
+private fun Model.updateSceneWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
+    val changes = ChangeTracker()
+    changes.apply({ widget.scene.sceneId }, { widget.scene.sceneId = it }, new.scene.sceneId)
+    if (changes.changed && !creating) {
+        resetSelectedScene(changeScene = false)
+    }
+}
+
+private fun Model.updateQrCodeWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
+    val changes = ChangeTracker()
+    applyEffectsUpdate(widget = widget, new = new, changes = changes)
+    changes.apply({ widget.qrCode.message }, { widget.qrCode.message = it }, new.qrCode.message)
+    if (changes.changed && !creating) {
+        resetSelectedScene(changeScene = false)
+    }
+}
+
+private fun Model.updateImageWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
+    val changes = ChangeTracker()
+    applyEffectsUpdate(widget = widget, new = new, changes = changes)
+    if (changes.changed && !creating) {
+        resetSelectedScene(changeScene = false)
+    }
+}
+
+private fun Model.updateSnapshotWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
+    val effects = ChangeTracker()
+    applyEffectsUpdate(widget = widget, new = new, changes = effects)
+    val settings = ChangeTracker()
+    settings.apply({ widget.snapshot.showtime }, { widget.snapshot.showtime = it }, new.snapshot.showtime)
+    if (creating) {
+        return
+    }
+    if (effects.changed) {
+        resetSelectedScene(changeScene = false)
+    }
+    if (settings.changed) {
+        snapshotWidgetShowtimeChanged(widget = widget)
+    }
+}
+
+private fun Model.updateChatWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val chat = widget.chat
     val newChat = new.chat
-    chat.fontSize = newChat.fontSize
-    chat.font = newChat.font
-    chat.usernameColor = newChat.usernameColor
-    chat.usernameColorColor = newChat.usernameColor.color()
-    chat.messageColor = newChat.messageColor
-    chat.messageColorColor = newChat.messageColor.color()
-    chat.backgroundColor = newChat.backgroundColor
-    chat.backgroundColorColor = newChat.backgroundColor.color()
-    chat.backgroundColorEnabled = newChat.backgroundColorEnabled
-    chat.shadowColor = newChat.shadowColor
-    chat.shadowColorColor = newChat.shadowColor.color()
-    chat.shadowColorEnabled = newChat.shadowColorEnabled
-    chat.boldUsername = newChat.boldUsername
-    chat.boldMessage = newChat.boldMessage
-    chat.badges = newChat.badges
-    chat.displayStyle = newChat.displayStyle
-    chat.sharedChatIcons = newChat.sharedChatIcons
-    chat.height = newChat.height
-    chat.maximumNumberOfMessages = newChat.maximumNumberOfMessages
-    return RemoteControlWidgetUpdate {
-        getChatEffect(id = widget.id)?.setSettings(settings = chat)
-        updateWidgetOutlines()
+    val changes = ChangeTracker()
+    changes.apply({ chat.fontSize }, { chat.fontSize = it }, newChat.fontSize)
+    changes.apply({ chat.font }, { chat.font = it }, newChat.font)
+    if (changes.apply({ chat.usernameColor }, { chat.usernameColor = it }, newChat.usernameColor)) {
+        chat.usernameColorColor = chat.usernameColor.color()
+    }
+    if (changes.apply({ chat.messageColor }, { chat.messageColor = it }, newChat.messageColor)) {
+        chat.messageColorColor = chat.messageColor.color()
+    }
+    if (changes.apply({ chat.backgroundColor }, { chat.backgroundColor = it }, newChat.backgroundColor)) {
+        chat.backgroundColorColor = chat.backgroundColor.color()
+    }
+    changes.apply({ chat.backgroundColorEnabled }, { chat.backgroundColorEnabled = it }, newChat.backgroundColorEnabled)
+    if (changes.apply({ chat.shadowColor }, { chat.shadowColor = it }, newChat.shadowColor)) {
+        chat.shadowColorColor = chat.shadowColor.color()
+    }
+    changes.apply({ chat.shadowColorEnabled }, { chat.shadowColorEnabled = it }, newChat.shadowColorEnabled)
+    changes.apply({ chat.boldUsername }, { chat.boldUsername = it }, newChat.boldUsername)
+    changes.apply({ chat.boldMessage }, { chat.boldMessage = it }, newChat.boldMessage)
+    changes.apply({ chat.badges }, { chat.badges = it }, newChat.badges)
+    changes.apply({ chat.displayStyle }, { chat.displayStyle = it }, newChat.displayStyle)
+    changes.apply({ chat.sharedChatIcons }, { chat.sharedChatIcons = it }, newChat.sharedChatIcons)
+    changes.apply({ chat.height }, { chat.height = it }, newChat.height)
+    changes.apply(
+        { chat.maximumNumberOfMessages },
+        { chat.maximumNumberOfMessages = it },
+        newChat.maximumNumberOfMessages,
+    )
+    if (changes.changed && !creating) {
+        chatWidgetSettingsChanged(widget = widget)
     }
 }
 
 private fun Model.updateChatEmoteComboWidget(
     widget: SettingsWidget,
     new: SettingsWidget,
-): RemoteControlWidgetUpdate {
+    creating: Boolean,
+) {
     val chatEmoteCombo = widget.chatEmoteCombo
     val newChatEmoteCombo = new.chatEmoteCombo
-    chatEmoteCombo.minimumCombo = newChatEmoteCombo.minimumCombo
-    chatEmoteCombo.resetAfter = newChatEmoteCombo.resetAfter
-    return RemoteControlWidgetUpdate {
-        getChatEmoteComboEffect(id = widget.id)?.setSettings(settings = chatEmoteCombo)
+    val changes = ChangeTracker()
+    changes.apply({ chatEmoteCombo.minimumCombo }, { chatEmoteCombo.minimumCombo = it }, newChatEmoteCombo.minimumCombo)
+    changes.apply({ chatEmoteCombo.resetAfter }, { chatEmoteCombo.resetAfter = it }, newChatEmoteCombo.resetAfter)
+    if (changes.changed && !creating) {
+        chatEmoteComboWidgetSettingsChanged(widget = widget)
     }
 }
 
-private fun Model.updateSlideshowWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateSlideshowWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val slideshow = widget.slideshow
     val changes = ChangeTracker()
     val slides = new.slideshow.slides.map { slide ->
@@ -323,54 +350,77 @@ private fun Model.updateSlideshowWidget(widget: SettingsWidget, new: SettingsWid
     }
     changes.applyItems(slideshow.slides, slides) { it.id }
     slideshow.slides = slides.toMutableList()
-    return RemoteControlWidgetUpdate(reloadEffects = changes.changed, reloadEffectsAttachCamera = false)
+    if (changes.changed && !creating) {
+        resetSelectedScene(changeScene = false, attachCamera = false)
+    }
 }
 
-private fun Model.updateWheelOfLuckWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateWheelOfLuckWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val wheelOfLuck = widget.wheelOfLuck
     val newWheelOfLuck = new.wheelOfLuck
+    val changes = ChangeTracker()
     wheelOfLuck.advanced = newWheelOfLuck.advanced
-    wheelOfLuck.onlyShowWhenSpinning = newWheelOfLuck.onlyShowWhenSpinning
-    wheelOfLuck.options = newWheelOfLuck.options.map { option ->
+    changes.apply(
+        { wheelOfLuck.onlyShowWhenSpinning },
+        { wheelOfLuck.onlyShowWhenSpinning = it },
+        newWheelOfLuck.onlyShowWhenSpinning,
+    )
+    val options = newWheelOfLuck.options.map { option ->
         val oldOption = wheelOfLuck.options.firstOrNull { it.id == option.id }
         if (oldOption == null) {
             return@map option
         }
-        oldOption.text = option.text
-        oldOption.weight = option.weight
+        changes.apply({ oldOption.text }, { oldOption.text = it }, option.text)
+        changes.apply({ oldOption.weight }, { oldOption.weight = it }, option.weight)
         oldOption.function = option.function
         oldOption.functionData = option.functionData
         oldOption
-    }.toMutableList()
+    }
+    changes.applyItems(wheelOfLuck.options, options) { it.id }
+    wheelOfLuck.options = options.toMutableList()
     wheelOfLuck.updateText()
     wheelOfLuck.updateTotalWeight()
-    return RemoteControlWidgetUpdate {
+    if (changes.changed && !creating) {
         updateWheelOfLuckEffect(widget = widget)
     }
 }
 
-private fun Model.updateBingoCardWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateBingoCardWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val bingoCard = widget.bingoCard
     val newBingoCard = new.bingoCard
-    bingoCard.backgroundColor = newBingoCard.backgroundColor
-    bingoCard.backgroundColorColor = newBingoCard.backgroundColor.color()
-    bingoCard.foregroundColor = newBingoCard.foregroundColor
-    bingoCard.foregroundColorColor = newBingoCard.foregroundColor.color()
-    bingoCard.squares = newBingoCard.squares
-    bingoCard.squaresText = newBingoCard.squaresText
-    return RemoteControlWidgetUpdate {
-        getBingoCardEffect(id = widget.id)?.setSettings(settings = bingoCard)
+    val changes = ChangeTracker()
+    if (changes.apply(
+            { bingoCard.backgroundColor },
+            { bingoCard.backgroundColor = it },
+            newBingoCard.backgroundColor,
+        )
+    ) {
+        bingoCard.backgroundColorColor = bingoCard.backgroundColor.color()
+    }
+    if (changes.apply(
+            { bingoCard.foregroundColor },
+            { bingoCard.foregroundColor = it },
+            newBingoCard.foregroundColor,
+        )
+    ) {
+        bingoCard.foregroundColorColor = bingoCard.foregroundColor.color()
+    }
+    changes.apply({ bingoCard.squares }, { bingoCard.squares = it }, newBingoCard.squares)
+    changes.apply({ bingoCard.squaresText }, { bingoCard.squaresText = it }, newBingoCard.squaresText)
+    if (changes.changed && !creating) {
+        bingoCardWidgetSettingsChanged(widget = widget)
     }
 }
 
-private fun Model.updateVideoSourceWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateVideoSourceWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val videoSource = widget.videoSource
     val newVideoSource = new.videoSource
     val effects = ChangeTracker()
-    val updateVideoEffects = applyEffectsUpdate(widget = widget, new = new, changes = effects)
+    applyEffectsUpdate(widget = widget, new = new, changes = effects)
     val cameraChanged = cameraId(videoSource.videoSource) != cameraId(newVideoSource.videoSource)
+    val settingsCameraId = newVideoSource.videoSource.toCameraId()
     if (cameraChanged) {
-        videoSource.updateCameraId(settingsCameraId = newVideoSource.videoSource.toCameraId())
+        videoSource.updateCameraId(settingsCameraId = settingsCameraId)
     }
     val settings = ChangeTracker()
     settings.apply({ videoSource.rotation }, { videoSource.rotation = it }, newVideoSource.rotation)
@@ -381,26 +431,26 @@ private fun Model.updateVideoSourceWidget(widget: SettingsWidget, new: SettingsW
         newVideoSource.trackFaceEnabled,
     )
     settings.apply({ videoSource.trackFaceZoom }, { videoSource.trackFaceZoom = it }, newVideoSource.trackFaceZoom)
-    val settingsChanged = settings.changed
-    return RemoteControlWidgetUpdate(
-        reloadEffects = effects.changed,
-        updateScene = cameraChanged,
-        attachCamera = cameraChanged,
-    ) {
-        updateVideoEffects()
-        if (settingsChanged) {
-            getVideoSourceEffect(id = widget.id)?.setSettings(settings = videoSource.toEffectSettings())
-            updateCameraPreviewWidgets()
-        }
+    if (creating) {
+        return
+    }
+    if (effects.changed) {
+        resetSelectedScene(changeScene = false)
+    } else if (cameraChanged) {
+        videoSourceWidgetSetCamera(widget = widget, settingsCameraId = settingsCameraId)
+    }
+    if (settings.changed) {
+        videoSourceWidgetSettingsChanged(widget = widget)
     }
 }
 
-private fun Model.updateVTuberWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateVTuberWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val vTuber = widget.vTuber
     val newVTuber = new.vTuber
     val cameraChanged = cameraId(vTuber.videoSource) != cameraId(newVTuber.videoSource)
+    val settingsCameraId = newVTuber.videoSource.toCameraId()
     if (cameraChanged) {
-        vTuber.updateCameraId(settingsCameraId = newVTuber.videoSource.toCameraId())
+        vTuber.updateCameraId(settingsCameraId = settingsCameraId)
     }
     val settings = ChangeTracker()
     settings.apply({ vTuber.cameraPositionY }, { vTuber.cameraPositionY = it }, newVTuber.cameraPositionY)
@@ -408,60 +458,64 @@ private fun Model.updateVTuberWidget(widget: SettingsWidget, new: SettingsWidget
     settings.apply({ vTuber.mirror }, { vTuber.mirror = it }, newVTuber.mirror)
     settings.apply({ vTuber.sensitivity }, { vTuber.sensitivity = it }, newVTuber.sensitivity)
     settings.apply({ vTuber.armsAngle }, { vTuber.armsAngle = it }, newVTuber.armsAngle)
-    val settingsChanged = settings.changed
-    return RemoteControlWidgetUpdate(updateScene = cameraChanged, attachCamera = cameraChanged) {
-        if (settingsChanged) {
-            getVTuberEffect(id = widget.id)?.setSettings(
-                cameraFieldOfView = vTuber.cameraFieldOfView,
-                cameraPositionY = vTuber.cameraPositionY,
-                mirror = vTuber.mirror,
-                sensitivity = vTuber.sensitivity,
-                armsAngle = vTuber.armsAngle,
-            )
-        }
+    if (creating) {
+        return
+    }
+    if (cameraChanged) {
+        vTuberWidgetSetCamera(widget = widget, settingsCameraId = settingsCameraId)
+    }
+    if (settings.changed) {
+        vTuberWidgetSettingsChanged(widget = widget)
     }
 }
 
-private fun Model.updatePngTuberWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updatePngTuberWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val pngTuber = widget.pngTuber
     val newPngTuber = new.pngTuber
     val cameraChanged = cameraId(pngTuber.videoSource) != cameraId(newPngTuber.videoSource)
+    val settingsCameraId = newPngTuber.videoSource.toCameraId()
     if (cameraChanged) {
-        pngTuber.updateCameraId(settingsCameraId = newPngTuber.videoSource.toCameraId())
+        pngTuber.updateCameraId(settingsCameraId = settingsCameraId)
     }
     val settings = ChangeTracker()
     settings.apply({ pngTuber.mirror }, { pngTuber.mirror = it }, newPngTuber.mirror)
     settings.apply({ pngTuber.sensitivity }, { pngTuber.sensitivity = it }, newPngTuber.sensitivity)
-    val settingsChanged = settings.changed
-    return RemoteControlWidgetUpdate(updateScene = cameraChanged, attachCamera = cameraChanged) {
-        if (settingsChanged) {
-            getPngTuberEffect(id = widget.id)?.setSettings(
-                mirror = pngTuber.mirror,
-                sensitivity = pngTuber.sensitivity,
-            )
-        }
+    if (creating) {
+        return
+    }
+    if (cameraChanged) {
+        pngTuberWidgetSetCamera(widget = widget, settingsCameraId = settingsCameraId)
+    }
+    if (settings.changed) {
+        pngTuberWidgetSettingsChanged(widget = widget)
     }
 }
 
 private fun Model.updatePomodoroTimerWidget(
     widget: SettingsWidget,
     new: SettingsWidget,
-): RemoteControlWidgetUpdate {
+    creating: Boolean,
+) {
     val pomodoroTimer = widget.pomodoroTimer
     val newPomodoroTimer = new.pomodoroTimer
-    if (pomodoroTimer.focusDuration != newPomodoroTimer.focusDuration) {
-        pomodoroTimer.focusDuration = newPomodoroTimer.focusDuration
-        if (pomodoroTimer.phase == PomodoroPhase.focus && !pomodoroTimer.isRunning) {
-            pomodoroTimer.secondsRemaining = pomodoroTimer.focusDuration * 60
-        }
+    val changes = ChangeTracker()
+    if (changes.apply(
+            { pomodoroTimer.focusDuration },
+            { pomodoroTimer.focusDuration = it },
+            newPomodoroTimer.focusDuration,
+        )
+    ) {
+        pomodoroTimer.focusDurationChanged()
     }
-    if (pomodoroTimer.breakDuration != newPomodoroTimer.breakDuration) {
-        pomodoroTimer.breakDuration = newPomodoroTimer.breakDuration
-        if (pomodoroTimer.phase == PomodoroPhase.shortBreak && !pomodoroTimer.isRunning) {
-            pomodoroTimer.secondsRemaining = pomodoroTimer.breakDuration * 60
-        }
+    if (changes.apply(
+            { pomodoroTimer.breakDuration },
+            { pomodoroTimer.breakDuration = it },
+            newPomodoroTimer.breakDuration,
+        )
+    ) {
+        pomodoroTimer.breakDurationChanged()
     }
-    pomodoroTimer.width = newPomodoroTimer.width
+    val widthChanged = changes.apply({ pomodoroTimer.width }, { pomodoroTimer.width = it }, newPomodoroTimer.width)
     pomodoroTimer.focusName = newPomodoroTimer.focusName
     pomodoroTimer.breakName = newPomodoroTimer.breakName
     pomodoroTimer.focusIcon = newPomodoroTimer.focusIcon
@@ -478,12 +532,12 @@ private fun Model.updatePomodoroTimerWidget(
     pomodoroTimer.breakToFocusSoundId = newPomodoroTimer.breakToFocusSoundId
     pomodoroTimer.focusToBreakChatMessage = newPomodoroTimer.focusToBreakChatMessage
     pomodoroTimer.breakToFocusChatMessage = newPomodoroTimer.breakToFocusChatMessage
-    return RemoteControlWidgetUpdate {
+    if (widthChanged && !creating) {
         updateWidgetOutlines()
     }
 }
 
-private fun Model.updateScoreboardWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateScoreboardWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val scoreboard = widget.scoreboard
     val newScoreboard = new.scoreboard
     val padel = scoreboard.padel
@@ -496,7 +550,7 @@ private fun Model.updateScoreboardWidget(widget: SettingsWidget, new: SettingsWi
     val newModular = newScoreboard.modular
     if (scoreboard.sport != newScoreboard.sport) {
         scoreboard.sport = newScoreboard.sport
-        modular.config = null
+        scoreboard.sportChanged()
     }
     scoreboard.textColor = newScoreboard.textColor
     scoreboard.primaryBackgroundColor = newScoreboard.primaryBackgroundColor
@@ -514,7 +568,7 @@ private fun Model.updateScoreboardWidget(widget: SettingsWidget, new: SettingsWi
     golf.title = newGolf.title
     if (golf.numberOfHoles != newGolf.numberOfHoles) {
         golf.numberOfHoles = newGolf.numberOfHoles
-        golf.currentHole = 0
+        golf.numberOfHolesChanged()
     }
     golf.updatePars(newGolf.pars)
     golf.players = newGolf.players.map { player ->
@@ -540,12 +594,12 @@ private fun Model.updateScoreboardWidget(widget: SettingsWidget, new: SettingsWi
     modular.showMoreStats = newModular.showMoreStats
     modular.showGlobalStatsBlock = newModular.showGlobalStatsBlock
     modular.showClock = newModular.showClock
-    return RemoteControlWidgetUpdate {
-        remoteControlScoreboardWidgetUpdated(widget = widget)
+    if (!creating) {
+        scoreboardWidgetUpdated(widget = widget)
     }
 }
 
-private fun Model.updateAlertsWidget(widget: SettingsWidget, new: SettingsWidget): RemoteControlWidgetUpdate {
+private fun Model.updateAlertsWidget(widget: SettingsWidget, new: SettingsWidget, creating: Boolean) {
     val alerts = widget.alerts
     val newAlerts = new.alerts
     val oldAlerts = remoteControlAllAlerts(alerts)
@@ -569,72 +623,120 @@ private fun Model.updateAlertsWidget(widget: SettingsWidget, new: SettingsWidget
     newAlerts.needsSubtitles = alerts.needsSubtitles
     newAlerts.ttsMonster = alerts.ttsMonster
     widget.alerts = newAlerts
-    return RemoteControlWidgetUpdate {
+    if (!creating) {
         fixAlertMedias()
     }
 }
 
 fun Model.remoteControlApplySceneUpdate(scene: SettingsScene, new: SettingsScene, creating: Boolean) {
-    val enabledChanged = scene.enabled != new.enabled
+    scene.name = new.name
+    applySceneEnabledUpdate(scene, new, creating)
+    applySceneVideoSourceUpdate(scene, new, creating)
+    applySceneQuickSwitchGroupUpdate(scene, new, creating)
+    applySceneMicUpdate(scene, new, creating)
+    applySceneBackgroundColorUpdate(scene, new, creating)
+    applySceneWidgetsUpdate(scene, new)
+}
+
+private fun Model.applySceneEnabledUpdate(scene: SettingsScene, new: SettingsScene, creating: Boolean) {
+    val changes = ChangeTracker()
+    if (changes.apply({ scene.enabled }, { scene.enabled = it }, new.enabled) && !creating) {
+        sceneEnabledChanged(scene = scene)
+    }
+}
+
+private fun Model.applySceneVideoSourceUpdate(scene: SettingsScene, new: SettingsScene, creating: Boolean) {
     val cameraChanged = cameraId(scene.videoSource) != cameraId(new.videoSource)
-    val attachCameraChanged = (!creating && cameraChanged) ||
-        scene.mirror != new.mirror ||
-        scene.overrideVideoStabilizationMode != new.overrideVideoStabilizationMode ||
-        scene.videoStabilizationMode != new.videoStabilizationMode ||
-        scene.fillFrame != new.fillFrame
-    val rotationChanged = scene.videoSourceRotation != new.videoSourceRotation
-    val quickSwitchGroupChanged = scene.quickSwitchGroup != new.quickSwitchGroup
-    val overrideMicChanged = scene.overrideMic != new.overrideMic
-    val micIdChanged = scene.micId != new.micId
-    val backgroundColorChanged = scene.backgroundColor != new.backgroundColor
+    val settingsCameraId = new.videoSource.toCameraId()
+    if (cameraChanged) {
+        scene.updateCameraId(settingsCameraId = settingsCameraId)
+    }
+    val changes = ChangeTracker()
+    changes.apply({ scene.mirror }, { scene.mirror = it }, new.mirror)
+    changes.apply(
+        { scene.overrideVideoStabilizationMode },
+        { scene.overrideVideoStabilizationMode = it },
+        new.overrideVideoStabilizationMode,
+    )
+    changes.apply(
+        { scene.videoStabilizationMode },
+        { scene.videoStabilizationMode = it },
+        new.videoStabilizationMode,
+    )
+    changes.apply({ scene.fillFrame }, { scene.fillFrame = it }, new.fillFrame)
+    val settingsChanged = changes.changed
+    val rotationChanged = changes.apply(
+        { scene.videoSourceRotation },
+        { scene.videoSourceRotation = it },
+        new.videoSourceRotation,
+    )
+    if (creating) {
+        return
+    }
+    if (cameraChanged) {
+        sceneSetCamera(scene = scene, settingsCameraId = settingsCameraId)
+    } else if (settingsChanged) {
+        sceneVideoSourceSettingsChanged()
+    } else if (rotationChanged) {
+        sceneVideoSourceRotationChanged()
+    }
+}
+
+private fun Model.applySceneQuickSwitchGroupUpdate(
+    scene: SettingsScene,
+    new: SettingsScene,
+    creating: Boolean,
+) {
+    val changes = ChangeTracker()
+    if (changes.apply({ scene.quickSwitchGroup }, { scene.quickSwitchGroup = it }, new.quickSwitchGroup) && !creating) {
+        sceneQuickSwitchGroupChanged(scene = scene)
+    }
+}
+
+private fun Model.applySceneMicUpdate(scene: SettingsScene, new: SettingsScene, creating: Boolean) {
+    val changes = ChangeTracker()
+    val overrideMicChanged = changes.apply({ scene.overrideMic }, { scene.overrideMic = it }, new.overrideMic)
+    val micIdChanged = changes.apply({ scene.micId }, { scene.micId = it }, new.micId)
+    if (creating) {
+        return
+    }
+    if (overrideMicChanged) {
+        switchMicIfNeededAfterSceneSwitch()
+    } else if (micIdChanged) {
+        sceneMicChanged(scene = scene)
+    }
+}
+
+private fun Model.applySceneBackgroundColorUpdate(
+    scene: SettingsScene,
+    new: SettingsScene,
+    creating: Boolean,
+) {
+    val changes = ChangeTracker()
+    if (changes.apply({ scene.backgroundColor }, { scene.backgroundColor = it }, new.backgroundColor)) {
+        scene.backgroundColorColor = scene.backgroundColor.color()
+        if (!creating) {
+            sceneBackgroundColorChanged()
+        }
+    }
+}
+
+private fun Model.applySceneWidgetsUpdate(scene: SettingsScene, new: SettingsScene) {
     val oldWidgetIds = scene.widgets.map { it.id }
     val newWidgetIds = new.widgets.map { it.id }
-    val widgetsRemovedOrMoved = oldWidgetIds.any { !newWidgetIds.contains(it) } ||
+    val removedOrMoved = oldWidgetIds.any { !newWidgetIds.contains(it) } ||
         oldWidgetIds.filter { newWidgetIds.contains(it) } != newWidgetIds.filter { oldWidgetIds.contains(it) }
-    val widgetsAdded = newWidgetIds.any { !oldWidgetIds.contains(it) }
+    val added = newWidgetIds.any { !oldWidgetIds.contains(it) }
     val layoutsChanged = new.widgets.any { sceneWidget ->
         scene.widgets.firstOrNull { it.id == sceneWidget.id }?.let { it.layout != sceneWidget.layout } ?: false
     }
     val captureDeviceWidgetsChanged =
         captureDeviceWidgetIds(scene.widgets) != captureDeviceWidgetIds(new.widgets)
-    scene.name = new.name
-    scene.enabled = new.enabled
-    if (cameraChanged) {
-        scene.updateCameraId(settingsCameraId = new.videoSource.toCameraId())
-    }
-    scene.videoSourceRotation = new.videoSourceRotation
-    scene.mirror = new.mirror
-    scene.overrideVideoStabilizationMode = new.overrideVideoStabilizationMode
-    scene.videoStabilizationMode = new.videoStabilizationMode
-    scene.fillFrame = new.fillFrame
-    scene.quickSwitchGroup = new.quickSwitchGroup
-    scene.overrideMic = new.overrideMic
-    scene.micId = new.micId
-    scene.backgroundColor = new.backgroundColor
-    scene.backgroundColorColor = new.backgroundColor.color()
     scene.widgets = remoteControlMergeSceneWidgets(scene.widgets, new.widgets).toMutableList()
-    val selected = getSelectedScene() === scene
-    val widgetsChanged = widgetsRemovedOrMoved || widgetsAdded || layoutsChanged
-    if (enabledChanged && selected) {
-        resetSelectedScene()
-    } else if (quickSwitchGroupChanged && selected) {
-        resetSelectedScene(changeScene = false, attachCamera = true)
-    } else if (attachCameraChanged || rotationChanged || widgetsChanged) {
-        sceneUpdated(
-            attachCamera = attachCameraChanged || (selected && captureDeviceWidgetsChanged),
-            updateRemoteScene = widgetsChanged,
-        )
+    if (removedOrMoved || added || layoutsChanged) {
+        sceneUpdated(attachCamera = getSelectedScene() === scene && captureDeviceWidgetsChanged)
     }
-    if (enabledChanged && !selected) {
-        sceneSelector.sceneIndex.value += 0
-    }
-    if (overrideMicChanged || (micIdChanged && selected)) {
-        switchMicIfNeededAfterSceneSwitch()
-    }
-    if (backgroundColorChanged) {
-        Unit
-    }
-    if (widgetsRemovedOrMoved) {
+    if (removedOrMoved) {
         sceneSettingsPanelSceneId.value += 1
     }
 }
@@ -647,23 +749,6 @@ private fun Model.captureDeviceWidgetIds(sceneWidgets: List<SettingsSceneWidget>
         .map { it.widgetId }
         .toSet()
 
-private fun Model.remoteControlScoreboardWidgetUpdated(widget: SettingsWidget) {
-    val scoreboard = widget.scoreboard
-    when (scoreboard.sport) {
-        SettingsWidgetScoreboardSport.generic ->
-            sendUpdateGenericScoreboardToWatch(id = widget.id, generic = scoreboard.generic)
-        SettingsWidgetScoreboardSport.padel ->
-            sendUpdatePadelScoreboardToWatch(id = widget.id, padel = scoreboard.padel)
-        else -> {}
-    }
-    remoteControlScoreboardUpdate(scoreboard = scoreboard)
-    getScoreboardEffect(id = widget.id)?.update(
-        scoreboard = scoreboard,
-        config = getModularScoreboardConfig(scoreboard = scoreboard),
-        players = database.scoreboardPlayers,
-    )
-}
-
 private fun Model.cameraId(videoSource: SettingsVideoSource): CameraId =
     getCameraId(settingsCameraId = videoSource.toCameraId())
 
@@ -671,7 +756,7 @@ private fun Model.applyEffectsUpdate(
     widget: SettingsWidget,
     new: SettingsWidget,
     changes: ChangeTracker,
-): () -> Unit {
+) {
     val updatedEffects = mutableListOf<SettingsVideoEffect>()
     val effects = new.effects.map { effect ->
         val oldEffect = widget.effects.firstOrNull { it.id == effect.id }
@@ -686,10 +771,8 @@ private fun Model.applyEffectsUpdate(
     }
     changes.applyItems(widget.effects, effects) { it.id }
     widget.effects = effects.toMutableList()
-    return {
-        for (effect in updatedEffects) {
-            updateWidgetVideoEffect(widget, effect)
-        }
+    for (effect in updatedEffects) {
+        updateWidgetVideoEffect(widget, effect)
     }
 }
 
@@ -793,29 +876,19 @@ private fun Model.applyEffectSettingsUpdate(
 private fun Model.updateWidgetVideoEffect(widget: SettingsWidget, effect: SettingsVideoEffect) {
     when (effect.type) {
         SettingsVideoEffectType.removeBackground ->
-            getWidgetRemoveBackgroundEffect(widget, effect)?.setColorRange(
-                from = effect.removeBackground.from,
-                to = effect.removeBackground.to,
-            )
-        SettingsVideoEffectType.shape -> {
-            getWidgetShapeEffect(widget, effect)?.setSettings(settings = effect.shape.toSettings())
-            updateCameraPreviewWidgets()
-        }
+            removeBackgroundEffectSettingsChanged(widget = widget, effect = effect)
+        SettingsVideoEffectType.shape ->
+            shapeEffectSettingsChanged(widget = widget, effect = effect)
         SettingsVideoEffectType.dewarp360 ->
-            getWidgetDewarp360Effect(widget, effect)?.setSettings(settings = effect.dewarp360.toSettings())
+            dewarp360EffectSettingsChanged(widget = widget, effect = effect)
         SettingsVideoEffectType.anamorphicLens ->
-            getWidgetAnamorphicLensEffect(widget, effect)?.setSettings(
-                settings = effect.anamorphicLens.clone(),
-            )
+            anamorphicLensEffectSettingsChanged(widget = widget, effect = effect)
         SettingsVideoEffectType.lut ->
-            getWidgetLutEffect(widget, effect)?.setLut(
-                lut = getLogLutById(id = effect.lut.lut),
-                imageStorage = imageStorage,
-            ) { title, subTitle -> makeErrorToast(title = title, subTitle = subTitle) }
+            lutEffectSettingsChanged(widget = widget, effect = effect)
         SettingsVideoEffectType.opacity ->
-            getWidgetOpacityEffect(widget, effect)?.setOpacity(opacity = effect.opacity.opacity)
+            opacityEffectSettingsChanged(widget = widget, effect = effect)
         SettingsVideoEffectType.mask ->
-            getWidgetMaskEffect(widget, effect)?.setSettings(settings = effect.mask.toEffectSettings())
+            maskEffectSettingsChanged(widget = widget, effect = effect)
         SettingsVideoEffectType.grayScale,
         SettingsVideoEffectType.sepia,
         SettingsVideoEffectType.whirlpool,

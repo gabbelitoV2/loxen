@@ -40,6 +40,7 @@ import com.moblin.android.remotecontrol.RemoteControlSettingsAutoSceneSwitcher
 import com.moblin.android.remotecontrol.RemoteControlSettingsBitratePreset
 import com.moblin.android.remotecontrol.RemoteControlSettingsGimbalPreset
 import com.moblin.android.remotecontrol.RemoteControlSettingsMic
+import com.moblin.android.remotecontrol.RemoteControlSettingsMoblinCloud
 import com.moblin.android.remotecontrol.RemoteControlSettingsScene
 import com.moblin.android.remotecontrol.RemoteControlSettingsSrt
 import com.moblin.android.remotecontrol.RemoteControlSettingsSrtConnectionPriority
@@ -801,6 +802,10 @@ fun Model.remoteControlGetSettings(): RemoteControlSettings {
         )
     }
     val connectionPrioritiesEnabled = stream.value.srt.connectionPriorities.enabled
+    val moblinCloud = RemoteControlSettingsMoblinCloud(
+        alertsWidgetId = database.moblinCloud.alertsWidgetId,
+        wheelOfLuckWidgetId = database.moblinCloud.wheelOfLuckWidgetId
+    )
     return RemoteControlSettings(
         streams = streams,
         scenes = scenes,
@@ -810,7 +815,8 @@ fun Model.remoteControlGetSettings(): RemoteControlSettings {
         srt = RemoteControlSettingsSrt(
             connectionPrioritiesEnabled = connectionPrioritiesEnabled,
             connectionPriorities = connectionPriorities
-        )
+        ),
+        moblinCloud = moblinCloud
     )
 }
 
@@ -982,6 +988,14 @@ fun Model.remoteControlSetSrtConnectionPrioritiesEnabled(enabled: Boolean) {
 
 fun Model.remoteControlStreamerSetSrtConnectionPrioritiesEnabled(enabled: Boolean) {
     remoteControlSetSrtConnectionPrioritiesEnabled(enabled = enabled)
+}
+
+fun Model.remoteControlStreamerSetMoblinCloudAlertsWidget(id: UUID?) {
+    remoteControlSetMoblinCloudAlertsWidget(id = id)
+}
+
+fun Model.remoteControlStreamerSetMoblinCloudWheelOfLuckWidget(id: UUID?) {
+    remoteControlSetMoblinCloudWheelOfLuckWidget(id = id)
 }
 
 fun Model.remoteControlSetSrtConnectionPriority(id: UUID, priority: Int, enabled: Boolean) {
@@ -1377,8 +1391,8 @@ fun Model.remoteControlStreamerDeleteScene(id: UUID): Boolean {
     return remoteControlDeleteScene(id = id)
 }
 
-fun Model.remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean {
-    return remoteControlCreateWidget(widget = widget)
+fun Model.remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean {
+    return remoteControlCreateWidget(widget = widget, sceneIds = sceneIds)
 }
 
 fun Model.remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {
@@ -1991,8 +2005,8 @@ private class RemoteControlStreamerDelegateAdapter(
         return model.remoteControlStreamerDeleteScene(id = id)
     }
 
-    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean {
-        return model.remoteControlStreamerCreateWidget(widget = widget)
+    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean {
+        return model.remoteControlStreamerCreateWidget(widget = widget, sceneIds = sceneIds)
     }
 
     override fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {
@@ -2021,6 +2035,14 @@ private class RemoteControlStreamerDelegateAdapter(
 
     override fun remoteControlStreamerGetVideoSourceSnapshot(id: UUID, onCompleted: (ByteArray?) -> Unit) {
         model.remoteControlStreamerGetVideoSourceSnapshot(id = id, onCompleted = onCompleted)
+    }
+
+    override fun remoteControlStreamerSetMoblinCloudAlertsWidget(id: UUID?) {
+        model.remoteControlStreamerSetMoblinCloudAlertsWidget(id = id)
+    }
+
+    override fun remoteControlStreamerSetMoblinCloudWheelOfLuckWidget(id: UUID?) {
+        model.remoteControlStreamerSetMoblinCloudWheelOfLuckWidget(id = id)
     }
 
     override fun remoteControlStreamerStartStats(filter: RemoteControlStartStatsFilter?) {

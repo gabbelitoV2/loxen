@@ -1,8 +1,10 @@
 package com.moblin.android.various
 
 import com.moblin.android.common.various.cleanUrl
+import com.moblin.android.common.various.isValidHttpUrl
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.common.various.isValidWebSocketUrl
+import com.moblin.android.common.various.trim
 import com.moblin.android.various.settings.SettingsDnsLookupStrategy
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsStreamCodec
@@ -122,7 +124,9 @@ class MoblinSettingsRemoteControl(
 class MoblinSettingsMoblinCloud(
     var enabled: Boolean,
     var key: String,
-)
+) {
+    var url: String? = null
+}
 
 @Serializable
 class MoblinSettingsUrl {
@@ -158,6 +162,11 @@ class MoblinSettingsUrl {
                     isValidWebSocketUrl(cleanUrl(obs.webSocketUrl))?.let { message ->
                         throw Exception(message)
                     }
+                }
+            }
+            settings.moblinCloud?.url?.let { url ->
+                isValidHttpUrl(url.trim())?.let { message ->
+                    throw Exception(message)
                 }
             }
             return settings

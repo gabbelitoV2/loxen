@@ -496,7 +496,7 @@ fun Model.colorSpaceUpdated() {
 }
 
 fun Model.lutEnabledUpdated() {
-    if (database.color.lutEnabled && database.color.space == SettingsColorSpace.appleLog) {
+    if (database.color.lutEnabled && database.color.space.isAppleLog()) {
         media.registerEffect(lutEffect)
     } else {
         media.unregisterEffect(lutEffect)

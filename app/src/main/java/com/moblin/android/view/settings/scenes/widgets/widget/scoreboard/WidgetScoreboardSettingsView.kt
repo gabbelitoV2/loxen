@@ -18,11 +18,7 @@ import com.moblin.android.view.settings.remotecontrol.RemoteControlWebDefaultUrl
 import com.moblin.android.view.utils.RemoteControlWebShortcutView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
-import com.moblin.android.various.model.getModularScoreboardConfig
-import com.moblin.android.various.model.getScoreboardEffect
-import com.moblin.android.various.model.remoteControlScoreboardUpdate
-import com.moblin.android.various.model.sendUpdateGenericScoreboardToWatch
-import com.moblin.android.various.model.sendUpdatePadelScoreboardToWatch
+import com.moblin.android.various.model.scoreboardWidgetUpdated
 
 @Composable
 fun WidgetScoreboardQuickButtonControlsView(
@@ -113,23 +109,7 @@ fun WidgetScoreboardSettingsView(
     web: SettingsRemoteControlWeb,
 ) {
     val updated: () -> Unit = {
-        when (scoreboard.sport) {
-            SettingsWidgetScoreboardSport.generic -> model.sendUpdateGenericScoreboardToWatch(
-                widget.id,
-                scoreboard.generic,
-            )
-            SettingsWidgetScoreboardSport.padel -> model.sendUpdatePadelScoreboardToWatch(
-                widget.id,
-                scoreboard.padel,
-            )
-            else -> Unit
-        }
-        model.remoteControlScoreboardUpdate(scoreboard)
-        model.getScoreboardEffect(widget.id)?.update(
-            scoreboard,
-            model.getModularScoreboardConfig(scoreboard),
-            model.database.scoreboardPlayers,
-        )
+        model.scoreboardWidgetUpdated(widget)
     }
 
     Section {
@@ -140,7 +120,7 @@ fun WidgetScoreboardSettingsView(
             text = { it.toString() },
             onChange = { sport ->
                 scoreboard.sport = sport
-                scoreboard.modular.config = null
+                scoreboard.sportChanged()
                 updated()
             },
         )

@@ -40,9 +40,8 @@ import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calcul
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calculatePositioningRectangle
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.drawPositioningRectangle
 import com.moblin.android.view.utils.RgbColorPickerView
-import com.moblin.android.various.model.getWidgetShapeEffect
+import com.moblin.android.various.model.shapeEffectSettingsChanged
 import com.moblin.android.various.model.takeVideoSourcePreviewImage
-import com.moblin.android.various.model.updateCameraPreviewWidgets
 
 @Composable
 private fun CornerRadiusView(
@@ -236,8 +235,7 @@ fun ShapeEffectView(
     val isPortrait = stream.portrait
 
     fun updateWidget() {
-        model.getWidgetShapeEffect(widget, effect)?.setSettings(shape.toSettings())
-        model.updateCameraPreviewWidgets()
+        model.shapeEffectSettingsChanged(widget = widget, effect = effect)
     }
 
     LaunchedEffect(Unit) {

@@ -8,7 +8,7 @@ import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectRemoveBackground
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.RgbColorPickerView
-import com.moblin.android.various.model.getWidgetRemoveBackgroundEffect
+import com.moblin.android.various.model.removeBackgroundEffectSettingsChanged
 
 @Composable
 fun RemoveBackgroundEffectView(
@@ -18,10 +18,7 @@ fun RemoveBackgroundEffectView(
     removeBackground: SettingsVideoEffectRemoveBackground,
 ) {
     fun updateWidget() {
-        model.getWidgetRemoveBackgroundEffect(widget, effect)?.setColorRange(
-            removeBackground.from,
-            removeBackground.to,
-        )
+        model.removeBackgroundEffectSettingsChanged(widget = widget, effect = effect)
     }
 
     Section(header = "Color range") {

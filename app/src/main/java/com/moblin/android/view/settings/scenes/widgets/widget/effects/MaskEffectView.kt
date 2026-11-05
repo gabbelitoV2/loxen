@@ -71,6 +71,7 @@ import com.moblin.android.view.utils.RgbColorPickerView
 import kotlin.math.hypot
 import com.moblin.android.various.model.getWidgetMaskEffect
 import com.moblin.android.various.model.takeVideoSourcePreviewImage
+import com.moblin.android.various.model.maskEffectSettingsChanged
 
 private val maskPointHandleRadius: Float = 12f
 private val maskEdgeHitWidth: Float = 20f
@@ -567,7 +568,7 @@ fun MaskEffectView(
     var selectedEdgeIndex by remember { mutableStateOf<Int?>(null) }
 
     fun updateWidget() {
-        model.getWidgetMaskEffect(widget, effect)?.setSettings(settings = mask.toEffectSettings())
+        model.maskEffectSettingsChanged(widget = widget, effect = effect)
     }
 
     fun refreshPreviewImage() {

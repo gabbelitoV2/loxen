@@ -152,7 +152,27 @@ fun isValidRemoteControlSceneUpdate(
 fun isValidRemoteControlScene(scene: SettingsScene, scenes: List<SettingsScene>, database: Database): Boolean {
     return isValidRemoteControlName(scene, scenes, database.scenes) &&
         hasUniqueRemoteControlIds(scene.widgets) &&
-        !introducesDuplicatedWidgets(scenes = scenes, database = database)
+        !introducesDuplicatedWidgets(scenes = scenes, widgets = database.widgets, database = database)
+}
+
+fun isValidRemoteControlWidgetScenes(widget: SettingsWidget, sceneIds: List<UUID>, database: Database): Boolean {
+    if (sceneIds.toSet().size != sceneIds.size || !sceneIds.all { database.findScene(it) != null }) {
+        return false
+    }
+    val scenes = database.scenes.map { scene ->
+        if (!sceneIds.contains(scene.id)) {
+            return@map scene
+        }
+        val newScene = SettingsScene(name = scene.name)
+        newScene.id = scene.id
+        newScene.widgets = (scene.widgets + SettingsSceneWidget(widgetId = widget.id)).toMutableList()
+        newScene
+    }
+    return !introducesDuplicatedWidgets(
+        scenes = scenes,
+        widgets = database.widgets + widget,
+        database = database,
+    )
 }
 
 fun remoteControlMergeSceneWidgets(
@@ -178,10 +198,11 @@ fun remoteControlMergeSceneWidgets(
 
 private fun introducesDuplicatedWidgets(
     scenes: List<SettingsScene>,
+    widgets: List<SettingsWidget>,
     database: Database,
 ): Boolean {
-    val before = SceneResolver(scenes = database.scenes, widgets = database.widgets)
-    val after = SceneResolver(scenes = scenes, widgets = database.widgets)
+    val before = SceneResolver(scenes = database.scenes, widgets = widgets)
+    val after = SceneResolver(scenes = scenes, widgets = widgets)
     return scenes.any { scene ->
         val beforeCounts = database.findScene(scene.id)?.let {
             before.resolve(it, includeDisabledSceneWidgets = true).duplicatedWidgetCounts()

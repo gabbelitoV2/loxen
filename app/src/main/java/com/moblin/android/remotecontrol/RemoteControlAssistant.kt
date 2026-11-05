@@ -331,11 +331,12 @@ class RemoteControlAssistant(
 
     fun createWidget(
         widget: SettingsWidget,
+        sceneIds: List<java.util.UUID>,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         performRequestNoResponseData(
-            data = RemoteControlRequest.CreateWidget(widget = widget),
+            data = RemoteControlRequest.CreateWidget(widget = widget, sceneIds = sceneIds),
             onSuccess = onSuccess,
             onError = onError
         )

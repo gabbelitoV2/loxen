@@ -102,6 +102,7 @@ import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coregraphics.toCGSize
 import com.moblin.android.various.utils.makeUniqueName
+import com.moblin.android.various.settings.SettingsCameraId
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -144,6 +145,29 @@ class CreateSceneWizard {
 }
 
 const val defaultScoreboardSize = 18.52
+
+fun Model.widgetWizardCreate(
+    type: SettingsWidgetType,
+    name: String,
+    widget: SettingsWidget,
+    scenes: List<SettingsScene>
+) {
+    widget.type = type
+    widget.name = if (name.isEmpty()) {
+        makeUniqueName(name = SettingsWidget.baseName, existingNames = database.widgets)
+    } else {
+        name
+    }
+    database.widgets.add(widget)
+    fixAlertMedias()
+    resetSelectedScene(changeScene = false, attachCamera = false)
+    for (scene in scenes) {
+        appendWidgetToScene(scene = scene, widget = widget)
+    }
+    if (widget.type == SettingsWidgetType.text) {
+        textWidgetTextChanged(widget = widget)
+    }
+}
 
 fun Model.getTextEffects(id: UUID): List<TextEffect> {
     val effects = mutableListOf<TextEffect>()
@@ -251,6 +275,41 @@ fun Model.getWidgetRemoveBackgroundEffect(
     effect: SettingsVideoEffect
 ): RemoveBackgroundEffect? {
     return getWidgetVideoEffect<RemoveBackgroundEffect>(widget, effect)
+}
+
+fun Model.shapeEffectSettingsChanged(widget: SettingsWidget, effect: SettingsVideoEffect) {
+    getWidgetShapeEffect(widget, effect)?.setSettings(settings = effect.shape.toSettings())
+    updateCameraPreviewWidgets()
+}
+
+fun Model.anamorphicLensEffectSettingsChanged(widget: SettingsWidget, effect: SettingsVideoEffect) {
+    getWidgetAnamorphicLensEffect(widget, effect)?.setSettings(settings = effect.anamorphicLens.clone())
+}
+
+fun Model.dewarp360EffectSettingsChanged(widget: SettingsWidget, effect: SettingsVideoEffect) {
+    getWidgetDewarp360Effect(widget, effect)?.setSettings(settings = effect.dewarp360.toSettings())
+}
+
+fun Model.lutEffectSettingsChanged(widget: SettingsWidget, effect: SettingsVideoEffect) {
+    val lut = getLogLutById(id = effect.lut.lut)
+    getWidgetLutEffect(widget, effect)?.setLut(lut = lut, imageStorage = imageStorage) { title, subTitle ->
+        makeErrorToast(title = title, subTitle = subTitle)
+    }
+}
+
+fun Model.opacityEffectSettingsChanged(widget: SettingsWidget, effect: SettingsVideoEffect) {
+    getWidgetOpacityEffect(widget, effect)?.setOpacity(opacity = effect.opacity.opacity)
+}
+
+fun Model.maskEffectSettingsChanged(widget: SettingsWidget, effect: SettingsVideoEffect) {
+    getWidgetMaskEffect(widget, effect)?.setSettings(settings = effect.mask.toEffectSettings())
+}
+
+fun Model.removeBackgroundEffectSettingsChanged(widget: SettingsWidget, effect: SettingsVideoEffect) {
+    getWidgetRemoveBackgroundEffect(widget, effect)?.setColorRange(
+        from = effect.removeBackground.from,
+        to = effect.removeBackground.to
+    )
 }
 
 private fun Model.getEffectWithPossibleEffects(id: UUID): VideoEffect? {
@@ -597,6 +656,163 @@ fun Model.appendWidgetToScene(scene: SettingsScene, widget: SettingsWidget) {
         attachCamera = isCaptureDeviceWidget(widget = widget)
     }
     sceneUpdated(attachCamera = attachCamera)
+}
+
+fun Model.sceneEnabledChanged(scene: SettingsScene) {
+    if (getSelectedScene() === scene) {
+        resetSelectedScene()
+    } else {
+        sceneSelector.sceneIndex.value += 0
+    }
+}
+
+fun Model.sceneSetCamera(scene: SettingsScene, settingsCameraId: SettingsCameraId) {
+    scene.updateCameraId(settingsCameraId = settingsCameraId)
+    sceneUpdated(attachCamera = true, updateRemoteScene = false)
+}
+
+fun Model.sceneVideoSourceRotationChanged() {
+    sceneUpdated(updateRemoteScene = false)
+}
+
+fun Model.sceneVideoSourceSettingsChanged() {
+    sceneUpdated(attachCamera = true, updateRemoteScene = false)
+}
+
+fun Model.sceneQuickSwitchGroupChanged(scene: SettingsScene) {
+    if (getSelectedScene() === scene) {
+        resetSelectedScene(changeScene = false, attachCamera = true)
+    }
+}
+
+fun Model.sceneMicChanged(scene: SettingsScene) {
+    if (getSelectedScene() === scene) {
+        switchMicIfNeededAfterSceneSwitch()
+    }
+}
+
+fun Model.sceneBackgroundColorChanged() {
+    sceneSelector.sceneIndex.value += 0
+}
+
+fun Model.widgetEnabledChanged(widget: SettingsWidget) {
+    sceneUpdated(attachCamera = isCaptureDeviceWidget(widget = widget))
+}
+
+fun Model.chatWidgetSettingsChanged(widget: SettingsWidget) {
+    getChatEffect(id = widget.id)?.setSettings(settings = widget.chat)
+    updateWidgetOutlines()
+}
+
+fun Model.bingoCardWidgetSettingsChanged(widget: SettingsWidget) {
+    getBingoCardEffect(id = widget.id)?.setSettings(settings = widget.bingoCard)
+}
+
+fun Model.vTuberWidgetSettingsChanged(widget: SettingsWidget) {
+    val vTuber = widget.vTuber
+    getVTuberEffect(id = widget.id)?.setSettings(
+        cameraFieldOfView = vTuber.cameraFieldOfView,
+        cameraPositionY = vTuber.cameraPositionY,
+        mirror = vTuber.mirror,
+        sensitivity = vTuber.sensitivity,
+        armsAngle = vTuber.armsAngle
+    )
+}
+
+fun Model.pngTuberWidgetSettingsChanged(widget: SettingsWidget) {
+    getPngTuberEffect(id = widget.id)?.setSettings(
+        mirror = widget.pngTuber.mirror,
+        sensitivity = widget.pngTuber.sensitivity
+    )
+}
+
+fun Model.videoSourceWidgetSetCamera(widget: SettingsWidget, settingsCameraId: SettingsCameraId) {
+    widget.videoSource.updateCameraId(settingsCameraId = settingsCameraId)
+    sceneUpdated(attachCamera = true, updateRemoteScene = false)
+}
+
+fun Model.vTuberWidgetSetCamera(widget: SettingsWidget, settingsCameraId: SettingsCameraId) {
+    widget.vTuber.updateCameraId(settingsCameraId = settingsCameraId)
+    sceneUpdated(attachCamera = true, updateRemoteScene = false)
+}
+
+fun Model.pngTuberWidgetSetCamera(widget: SettingsWidget, settingsCameraId: SettingsCameraId) {
+    widget.pngTuber.updateCameraId(settingsCameraId = settingsCameraId)
+    sceneUpdated(attachCamera = true, updateRemoteScene = false)
+}
+
+fun Model.videoSourceWidgetSettingsChanged(widget: SettingsWidget) {
+    getVideoSourceEffect(id = widget.id)?.setSettings(settings = widget.videoSource.toEffectSettings())
+    updateCameraPreviewWidgets()
+}
+
+fun Model.chatEmoteComboWidgetSettingsChanged(widget: SettingsWidget) {
+    getChatEmoteComboEffect(id = widget.id)?.setSettings(settings = widget.chatEmoteCombo)
+}
+
+fun Model.snapshotWidgetShowtimeChanged(widget: SettingsWidget) {
+    getSnapshotEffect(id = widget.id)?.setSettings(showtime = widget.snapshot.showtime)
+}
+
+fun Model.textWidgetBackgroundColorChanged(widget: SettingsWidget) {
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setBackgroundColor(color = widget.text.backgroundColor)
+    }
+    remoteSceneSettingsUpdated()
+}
+
+fun Model.textWidgetForegroundColorChanged(widget: SettingsWidget) {
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setForegroundColor(color = widget.text.foregroundColor)
+    }
+    remoteSceneSettingsUpdated()
+}
+
+fun Model.textWidgetFontSizeChanged(widget: SettingsWidget) {
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setFontSize(size = widget.text.fontSize.toFloat())
+    }
+    remoteSceneSettingsUpdated()
+}
+
+fun Model.textWidgetFontChanged(widget: SettingsWidget) {
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setFont(font = widget.text.font)
+    }
+    remoteSceneSettingsUpdated()
+}
+
+fun Model.textWidgetFontDesignChanged(widget: SettingsWidget) {
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setFontDesign(design = widget.text.fontDesign.toUiKit())
+    }
+    remoteSceneSettingsUpdated()
+}
+
+fun Model.textWidgetFontWeightChanged(widget: SettingsWidget) {
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setFontWeight(weight = widget.text.fontWeight.toSystem())
+    }
+    remoteSceneSettingsUpdated()
+}
+
+fun Model.textWidgetFontMonospacedDigitsChanged(widget: SettingsWidget) {
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setFontMonospacedDigits(enabled = widget.text.fontMonospacedDigits)
+    }
+    remoteSceneSettingsUpdated()
+}
+
+fun Model.textWidgetLayoutChanged(widget: SettingsWidget) {
+    val text = widget.text
+    for (effect in getTextEffects(id = widget.id)) {
+        effect.setLayout(
+            alignment = text.horizontalAlignment,
+            width = if (text.widthEnabled) text.width else null,
+            cornerRadius = text.cornerRadius.toDouble()
+        )
+    }
+    remoteSceneSettingsUpdated()
 }
 
 fun Model.textWidgetTextChanged(widget: SettingsWidget) {
@@ -1328,7 +1544,7 @@ private fun Model.sceneUpdatedOff() {
 private fun Model.sceneUpdatedOn(scene: SettingsScene, resolver: SceneResolver, attachCamera: Boolean) {
     val resolvedScene = resolver.resolve(scene, includeRemote = true)
     val effects = mutableListOf<VideoEffect>()
-    if (database.color.lutEnabled && database.color.space == SettingsColorSpace.appleLog) {
+    if (database.color.lutEnabled && database.color.space.isAppleLog()) {
         effects.add(lutEffect)
     }
     for (lut in database.color.allLuts()) {

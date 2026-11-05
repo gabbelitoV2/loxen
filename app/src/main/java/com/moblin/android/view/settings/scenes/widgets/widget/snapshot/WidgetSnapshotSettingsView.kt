@@ -8,7 +8,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetSnapshot
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
-import com.moblin.android.various.model.getSnapshotEffect
+import com.moblin.android.various.model.snapshotWidgetShowtimeChanged
 
 @Composable
 fun WidgetSnapshotSettingsView(
@@ -24,12 +24,12 @@ fun WidgetSnapshotSettingsView(
             text = { "${it}s" },
         ) { showtime ->
             snapshot.showtime = showtime
-            setEffectSettings(model, widget, showtime)
+            setEffectSettings(model, widget)
         }
     }
     WidgetEffectsView(model = model, widget = widget)
 }
 
-private fun setEffectSettings(model: Model, widget: SettingsWidget, showtime: Int) {
-    model.getSnapshotEffect(widget.id)?.setSettings(showtime)
+private fun setEffectSettings(model: Model, widget: SettingsWidget) {
+    model.snapshotWidgetShowtimeChanged(widget = widget)
 }

@@ -45,8 +45,15 @@ import com.moblin.android.various.model.isCaptureDeviceWidget
 import com.moblin.android.various.model.isSceneVideoSourceActive
 import com.moblin.android.various.model.isScreenCaptureCamera
 import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.sceneBackgroundColorChanged
+import com.moblin.android.various.model.sceneMicChanged
+import com.moblin.android.various.model.sceneQuickSwitchGroupChanged
+import com.moblin.android.various.model.sceneSetCamera
 import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.sceneVideoSourceRotationChanged
+import com.moblin.android.various.model.sceneVideoSourceSettingsChanged
 import com.moblin.android.various.model.switchMicIfNeededAfterSceneSwitch
+import com.moblin.android.various.model.widgetEnabledChanged
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsSceneWidget
@@ -75,7 +82,7 @@ private fun VideoStabilizationView(model: Model = LocalModel.current, scene: Set
         options = videoStabilizationModes,
         onChange = { value ->
             scene.videoStabilizationMode = value
-            model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+            model.sceneVideoSourceSettingsChanged()
         },
     )
 }
@@ -100,9 +107,7 @@ private fun MicView(
                 title = "Mic",
                 onChange = { id ->
                     scene.micId = id
-                    if (model.getSelectedScene() === scene) {
-                        model.switchMicIfNeededAfterSceneSwitch()
-                    }
+                    model.sceneMicChanged(scene = scene)
                 },
                 items = mics.map { InlinePickerItem(id = it.id, text = it.name) },
                 initialSelectedId = scene.micId,
@@ -127,7 +132,7 @@ private fun SceneWidgetView(
         get = { widget.enabled },
         set = { value ->
             widget.enabled = value
-            model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget = widget))
+            model.widgetEnabledChanged(widget = widget)
         },
     )
     NavigationLink(
@@ -183,8 +188,10 @@ private fun VideoSourceView(
                 InlinePickerView(
                     title = "Name",
                     onChange = { cameraId ->
-                        scene.updateCameraId(settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId))
-                        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+                        model.sceneSetCamera(
+                            scene = scene,
+                            settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
+                        )
                         if (model.isScreenCaptureCamera(cameraId = cameraId)) {
                             presentingScreenCaptureAlert = true
                         }
@@ -220,7 +227,7 @@ private fun VideoSourceView(
                     selectedRotation = videoSourceRotation,
                     onSelectedRotationChange = { value ->
                         scene.videoSourceRotation = value
-                        model.sceneUpdated(updateRemoteScene = false)
+                        model.sceneVideoSourceRotationChanged()
                     },
                 )
             }
@@ -229,7 +236,7 @@ private fun VideoSourceView(
                 isOn = mirror,
                 onChange = { value ->
                     scene.mirror = value
-                    model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+                    model.sceneVideoSourceSettingsChanged()
                 },
             )
             Toggle(
@@ -237,7 +244,7 @@ private fun VideoSourceView(
                 isOn = overrideVideoStabilizationMode,
                 onChange = { value ->
                     scene.overrideVideoStabilizationMode = value
-                    model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+                    model.sceneVideoSourceSettingsChanged()
                 },
             )
             if (overrideVideoStabilizationMode) {
@@ -249,7 +256,7 @@ private fun VideoSourceView(
                     isOn = fillFrame,
                     onChange = { value ->
                         scene.fillFrame = value
-                        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+                        model.sceneVideoSourceSettingsChanged()
                     },
                 )
             }
@@ -291,9 +298,7 @@ private fun QuickSwitchGroupView(model: Model = LocalModel.current, database: Da
             text = { it?.toString() ?: localized("-- None --") },
             onChange = { value ->
                 scene.quickSwitchGroup = value
-                if (model.getSelectedScene() === scene) {
-                    model.resetSelectedScene(changeScene = false, attachCamera = true)
-                }
+                model.sceneQuickSwitchGroupChanged(scene = scene)
             },
         )
     }
@@ -313,11 +318,13 @@ private fun SceneColorView(model: Model = LocalModel.current, scene: SettingsSce
             onColorChanged = { scene.backgroundColorColor = it },
             onChange = { rgbColor ->
                 scene.backgroundColor = rgbColor
+                model.sceneBackgroundColorChanged()
             },
         )
         TextButtonView("Reset") {
             scene.backgroundColor = defaultSegmentedPickerSelectedColor
             scene.backgroundColorColor = scene.backgroundColor.color()
+            model.sceneBackgroundColorChanged()
         }
     }
 }

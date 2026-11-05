@@ -551,10 +551,11 @@ sealed class RemoteControlRequest {
         }
     }
 
-    data class CreateWidget(val widget: SettingsWidget) : RemoteControlRequest() {
+    data class CreateWidget(val widget: SettingsWidget, val sceneIds: List<UUID>) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("createWidget") {
                 put("widget", remoteControlJson.encodeToJsonElement(widget))
+                put("sceneIds", remoteControlJson.encodeToJsonElement(RemoteControlUuidListSerializer, sceneIds))
             }
         }
     }
@@ -602,6 +603,26 @@ sealed class RemoteControlRequest {
     data class GetVideoSourceSnapshot(val id: UUID) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("getVideoSourceSnapshot") { put("id", id.toString()) }
+        }
+    }
+
+    data class SetMoblinCloudAlertsWidget(val id: UUID?) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("setMoblinCloudAlertsWidget") {
+                if (id != null) {
+                    put("id", id.toString())
+                }
+            }
+        }
+    }
+
+    data class SetMoblinCloudWheelOfLuckWidget(val id: UUID?) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("setMoblinCloudWheelOfLuckWidget") {
+                if (id != null) {
+                    put("id", id.toString())
+                }
+            }
         }
     }
 
@@ -762,6 +783,10 @@ sealed class RemoteControlRequest {
                 )
                 "createWidget" -> CreateWidget(
                     widget = remoteControlJson.decodeFromJsonElement(params.getValue("widget")),
+                    sceneIds = remoteControlJson.decodeFromJsonElement(
+                        RemoteControlUuidListSerializer,
+                        params.getValue("sceneIds"),
+                    ),
                 )
                 "updateWidget" -> UpdateWidget(
                     widget = remoteControlJson.decodeFromJsonElement(params.getValue("widget")),
@@ -777,6 +802,16 @@ sealed class RemoteControlRequest {
                 )
                 "getVideoSourceSnapshot" -> GetVideoSourceSnapshot(
                     id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
+                )
+                "setMoblinCloudAlertsWidget" -> SetMoblinCloudAlertsWidget(
+                    id = params["id"]?.let {
+                        if (it is JsonNull) null else UUID.fromString(it.jsonPrimitive.content)
+                    },
+                )
+                "setMoblinCloudWheelOfLuckWidget" -> SetMoblinCloudWheelOfLuckWidget(
+                    id = params["id"]?.let {
+                        if (it is JsonNull) null else UUID.fromString(it.jsonPrimitive.content)
+                    },
                 )
                 else -> throw SerializationException("Unknown request ${entry.key}")
             }
@@ -2383,6 +2418,14 @@ data class RemoteControlEditorOptions(
 )
 
 @Serializable
+data class RemoteControlSettingsMoblinCloud(
+    @Serializable(with = UUIDSerializer::class)
+    val alertsWidgetId: UUID? = null,
+    @Serializable(with = UUIDSerializer::class)
+    val wheelOfLuckWidgetId: UUID? = null,
+)
+
+@Serializable
 data class RemoteControlSettings(
     var streams: List<RemoteControlSettingsStream>,
     var scenes: List<RemoteControlSettingsScene>,
@@ -2390,6 +2433,7 @@ data class RemoteControlSettings(
     var bitratePresets: List<RemoteControlSettingsBitratePreset>,
     var mics: List<RemoteControlSettingsMic>,
     var srt: RemoteControlSettingsSrt,
+    var moblinCloud: RemoteControlSettingsMoblinCloud? = null,
 )
 
 @Serializable

@@ -8,7 +8,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetChatEmoteCombo
 import com.moblin.android.localized
-import com.moblin.android.various.model.getChatEmoteComboEffect
+import com.moblin.android.various.model.chatEmoteComboWidgetSettingsChanged
 
 @Composable
 fun WidgetChatEmoteComboSettingsView(
@@ -44,5 +44,5 @@ private fun setEffectSettings(
     widget: SettingsWidget,
     chatEmoteCombo: SettingsWidgetChatEmoteCombo,
 ) {
-    model.getChatEmoteComboEffect(widget.id)?.setSettings(settings = chatEmoteCombo)
+    model.chatEmoteComboWidgetSettingsChanged(widget = widget)
 }

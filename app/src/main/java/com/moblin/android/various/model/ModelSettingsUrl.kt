@@ -198,6 +198,10 @@ private fun Model.handleSettingsUrlsDefaultMoblinCloud(settings: MoblinSettingsU
     val moblinCloud = settings.moblinCloud ?: return
     database.moblinCloud.enabled = moblinCloud.enabled
     database.moblinCloud.key = moblinCloud.key.trim()
+    val url = moblinCloud.url
+    if (url != null) {
+        database.moblinCloud.url = url.trim()
+    }
     reloadMoblinCloud()
 }
 

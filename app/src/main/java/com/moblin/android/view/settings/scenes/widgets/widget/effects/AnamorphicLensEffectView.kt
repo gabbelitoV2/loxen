@@ -9,7 +9,7 @@ import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectAnamorphicLens
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.various.model.getWidgetAnamorphicLensEffect
+import com.moblin.android.various.model.anamorphicLensEffectSettingsChanged
 
 @Composable
 fun AnamorphicLensEffectView(
@@ -43,7 +43,7 @@ private fun updateWidget(
     effect: SettingsVideoEffect,
     anamorphicLens: SettingsVideoEffectAnamorphicLens
 ) {
-    model.getWidgetAnamorphicLensEffect(widget, effect)?.setSettings(anamorphicLens.clone())
+    model.anamorphicLensEffectSettingsChanged(widget = widget, effect = effect)
 }
 
 private fun changeScale(value: String): String? {

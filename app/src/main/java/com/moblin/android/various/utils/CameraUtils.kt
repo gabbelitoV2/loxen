@@ -243,6 +243,10 @@ fun hasAppleLog(): Boolean {
     return false
 }
 
+fun hasAppleLog2(): Boolean {
+    return false
+}
+
 fun hasHlg(): Boolean {
     for (format in bestBackCameraDevice?.formats ?: emptyList()) {
         if (format.supportedColorSpaces.contains(AVCaptureColorSpace.HLG_BT2020)) {

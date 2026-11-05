@@ -72,7 +72,7 @@ private const val TAG = "MoblinCloud"
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 val moblinWebsiteApiUrl: String = ""
-private val moblinCloudApiUrl: String = ""
+val moblinCloudApiUrl: String = ""
 private val liveUrl: String = "$moblinWebsiteApiUrl/streamers/live"
 private val challengeUrl: String = "$moblinWebsiteApiUrl/streamers/live/challenge"
 private val appAttestStorage = SimpleStringStorage(key = "moblinWebsiteAppAttest")
@@ -223,8 +223,8 @@ private suspend fun sendLive(channels: List<MoblinCloudChannel>) {
     }
 }
 
-private fun makeMoblinCloudUrl(key: String): String? {
-    val components = runCatching { URI(moblinCloudApiUrl) }.getOrNull() ?: return null
+private fun makeMoblinCloudUrl(url: String, key: String): String? {
+    val components = runCatching { URI(url) }.getOrNull() ?: return null
     val scheme = when (components.scheme) {
         "https" -> "wss"
         "http" -> "ws"
@@ -297,7 +297,7 @@ fun Model.reloadMoblinCloud() {
         updateMoblinCloudStatus()
         return
     }
-    val url = makeMoblinCloudUrl(key)
+    val url = makeMoblinCloudUrl(url = settings.url, key = key)
     if (url == null) {
         updateMoblinCloudStatus()
         return
@@ -344,6 +344,21 @@ fun Model.getMoblinCloudWheelOfLuckWidget(): SettingsWidget? {
 
 fun Model.isMoblinCloudWheelOfLuckWidget(widget: SettingsWidget): Boolean {
     return widget.id == database.moblinCloud.wheelOfLuckWidgetId
+}
+
+fun Model.remoteControlSetMoblinCloudAlertsWidget(id: UUID?) {
+    if (id != null && !database.widgets.any { it.id == id && it.type == SettingsWidgetType.alerts }) {
+        return
+    }
+    database.moblinCloud.alertsWidgetId = id
+}
+
+fun Model.remoteControlSetMoblinCloudWheelOfLuckWidget(id: UUID?) {
+    if (id != null && !database.widgets.any { it.id == id && it.type == SettingsWidgetType.wheelOfLuck }) {
+        return
+    }
+    database.moblinCloud.wheelOfLuckWidgetId = id
+    moblinCloudSendWheelOfLuck()
 }
 
 fun Model.moblinCloudSendWheelOfLuck() {
@@ -697,6 +712,14 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         model?.remoteControlSetSrtConnectionPrioritiesEnabled(enabled = enabled)
     }
 
+    override fun remoteControlStreamerSetMoblinCloudAlertsWidget(id: UUID?) {
+        model?.remoteControlSetMoblinCloudAlertsWidget(id = id)
+    }
+
+    override fun remoteControlStreamerSetMoblinCloudWheelOfLuckWidget(id: UUID?) {
+        model?.remoteControlSetMoblinCloudWheelOfLuckWidget(id = id)
+    }
+
     override fun remoteControlStreamerTwitchEventSubNotification(message: String) {
     }
 
@@ -858,8 +881,8 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         return model?.remoteControlDeleteScene(id = id) ?: false
     }
 
-    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget): Boolean {
-        return model?.remoteControlCreateWidget(widget = widget) ?: false
+    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean {
+        return model?.remoteControlCreateWidget(widget = widget, sceneIds = sceneIds) ?: false
     }
 
     override fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {

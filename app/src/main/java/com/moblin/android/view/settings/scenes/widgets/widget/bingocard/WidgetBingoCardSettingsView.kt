@@ -34,7 +34,7 @@ import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
-import com.moblin.android.various.model.getBingoCardEffect
+import com.moblin.android.various.model.bingoCardWidgetSettingsChanged
 
 @Composable
 fun BingCardWidgetSquaresView(value: String, onValueChange: (String) -> Unit) {
@@ -151,7 +151,7 @@ fun WidgetBingoCardSettingsView(
     bingoCard: SettingsWidgetBingoCard,
 ) {
     val updateEffect: () -> Unit = {
-        model.getBingoCardEffect(widget.id)?.setSettings(bingoCard)
+        model.bingoCardWidgetSettingsChanged(widget)
     }
 
     BingCardWidgetSquaresView(

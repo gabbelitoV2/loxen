@@ -1,11 +1,61 @@
 {
-  "upstream": "013f290d6d1de69bfc765cce10845750f571f324",
+  "upstream": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "Moblin/Various/Model/Model.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/Model.kt",
+      "reason": "hook",
+      "ported_from": "013f290d6d1de69bfc765cce10845750f571f324",
+      "errors": [],
+      "hooks": [
+        "HA16.1 (A16.json) various/model/Model.kt [fun updateIsPortrait]: neither the old nor the new line was found",
+        "HA16.2 (A16.json) various/model/Model.kt [fun updateOrientationLock]: neither the old nor the new line was found"
+      ]
+    },
+    {
+      "swift": "Moblin/View/Settings/Camera/CameraSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/camera/CameraSettingsView.kt",
+      "reason": "compile",
+      "ported_from": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+      "errors": [
+        "319: Unresolved reference 'supportsAppleLog2'.",
+        "384: Unresolved reference 'supportsAppleLog2'.",
+        "401: Unresolved reference 'supportsAppleLog2'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Display/DisplaySettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/display/DisplaySettingsView.kt",
+      "reason": "compile",
+      "ported_from": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+      "errors": [
+        "250: Unresolved reference 'updateAutoRotateToPortrait'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
+      "reason": "hook",
+      "ported_from": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+      "errors": [],
+      "hooks": [
+        "HE0.42 (E0.json) view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt [fun WidgetTextSettingsView]: neither the old nor the new line was found",
+        "HE0.43 (E0.json) view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt [fun WidgetTextSettingsView]: neither the old nor the new line was found"
+      ]
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],
-  "effects": []
+  "effects": [
+    "check_effects_api.py: pins: 1 findings",
+    "check_effects_api.py:   metalpetal: pinned 8787ff999db2 in the effects plan, upstream has d52ee140e275",
+    "check_effects_api.py: known gaps: 21 findings are listed in effects_known_gaps.json",
+    "check_effects_api.py: check_effects_api: 1 open findings, 21 known gaps"
+  ]
 }

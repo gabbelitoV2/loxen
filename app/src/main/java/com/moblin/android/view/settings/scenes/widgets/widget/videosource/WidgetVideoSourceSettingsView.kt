@@ -37,10 +37,9 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.getCameraId
 import com.moblin.android.various.model.getCameraPositionName
-import com.moblin.android.various.model.getVideoSourceEffect
 import com.moblin.android.various.model.isScreenCaptureCamera
-import com.moblin.android.various.model.sceneUpdated
-import com.moblin.android.various.model.updateCameraPreviewWidgets
+import com.moblin.android.various.model.videoSourceWidgetSetCamera
+import com.moblin.android.various.model.videoSourceWidgetSettingsChanged
 
 enum class AnchorPoint {
     topLeft,
@@ -208,19 +207,17 @@ fun WidgetVideoSourceSettingsView(
     var presentingScreenCaptureAlert by remember { mutableStateOf(false) }
 
     fun onCameraChange(cameraId: String) {
-        videoSource.updateCameraId(
+        model.videoSourceWidgetSetCamera(
+            widget = widget,
             settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
         )
-        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
         if (model.isScreenCaptureCamera(cameraId = cameraId)) {
             presentingScreenCaptureAlert = true
         }
     }
 
     fun setEffectSettings() {
-        model.getVideoSourceEffect(id = widget.id)
-            ?.setSettings(settings = videoSource.toEffectSettings())
-        model.updateCameraPreviewWidgets()
+        model.videoSourceWidgetSettingsChanged(widget = widget)
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {

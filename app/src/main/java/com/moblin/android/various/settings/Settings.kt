@@ -22,6 +22,7 @@ import com.moblin.android.various.model.CameraId
 import com.moblin.android.various.model.controlBarBackgroundImagePath
 import com.moblin.android.various.model.defaultScoreboardSize
 import com.moblin.android.various.model.faceBackgroundImagePath
+import com.moblin.android.various.model.moblinCloudApiUrl
 import com.moblin.android.various.model.plainIcon
 import com.moblin.android.various.model.stealthModeImagePath
 import com.moblin.android.various.storages.SimpleStringStorage
@@ -163,7 +164,17 @@ enum class SettingsColorSpace(val rawValue: String) {
     hlgBt2020("HLG BT2020"),
 
     @SerialName("Apple Log")
-    appleLog("Apple Log");
+    appleLog("Apple Log"),
+
+    @SerialName("Apple Log 2")
+    appleLog2("Apple Log 2");
+
+    fun isAppleLog(): Boolean {
+        return when (this) {
+            appleLog, appleLog2 -> true
+            else -> false
+        }
+    }
 
     companion object {
         fun fromRawValue(value: String): SettingsColorSpace? {
@@ -1574,17 +1585,20 @@ class SettingsMoblinCloud(
     key: String = "",
     wheelOfLuckWidgetId: UUID? = null,
     alertsWidgetId: UUID? = null,
+    url: String = moblinCloudApiUrl,
 ) {
     var enabled: Boolean by Published(enabled)
     var key: String by Published(key)
     var wheelOfLuckWidgetId: UUID? by Published(wheelOfLuckWidgetId)
     var alertsWidgetId: UUID? by Published(alertsWidgetId)
+    var url: String by Published(url)
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
         encode("key", key)
         encode("wheelOfLuckWidgetId", wheelOfLuckWidgetId)
         encode("alertsWidgetId", alertsWidgetId)
+        encode("url", url)
     }
 
     companion object {
@@ -1594,6 +1608,7 @@ class SettingsMoblinCloud(
             moblinCloud.key = container.decode("key", "")
             moblinCloud.wheelOfLuckWidgetId = container.decode<UUID?>("wheelOfLuckWidgetId", null)
             moblinCloud.alertsWidgetId = container.decode<UUID?>("alertsWidgetId", null)
+            moblinCloud.url = container.decode("url", moblinCloudApiUrl)
             return moblinCloud
         }
     }
@@ -1665,6 +1680,7 @@ class Database(
     var mediaPlayers: SettingsMediaPlayers = SettingsMediaPlayers(),
     showAllSettings: Boolean = false,
     portrait: Boolean = false,
+    autoRotateToPortrait: Boolean = false,
     var djiDevices: SettingsDjiDevices = SettingsDjiDevices(),
     var alertsMediaGallery: SettingsAlertsMediaGallery = SettingsAlertsMediaGallery(),
     var catPrinters: SettingsCatPrinters = SettingsCatPrinters(),
@@ -1740,6 +1756,7 @@ class Database(
     var streamButtonColorColor: Color by Published(defaultStreamButtonColor.color())
     var showAllSettings: Boolean by Published(showAllSettings)
     var portrait: Boolean by Published(portrait)
+    var autoRotateToPortrait: Boolean by Published(autoRotateToPortrait)
     var verboseStatuses: Boolean by Published(verboseStatuses)
     var scoreboardPlayers: MutableList<SettingsWidgetScoreboardPlayer> by PublishedList(scoreboardPlayers)
     var pixellateStrength: Float by Published(pixellateStrength)
@@ -1818,6 +1835,7 @@ class Database(
         encode("mediaPlayers", mediaPlayers, SettingsMediaPlayers.serializer())
         encode("showAllSettings", showAllSettings)
         encode("portrait", portrait)
+        encode("autoRotateToPortrait", autoRotateToPortrait)
         encode("djiDevices", djiDevices, SettingsDjiDevices.serializer())
         encode("alertsMediaGallery", alertsMediaGallery, SettingsAlertsMediaGallery.serializer())
         encode("catPrinters", catPrinters, SettingsCatPrinters.serializer())
@@ -1961,6 +1979,7 @@ class Database(
             )
             database.showAllSettings = container.decode("showAllSettings", false)
             database.portrait = container.decode("portrait", false)
+            database.autoRotateToPortrait = container.decode("autoRotateToPortrait", false)
             database.djiDevices = container.decode("djiDevices", SettingsDjiDevices.serializer(), SettingsDjiDevices())
             database.alertsMediaGallery = container.decode(
                 "alertsMediaGallery",

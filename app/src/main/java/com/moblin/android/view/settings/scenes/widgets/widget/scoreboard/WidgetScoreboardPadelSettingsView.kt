@@ -23,7 +23,7 @@ import com.moblin.android.platform.swiftui.move
 import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.handleUpdatePadelScoreboard
-import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.scoreboardPlayersChanged
 import com.moblin.android.various.model.sendScoreboardPlayersToWatch
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsWidget
@@ -53,8 +53,7 @@ private fun PlayersPlayerView(
         onNameChange = {
             if (player.name != it) {
                 player.name = it
-                model.sceneUpdated()
-                model.sendScoreboardPlayersToWatch()
+                model.scoreboardPlayersChanged()
             }
         }
     )
