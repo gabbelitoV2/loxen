@@ -53,8 +53,15 @@ import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.getTextEffects
 import com.moblin.android.various.model.reloadLocation
-import com.moblin.android.various.model.remoteSceneSettingsUpdated
 import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.textWidgetBackgroundColorChanged
+import com.moblin.android.various.model.textWidgetFontChanged
+import com.moblin.android.various.model.textWidgetFontDesignChanged
+import com.moblin.android.various.model.textWidgetFontMonospacedDigitsChanged
+import com.moblin.android.various.model.textWidgetFontSizeChanged
+import com.moblin.android.various.model.textWidgetFontWeightChanged
+import com.moblin.android.various.model.textWidgetForegroundColorChanged
+import com.moblin.android.various.model.textWidgetLayoutChanged
 import com.moblin.android.various.model.textWidgetTextChanged
 import com.moblin.android.various.settings.SettingsFontDesign
 import com.moblin.android.various.settings.SettingsFontWeight
@@ -1636,14 +1643,7 @@ fun WidgetTextSettingsView(
     }
 
     fun setLayout() {
-        for (effect in model.getTextEffects(id = widget.id)) {
-            effect.setLayout(
-                alignment = text.horizontalAlignment,
-                width = if (text.widthEnabled) text.width else null,
-                cornerRadius = text.cornerRadius.toDouble(),
-            )
-        }
-        model.remoteSceneSettingsUpdated()
+        model.textWidgetLayoutChanged(widget = widget)
     }
 
     fun submitWidth(value: String) {
@@ -1764,10 +1764,7 @@ fun WidgetTextSettingsView(
             opacity = true,
             onChange = { color ->
                 text.backgroundColor = color
-                for (effect in model.getTextEffects(id = widget.id)) {
-                    effect.setBackgroundColor(color = color)
-                }
-                model.remoteSceneSettingsUpdated()
+                model.textWidgetBackgroundColorChanged(widget = widget)
             },
         )
         RgbColorPickerView(
@@ -1777,10 +1774,7 @@ fun WidgetTextSettingsView(
             opacity = true,
             onChange = { color ->
                 text.foregroundColor = color
-                for (effect in model.getTextEffects(id = widget.id)) {
-                    effect.setForegroundColor(color = color)
-                }
-                model.remoteSceneSettingsUpdated()
+                model.textWidgetForegroundColorChanged(widget = widget)
             },
         )
     }
@@ -1792,10 +1786,7 @@ fun WidgetTextSettingsView(
                 onValueChange = { value ->
                     text.fontSizeFloat = value
                     text.fontSize = value.toInt()
-                    for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontSize(size = value)
-                    }
-                    model.remoteSceneSettingsUpdated()
+                    model.textWidgetFontSizeChanged(widget = widget)
                 },
                 modifier = Modifier.weight(1f),
                 valueRange = 10f..200f,
@@ -1805,10 +1796,7 @@ fun WidgetTextSettingsView(
         FontSettingsView(
             font = binding({ text.font }, { text.font = it }),
             onChange = {
-                for (effect in model.getTextEffects(id = widget.id)) {
-                    effect.setFont(font = text.font)
-                }
-                model.remoteSceneSettingsUpdated()
+                model.textWidgetFontChanged(widget = widget)
             },
         )
         if (text.font.family == null) {
@@ -1819,10 +1807,7 @@ fun WidgetTextSettingsView(
                 text = { it.toString() },
                 onChange = { design ->
                     text.fontDesign = design
-                    for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontDesign(design = design.toUiKit())
-                    }
-                    model.remoteSceneSettingsUpdated()
+                    model.textWidgetFontDesignChanged(widget = widget)
                 },
             )
             Picker(
@@ -1832,10 +1817,7 @@ fun WidgetTextSettingsView(
                 text = { it.toString() },
                 onChange = { weight ->
                     text.fontWeight = weight
-                    for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontWeight(weight = weight.toSystem())
-                    }
-                    model.remoteSceneSettingsUpdated()
+                    model.textWidgetFontWeightChanged(widget = widget)
                 },
             )
             Toggle(
@@ -1843,10 +1825,7 @@ fun WidgetTextSettingsView(
                 isOn = text.fontMonospacedDigits,
                 onChange = { enabled ->
                     text.fontMonospacedDigits = enabled
-                    for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontMonospacedDigits(enabled = enabled)
-                    }
-                    model.remoteSceneSettingsUpdated()
+                    model.textWidgetFontMonospacedDigitsChanged(widget = widget)
                 },
             )
         }

@@ -534,7 +534,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         set(value) = enterForegroundCountStorage.set(value)
 
     val showingPanel = MutableStateFlow(ShowingPanel.none)
-
     val panelHidden = MutableStateFlow(false)
     val showStealthMode = MutableStateFlow(false)
     val lockScreen = MutableStateFlow(false)
@@ -591,6 +590,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val webBrowserState = WebBrowserState()
     val cameraLevel = CameraLevel()
     val orientation = Orientation()
+    private var isDevicePortrait = false
     val snapshot = Snapshot()
     val quickButtons = QuickButtons()
     val mic = Mic()
@@ -882,6 +882,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var locationManager = Location(context = AppDelegate.context)
     var realtimeIrl: RealtimeIrl? = null
     var supportsAppleLog: Boolean = false
+    var supportsAppleLog2: Boolean = false
     var supportsHlg: Boolean = false
     val weatherManager = WeatherManager()
     val geographyManager = GeographyManager(context = AppDelegate.context)
@@ -911,9 +912,20 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateOrientationLock()
     }
 
+    private fun isPortraitUi(): Boolean = stream.value.portrait || database.portrait || isChatPhone()
+
     fun updateIsPortrait() {
-        orientation.isPortrait.value = com.moblin.android.platform.uikit.InterfaceOrientation.isPortrait(requested = stream.value.portrait || database.portrait || isChatPhone())
+        orientation.isPortrait.value = com.moblin.android.platform.uikit.InterfaceOrientation.isPortrait(requested = isPortraitUi() || (database.autoRotateToPortrait && isDevicePortrait))
     }
+
+    private fun orientationLock(): Int =
+        if (isPortraitUi()) {
+            com.moblin.android.platform.uikit.InterfaceOrientation.lock(portrait = true)
+        } else if (database.autoRotateToPortrait) {
+            ActivityInfo.SCREEN_ORIENTATION_USER
+        } else {
+            com.moblin.android.platform.uikit.InterfaceOrientation.lock(portrait = false)
+        }
 
     fun isLandscapeStreamAndPortraitUi(): Boolean = !stream.value.portrait && database.portrait
 
@@ -1301,6 +1313,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         quickButtonChatState.showNewFollowerMessage.value = database.chat.showNewFollowerMessage
         autoSceneSwitcher.currentSwitcherId.value = database.autoSceneSwitchers.switcherId
         supportsAppleLog = hasAppleLog()
+        supportsAppleLog2 = hasAppleLog2()
         supportsHlg = hasHlg()
         chat.interactiveChat.value =
             getQuickButton(type = SettingsQuickButtonType.interactiveChat)?.isOn?.value ?: false
@@ -1950,6 +1963,12 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateOrientation() {
+        when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {
+            com.moblin.android.platform.uikit.UIDeviceOrientation.portrait -> isDevicePortrait = true
+            com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft,
+            com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> isDevicePortrait = false
+            else -> {}
+        }
         updateIsPortrait()
         if (stream.value.portrait) {
             media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)
@@ -2387,8 +2406,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateOrientationLock() {
+        AppDelegate.orientationLock = orientationLock()
         updateCameraPreviewRotation()
-        AppDelegate.orientationLock = com.moblin.android.platform.uikit.InterfaceOrientation.lock(portrait = stream.value.portrait || database.portrait || isChatPhone())
     }
 
     fun reloadBrowserWidgets() {
@@ -2508,6 +2527,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         database.portrait = portrait
         updateIsPortrait()
         setQuickButton(type = SettingsQuickButtonType.portrait, isOn = portrait)
+        updateOrientationLock()
+    }
+
+    fun updateAutoRotateToPortrait() {
+        updateIsPortrait()
         updateOrientationLock()
     }
 

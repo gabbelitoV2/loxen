@@ -16017,24 +16017,28 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "15f285bade1f6eb7eeca0f2c037fe6d9796a227a956f3b3fa1dbae80419e2245",
-    "moblin_commit": "013f290d6d1de69bfc765cce10845750f571f324",
+    "sha256": "c91e8cdc254dec00a36569699bee283777c6169ef576a152247a6364dcf582f0",
+    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "fixAlert is no longer private: it is now a public Model member, matching the Swift change.",
-      "fixAlert now checks database.alertsMediaGallery.allImages()/allSounds() instead of the removed getAllAlertImages()/getAllAlertSounds() helpers.",
-      "The getAllAlertImages() and getAllAlertSounds() functions were deleted from Model.",
-      "All other Model members, Android hooks and behaviour are unchanged."
+      "Added `private var isDevicePortrait` on Model, updated from UIDevice orientation in updateOrientation() (portrait -> true, landscapeLeft/landscapeRight -> false).",
+      "New `supportsAppleLog2` property initialised from hasAppleLog2() in setup().",
+      "Introduced isPortraitUi() and orientationLock(); updateIsPortrait() now also honours database.autoRotateToPortrait combined with the device orientation.",
+      "orientationLock() keeps the hand-written InterfaceOrientation.lock(portrait = …) shim for the portrait/landscape cases; the new auto-rotate case maps iOS .allButUpsideDown to ActivityInfo.SCREEN_ORIENTATION_USER since Android has no upside-down-free mask.",
+      "updateOrientationLock() now assigns AppDelegate.orientationLock before updateCameraPreviewRotation(), matching the new Swift order.",
+      "init() still calls updateOrientationLock() (the hand-written Android hook) instead of only setting the lock as in Swift.",
+      "New updateAutoRotateToPortrait() added right after setDisplayPortrait().",
+      "Removed the blank line between showingPanel and panelHidden to mirror the Swift change."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 147724,
-    "tokens_out": 34557,
-    "seconds": 102.4,
-    "ported_at": "2026-11-04T00:50:42+00:00"
+    "tokens_in": 148417,
+    "tokens_out": 38942,
+    "seconds": 120.9,
+    "ported_at": "2026-11-05T00:52:39+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16118,23 +16122,24 @@
   },
   "Moblin/View/Settings/Display/DisplaySettingsView.swift": {
     "status": "ok",
-    "sha256": "cc6c80d31154b7bc9d3ebbd15b5fe48a46db79bef49dddd1eb07f5cb9c58b3b0",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "46a4c9c34dc273cd68e50a4c0a505aa4db7b85f120fd364a563afcc5083f5300",
+    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/DisplaySettingsView.kt",
     "notes": [
-      "ExternalDisplayContentView no longer reads Model from an environment object: the parameter is now explicit, so its LocalModel.current default was removed while the existing call sites keep passing model = model.",
-      "The two changed call sites in DisplaySettingsView already passed model explicitly, so they stay byte-identical.",
-      "Model, database and quickButtons are hooks or Android ports that already match the new Swift signatures; no other line of the file changed."
+      "Added the new 'Auto rotate to portrait' Section between the vibrate section and the showAllSettings block, guarded by !isMac() like the Swift.",
+      "The Toggle is driven by a binding whose setter also calls model.updateAutoRotateToPortrait(), matching the Swift .onChange side effect.",
+      "Imported com.moblin.android.various.model.updateAutoRotateToPortrait; the Model extension is assumed to exist as in the Swift model.",
+      "Footer text is wrapped in Section(footerContent = ...) as the other sections in this file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 55785,
-    "tokens_out": 5688,
-    "seconds": 19.7,
-    "ported_at": "2026-10-06T23:24:09+00:00"
+    "tokens_in": 56312,
+    "tokens_out": 4272,
+    "seconds": 17.1,
+    "ported_at": "2026-11-05T00:53:52+00:00"
   },
   "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift": {
     "status": "ok",
@@ -16179,24 +16184,25 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift": {
     "status": "ok",
-    "sha256": "01f4ab0f688d5d56bf5a6591c411ca5e6273606d8b66177c124a07a32dd2bc0d",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "08eeb967e1d040dedd280858d1af03dbbfbc56a4b1b28760b17b720eadc76693",
+    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
     "notes": [
-      "The Swift diff only turns TextFormatVariablesView's model from an @EnvironmentObject into a plain `let model: Model` and passes it explicitly at the TextSelectionView call site.",
-      "The Kotlin file already declares `model: Model = LocalModel.current` on TextFormatVariablesView and already passes `model = model` from TextSelectionView, which matches the new Swift shape, so no Kotlin line changes.",
-      "Keeping the LocalModel.current default on the model parameter is consistent with every other private view in this file (a plain `let model: Model` in Swift maps the same way here).",
-      "No other Swift member, order of declarations, import or body changed, so the rest of the file stays byte-identical."
+      "Only the model-delegation bodies changed: inline text-effect loops plus remoteSceneSettingsUpdated are replaced by new Model extension helpers.",
+      "Added imports for textWidgetLayoutChanged, textWidgetBackgroundColorChanged, textWidgetForegroundColorChanged, textWidgetFontSizeChanged, textWidgetFontChanged, textWidgetFontDesignChanged, textWidgetFontWeightChanged and textWidgetFontMonospacedDigitsChanged from com.moblin.android.various.model.",
+      "Dropped the now-unused remoteSceneSettingsUpdated import; getTextEffects is still used by WidgetTextQuickButtonControlsView and the textEffects lookup in WidgetTextSettingsView.",
+      "Hand-written Android behaviour kept: separate onColorChanged state updates, FormSlider onValueChange instead of .onChange, IosSwitch for the width toggle, KeyboardType.Number.",
+      "text.toUiKit()/toSystem() conversions are gone because the new model helpers read the settings value themselves."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 79825,
-    "tokens_out": 15619,
-    "seconds": 42.1,
-    "ported_at": "2026-10-06T23:24:26+00:00"
+    "tokens_in": 80749,
+    "tokens_out": 14716,
+    "seconds": 45.8,
+    "ported_at": "2026-11-05T00:53:30+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift": {
     "status": "ok",
@@ -16739,24 +16745,24 @@
   },
   "Moblin/View/Settings/Camera/CameraSettingsView.swift": {
     "status": "ok",
-    "sha256": "5ea74077c1044bc76bc887be63b14814fc22b2065aeb2f771c1288f29ca42a7f",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "0d2e0a153fdc11fb0fcaa6eaf9788a5cc15bcf827037c60e06eeabb2d8cddf8a",
+    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/camera/CameraSettingsView.kt",
     "notes": [
-      "AlertPickerView now receives the model explicitly: AlertPickerView(model = model, type = \"item\").",
-      "CameraPreviewSettingsView and PhotoShootSettingsView take a plain `model: Model` parameter instead of LocalModel.current, so their default argument was dropped like CameraControlsView and FixedHorizonView.",
-      "VideoStabilizationSettingsView, FixedHorizonView, CameraControlsView, CameraPreviewSettingsView and PhotoShootSettingsView calls now pass model = model; other Kotlin lines are unchanged.",
-      "CustomLutDestinationView and CustomLutView are untouched by this diff and stay as they were."
+      "Only the color-space support check changed: appleLog2 was added to colorSpaces() and the two Apple Log LUT gates now accept supportsAppleLog || supportsAppleLog2.",
+      "supportsAppleLog2 is read as a member of Model, like the existing supportsAppleLog, so no new import is added.",
+      "Everything else is byte-identical to the previous translation, including the Android picker, DocumentPicker and sheet hooks.",
+      "declared_types is empty because this file declares only top-level @Composable functions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53981,
-    "tokens_out": 4763,
-    "seconds": 14.6,
-    "ported_at": "2026-10-06T23:24:28+00:00"
+    "tokens_in": 54250,
+    "tokens_out": 3881,
+    "seconds": 13.8,
+    "ported_at": "2026-11-05T00:50:26+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRistSettingsView.swift": {
     "status": "ok",

@@ -249,6 +249,10 @@ fun DisplaySettingsView(
         database.vibrate = it
         model.setAllowHapticsAndSystemSoundsDuringRecording()
     }
+    val autoRotateToPortrait = binding({ database.autoRotateToPortrait }) {
+        database.autoRotateToPortrait = it
+        model.updateAutoRotateToPortrait()
+    }
     val portrait = binding({ database.portrait }) {
         model.setDisplayPortrait(portrait = !database.portrait)
     }
@@ -296,6 +300,17 @@ fun DisplaySettingsView(
             }
         }) {
             Toggle("Vibrate", isOn = vibrate)
+        }
+        if (!isMac()) {
+            Section(footerContent = {
+                Text(
+                    text = localized(
+                        "Rotate the user interface to portrait when the device is held in portrait."
+                    )
+                )
+            }) {
+                Toggle("Auto rotate to portrait", isOn = autoRotateToPortrait)
+            }
         }
         if (showAllSettings) {
             if (!isMac()) {

@@ -316,6 +316,7 @@ private fun colorSpaces(model: Model): List<SettingsColorSpace> {
         when (it) {
             SettingsColorSpace.hlgBt2020 -> model.supportsHlg
             SettingsColorSpace.appleLog -> model.supportsAppleLog
+            SettingsColorSpace.appleLog2 -> model.supportsAppleLog2
             else -> true
         }
     }
@@ -380,7 +381,7 @@ fun CameraSettingsView(
             CameraPreviewSettingsView(model = model, database = database)
             PhotoShootSettingsView(model = model, database = database)
             Section(
-                footer = if (model.supportsAppleLog) {
+                footer = if (model.supportsAppleLog || model.supportsAppleLog2) {
                     "The Apple Log LUT is only applied when the Apple Log color space " +
                         "is selected."
                 } else {
@@ -397,7 +398,7 @@ fun CameraSettingsView(
                     color.space = space
                     model.colorSpaceUpdated()
                 }
-                if (model.supportsAppleLog) {
+                if (model.supportsAppleLog || model.supportsAppleLog2) {
                     NavigationLink(
                         destination = {
                             CameraSettingsAppleLogLutView(model = model, color = color)
