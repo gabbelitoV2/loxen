@@ -7,10 +7,5 @@
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],
-  "effects": [
-    "check_effects_api.py: pins: 1 findings",
-    "check_effects_api.py:   metalpetal: pinned 8787ff999db2 in the effects plan, upstream has d52ee140e275",
-    "check_effects_api.py: known gaps: 21 findings are listed in effects_known_gaps.json",
-    "check_effects_api.py: check_effects_api: 1 open findings, 21 known gaps"
-  ]
+  "effects": []
 }
