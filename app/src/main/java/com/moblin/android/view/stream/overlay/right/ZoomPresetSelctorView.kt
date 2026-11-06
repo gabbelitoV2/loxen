@@ -51,10 +51,7 @@ private fun ZoomPresetView(
         Box(
             modifier = Modifier
                 .padding(bottom = 5.dp)
-                .width(minOf(segmentWidth() * presets.size, maxOf(width - 20.0, 1.0)).dp)
-                .clip(RoundedCornerShape(7.dp))
-                .background(pickerBackgroundColor)
-                .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
+                .width(minOf(segmentWidth() * presets.size, maxOf(width - 20.0, 1.0)).dp),
             contentAlignment = Alignment.Center,
         ) {
             SegmentedHPicker(
@@ -94,10 +91,7 @@ private fun ZoomPresetVView(
         Box(
             modifier = Modifier
                 .padding(bottom = 5.dp)
-                .width(segmentWidth().dp)
-                .clip(RoundedCornerShape(7.dp))
-                .background(pickerBackgroundColor)
-                .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
+                .width(segmentWidth().dp),
             contentAlignment = Alignment.Center,
         ) {
             SegmentedVPicker(

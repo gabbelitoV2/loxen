@@ -125,12 +125,8 @@ data class YouTubeApiChannel(val snippet: YouTubeApiChannelSnippet)
 @Serializable
 data class YouTubeApiChannelListResponse(val items: List<YouTubeApiChannel>)
 
-interface YouTubeApiDelegate {
-    fun youTubeApiUnauthorized()
-}
-
 class YouTubeApi(private val accessToken: String) {
-    var delegate: YouTubeApiDelegate? = null
+    var onUnauthorized: (() -> Void)? = null
 
     fun listVideos(
         videoIds: String,
@@ -407,7 +403,7 @@ class YouTubeApi(private val accessToken: String) {
                     Log.i(TAG, "youtube-api: Error response body: ${String(data, Charsets.UTF_8)}")
                 }
                 if (response?.code == 401) {
-                    delegate?.youTubeApiUnauthorized()
+                    onUnauthorized?.invoke()
                     onComplete(NetworkResponse.AuthError)
                 } else {
                     onComplete(NetworkResponse.Error)

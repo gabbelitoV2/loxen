@@ -34,10 +34,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -769,6 +771,13 @@ fun MainView(
     com.moblin.android.platform.swiftui.PersistentSystemOverlays(Visibility.hidden)
     val safeAreaSides = edgesToIgnore(isPortrait = isPortrait, bigButtons = bigButtons, twoColumns = twoColumns)
     val streamSafeAreaInsets = streamViewSafeAreaInsets(sides = safeAreaSides, isPortrait = isPortrait)
+    val showingPanel by model.showingPanel.collectAsState()
+    val panelHidden by model.panelHidden.collectAsState()
+    val safeAreaRegions = safeAreaRegionsToIgnore(
+        isPortrait = isPortrait,
+        showingPanel = showingPanel,
+        panelHidden = panelHidden,
+    )
 
     LaunchedEffect(Unit) {
         model.setup()
@@ -778,7 +787,7 @@ fun MainView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(safeAreaWindowInsets().only(safeAreaSides))
+            .windowInsetsPadding(safeAreaWindowInsets().only(safeAreaSides).exclude(safeAreaRegions))
     ) {
         Box(
             modifier = Modifier
@@ -1252,5 +1261,18 @@ private fun edgesToIgnore(
         }
     } else {
         WindowInsetsSides.Horizontal + WindowInsetsSides.Top + WindowInsetsSides.Bottom
+    }
+}
+
+@Composable
+private fun safeAreaRegionsToIgnore(
+    isPortrait: Boolean,
+    showingPanel: ShowingPanel,
+    panelHidden: Boolean,
+): WindowInsets {
+    return if (isPortrait && showingPanel != ShowingPanel.none && !panelHidden) {
+        WindowInsets.ime
+    } else {
+        WindowInsets(0, 0, 0, 0)
     }
 }

@@ -105,10 +105,7 @@ fun StreamOverlayRightSceneSelectorView(
                         sceneSegmentWidth * model.enabledScenes.size,
                         maxOf(width - 20.0, 1.0),
                     ).dp,
-                )
-                .clip(RoundedCornerShape(7.dp))
-                .background(pickerBackgroundColor)
-                .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
+                ),
             contentAlignment = Alignment.Center,
         ) {
             SegmentedHPicker(
@@ -159,10 +156,7 @@ fun StreamOverlayRightSceneVSelectorView(
         Box(
             modifier = Modifier
                 .padding(bottom = 5.dp)
-                .width(sceneSegmentWidth.dp)
-                .clip(RoundedCornerShape(7.dp))
-                .background(pickerBackgroundColor)
-                .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
+                .width(sceneSegmentWidth.dp),
             contentAlignment = Alignment.Center,
         ) {
             SegmentedVPicker(

@@ -218,6 +218,7 @@ private fun NotSupportedForThisCameraView() {
             .padding(bottom = 5.dp)
             .clip(RoundedCornerShape(7.dp))
             .background(backgroundColor)
+            .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp))
             .height(sliderHeight.dp)
             .padding(vertical = 5.dp, horizontal = 7.dp),
         contentAlignment = Alignment.Center,
@@ -265,6 +266,7 @@ private fun SliderAndLockView(
             .size(width = sliderWidth.dp, height = sliderHeight.dp)
             .clip(RoundedCornerShape(7.dp))
             .background(backgroundColor)
+            .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp))
             .padding(vertical = 5.dp, horizontal = 7.dp),
     ) {
         CameraSlider(
@@ -310,6 +312,7 @@ private fun ExposureBiasView(model: Model = LocalModel.current, camera: CameraSt
             .size(width = sliderWidth.dp, height = sliderHeight.dp)
             .clip(RoundedCornerShape(7.dp))
             .background(backgroundColor)
+            .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp))
             .padding(vertical = 5.dp, horizontal = 7.dp),
         contentAlignment = Alignment.Center,
     ) {

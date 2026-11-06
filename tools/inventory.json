@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-05T22:05:49+00:00",
+  "generated": "2026-11-06T00:35:39+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4557,8 +4557,8 @@
     },
     {
       "path": "Moblin/StreamingPlatforms/YouTube/YouTubeApi.swift",
-      "lines": 391,
-      "sha256": "5788d2f7206b5f30919966e1dfd47c49603fc4643a4166143b98393caee89b17",
+      "lines": 386,
+      "sha256": "64dfd2ea4fe0eec67060d52b54904cef461e0065e284361005fa5e082b3517ae",
       "imports": [
         "Foundation"
       ],
@@ -4582,7 +4582,6 @@
         "YouTubeApiChannelSnippet",
         "YouTubeApiChannel",
         "YouTubeApiChannelListResponse",
-        "YouTubeApiDelegate",
         "YouTubeApi"
       ],
       "private_types": [],
@@ -6763,8 +6762,8 @@
     },
     {
       "path": "Moblin/StreamingPlatforms/Kick/KickApi.swift",
-      "lines": 593,
-      "sha256": "62e75689ac9e80ce4b9624e7a0c1ae708f5577082d8b9b50624fa1c97604c1c1",
+      "lines": 588,
+      "sha256": "843ed67e22342c80b61cc4b378c0d72474a9fb57775cd7ebae003e5eff3e8267",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -6790,7 +6789,6 @@
         "KickCategorySearchHit",
         "KickCategorySearchResponse",
         "KickStreamInfo",
-        "KickApiDelegate",
         "KickApi"
       ],
       "private_types": [],
@@ -10388,44 +10386,6 @@
       "wave": 13
     },
     {
-      "path": "Moblin/View/Stream/Overlay/Right/SegmentedPicker.swift",
-      "lines": 103,
-      "sha256": "0da2b3d8adf8ad0c5542083e2a6e7a30f0eb43de1acb3380d01b1b3708f3fdb6",
-      "imports": [
-        "SwiftUI"
-      ],
-      "tier": "ui",
-      "declared_types": [
-        "SegmentedPicker",
-        "SegmentedHPicker",
-        "SegmentedVPicker"
-      ],
-      "private_types": [
-        "SegmentedPicker"
-      ],
-      "declared_functions": [],
-      "declared_globals": [
-        "zoomSegmentWidth",
-        "zoomSegmentWidthBig",
-        "segmentHeight",
-        "segmentHeightBig",
-        "sceneSegmentWidth",
-        "sliderWidth",
-        "sliderHeight",
-        "cameraButtonWidth",
-        "pickerBorderColor",
-        "pickerBackgroundColor",
-        "pickerLabelMinimumScaleFactor"
-      ],
-      "kotlin_package": "com.moblin.android.view.stream.overlay.right",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/SegmentedPicker.kt",
-      "deps": [
-        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
-        "Moblin/Various/Settings/Settings.swift"
-      ],
-      "wave": 13
-    },
-    {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayDebugView.swift",
       "lines": 21,
       "sha256": "1259f1d06e5f1ce15c60631eda673cf9b65a9b41a6339ea73bc955581e3365d2",
@@ -13081,6 +13041,45 @@
       "wave": 19
     },
     {
+      "path": "Moblin/View/Stream/Overlay/Right/SegmentedPicker.swift",
+      "lines": 139,
+      "sha256": "4214577c20a839a613cf8f056916005587a06852c95c48335e563bf4b91c5f9b",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "SegmentedPicker",
+        "SegmentedHPicker",
+        "SegmentedVPicker"
+      ],
+      "private_types": [
+        "SegmentedPicker"
+      ],
+      "declared_functions": [],
+      "declared_globals": [
+        "zoomSegmentWidth",
+        "zoomSegmentWidthBig",
+        "segmentHeight",
+        "segmentHeightBig",
+        "sceneSegmentWidth",
+        "sliderWidth",
+        "sliderHeight",
+        "cameraButtonWidth",
+        "pickerBorderColor",
+        "pickerBackgroundColor",
+        "pickerLabelMinimumScaleFactor"
+      ],
+      "kotlin_package": "com.moblin.android.view.stream.overlay.right",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/SegmentedPicker.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Settings/Settings.swift"
+      ],
+      "wave": 19
+    },
+    {
       "path": "Moblin/View/Stream/Overlay/Right/VideoPreviewView.swift",
       "lines": 89,
       "sha256": "0783f57698cc00769d13a0776b9bdd47109e79ca1307c4214abff34840ab0494",
@@ -14879,7 +14878,7 @@
     {
       "path": "Moblin/Various/Model/ModelYouTube.swift",
       "lines": 357,
-      "sha256": "8c956906e028712ec4abf0c0c47c186c70b6d38b1ae202a22b34add4c378da08",
+      "sha256": "cdf637410a800d89526b0ebc362871cb6507b265199b77777830cd5d3398b190",
       "imports": [
         "AppAuth",
         "AppAuthCore",
@@ -15693,8 +15692,8 @@
     },
     {
       "path": "Moblin/View/Stream/DrawOnStreamView.swift",
-      "lines": 133,
-      "sha256": "e567c9d72f6cf6a0080d4fbd68cb1cc1451d0f316105fba4ef251f89482cb148",
+      "lines": 137,
+      "sha256": "cc2c170658a2030e5a43773d821d8fc2148bc7ba227e430800b0996415b92cee",
       "imports": [
         "SwiftUI"
       ],
@@ -15718,7 +15717,8 @@
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
-        "Moblin/VideoEffects/DrawOnStreamEffect.swift"
+        "Moblin/VideoEffects/DrawOnStreamEffect.swift",
+        "Moblin/View/Stream/Overlay/Right/SegmentedPicker.swift"
       ],
       "wave": 25
     },
@@ -15757,8 +15757,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/MediaPlayerControlsView.swift",
-      "lines": 70,
-      "sha256": "176fbe0444e51a889416f02e883dedac0fcbdc39d1a75a5f9c7237bd4fff4092",
+      "lines": 74,
+      "sha256": "1d70370372fb102a9532b7439239a30173179689b1be3b6d9e0c2afb870aeac0",
       "imports": [
         "SwiftUI"
       ],
@@ -15775,14 +15775,15 @@
         "Common/Various/CommonUtils.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/Model.swift",
-        "Moblin/Various/Model/ModelMediaPlayer.swift"
+        "Moblin/Various/Model/ModelMediaPlayer.swift",
+        "Moblin/View/Stream/Overlay/Right/SegmentedPicker.swift"
       ],
       "wave": 25
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/StreamOverlayRightFaceView.swift",
-      "lines": 110,
-      "sha256": "4bea42073df9ce2d0034ad2967602b93067facefaaae966acc140dd7856ff19f",
+      "lines": 114,
+      "sha256": "93aff14d4f2737707c0cb022468c0e6f9e51bde03d166630de9cdd91a65193f2",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -17341,7 +17342,7 @@
     {
       "path": "Moblin/Various/Model/ModelKick.swift",
       "lines": 556,
-      "sha256": "4faf59795137b7b9db36b67d7c126538d66f8307be244ed7ddb56908d1bfd3c6",
+      "sha256": "b91e087080fee2c3691f3b68e69e9decf0751a86dbbc05968863181bba70025d",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -19578,8 +19579,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/CameraSettingsControlView.swift",
-      "lines": 380,
-      "sha256": "3315a07e0d271637155704325b9d56c9ff2b6eba25ac1475ed1cb874acf7b2b2",
+      "lines": 392,
+      "sha256": "06d94cbbab4a6b93dd67e3e5cd03c090a3482e667a8d3bc272d02de9eb41ba78",
       "imports": [
         "SwiftUI"
       ],
@@ -19625,8 +19626,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/ReplayView.swift",
-      "lines": 308,
-      "sha256": "6458fbf20060d15f984ed7800219c356c5ce732cdbda511b81eee266933db42a",
+      "lines": 315,
+      "sha256": "f43ec2e84f678fe8f38e1d66d2b123fcf5292e90b2e21105dd70ecd6eb62bec0",
       "imports": [
         "SwiftUI"
       ],
@@ -19673,8 +19674,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/SceneSelectorView.swift",
-      "lines": 137,
-      "sha256": "2a0af233b5713d8c8a13911553e17007a41cb8b4f65cfae0a2efc641c5ac875b",
+      "lines": 125,
+      "sha256": "099df67333f7afdb7c087e2cbbea09d67e6126579eff77b4537850308af2de40",
       "imports": [
         "SwiftUI"
       ],
@@ -19702,8 +19703,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/ZoomPresetSelctorView.swift",
-      "lines": 173,
-      "sha256": "a912c706d5858071c77d6d8c3e8456638af29f231448f321685bc8500f262bac",
+      "lines": 161,
+      "sha256": "3e509ee3ae9d9fe1919f09df2d78e06beab830c4183eb6a6e8876d5ad184d2f1",
       "imports": [
         "SwiftUI"
       ],
@@ -20634,8 +20635,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/ControlBarLandscapeView.swift",
-      "lines": 363,
-      "sha256": "04868f0a11a805073c949d549d56a0c6f2638590735cb7eb1c410d9b94190935",
+      "lines": 364,
+      "sha256": "f16d74f063e2c067cd9d6c75ef257214f1d7ae3156e30613b092a3e022c8c61b",
       "imports": [
         "SwiftUI"
       ],
@@ -25407,8 +25408,8 @@
     },
     {
       "path": "Moblin/View/MainView.swift",
-      "lines": 764,
-      "sha256": "ae60238fe9e8cbfac1120983ba0f7f2c8ba76a7f650a2e7face0546a43c048e2",
+      "lines": 773,
+      "sha256": "4b52d9eef4a1e5c9a8ae98f23225a9517cc92567624278d37cc8063ba4b09fef",
       "imports": [
         "AVFoundation",
         "SwiftUI",

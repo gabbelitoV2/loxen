@@ -151,9 +151,7 @@ private fun ReplayControlsSpeedPicker(
     val speed by replay.speed.collectAsState()
     Box(
         modifier = Modifier
-            .width(90.dp)
-            .clip(RoundedCornerShape(7.dp))
-            .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
+            .width(90.dp),
     ) {
         SegmentedHPicker(
             items = SettingsReplaySpeed.entries,
@@ -246,7 +244,8 @@ private fun ControlRowView(content: @Composable () -> Unit) {
                 .padding(end = 4.dp)
                 .height(45.dp)
                 .clip(RoundedCornerShape(5.dp))
-                .background(backgroundColor),
+                .background(backgroundColor)
+                .border(1.dp, pickerBorderColor, RoundedCornerShape(5.dp)),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             content()
@@ -345,6 +344,7 @@ private fun ReplayHistory(
         modifier = Modifier
             .clip(RoundedCornerShape(5.dp))
             .background(backgroundColor)
+            .border(1.dp, pickerBorderColor, RoundedCornerShape(5.dp))
             .padding(4.dp)
             .height(heightDp),
     ) {

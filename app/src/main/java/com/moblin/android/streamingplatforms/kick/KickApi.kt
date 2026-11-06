@@ -257,16 +257,12 @@ private suspend fun fetchKickProfilePictureWithUsername(username: String): Bitma
     return BitmapFactory.decodeByteArray(data, 0, data.size)
 }
 
-interface KickApiDelegate {
-    fun kickApiUnauthorized()
-}
-
 class KickApi(
     private val channelId: String,
     private val slug: String,
     private val accessToken: String,
 ) {
-    var delegate: KickApiDelegate? = null
+    var onUnauthorized: (() -> Unit)? = null
 
     fun sendMessage(message: String) {
         doV2Request(
@@ -715,7 +711,7 @@ class KickApi(
                     Log.i("KickApi", "kick-api: Error response body: ${data.decodeToString()}")
                 }
                 if (response?.code == 401) {
-                    delegate?.kickApiUnauthorized()
+                    onUnauthorized?.invoke()
                     onComplete(NetworkResponse.AuthError)
                 } else {
                     onComplete(NetworkResponse.Error)

@@ -2475,25 +2475,24 @@
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeApi.swift": {
     "status": "ok",
-    "sha256": "5788d2f7206b5f30919966e1dfd47c49603fc4643a4166143b98393caee89b17",
-    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "sha256": "64dfd2ea4fe0eec67060d52b54904cef461e0065e284361005fa5e082b3517ae",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeApi.kt",
     "notes": [
-      "Added activeLiveChatId to YouTubeApiListVideoStreamingDetails with a null default so synthesized Codable decoding stays optional.",
-      "Added insertLiveChatBan between listChannels and doGet, keeping the Swift map insertion order (liveChatId, bannedUserDetails, then type/banDurationSeconds).",
-      "The Swift [String: Any] snippet body became a kotlinx.serialization buildJsonObject tree, which is what serialize(JsonElement) accepts.",
-      "A nil duration produces \"type\": \"permanent\"; a non-nil duration adds \"type\": \"temporary\" and \"banDurationSeconds\".",
-      "NetworkResponse<Void> maps to NetworkResponse<Unit> as in deleteLiveBroadcast, so success is NetworkResponse.Success(Unit)."
+      "Dropped the YouTubeApiDelegate protocol; the class now exposes a public `onUnauthorized: (() -> Void)?` callback, called from the 401 branch of doRequest.",
+      "The interface declaration and its blank line were removed so YouTubeApiChannelListResponse is followed directly by the YouTubeApi class.",
+      "Everything else in the file is byte-identical to the previous translation, including the serialization models, JSON body builders and OkHttp request creation.",
+      "The unused private `Response.isUnauthorized()` extension is kept untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 37978,
-    "tokens_out": 4891,
-    "seconds": 14.8,
-    "ported_at": "2026-09-27T22:38:03+00:00"
+    "tokens_in": 39677,
+    "tokens_out": 4020,
+    "seconds": 13.0,
+    "ported_at": "2026-11-06T00:36:06+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift": {
     "status": "ok",
@@ -4742,28 +4741,24 @@
   },
   "Moblin/Various/Model/ModelYouTube.swift": {
     "status": "ok",
-    "sha256": "8c956906e028712ec4abf0c0c47c186c70b6d38b1ae202a22b34add4c378da08",
-    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
+    "sha256": "cdf637410a800d89526b0ebc362871cb6507b265199b77777830cd5d3398b190",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt",
     "notes": [
-      "The YouTubeLiveChat call site stays `YouTubeLiveChat(model = this, videoId = videoId, settings = stream.value.chat)`: the current Kotlin YouTubeLiveChat takes a Model, not a delegate, so the Android behaviour is kept even though Swift now passes `delegate: self`.",
-      "The new Swift `extension Model: YouTubeLiveChatDelegate` is materialised as the private class ModelYouTubeLiveChatDelegate, because Kotlin cannot add an interface to Model from another file - the same pattern the file already uses for YouTubeApiDelegate.",
-      "The three delegate methods are added as top-level Model extension functions at the end of the file, keeping the Swift declaration order.",
-      "Added imports for ChatHighlight and ChatPostSegment, which the new appendChatMessage call needs.",
-      "`timestampTime: .now` becomes java.time.Instant.now(), matching the Instant used by ChatPost.timestampTime and the rest of this file.",
-      "`userBadges: []` becomes emptyList() and `segments: [ChatPostSegment]` becomes List<ChatPostSegment>.",
-      "No Swift API in this file is Apple-only; nothing was replaced by TODO().",
-      "Only the constructor label and the added delegate extension changed; every other line is byte-identical to the previous Kotlin file."
+      "The Swift `YouTubeApiDelegate` conformance extension was removed; the per-stream unauthorized callback is now a private `youTubeApiUnauthorized(stream:)` on Model, placed right after `getYouTubeApi`.",
+      "The declared Kotlin `YouTubeApi` still exposes `delegate: YouTubeApiDelegate?` and no `onUnauthorized`, so `getYouTubeApi` keeps the forwarding delegate class, now carrying the `SettingsStream` so the handler receives the same stream Swift captures.",
+      "The old public `Model.youTubeApiUnauthorized()` at the end of the file was deleted with the extension.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 57538,
-    "tokens_out": 15252,
-    "seconds": 58.6,
-    "ported_at": "2026-10-07T23:55:06+00:00"
+    "tokens_in": 58220,
+    "tokens_out": 5743,
+    "seconds": 22.0,
+    "ported_at": "2026-11-06T00:36:15+00:00"
   },
   "MoblinTests/Moblin/Obs/ObsWebSocketSuite.swift": {
     "status": "ok",
@@ -9183,27 +9178,23 @@
   },
   "Moblin/StreamingPlatforms/Kick/KickApi.swift": {
     "status": "ok",
-    "sha256": "62e75689ac9e80ce4b9624e7a0c1ae708f5577082d8b9b50624fa1c97604c1c1",
+    "sha256": "843ed67e22342c80b61cc4b378c0d72474a9fb57775cd7ebae003e5eff3e8267",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/kick/KickApi.kt",
     "notes": [
-      "This file is a networking layer despite being flagged ui tier, so there are no Compose views; the translation is a plain Kotlin/Swift-parallel API client.",
-      "UIImage is mapped to android.graphics.Bitmap via BitmapFactory.decodeByteArray; fetchKickProfilePicture therefore returns Bitmap?.",
-      "Helper signatures are taken as: httpRequest(Request, (ByteArray?, okhttp3.Response?, Throwable?) -> Unit), suspend httpGet(url: String): Pair<ByteArray, okhttp3.Response>, makeUrl(path: String, parameters: List<Pair<String, String>>), all from com.moblin.android.various.network.",
-      "OperationResult and NetworkResponse are used as sealed classes with Success(data)/Success(value), AuthError and Error members, as declared in com.moblin.android.various.network.",
-      "ChatterRole enum entries and the ChatterInfo constructor parameter names are assumed to be ChatterRole.Owner/Staff/Moderator/Viewer and profilePicture/bio/accountCreated/role/followingSince/subscribedMonths/giftedSubs/followers.",
-      "Swift property names are kept byte-identical (snake_case coding keys included) so kotlinx.serialization uses them as JSON keys; Json is configured with ignoreUnknownKeys to match JSONDecoder behaviour.",
-      "weak var delegate has no Kotlin equivalent, so it is a plain nullable reference; callers must avoid leaking KickApi instances.",
-      "KickApi was @MainActor in Swift: all completion handlers here are invoked on the OkHttp callback thread, so UI code must switch to Dispatchers.Main itself."
+      "Removed the KickApiDelegate interface and replaced the weak delegate with the onUnauthorized closure property, matching the Swift change.",
+      "doRequest now invokes onUnauthorized?.invoke() when the response is 401 (response?.code == 401 stands in for http?.isUnauthorized).",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8032,
-    "tokens_out": 28101,
-    "seconds": 100.2,
-    "ported_at": "2026-09-22T13:26:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 52409,
+    "tokens_out": 5590,
+    "seconds": 16.4,
+    "ported_at": "2026-11-06T00:36:10+00:00"
   },
   "Moblin/Various/Model/ModelRtspClient.swift": {
     "status": "ok",
@@ -10313,27 +10304,27 @@
   },
   "Moblin/View/Stream/Overlay/Right/SegmentedPicker.swift": {
     "status": "ok",
-    "sha256": "0da2b3d8adf8ad0c5542083e2a6e7a30f0eb43de1acb3380d01b1b3708f3fdb6",
+    "sha256": "4214577c20a839a613cf8f056916005587a06852c95c48335e563bf4b91c5f9b",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/SegmentedPicker.kt",
     "notes": [
-      "SegmentedPicker, SegmentedHPicker and SegmentedVPicker keep their generic type parameters T and Content with the same parameter order as the Swift initializers.",
-      "Swift's @Binding selectedItem becomes a value parameter plus an onChange callback, matching the tier rules.",
-      "@Namespace / matchedGeometryEffect has no Compose equivalent; the selected highlight is drawn directly with a Modifier.background on the selected cell instead.",
-      "Global layout constants (zoomSegmentWidth, segmentHeight, cameraButtonWidth, ...) are top-level vals in this package, matching the Swift globals one to one.",
-      "Color.gray and Color.black.opacity(0.4) become Color.Gray and Color.Black.copy(alpha = 0.4f).",
-      "The pickerBorderColor/pickerBackgroundColor globals keep their Swift names as top-level Compose Color vals.",
-      "defaultSegmentedPickerSelectedColor.color() is translated as a TODO() because the Settings color helper is not available in this file's glossary; replace it with the real conversion once Settings is ported.",
-      "The ForEach with Divider separators becomes a Kotlin for loop emitting each item followed by a HorizontalDivider."
+      "pickerBorderColor now carries 30% alpha: Color.Gray.copy(alpha = 0.3f).",
+      "The private Swift SegmentedPicker gained a generic separator view; in Kotlin Segment draws the separator itself (VerticalDivider at CenterEnd for horizontal pickers, HorizontalDivider at BottomCenter for vertical ones) and skips it on the last item.",
+      "Separators are no longer emitted after the last segment, so the trailing Divider of the old Kotlin loops is gone.",
+      "SegmentedHPicker and SegmentedVPicker gained a backgroundColor parameter defaulting to pickerBackgroundColor.",
+      "The container now gets clip(RoundedCornerShape(7.dp)) + background + 1.dp border in the reversed modifier order that Compose needs to reproduce .background/.cornerRadius/.overlay(stroke).",
+      "Swift's matchedGeometryEffect selection animation has no Compose counterpart in the existing port and is still a plain background switch; unchanged by this diff.",
+      "The public Kotlin SegmentedPicker keeps its existing delegation to SegmentedVPicker, so its callers inherit the new background and border."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3989,
-    "tokens_out": 1203,
-    "seconds": 4.5,
-    "ported_at": "2026-09-22T13:30:01+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43711,
+    "tokens_out": 9012,
+    "seconds": 38.1,
+    "ported_at": "2026-11-06T00:36:31+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Crop/WidgetCropSettingsView.swift": {
     "status": "ok",
@@ -12863,51 +12854,42 @@
   },
   "Moblin/View/Stream/DrawOnStreamView.swift": {
     "status": "ok",
-    "sha256": "e567c9d72f6cf6a0080d4fbd68cb1cc1451d0f316105fba4ef251f89482cb148",
+    "sha256": "cc2c170658a2030e5a43773d821d8fc2148bc7ba227e430800b0996415b92cee",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/DrawOnStreamView.kt",
     "notes": [
-      "DrawOnStreamLine becomes a data class; the Swift `let id = UUID()` maps to a constructor default so Identifiable identity is preserved.",
-      "`@MainActor private var drawing` becomes a private top-level `var drawing` in this file, since it must survive recomposition like the SwiftUI global did.",
-      "DragGesture(minimumDistance: 0) maps to Modifier.pointerInput + detectDragGestures; Compose applies touch slop so a zero-length tap may not start a new line (drawing the single-point dot) as it does in SwiftUI.",
-      "GeometryReader is replaced by BoxWithConstraints; model.streamViewLayout(...) is called with maxWidth/maxHeight Dp values instead of a GeometryProxy, and the returned layout is expected to expose Dp size/offset - adjust if the model signature differs.",
-      "model.drawOnStreamSize is assigned inside the Canvas draw scope exactly like the Swift drawing closure; move it to Modifier.onSizeChanged if that write triggers a recomposition loop.",
-      "ColorPicker has no Compose counterpart, so it is a TODO and appears in unsupported.",
-      "SF Symbols map as: trash.fill -> Icons.Default.Delete, arrow.uturn.backward -> Icons.AutoMirrored.Filled.Undo (requires material-icons-extended).",
-      ".font(.title) on the icons becomes Modifier.size(28.dp) and .accentColor becomes SliderDefaults.colors(thumbColor/activeTrackColor) on the Slider."
+      "Added the new RoundedRectangle stroke overlay as Modifier.border(1.dp, pickerBorderColor, RoundedCornerShape(5.dp)), placed first in the modifier chain so it draws on top of the clipped background, as the Swift overlay does.",
+      "Imported androidx.compose.foundation.border and com.moblin.android.view.stream.overlay.right.pickerBorderColor; nothing else in the file changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5878,
-    "tokens_out": 12342,
-    "seconds": 48.3,
-    "ported_at": "2026-09-22T13:45:22+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 51067,
+    "tokens_out": 3107,
+    "seconds": 12.3,
+    "ported_at": "2026-11-06T00:36:06+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/StreamOverlayRightFaceView.swift": {
     "status": "ok",
-    "sha256": "4bea42073df9ce2d0034ad2967602b93067facefaaae966acc140dd7856ff19f",
+    "sha256": "93aff14d4f2737707c0cb022468c0e6f9e51bde03d166630de9cdd91a65193f2",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/StreamOverlayRightFaceView.kt",
     "notes": [
-      "EffectSlider's Swift @Binding value became a value parameter plus an onValueChange lambda; Slider 'step: 0.01' is expressed as a derived 'steps' count.",
-      "SettingsFace is read via collectAsState(); the port's StateFlow properties expose no setter, so every @Binding write is a TODO listed in unsupported.",
-      "Picker -> ExposedDropdownMenuBox (with ExposedDropdownMenu) and .tint(.white) applied as white text color.",
-      "The PhotosPicker branch is one TODO; model.saveFaceBackgroundImage and model.loadFaceBackgroundImage are only reachable once an Android picker is wired in.",
-      "@State selectedImageItem (PhotosPickerItem?) is kept as a remembered ByteArray? placeholder feeding the unsupported photo picker.",
-      "title: LocalizedStringKey -> String rendered through localized().",
-      "onChange(of:) -> LaunchedEffect(value); note it also fires on first composition, unlike SwiftUI.",
-      "SettingsFacePrivacyMode case names are assumed to keep the Swift spellings (blur, pixellate, backgroundImage, icon) and are iterated with .entries."
+      "Added the 7dp rounded border overlay to the EffectSlider slider track, matching the new Swift `.overlay(RoundedRectangle(cornerRadius: 7).stroke(pickerBorderColor))`.",
+      "The border is drawn with Modifier.border after clip/background so it sits on the frame edge like the Swift overlay.",
+      "Everything else is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5940,
-    "tokens_out": 19652,
-    "seconds": 76.3,
-    "ported_at": "2026-09-22T13:45:31+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45570,
+    "tokens_out": 2355,
+    "seconds": 8.4,
+    "ported_at": "2026-11-06T00:36:02+00:00"
   },
   "Moblin/VideoEffects/SlideshowEffect.swift": {
     "status": "ok",
@@ -13403,22 +13385,23 @@
   },
   "Moblin/View/Stream/Overlay/Right/MediaPlayerControlsView.swift": {
     "status": "ok",
-    "sha256": "176fbe0444e51a889416f02e883dedac0fcbdc39d1a75a5f9c7237bd4fff4092",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "1d70370372fb102a9532b7439239a30173179689b1be3b6d9e0c2afb870aeac0",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/MediaPlayerControlsView.kt",
     "notes": [
-      "Swift change: the view no longer reads the model from the environment, it receives it; the Kotlin parameter drops the LocalModel.default and the LocalModel import is removed.",
-      "All other lines are unchanged from the previous translation."
+      "Added the border stroke with Modifier.border(1.dp, pickerBorderColor, RoundedCornerShape(8.dp)) after background, which draws the same 8dp rounded outline as the Swift overlay.",
+      "pickerBorderColor is in the same Kotlin package, so no extra import for it; only androidx.compose.foundation.border is new.",
+      "All other lines, including the hand-written IconButton/Icons translation, are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41626,
-    "tokens_out": 1294,
-    "seconds": 4.5,
-    "ported_at": "2026-10-06T23:22:46+00:00"
+    "tokens_in": 42638,
+    "tokens_out": 2610,
+    "seconds": 11.1,
+    "ported_at": "2026-11-06T00:36:04+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/StreamOverlayRightBeautyView.swift": {
     "status": "ok",
@@ -14035,23 +14018,25 @@
   },
   "Moblin/View/Stream/Overlay/Right/ReplayView.swift": {
     "status": "ok",
-    "sha256": "6458fbf20060d15f984ed7800219c356c5ce732cdbda511b81eee266933db42a",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "f43ec2e84f678fe8f38e1d66d2b123fcf5292e90b2e21105dd70ecd6eb62bec0",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/ReplayView.kt",
     "notes": [
-      "Only the ReplayHistoryItem thumbnail call changed: the Swift video.url() becomes model.replaysStorage.url(replay = video), so the Kotlin now passes model.replaysStorage.url(video).path to createThumbnail.",
-      "No import changes are needed; ReplaysStorage.url(replay) is already reachable through model.replaysStorage, used by ReplayHistory.",
-      "Everything else in the file is untouched and byte-identical, including the LocalModel default parameters, the SegmentedHPicker shape/colour setup and the state flows observed with collectAsState."
+      "Swift's new `backgroundColor: .clear` on SegmentedHPicker cannot be passed: the Kotlin SegmentedHPicker has no backgroundColor parameter, so the picker keeps its default background.",
+      "The `.cornerRadius(7)` and stroke overlay removed from the speed picker were the Box clip/border in Kotlin; both are deleted, leaving only the 90dp width Box.",
+      "New stroke overlays on ControlRowView and ReplayHistory become Modifier.border(1.dp, pickerBorderColor, RoundedCornerShape(5.dp)) right after the background, matching Swift's RoundedRectangle stroke.",
+      "No other Kotlin line, import or declaration changed.",
+      "Import android.graphics.Bitmap, Color and RoundedCornerShape are still used by the untouched composables."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50086,
-    "tokens_out": 3443,
-    "seconds": 10.0,
-    "ported_at": "2026-09-29T23:53:05+00:00"
+    "tokens_in": 51063,
+    "tokens_out": 6174,
+    "seconds": 25.0,
+    "ported_at": "2026-11-06T00:36:30+00:00"
   },
   "Moblin/Various/Model/ModelRecording.swift": {
     "status": "ok",
@@ -14094,24 +14079,26 @@
   },
   "Moblin/Various/Model/ModelKick.swift": {
     "status": "ok",
-    "sha256": "4faf59795137b7b9db36b67d7c126538d66f8307be244ed7ddb56908d1bfd3c6",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "b91e087080fee2c3691f3b68e69e9decf0751a86dbbc05968863181bba70025d",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelKick.kt",
     "notes": [
-      "Merged the two early-return guards of updateKickChannelInfoIfNeeded() into one condition, matching the new Swift guard: return when the channel name is empty or all three Kick ids are already present.",
-      "Everything else in the file is unchanged from the previous translation.",
-      "Model extension functions keep the MutableStateFlow access pattern (stream.value.x).",
-      "KickApiDelegate and KickPusherDelegate are still adapted through the private adapter classes since Model cannot implement both delegates directly here."
+      "KickApi in Kotlin exposes a `delegate` (KickApiDelegate), not an `onUnauthorized` closure, so the new Swift closure is wired through KickApiDelegateAdapter, which now captures the stream passed to createKickApi.",
+      "KickApiDelegateAdapter takes the SettingsStream in its constructor and forwards to Model.kickApiUnauthorized(stream).",
+      "kickApiUnauthorized now takes a SettingsStream parameter, is file-private, and moved directly after createKickApi as in the new Swift.",
+      "The old top-level Model.kickApiUnauthorized() extension at the bottom was removed.",
+      "The KickApiDelegate import stays because the adapter still implements it.",
+      "All other declarations, imports and ordering are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 64221,
-    "tokens_out": 6562,
-    "seconds": 20.6,
-    "ported_at": "2026-10-22T22:51:34+00:00"
+    "tokens_in": 64423,
+    "tokens_out": 8544,
+    "seconds": 28.6,
+    "ported_at": "2026-11-06T00:36:22+00:00"
   },
   "Moblin/Various/Model/ModelScreenCapture.swift": {
     "status": "ok",
@@ -15169,27 +15156,25 @@
   },
   "Moblin/View/Stream/Overlay/Right/SceneSelectorView.swift": {
     "status": "ok",
-    "sha256": "2a0af233b5713d8c8a13911553e17007a41cb8b4f65cfae0a2efc641c5ac875b",
+    "sha256": "099df67333f7afdb7c087e2cbbea09d67e6126579eff77b4537850308af2de40",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/SceneSelectorView.kt",
     "notes": [
-      "SegmentedHPicker/SegmentedVPicker live in this same package in another file; their Kotlin signature was assumed to be (items, selectedItem, onSelectedItemChange, selectedColor, onLongPress, content) because the Swift code passes a Binding plus trailing ViewBuilder closure.",
-      "SceneSelector.sceneIndex is assumed to be a MutableStateFlow<Int>: read with collectAsState() and written via .value because the Swift code assigns to it directly.",
-      "Model.enabledScenes is assumed to be a StateFlow<List<SettingsScene>> read with collectAsState().",
-      "SwiftUI .foregroundStyle(.white) is mapped to CompositionLocalProvider(LocalContentColor provides Color.White) so it propagates to the picker's Text children.",
-      ".minimumScaleFactor has no Compose counterpart and was dropped rather than faked.",
-      "ZStack -> Box; the quickSwitchGroup badge uses Row/Column with weight(1f) spacers to reproduce the bottom-trailing alignment.",
-      ".cornerRadius(7) plus .overlay(RoundedRectangle().stroke(...)) become Modifier.clip(RoundedCornerShape(7.dp)) and Modifier.border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)).",
-      "The segment dimension globals (segmentHeight, sceneSegmentWidth, ...) are treated as Float and converted with .dp at call sites."
+      "The diff only removes the background, corner radius and border overlay from both scene selectors; the picker wrapper Box now carries only the width (plus bottom padding in the vertical variant)",
+      "foregroundStyle(.white) is still translated as CompositionLocalProvider(LocalContentColor provides Color.White)",
+      "Modifiers are still reversed relative to SwiftUI: the Swift .frame(.width) stays the outer size",
+      "pickerBackgroundColor/pickerBorderColor are no longer read by this file but remain declared in SegmentedPicker.kt",
+      "Imports of background, border, clip and RoundedCornerShape are kept as the diff did not touch them"
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7587,
-    "tokens_out": 16527,
-    "seconds": 62.7,
-    "ported_at": "2026-09-22T14:00:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48252,
+    "tokens_out": 2120,
+    "seconds": 8.6,
+    "ported_at": "2026-11-06T00:36:15+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Recording/StreamRecordingSettingsView.swift": {
     "status": "ok",
@@ -15234,43 +15219,43 @@
   },
   "Moblin/View/Stream/Overlay/Right/CameraSettingsControlView.swift": {
     "status": "ok",
-    "sha256": "3315a07e0d271637155704325b9d56c9ff2b6eba25ac1475ed1cb874acf7b2b2",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "06d94cbbab4a6b93dd67e3e5cd03c090a3482e667a8d3bc272d02de9eb41ba78",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/CameraSettingsControlView.kt",
     "notes": [
-      "Swift changed ExposureBiasView from @EnvironmentObject to an explicit `let model: Model`, so the Kotlin ExposureBiasView no longer defaults model to LocalModel.current; the call site already passed model explicitly and stays unchanged.",
-      "LocalModel.current is still used as the default for the other views (WhiteBalanceView, IsoView, ExposureView, FocusView, ButtonsView, StreamOverlayRightCameraSettingsControlView), so the import is kept.",
-      "No other line of the Kotlin file was touched."
+      "The three new Swift overlays (NotSupportedForThisCameraView, SliderAndLockView, ExposureBiasView) become Modifier.border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)) placed right after the background, matching the stroke that CameraSettingButtonView already had.",
+      "Border uses the same 7.dp rounded shape as the clip so the stroke follows the rounded corners like RoundedRectangle(cornerRadius: 7).stroke().",
+      "Everything else is unchanged: the Slider steps, OnChange helper, PlainButton and observing DisposableEffect stay as written."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 52575,
-    "tokens_out": 5427,
-    "seconds": 15.0,
-    "ported_at": "2026-10-06T23:23:49+00:00"
+    "tokens_in": 53169,
+    "tokens_out": 6452,
+    "seconds": 20.6,
+    "ported_at": "2026-11-06T00:36:23+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/ZoomPresetSelctorView.swift": {
     "status": "ok",
-    "sha256": "a912c706d5858071c77d6d8c3e8456638af29f231448f321685bc8500f262bac",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "3e509ee3ae9d9fe1919f09df2d78e06beab830c4183eb6a6e8876d5ad184d2f1",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/ZoomPresetSelctorView.kt",
     "notes": [
-      "The Swift diff turns @EnvironmentObject model into an explicit `let model: Model` on ZoomPresetView and ZoomPresetVView; in Kotlin this only removes the `= LocalModel.current` default, so both private composables now require the model parameter.",
-      "Both call sites already passed `model = model`, so they stay byte-identical.",
-      "LocalModel is still used as the default for the two public entry composables, so its import is kept."
+      "Removed the background, rounded-corner clip and border from ZoomPresetView and ZoomPresetVView, as in the Swift diff.",
+      "Unused imports (background, border, clip, RoundedCornerShape) are kept unchanged to keep untouched lines byte-identical.",
+      "The picker is now drawn on the iOS-default clear background; SegmentedHPicker/SegmentedVPicker still supply the selected segment colour."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45737,
-    "tokens_out": 1967,
-    "seconds": 6.4,
-    "ported_at": "2026-10-06T23:23:42+00:00"
+    "tokens_in": 45843,
+    "tokens_out": 2077,
+    "seconds": 7.4,
+    "ported_at": "2026-11-06T00:36:14+00:00"
   },
   "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift": {
     "status": "ok",
@@ -15557,27 +15542,25 @@
   },
   "Moblin/View/ControlBar/ControlBarLandscapeView.swift": {
     "status": "ok",
-    "sha256": "04868f0a11a805073c949d549d56a0c6f2638590735cb7eb1c410d9b94190935",
+    "sha256": "f16d74f063e2c067cd9d6c75ef257214f1d7ae3156e30613b092a3e022c8c61b",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarLandscapeView.kt",
     "notes": [
-      "Observed-model state is read with collectAsState(); writes assume the exposed StateFlow is backed by a MutableStateFlow (quickButtons.page.value = page).",
-      "ControlBarPageScrollTargetBehavior has no Compose counterpart: the iOS 17 page-scrolling branch becomes a HorizontalPager, which snaps pages natively; the class is kept as a thin wrapper over controlBarScrollTargetBehavior.",
-      "Only the iOS 17 branch of PagesView is translated; the legacy horizontal ScrollView fallback is dropped.",
-      "Size constants (controlBarWidthDefault, controlBarButtonSize, controlBarQuickButton*) are Double and converted to Dp with .dp; PageIndicatorView's size was CGFloat and becomes Float.",
-      "Image(\"\\(store.iconImage)NoBackground\") is resolved at runtime with Resources.getIdentifier and drawn with painterResource.",
-      "Small font is passed as the Text style parameter (smallFont is treated as a TextStyle).",
-      "The thermal state .sheet becomes a ModalBottomSheet driven by remember { mutableStateOf(false) }.",
-      "Modifiers with no Compose equivalent were dropped: .interpolation(.high) and .ignoresSafeArea(.all, edges:); edgesToIgnore() is kept but unused."
+      "Added the new extraPages() helper in PagesView, mirroring the Swift (2 ... controlBarPages) filter over quickButtons.pairs.",
+      "The content Row now iterates (listOf(1) + extraPages()), the Compose equivalent of MainPageView with .id(1) followed by ForEach(extraPages()).",
+      "The removed .id(page + 1) has no effect in Kotlin: rows were and still are keyed by their page number with key(page).",
+      "Swift's switch from HStack to LazyHStack is a laziness change; the hand-written horizontalScroll Row is kept as is, and the visible page list is identical.",
+      "The scroll targeting logic keeps using the existing pages list, which equals listOf(1) + extraPages()."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7320,
-    "tokens_out": 26620,
-    "seconds": 97.8,
-    "ported_at": "2026-09-22T14:05:03+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 49968,
+    "tokens_out": 7318,
+    "seconds": 26.0,
+    "ported_at": "2026-11-06T00:36:36+00:00"
   },
   "Moblin/Various/Settings/SettingsMacros.swift": {
     "status": "ok",
@@ -17613,27 +17596,25 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "ae60238fe9e8cbfac1120983ba0f7f2c8ba76a7f650a2e7face0546a43c048e2",
-    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+    "sha256": "4b52d9eef4a1e5c9a8ae98f23225a9517cc92567624278d37cc8063ba4b09fef",
+    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "Replaced the separate portrait()/landscape() composables with the new streamArea(), panel(), streamAreaTrailingPadding(), streamAndPanel() and main() structure from the Swift refactor.",
-      "main() picks a Column for portrait and a Row for landscape since Compose has no AnyLayout; streamAndPanel() is weighted 1f and the control bar wraps beside/below it.",
-      "streamAndPanel() overlays the panel with Box(contentAlignment = Alignment.TopEnd); in landscape the stream area gets trailing padding of the panel width, in portrait the panel overlays full size as Swift's frame(width: nil) does.",
-      "The panel's MenuView keeps the Android hand-written opacityAndHitTesting() so it neither draws nor receives touches when hidden, and the black background now fades with it as SwiftUI's .opacity does.",
-      "DrawOnStreamView condition widened to `stream.portrait || !isPortrait` to match the merged streamArea().",
-      "Landscape PanelButtonsView keeps the existing Modifier.offset(x = 1.dp) Android adaptation for Swift's .padding(.trailing, -1).",
-      "panelHidden-driven panelWidth is settingsHalfWidth when shown and 1.0 when hidden, matching settingsHalfWidth already imported from the settings view package."
+      "Added safeAreaRegionsToIgnore() mirroring the Swift helper: it returns WindowInsets.ime when the panel is open in portrait, otherwise empty insets.",
+      "The new .ignoresSafeArea(.keyboard, edges: .bottom) is translated as exclude(safeAreaRegions) on the column's window insets, since this screen only ever pads for systemBars and displayCutout (never ime), so ignoring the keyboard region is a no-op in practice but stays declared.",
+      "New imports androidx.compose.foundation.layout.exclude and .ime were added for the insets subtraction.",
+      "MainView now also collects model.showingPanel and model.panelHidden to compute the ignored regions.",
+      "Everything else is byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 79745,
-    "tokens_out": 24470,
-    "seconds": 91.2,
-    "ported_at": "2026-11-05T00:37:44+00:00"
+    "tokens_in": 77895,
+    "tokens_out": 15166,
+    "seconds": 48.4,
+    "ported_at": "2026-11-06T00:37:05+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",

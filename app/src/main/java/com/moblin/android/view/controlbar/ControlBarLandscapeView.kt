@@ -457,6 +457,10 @@ private fun PagesView(
         }
     }
 
+    fun extraPages(): List<Int> {
+        return (2..controlBarPages).filter { pairs[it - 1].isNotEmpty() }
+    }
+
     val pages = buildList {
         add(1)
         for (page in 1 until controlBarPages) {
@@ -501,7 +505,7 @@ private fun PagesView(
                     .horizontalScroll(state = scrollState, flingBehavior = scrollTargetBehavior),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                pages.forEach { page ->
+                (listOf(1) + extraPages()).forEach { page ->
                     key(page) {
                         Box(
                             modifier = Modifier

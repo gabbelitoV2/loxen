@@ -74,6 +74,7 @@ fun EffectSlider(
                 .size(width = sliderWidth.dp, height = sliderHeight.dp)
                 .clip(RoundedCornerShape(7.dp))
                 .background(backgroundColor)
+                .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp))
                 .padding(horizontal = 7.dp)
                 .padding(vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,

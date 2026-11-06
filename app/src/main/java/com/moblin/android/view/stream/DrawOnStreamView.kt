@@ -2,6 +2,7 @@ package com.moblin.android.view.stream
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -36,6 +37,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.videoeffects.drawOnStreamCreatePath
+import com.moblin.android.view.stream.overlay.right.pickerBorderColor
 import com.moblin.android.view.utils.RgbColorPickerView
 import java.util.UUID
 import com.moblin.android.LocalModel
@@ -144,6 +146,7 @@ private fun DrawOnStreamControlsView(
             Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier
+                    .border(1.dp, pickerBorderColor, RoundedCornerShape(5.dp))
                     .clip(RoundedCornerShape(5.dp))
                     .background(backgroundColor)
                     .padding(8.dp),

@@ -1,6 +1,7 @@
 package com.moblin.android.view.stream.overlay.right
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -23,12 +25,14 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.common.various.color
 import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
@@ -41,7 +45,7 @@ val sceneSegmentWidth = 70.0
 val sliderWidth = 250.0
 val sliderHeight = 40.0
 val cameraButtonWidth = 70.0
-val pickerBorderColor = Color.Gray
+val pickerBorderColor = Color.Gray.copy(alpha = 0.3f)
 val pickerBackgroundColor = Color.Black.copy(alpha = 0.4f)
 val pickerLabelMinimumScaleFactor = 0.7
 
@@ -85,6 +89,8 @@ private fun <T : Any, Content> Segment(
     onLongPress: ((Int) -> Unit)?,
     content: @Composable (T) -> Content,
     modifier: Modifier,
+    horizontal: Boolean,
+    showSeparator: Boolean,
 ) {
     val currentOnSelectedItemChange by rememberUpdatedState(onSelectedItemChange)
     val currentOnLongPress by rememberUpdatedState(onLongPress)
@@ -101,6 +107,23 @@ private fun <T : Any, Content> Segment(
         contentAlignment = Alignment.Center,
     ) {
         content(item)
+        if (showSeparator) {
+            if (horizontal) {
+                VerticalDivider(
+                    color = pickerBorderColor,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .align(Alignment.CenterEnd),
+                )
+            } else {
+                HorizontalDivider(
+                    color = pickerBorderColor,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter),
+                )
+            }
+        }
     }
 }
 
@@ -129,13 +152,17 @@ fun <T : Any, Content> SegmentedHPicker(
     selectedItem: T?,
     onSelectedItemChange: (T?) -> Unit,
     selectedColor: Color = defaultSegmentedPickerSelectedColor.color(),
+    backgroundColor: Color = pickerBackgroundColor,
     onLongPress: ((Int) -> Unit)? = null,
     content: @Composable (T) -> Content,
 ) {
     Row(
         modifier = Modifier
             .wrapContentWidth(unbounded = true)
-            .height(IntrinsicSize.Min),
+            .height(IntrinsicSize.Min)
+            .clip(RoundedCornerShape(7.dp))
+            .background(backgroundColor)
+            .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
     ) {
         items.forEachIndexed { index, item ->
             Segment(
@@ -147,8 +174,9 @@ fun <T : Any, Content> SegmentedHPicker(
                 onLongPress = onLongPress,
                 content = content,
                 modifier = Modifier.fillMaxHeight(),
+                horizontal = true,
+                showSeparator = index < items.size - 1,
             )
-            VerticalDivider(color = pickerBorderColor)
         }
     }
 }
@@ -159,10 +187,16 @@ fun <T : Any, Content> SegmentedVPicker(
     selectedItem: T?,
     onSelectedItemChange: (T?) -> Unit,
     selectedColor: Color = defaultSegmentedPickerSelectedColor.color(),
+    backgroundColor: Color = pickerBackgroundColor,
     onLongPress: ((Int) -> Unit)? = null,
     content: @Composable (T) -> Content,
 ) {
-    Column {
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(7.dp))
+            .background(backgroundColor)
+            .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
+    ) {
         items.forEachIndexed { index, item ->
             Segment(
                 item = item,
@@ -173,8 +207,9 @@ fun <T : Any, Content> SegmentedVPicker(
                 onLongPress = onLongPress,
                 content = content,
                 modifier = Modifier.fillMaxWidth(),
+                horizontal = false,
+                showSeparator = index < items.size - 1,
             )
-            HorizontalDivider(color = pickerBorderColor)
         }
     }
 }

@@ -6,7 +6,6 @@ import com.moblin.android.common.various.countFormatter
 import com.moblin.android.localized
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.kick.KickApi
-import com.moblin.android.streamingplatforms.kick.KickApiDelegate
 import com.moblin.android.streamingplatforms.kick.KickCategory
 import com.moblin.android.streamingplatforms.kick.KickLiveSearchChannel
 import com.moblin.android.streamingplatforms.kick.KickPlatformStatus
@@ -376,8 +375,18 @@ fun Model.createKickApi(stream: SettingsStream): KickApi {
         slug = stream.kickSlug ?: "",
         accessToken = stream.kickAccessToken
     )
-    kickApi.delegate = KickApiDelegateAdapter(this)
+    kickApi.onUnauthorized = {
+        kickApiUnauthorized(stream = stream)
+    }
     return kickApi
+}
+
+private fun Model.kickApiUnauthorized(stream: SettingsStream) {
+    if (!stream.kickLoggedIn) {
+        return
+    }
+    stream.kickLoggedIn = false
+    makeNotLoggedInToToast(platform = Platform.kick)
 }
 
 private fun Model.appendKickChatAlertMessage(
@@ -623,20 +632,6 @@ fun Model.kickPusherKicksGifted(event: KickPusherKicksGiftedEvent) {
     macrosEventOccurred(
         MacroEvent(event = SettingsMacrosEvent.KICK_KICKS, amount = event.gift.amount)
     )
-}
-
-fun Model.kickApiUnauthorized() {
-    if (!stream.value.kickLoggedIn) {
-        return
-    }
-    stream.value.kickLoggedIn = false
-    makeNotLoggedInToToast(platform = Platform.kick)
-}
-
-private class KickApiDelegateAdapter(private val model: Model) : KickApiDelegate {
-    override fun kickApiUnauthorized() {
-        model.kickApiUnauthorized()
-    }
 }
 
 private class KickPusherDelegateAdapter(private val model: Model) : KickPusherDelegate {

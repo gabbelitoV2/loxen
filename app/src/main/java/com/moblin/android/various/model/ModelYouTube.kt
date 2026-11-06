@@ -13,7 +13,6 @@ import com.moblin.android.platform.core.ContinuousClock
 import com.moblin.android.platform.uikit.UIViewController
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.youtube.YouTubeApi
-import com.moblin.android.streamingplatforms.youtube.YouTubeApiDelegate
 import com.moblin.android.streamingplatforms.youtube.YouTubeLiveChat
 import com.moblin.android.streamingplatforms.youtube.fetchYouTubeVideoId
 import com.moblin.android.streamingplatforms.youtube.removeYouTubeAuthStateInKeychain
@@ -37,12 +36,6 @@ private val mainScope = CoroutineScope(Dispatchers.Main)
 
 open class YouTube {
     open var session: OIDExternalUserAgentSession? = null
-}
-
-private class ModelYouTubeApiDelegate(private val model: Model) : YouTubeApiDelegate {
-    override fun youTubeApiUnauthorized() {
-        model.youTubeApiUnauthorized()
-    }
 }
 
 private class ModelYouTubeLiveChatDelegate(private val model: Model) : YouTubeLiveChatDelegate {
@@ -142,9 +135,18 @@ fun Model.getYouTubeApi(stream: SettingsStream, onCompleted: (YouTubeApi?) -> Un
             return@getYouTubeAccesssToken
         }
         val youTubeApi = YouTubeApi(accessToken)
-        youTubeApi.delegate = ModelYouTubeApiDelegate(this)
+        youTubeApi.onUnauthorized = { youTubeApiUnauthorized(stream = stream) } as () -> Void
         onCompleted(youTubeApi)
     }
+}
+
+private fun Model.youTubeApiUnauthorized(stream: SettingsStream) {
+    if (!stream.isYouTubeAuthorized()) {
+        return
+    }
+    stream.youTubeAuthState = null
+    removeYouTubeAuthStateInKeychain(streamId = stream.id)
+    makeNotLoggedInToToast(platform = Platform.youTube)
 }
 
 fun Model.startFetchingYouTubeChatVideoId() {
@@ -358,15 +360,6 @@ private fun Model.getVideo() {
             }
         }
     }
-}
-
-fun Model.youTubeApiUnauthorized() {
-    if (!stream.value.isYouTubeAuthorized()) {
-        return
-    }
-    stream.value.youTubeAuthState = null
-    removeYouTubeAuthStateInKeychain(streamId = stream.value.id)
-    makeNotLoggedInToToast(platform = Platform.youTube)
 }
 
 fun Model.youTubeLiveChatMakeErrorToast(title: String, subTitle: String) {

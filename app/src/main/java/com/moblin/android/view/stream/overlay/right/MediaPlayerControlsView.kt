@@ -1,6 +1,7 @@
 package com.moblin.android.view.stream.overlay.right
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -66,6 +67,7 @@ fun StreamOverlayRightMediaPlayerControlsView(model: Model = LocalModel.current,
                 .padding(8.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(backgroundColor)
+                .border(1.dp, pickerBorderColor, RoundedCornerShape(8.dp))
         ) {
             Text(
                 text = time,
