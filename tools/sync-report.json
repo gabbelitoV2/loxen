@@ -1,5 +1,5 @@
 {
-  "upstream": "0742a493ecb0d0ae98c7285d370638cbe8e02c49",
+  "upstream": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
   "sync_error": null,
   "build": [],
   "pbswift": null,
@@ -13,6 +13,17 @@
       "hooks": []
     },
     {
+      "swift": "Moblin/RemoteControl/RemoteControlAssistant.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
+      "reason": "compile",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [
+        "69: Unresolved reference 'RemoteControlState'.",
+        "881: Unresolved reference 'RemoteControlState'."
+      ],
+      "hooks": []
+    },
+    {
       "swift": "Moblin/RemoteControl/RemoteControlSceneConfigValidation.swift",
       "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlSceneConfigValidation.kt",
       "reason": "dependency",
@@ -23,17 +34,31 @@
     {
       "swift": "Moblin/RemoteControl/RemoteControlStreamer.swift",
       "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
-      "errors": [],
+      "errors": [
+        "187: Unresolved reference 'RemoteControlState'.",
+        "418: Unresolved reference 'ShowTally'.",
+        "420: Unresolved reference 'message'.",
+        "421: Unresolved reference 'background'.",
+        "422: Unresolved reference 'foreground'.",
+        "426: Unresolved reference 'HideTally'."
+      ],
       "hooks": []
     },
     {
       "swift": "Moblin/RemoteControl/RemoteControlWeb.swift",
       "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlWeb.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": "5a260fcec687db0b38834bb75f6526dafbcd260b",
-      "errors": [],
+      "errors": [
+        "159: Unresolved reference 'RemoteControlState'.",
+        "538: Unresolved reference 'ShowTally'.",
+        "540: Unresolved reference 'message'.",
+        "541: Unresolved reference 'background'.",
+        "542: Unresolved reference 'foreground'.",
+        "546: Unresolved reference 'HideTally'."
+      ],
       "hooks": []
     },
     {
@@ -45,14 +70,62 @@
       "hooks": []
     },
     {
+      "swift": "Moblin/Various/Model/ModelAudio.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelAudio.kt",
+      "reason": "compile",
+      "ported_from": "bd404e9a0ba000cd96ea71b8287aa99552b14c42",
+      "errors": [
+        "11: Unresolved reference 'RemoteControlState'.",
+        "372: Unresolved reference 'RemoteControlState'.",
+        "786: Unresolved reference 'RemoteControlState'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelGimbal.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelGimbal.kt",
+      "reason": "compile",
+      "ported_from": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+      "errors": [
+        "4: Unresolved reference 'RemoteControlState'.",
+        "26: Unresolved reference 'RemoteControlState'.",
+        "75: Unresolved reference 'RemoteControlState'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelMacros.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelMacros.kt",
+      "reason": "compile",
+      "ported_from": "a04b3ed01577174ed701e23996f459631354b418",
+      "errors": [
+        "5: Unresolved reference 'RemoteControlState'.",
+        "149: Unresolved reference 'RemoteControlState'."
+      ],
+      "hooks": []
+    },
+    {
       "swift": "Moblin/Various/Model/ModelMoblinCloud.swift",
       "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
       "reason": "compile",
       "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
       "errors": [
+        "23: Unresolved reference 'RemoteControlState'.",
+        "558: Unresolved reference 'RemoteControlState'.",
         "617: Unresolved reference 'tally'.",
         "678: Unresolved reference 'tally'.",
         "682: Unresolved reference 'tally'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelRecording.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelRecording.kt",
+      "reason": "compile",
+      "ported_from": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+      "errors": [
+        "7: Unresolved reference 'RemoteControlState'.",
+        "139: Unresolved reference 'RemoteControlState'."
       ],
       "hooks": []
     },
@@ -62,10 +135,26 @@
       "reason": "compile",
       "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
       "errors": [
-        "846: Unresolved reference 'tally'.",
-        "943: Unresolved reference 'tally'.",
-        "947: Unresolved reference 'tally'.",
-        "1576: Unresolved reference 'tally'."
+        "47: Unresolved reference 'RemoteControlSettingsZoomPresets'.",
+        "50: Unresolved reference 'RemoteControlState'.",
+        "277: Unresolved reference 'zoomCamera'.",
+        "278: Unresolved reference 'zoomPresets'.",
+        "283: Unresolved reference 'active'.",
+        "704: Unresolved reference 'RemoteControlState'.",
+        "705: Unresolved reference 'RemoteControlState'.",
+        "726: Cannot infer type for this parameter. Specify it explicitly.",
+        "726: Not enough information to infer type argument for 'K'.",
+        "726: Not enough information to infer type argument for 'V'.",
+        "728: Cannot infer type for this parameter. Specify it explicitly.",
+        "737: Unresolved reference 'RemoteControlState'.",
+        "738: Unresolved reference 'remoteControlSentState'.",
+        "830: No parameter with name 'zoomPresets' found.",
+        "830: Unresolved reference 'RemoteControlSettingsZoomPresets'.",
+        "860: Unresolved reference 'tally'.",
+        "957: Unresolved reference 'tally'.",
+        "961: Unresolved reference 'tally'.",
+        "974: Unresolved reference 'remoteControlSentState'.",
+        "1471: Unresolved reference 'RemoteControlState'."
       ],
       "hooks": []
     },
@@ -83,10 +172,9 @@
       "reason": "compile",
       "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
       "errors": [
-        "438: Unresolved reference 'updateWidgetOutlines'.",
-        "454: Unresolved reference 'updateWidgetOutlines'.",
-        "501: Unresolved reference 'updateWidgetOutlines'.",
-        "714: Unresolved reference 'updateWidgetOutlines'."
+        "10: Unresolved reference 'RemoteControlState'.",
+        "492: Null cannot be a value of a non-null type 'UUID'.",
+        "1535: Unresolved reference 'RemoteControlState'."
       ],
       "hooks": []
     },
@@ -96,26 +184,39 @@
       "reason": "compile",
       "ported_from": "013f290d6d1de69bfc765cce10845750f571f324",
       "errors": [
-        "20: Redeclaration:",
-        "33: Redeclaration:",
-        "71: Unresolved reference 'canvasSize'.",
-        "85: Unresolved reference 'canvasSize'.",
-        "125: Unresolved reference 'outlines'.",
+        "19: Redeclaration:",
+        "32: Redeclaration:",
+        "70: Unresolved reference 'canvasSize'.",
+        "84: Unresolved reference 'canvasSize'.",
+        "124: Unresolved reference 'outlines'.",
+        "125: Unresolved reference 'it'.",
         "126: Unresolved reference 'it'.",
-        "127: Unresolved reference 'it'.",
-        "131: Unresolved reference 'not' for operator '!'.",
-        "163: Unresolved reference 'enabled'.",
-        "166: Unresolved reference 'enabled'.",
-        "167: Unresolved reference 'imageSizes'.",
-        "167: Cannot infer type for this parameter. Specify it explicitly.",
-        "167: Not enough information to infer type argument for 'K'.",
-        "167: Not enough information to infer type argument for 'V'.",
-        "171: Unresolved reference 'outlines'.",
-        "171: Cannot infer type for this parameter. Specify it explicitly.",
-        "171: Not enough information to infer type argument for 'T'.",
-        "176: Unresolved reference 'enabled'.",
-        "181: Unresolved reference 'outlines'.",
-        "181: Cannot infer type for this parameter. Specify it explicitly."
+        "130: Unresolved reference 'not' for operator '!'.",
+        "162: Unresolved reference 'enabled'.",
+        "165: Unresolved reference 'enabled'.",
+        "166: Unresolved reference 'imageSizes'.",
+        "166: Cannot infer type for this parameter. Specify it explicitly.",
+        "166: Not enough information to infer type argument for 'K'.",
+        "166: Not enough information to infer type argument for 'V'.",
+        "170: Unresolved reference 'outlines'.",
+        "170: Cannot infer type for this parameter. Specify it explicitly.",
+        "170: Not enough information to infer type argument for 'T'.",
+        "175: Unresolved reference 'enabled'.",
+        "180: Unresolved reference 'outlines'.",
+        "180: Cannot infer type for this parameter. Specify it explicitly."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelStream.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
+      "reason": "compile",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [
+        "23: Unresolved reference 'RemoteControlState'.",
+        "534: Unresolved reference 'RemoteControlState'.",
+        "1034: Unresolved reference 'RemoteControlState'.",
+        "1070: Unresolved reference 'RemoteControlState'."
       ],
       "hooks": []
     },
@@ -133,6 +234,28 @@
       "reason": "removed upstream, but the Kotlin is still needed",
       "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
       "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelZoom.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelZoom.kt",
+      "reason": "compile",
+      "ported_from": "1f0fe6374d291c65db556df9029a150d8d993694",
+      "errors": [
+        "3: Unresolved reference 'RemoteControlState'.",
+        "4: Unresolved reference 'RemoteControlZoomCamera'.",
+        "5: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "94: Unresolved reference 'RemoteControlState'.",
+        "171: Unresolved reference 'RemoteControlState'.",
+        "184: Unresolved reference 'RemoteControlState'.",
+        "234: Unresolved reference 'RemoteControlState'.",
+        "245: No parameter with name 'x' found.",
+        "248: Unresolved reference 'RemoteControlZoomCamera'.",
+        "250: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "251: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "252: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "254: Unresolved reference 'RemoteControlZoomCamera'."
+      ],
       "hooks": []
     },
     {
@@ -154,9 +277,30 @@
     {
       "swift": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorView.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": "a04b3ed01577174ed701e23996f459631354b418",
-      "errors": [],
+      "errors": [
+        "180: Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:",
+        "180: Cannot infer type for this parameter. Specify it explicitly.",
+        "180: Unresolved reference 'outlines'.",
+        "180: Cannot infer type for this parameter. Specify it explicitly.",
+        "181: Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:",
+        "181: Cannot infer type for this parameter. Specify it explicitly.",
+        "181: Unresolved reference 'canvasSize'.",
+        "181: Cannot infer type for this parameter. Specify it explicitly.",
+        "186: Function invocation 'width(...)' expected.",
+        "188: Unresolved reference 'it'.",
+        "189: Unresolved reference 'it'.",
+        "238: Cannot infer type for this parameter. Specify it explicitly.",
+        "238: Not enough information to infer type argument for 'T'.",
+        "239: Cannot infer type for this parameter. Specify it explicitly.",
+        "239: Not enough information to infer type argument for 'T'.",
+        "239: Not enough information to infer type argument for 'R'.",
+        "239: Cannot infer type for this parameter. Specify it explicitly.",
+        "239: Cannot infer type for this parameter. Specify it explicitly.",
+        "239: Not enough information to infer type argument for 'A'.",
+        "240: Cannot infer type for this parameter. Specify it explicitly."
+      ],
       "hooks": []
     },
     {
@@ -165,8 +309,7 @@
       "reason": "compile",
       "ported_from": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
       "errors": [
-        "174: Unresolved reference 'TallyView'.",
-        "1057: Unresolved reference 'TallyView'."
+        "1026: Unresolved reference 'tally'."
       ],
       "hooks": []
     },
@@ -200,7 +343,7 @@
     {
       "swift": "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/ScenesSettingsView.kt",
-      "reason": "dependency",
+      "reason": "fallback",
       "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
       "errors": [],
       "hooks": []
@@ -211,22 +354,25 @@
       "reason": "compile",
       "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
       "errors": [
-        "38: Assignment type mismatch: actual type is 'UUID?', but 'UUID' was expected."
+        "37: Assignment type mismatch: actual type is 'UUID?', but 'UUID' was expected."
       ],
       "hooks": []
     },
     {
       "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetSettingsView.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
-      "errors": [],
+      "errors": [
+        "372: No parameter with name 'scene' found.",
+        "372: No value passed for parameter 'selectedSceneId'."
+      ],
       "hooks": []
     },
     {
       "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetWizardSettingsView.kt",
-      "reason": "fallback",
+      "reason": "dependency",
       "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
       "errors": [],
       "hooks": []
@@ -234,7 +380,7 @@
     {
       "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardPngTuberSettingsView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardPngTuberSettingsView.kt",
-      "reason": "fallback",
+      "reason": "dependency",
       "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [],
       "hooks": []
@@ -242,7 +388,7 @@
     {
       "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVTuberSettingsView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardVTuberSettingsView.kt",
-      "reason": "fallback",
+      "reason": "dependency",
       "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [],
       "hooks": []
@@ -258,14 +404,9 @@
     {
       "swift": "Moblin/View/Stream/TallyView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/stream/TallyView.kt",
-      "reason": "compile",
+      "reason": "dependency",
       "ported_from": null,
-      "errors": [
-        "44: Unresolved reference 'RgbColor'.",
-        "45: Unresolved reference 'r'.",
-        "46: Unresolved reference 'g'.",
-        "47: Unresolved reference 'b'."
-      ],
+      "errors": [],
       "hooks": []
     },
     {
@@ -301,13 +442,25 @@
       "ported_from": "22dd74423222001b242fc23921a91b0e366c88fb",
       "errors": [
         "7: Unresolved reference 'Tally'.",
-        "59: Unresolved reference 'ShowTally'.",
-        "66: Unresolved reference 'HideTally'.",
-        "72: Unresolved reference 'ShowTally'.",
-        "73: Unresolved reference 'background'.",
-        "74: Unresolved reference 'foreground'.",
-        "75: Unresolved reference 'message'.",
-        "80: Unresolved reference 'Tally'."
+        "44: Cannot infer type for this parameter. Specify it explicitly.",
+        "45: Unresolved reference 'RemoteControlZoomCamera'.",
+        "45: Argument type mismatch: actual type is 'Pair<A (of fun <A, B> A.to), B (of fun <A, B> A.to)>', but 'T (of fun <T> listOf)' was expected.",
+        "46: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "49: Cannot infer type for this parameter. Specify it explicitly.",
+        "50: Unresolved reference 'RemoteControlZoomCamera'.",
+        "50: Argument type mismatch: actual type is 'Pair<A (of fun <A, B> A.to), B (of fun <A, B> A.to)>', but 'T (of fun <T> listOf)' was expected.",
+        "51: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "54: Cannot infer type for this parameter. Specify it explicitly.",
+        "55: Unresolved reference 'RemoteControlZoomCamera'.",
+        "55: Argument type mismatch: actual type is 'Pair<A (of fun <A, B> A.to), B (of fun <A, B> A.to)>', but 'T (of fun <T> listOf)' was expected.",
+        "56: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "59: Cannot infer type for this parameter. Specify it explicitly.",
+        "60: Unresolved reference 'RemoteControlZoomCamera'.",
+        "60: Argument type mismatch: actual type is 'Pair<A (of fun <A, B> A.to), B (of fun <A, B> A.to)>', but 'T (of fun <T> listOf)' was expected.",
+        "61: Unresolved reference 'RemoteControlZoomCameraPosition'.",
+        "64: Cannot infer type for this parameter. Specify it explicitly.",
+        "65: Unresolved reference 'RemoteControlZoomCamera'.",
+        "65: Argument type mismatch: actual type is 'Pair<A (of fun <A, B> A.to), B (of fun <A, B> A.to)>', but 'T (of fun <T> listOf)' was expected."
       ],
       "hooks": []
     },

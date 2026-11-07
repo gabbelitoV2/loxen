@@ -13991,18 +13991,19 @@
   },
   "Moblin/Various/Model/ModelAppleWatch.swift": {
     "status": "ok",
-    "sha256": "ac467e6502813ef15a29d142b36aca59ce3a57d9172f3299738914f92d6d8c20",
-    "moblin_commit": "bd404e9a0ba000cd96ea71b8287aa99552b14c42",
+    "sha256": "a32c839bdf5f0536f080f146aa2765f1c34d8589cbdb91d0b4fd6e5a576c6bce",
+    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt",
     "notes": [
-      "The Swift diff only flattens an if/else-if chain inside handleSetIsLive, whose Kotlin body is a hand-written stub (Unit) because the WatchConnectivity layer has no Android counterpart; the stub is kept.",
-      "No other line moves, so the Kotlin file is returned byte-identical.",
-      "Android posts watch state through com.moblin.android.moblinwatch.shared helpers elsewhere, not through WCSession."
+      "The Swift diff only renames the call zoomPresetsMayHaveChanged() to activeZoomPresetsMayHaveChanged() inside sendInitToWatch().",
+      "The current Kotlin sendInitToWatch() is a stubbed Unit body, so that call has no Kotlin line to rename; the file is therefore returned unchanged.",
+      "All WatchConnectivity entry points (isWatchReachable, session delegates) stay stubbed since there is no Android counterpart.",
+      "The existing TODO() in makePng is kept as is and listed as unsupported."
     ],
     "unsupported": [
-      "WCSession / WatchConnectivity (isWatchReachable, sendMessage, session delegates) has no Android counterpart; bodies stay stubbed"
+      "UIImage.resize(height:)/pngData() in Model.makePng (TODO())"
     ],
     "apple_only": [
       "WatchConnectivity (WCSession, WCSessionDelegate, WCSessionActivationState)",
@@ -14012,10 +14013,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 68389,
-    "tokens_out": 1747,
-    "seconds": 8.6,
-    "ported_at": "2026-10-28T23:39:53+00:00"
+    "tokens_in": 68397,
+    "tokens_out": 1706,
+    "seconds": 8.1,
+    "ported_at": "2026-11-07T23:07:53+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/ReplayView.swift": {
     "status": "ok",
@@ -18457,29 +18458,6 @@
     "seconds": 32.8,
     "ported_at": "2026-11-05T00:36:14+00:00"
   },
-  "Moblin/View/Stream/WidgetOutlinesView.swift": {
-    "status": "ok",
-    "sha256": "ba6ac6764c771f7fd65178998e888e84f015bb6c0edf6522d2bd70f74dda4005",
-    "moblin_commit": "a04b3ed01577174ed701e23996f459631354b418",
-    "mode": "incremental",
-    "tier": "ui",
-    "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
-    "notes": [
-      "WidgetOutlineLabelView gained a `selected: Boolean = false` parameter; existing call sites (labelOutside and sizedView) keep passing nothing and get the default, as in Swift.",
-      "The label font moved from caption2 (11.sp) to footnote (13.sp); both the SystemImage icon and the Text now use 13.sp because Swift applies .font to the whole HStack.",
-      "Selected labels use FontWeight.SemiBold and the accent background formPalette().accent; unselected keep the black 60% background, matching Color.accentColor vs .black.opacity(0.6).",
-      "Compose modifier order is reversed from SwiftUI, so the accent background is still applied before the padding and clipped to the 3.dp rounded corners.",
-      "Vertical padding grew from 1.dp to 2.dp as in the Swift change.",
-      "No other members changed: widgetOutlineViewRect, labelOutside, sizedView, anchorView, WidgetOutlineView and WidgetOutlinesView are untouched."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 51274,
-    "tokens_out": 3213,
-    "seconds": 13.9,
-    "ported_at": "2026-11-03T01:52:20+00:00"
-  },
   "Moblin/Various/Model/ModelWidgetOutlines.swift": {
     "status": "ok",
     "sha256": "d96a5ebe1013bf7900bc9992e14c06da49acc08a94dda1fab74d857795760ded",
@@ -18503,5 +18481,28 @@
     "tokens_out": 5479,
     "seconds": 22.4,
     "ported_at": "2026-11-01T23:35:25+00:00"
+  },
+  "Moblin/View/Stream/WidgetOutlinesView.swift": {
+    "status": "ok",
+    "sha256": "ba6ac6764c771f7fd65178998e888e84f015bb6c0edf6522d2bd70f74dda4005",
+    "moblin_commit": "a04b3ed01577174ed701e23996f459631354b418",
+    "mode": "incremental",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
+    "notes": [
+      "WidgetOutlineLabelView gained a `selected: Boolean = false` parameter; existing call sites (labelOutside and sizedView) keep passing nothing and get the default, as in Swift.",
+      "The label font moved from caption2 (11.sp) to footnote (13.sp); both the SystemImage icon and the Text now use 13.sp because Swift applies .font to the whole HStack.",
+      "Selected labels use FontWeight.SemiBold and the accent background formPalette().accent; unselected keep the black 60% background, matching Color.accentColor vs .black.opacity(0.6).",
+      "Compose modifier order is reversed from SwiftUI, so the accent background is still applied before the padding and clipped to the 3.dp rounded corners.",
+      "Vertical padding grew from 1.dp to 2.dp as in the Swift change.",
+      "No other members changed: widgetOutlineViewRect, labelOutside, sizedView, anchorView, WidgetOutlineView and WidgetOutlinesView are untouched."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 51274,
+    "tokens_out": 3213,
+    "seconds": 13.9,
+    "ported_at": "2026-11-03T01:52:20+00:00"
   }
 }

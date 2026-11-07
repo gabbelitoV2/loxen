@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-06T23:50:59+00:00",
+  "generated": "2026-11-07T23:07:23+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -13142,8 +13142,8 @@
     },
     {
       "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
-      "lines": 472,
-      "sha256": "6fa27aed44018d9abbc7205bfbe57cadccaaf3e260269f673782c2e76cd84356",
+      "lines": 531,
+      "sha256": "3b6ea943d228f708076a0871209d5823cdb7821dde6d4f5c1bc8062cb980f5a1",
       "imports": [
         "Foundation",
         "Testing",
@@ -14671,7 +14671,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControlWeb.swift",
       "lines": 549,
-      "sha256": "7c262f518068afef3a7d674c1ff288bd6a45d704c0c14b9cd3335fc02bd4f89d",
+      "sha256": "35804d12c563aa668150741b14bdaef95b65f0c38334a356702dfc0e9c53f89f",
       "imports": [
         "Foundation",
         "Network"
@@ -17194,7 +17194,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
       "lines": 923,
-      "sha256": "2135bed6dd5e30f2ff320f2fb9fd0dc7fd9d8d52960cf5933c6c8a16ac50bc97",
+      "sha256": "63cd34ddbe1bf2d698e39711898a60a2a79afc350b631e4444b79c0a46886616",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -17232,7 +17232,7 @@
     {
       "path": "Moblin/Various/Model/ModelAppleWatch.swift",
       "lines": 657,
-      "sha256": "ac467e6502813ef15a29d142b36aca59ce3a57d9172f3299738914f92d6d8c20",
+      "sha256": "a32c839bdf5f0536f080f146aa2765f1c34d8589cbdb91d0b4fd6e5a576c6bce",
       "imports": [
         "SwiftUI",
         "WatchConnectivity"
@@ -17348,7 +17348,7 @@
     {
       "path": "Moblin/Various/Model/ModelGimbal.swift",
       "lines": 106,
-      "sha256": "c3910833c09143c75fd119bee414d646e42a6687819804fd6d5dabae5d7e8521",
+      "sha256": "49ad6f34f8e84f430fa0b1c1f68bd72897bd86aafb966ad764baffde5f0b2e7b",
       "imports": [
         "Foundation",
         "Spatial"
@@ -17404,7 +17404,7 @@
     {
       "path": "Moblin/Various/Model/ModelRecording.swift",
       "lines": 130,
-      "sha256": "5b6313819342751613f75dda1a4f110d444cf31dfac830fcb3813be8e7bc65e1",
+      "sha256": "9102c04e72e5d3f556d58a0f1093e196adc3b424db15b6f63011f8188d8bb6b4",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -20278,7 +20278,7 @@
     {
       "path": "Moblin/Various/Model/ModelAudio.swift",
       "lines": 806,
-      "sha256": "53748073a37999f7d371589900f0d71ab29b88ff1c2207cf7cc2c29aab054ab8",
+      "sha256": "9c542b8a3667b348c48421dc86532839b8ae6e321c735fb2db765af6bf8c4174",
       "imports": [
         "AVFAudio",
         "SwiftUI"
@@ -20688,8 +20688,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
-      "lines": 1334,
-      "sha256": "88dedcd6b3e05b5485f6f004db948c1a6ab838926adb11854433367be8a817de",
+      "lines": 1525,
+      "sha256": "121d1029e10d5bd22a2899fac49a8ffcae20213e1fff5c92fe7350f06e9d71e9",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20757,10 +20757,13 @@
         "RemoteControlEditorOptions",
         "RemoteControlSettingsMoblinCloud",
         "RemoteControlSettings",
+        "RemoteControlSettingsZoomPresets",
         "RemoteControlStateAutoSceneSwitcher",
         "RemoteControlZoomPreset",
+        "RemoteControlZoomCameraPosition",
+        "RemoteControlZoomCamera",
         "RemoteControlMacro",
-        "RemoteControlAssistantStreamerState",
+        "RemoteControlState",
         "RemoteControlScoreboardControl",
         "RemoteControlScoreboardTeam",
         "RemoteControlScoreboardGlobalStats",
@@ -20807,7 +20810,7 @@
     {
       "path": "Moblin/Various/Model/ModelMacros.swift",
       "lines": 478,
-      "sha256": "1ab2e2d78b4085083c64e3844d3e2178461a474f9702efc7dfd4b27a20587554",
+      "sha256": "f6a137e5e2bd7016090cdd122739c4cf56a2f4aec4a22a85f64b7a9ceb8777fc",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -21002,7 +21005,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
       "lines": 589,
-      "sha256": "465929fd62a51db9b752b3d06a4991c294f3cde7d4030ff2171fdc9b9a4313b8",
+      "sha256": "3e94a51a3e2f473fa3ce8ca6850cdc2f4b7e2e6a006f193d8eae47cf0f118ec1",
       "imports": [
         "Foundation",
         "Network"
@@ -21032,7 +21035,7 @@
     {
       "path": "Moblin/Various/Model/ModelStream.swift",
       "lines": 1142,
-      "sha256": "a2f3a0145786fcbe5de03fd67041778fcd62dac82cdf79bec67485e672ca0a25",
+      "sha256": "4e8381cf9fb82956cc5a495de5953c5a5bbf2030fe17abe6673d84a8a5b2e626",
       "imports": [
         "AVFoundation",
         "Foundation",
@@ -21080,8 +21083,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelZoom.swift",
-      "lines": 390,
-      "sha256": "8b714adb48839585fa7e8178f97f26a6954e5c632b8cd636006d2234c49de423",
+      "lines": 414,
+      "sha256": "6ab8288df2a15ed23f6b88b76af3cc744659976df40637d0ce9815f38912ac85",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -21309,7 +21312,7 @@
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
       "lines": 828,
-      "sha256": "a73d2d9d07cf1573f23a329eda81d8471489a8cb7b8e38e1f4026b6ae0336fcb",
+      "sha256": "34e8496c3b7914b9c83383eb92241f3c4c706fc8945f62ef271cc7b24779784e",
       "imports": [
         "CryptoKit",
         "DeviceCheck",
@@ -21358,8 +21361,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1735,
-      "sha256": "4054ed3ce77aa66832dea15a51e9fdb1dc683bcbb2f84edacc8f5a20d47c3cd5",
+      "lines": 1745,
+      "sha256": "5fd915b3bcd3546ff452e649d20e961ba199e4b2ea51765597037f91f5906f04",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21401,7 +21404,7 @@
     {
       "path": "Moblin/Various/Model/ModelScene.swift",
       "lines": 1942,
-      "sha256": "c27ece42103de318c64aa245606f31a3e97c6b502597eac8d3ee94e0dc6ca091",
+      "sha256": "164a4bab49b9ce33e94219206207f6671556f9d9113b192935e3bc8161a446fc",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21998,8 +22001,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3542,
-      "sha256": "e31623ddda401c7e700cc9af015e1da9fac6392a27adab0ac8baadde54a16945",
+      "lines": 3519,
+      "sha256": "6c42eb32d33bfaf4a5c306b49d1a2d9c0bf10f6f587652dade9a84975fc31218",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -25096,7 +25099,7 @@
     {
       "path": "Moblin/View/MainView.swift",
       "lines": 769,
-      "sha256": "ab9fbaadac5d53a08c143b6561b157464fb561e2a011142f2681e87f2b721d3a",
+      "sha256": "5f532b3f265f794a0659f0d8d3eabeb936a5b5a2a90caec3a5d2b0d518b0ca5a",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -25271,8 +25274,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
-      "lines": 903,
-      "sha256": "b84a40a4244a46588338ef471cf2ad7fe5e31c55d0487960dbaf7441a10a6a5a",
+      "lines": 958,
+      "sha256": "48471a23c4cc1dc9cae22bb332558e4eafd996576f58a88004296cf988aa2bc3",
       "imports": [
         "SwiftUI"
       ],
@@ -25284,6 +25287,7 @@
         "WidgetOutlineLabelView",
         "SceneEditorCanvasView",
         "SceneEditorButtonView",
+        "SceneEditorButtonGroupView",
         "SceneEditorEnableButtonView",
         "SceneEditorDrawOrderButtonsView",
         "SceneEditorAlignmentButtonView",
@@ -25302,6 +25306,7 @@
         "WidgetOutlineLabelView",
         "SceneEditorCanvasView",
         "SceneEditorButtonView",
+        "SceneEditorButtonGroupView",
         "SceneEditorEnableButtonView",
         "SceneEditorDrawOrderButtonsView",
         "SceneEditorAlignmentButtonView",

@@ -1,16 +1,16 @@
 # Port report
 
-Generated 2026-11-07T00:05:25+00:00
+Generated 2026-11-07T23:23:16+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
-| logic | 158 | 0 | 3 | 0 | 0 |
-| platform | 54 | 0 | 3 | 0 | 0 |
+| logic | 157 | 0 | 4 | 0 | 0 |
+| platform | 53 | 0 | 4 | 0 | 0 |
 | test | 70 | 0 | 4 | 0 | 0 |
-| media | 154 | 0 | 8 | 0 | 0 |
-| ui | 355 | 0 | 11 | 2 | 0 |
+| media | 150 | 0 | 12 | 0 | 0 |
+| ui | 354 | 0 | 12 | 2 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -19,7 +19,7 @@ Generated 2026-11-07T00:05:25+00:00
 - Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift
   - ASWebAuthenticationSession and ASWebAuthenticationSessionPresentationContextProviding (startSession and presentationAnchor return false/null)
 - Moblin/Various/Model/ModelAppleWatch.swift
-  - WCSession / WatchConnectivity (isWatchReachable, sendMessage, session delegates) has no Android counterpart; bodies stay stubbed
+  - UIImage.resize(height:)/pngData() in Model.makePng (TODO())
 - Moblin/Various/Model/ModelMoblinCloud.swift
   - no Android counterpart for DeviceCheck
 - Moblin/Various/Model/ModelStore.swift
@@ -333,7 +333,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Model/Model.swift | app/src/main/java/com/moblin/android/various/model/Model.kt | deepseek-flash | 120.9 |
 | Moblin/Various/Model/ModelAppIntents.swift | app/src/main/java/com/moblin/android/various/model/ModelAppIntents.kt | deepseek-flash | 2.9 |
 | Moblin/Various/Model/ModelAppMode.swift | app/src/main/java/com/moblin/android/various/model/ModelAppMode.kt | deepseek-flash | 10.0 |
-| Moblin/Various/Model/ModelAppleWatch.swift | app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt | deepseek-flash | 8.6 |
+| Moblin/Various/Model/ModelAppleWatch.swift | app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt | deepseek-flash | 8.1 |
 | Moblin/Various/Model/ModelAudio.swift | app/src/main/java/com/moblin/android/various/model/ModelAudio.kt | deepseek-flash | 47.5 |
 | Moblin/Various/Model/ModelAutoSceneSwitcher.swift | app/src/main/java/com/moblin/android/various/model/ModelAutoSceneSwitcher.kt | deepseek-flash | 10.8 |
 | Moblin/Various/Model/ModelBlackSharkCoolerDevice.swift | app/src/main/java/com/moblin/android/various/model/ModelBlackSharkCoolerDevice.kt | deepseek-flash | 42.8 |
