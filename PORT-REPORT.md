@@ -1,16 +1,16 @@
 # Port report
 
-Generated 2026-11-06T00:37:06+00:00
+Generated 2026-11-07T00:05:25+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
-| logic | 162 | 0 | 0 | 0 | 0 |
-| platform | 57 | 0 | 0 | 0 | 0 |
-| test | 74 | 0 | 0 | 0 | 0 |
-| media | 162 | 0 | 0 | 0 | 0 |
-| ui | 367 | 0 | 0 | 0 | 0 |
+| logic | 158 | 0 | 3 | 0 | 0 |
+| platform | 54 | 0 | 3 | 0 | 0 |
+| test | 70 | 0 | 4 | 0 | 0 |
+| media | 154 | 0 | 8 | 0 | 0 |
+| ui | 355 | 0 | 11 | 2 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -403,7 +403,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Model/ModelWidgetOutlines.swift | app/src/main/java/com/moblin/android/various/model/ModelWidgetOutlines.kt | deepseek-flash | 22.4 |
 | Moblin/Various/Model/ModelWorkout.swift | app/src/main/java/com/moblin/android/various/model/ModelWorkout.kt | deepseek-flash | 8.7 |
 | Moblin/Various/Model/ModelWorkoutDevice.swift | app/src/main/java/com/moblin/android/various/model/ModelWorkoutDevice.kt | deepseek-flash | 43.6 |
-| Moblin/Various/Model/ModelYouTube.swift | app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt | deepseek-flash | 22.0 |
+| Moblin/Various/Model/ModelYouTube.swift | app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt | deepseek-flash | 16.2 |
 | Moblin/Various/Model/ModelZoom.swift | app/src/main/java/com/moblin/android/various/model/ModelZoom.kt | deepseek-flash | 10.8 |
 | Moblin/Various/Network/DnsLookup.swift | app/src/main/java/com/moblin/android/various/network/DnsLookup.kt | deepseek-flash | 6.9 |
 | Moblin/Various/Network/HttpClient.swift | app/src/main/java/com/moblin/android/various/network/HttpClient.kt | deepseek-flash | 41.9 |

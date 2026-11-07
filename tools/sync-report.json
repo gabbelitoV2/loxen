@@ -1,9 +1,333 @@
 {
-  "upstream": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+  "upstream": "0742a493ecb0d0ae98c7285d370638cbe8e02c49",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "Moblin/RemoteControl/RemoteControl.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/RemoteControl/RemoteControlSceneConfigValidation.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlSceneConfigValidation.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/RemoteControl/RemoteControlStreamer.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/RemoteControl/RemoteControlWeb.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlWeb.kt",
+      "reason": "dependency",
+      "ported_from": "5a260fcec687db0b38834bb75f6526dafbcd260b",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/Model.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/Model.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelMoblinCloud.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
+      "reason": "compile",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [
+        "617: Unresolved reference 'tally'.",
+        "678: Unresolved reference 'tally'.",
+        "682: Unresolved reference 'tally'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelRemoteControl.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
+      "reason": "compile",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [
+        "846: Unresolved reference 'tally'.",
+        "943: Unresolved reference 'tally'.",
+        "947: Unresolved reference 'tally'.",
+        "1576: Unresolved reference 'tally'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelResolvedScene.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelResolvedScene.kt",
+      "reason": "dependency",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelScene.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
+      "reason": "compile",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [
+        "438: Unresolved reference 'updateWidgetOutlines'.",
+        "454: Unresolved reference 'updateWidgetOutlines'.",
+        "501: Unresolved reference 'updateWidgetOutlines'.",
+        "714: Unresolved reference 'updateWidgetOutlines'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelSceneEditor.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelSceneEditor.kt",
+      "reason": "compile",
+      "ported_from": "013f290d6d1de69bfc765cce10845750f571f324",
+      "errors": [
+        "20: Redeclaration:",
+        "33: Redeclaration:",
+        "71: Unresolved reference 'canvasSize'.",
+        "85: Unresolved reference 'canvasSize'.",
+        "125: Unresolved reference 'outlines'.",
+        "126: Unresolved reference 'it'.",
+        "127: Unresolved reference 'it'.",
+        "131: Unresolved reference 'not' for operator '!'.",
+        "163: Unresolved reference 'enabled'.",
+        "166: Unresolved reference 'enabled'.",
+        "167: Unresolved reference 'imageSizes'.",
+        "167: Cannot infer type for this parameter. Specify it explicitly.",
+        "167: Not enough information to infer type argument for 'K'.",
+        "167: Not enough information to infer type argument for 'V'.",
+        "171: Unresolved reference 'outlines'.",
+        "171: Cannot infer type for this parameter. Specify it explicitly.",
+        "171: Not enough information to infer type argument for 'T'.",
+        "176: Unresolved reference 'enabled'.",
+        "181: Unresolved reference 'outlines'.",
+        "181: Cannot infer type for this parameter. Specify it explicitly."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelTally.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelTally.kt",
+      "reason": "dependency",
+      "ported_from": null,
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelWidgetOutlines.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelWidgetOutlines.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Settings/SettingsScene.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonSceneWidgetsView.kt",
+      "reason": "dependency",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorView.kt",
+      "reason": "dependency",
+      "ported_from": "a04b3ed01577174ed701e23996f459631354b418",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/MainView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/MainView.kt",
+      "reason": "compile",
+      "ported_from": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+      "errors": [
+        "174: Unresolved reference 'TallyView'.",
+        "1057: Unresolved reference 'TallyView'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt",
+      "reason": "fallback",
+      "ported_from": "9cdae30a02b72102eaeb96ef439b4fe09a0cc048",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/scene/SceneSettingsView.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Scene/SceneWidgetSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/scene/SceneWidgetSettingsView.kt",
+      "reason": "compile",
+      "ported_from": "013f290d6d1de69bfc765cce10845750f571f324",
+      "errors": [
+        "12: Unresolved reference 'WidgetSettingsSectionsView'.",
+        "34: Unresolved reference 'WidgetSettingsSectionsView'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/ScenesSettingsView.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Scene/WidgetSceneSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scene/WidgetSceneSettingsView.kt",
+      "reason": "compile",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [
+        "38: Assignment type mismatch: actual type is 'UUID?', but 'UUID' was expected."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetSettingsView.kt",
+      "reason": "dependency",
+      "ported_from": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetWizardSettingsView.kt",
+      "reason": "fallback",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardPngTuberSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardPngTuberSettingsView.kt",
+      "reason": "fallback",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVTuberSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardVTuberSettingsView.kt",
+      "reason": "fallback",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/SettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
+      "reason": "dependency",
+      "ported_from": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Stream/TallyView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/stream/TallyView.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "44: Unresolved reference 'RgbColor'.",
+        "45: Unresolved reference 'r'.",
+        "46: Unresolved reference 'g'.",
+        "47: Unresolved reference 'b'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Stream/WidgetOutlinesView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "a04b3ed01577174ed701e23996f459631354b418",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Utils/ShortcutView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/utils/ShortcutView.kt",
+      "reason": "dependency",
+      "ported_from": "5f7816577ca1b6b4f4fdcc2439f7ea39f7ad639f",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/RemoteControl/RemoteControlSceneConfigValidationSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSceneConfigValidationSuite.kt",
+      "reason": "fallback",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [
+        "551: Null cannot be a value of a non-null type 'UUID'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt",
+      "reason": "fallback",
+      "ported_from": "22dd74423222001b242fc23921a91b0e366c88fb",
+      "errors": [
+        "7: Unresolved reference 'Tally'.",
+        "59: Unresolved reference 'ShowTally'.",
+        "66: Unresolved reference 'HideTally'.",
+        "72: Unresolved reference 'ShowTally'.",
+        "73: Unresolved reference 'background'.",
+        "74: Unresolved reference 'foreground'.",
+        "75: Unresolved reference 'message'.",
+        "80: Unresolved reference 'Tally'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Various/Model/SceneResolverSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/various/model/SceneResolverSuite.kt",
+      "reason": "fallback",
+      "ported_from": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Various/Settings/SettingsSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt",
+      "reason": "fallback",
+      "ported_from": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+      "errors": [],
+      "hooks": []
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

@@ -4741,24 +4741,25 @@
   },
   "Moblin/Various/Model/ModelYouTube.swift": {
     "status": "ok",
-    "sha256": "cdf637410a800d89526b0ebc362871cb6507b265199b77777830cd5d3398b190",
-    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "sha256": "17c44facf4a0f002f84dab52aa6a98c2faaa893758a1a148593ecd3069a591e7",
+    "moblin_commit": "0742a493ecb0d0ae98c7285d370638cbe8e02c49",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt",
     "notes": [
-      "The Swift `YouTubeApiDelegate` conformance extension was removed; the per-stream unauthorized callback is now a private `youTubeApiUnauthorized(stream:)` on Model, placed right after `getYouTubeApi`.",
-      "The declared Kotlin `YouTubeApi` still exposes `delegate: YouTubeApiDelegate?` and no `onUnauthorized`, so `getYouTubeApi` keeps the forwarding delegate class, now carrying the `SettingsStream` so the handler receives the same stream Swift captures.",
-      "The old public `Model.youTubeApiUnauthorized()` at the end of the file was deleted with the extension.",
-      "Everything else in the file is unchanged."
+      "The Swift diff only adds [weak self] to the getYouTubeAccesssToken closure; Kotlin has no weak captures, so the existing call youTubeApiUnauthorized(stream = stream) already expresses the same intent and the Kotlin file is unchanged.",
+      "mainScope (Dispatchers.Main) stands in for DispatchQueue.main.async in the sign-in callback.",
+      "youTubeFetchVideoIdStartTime uses java.time.Instant/Duration instead of ContinuousClock, as already established in this file.",
+      "network responses are matched with NetworkResponse.Success instead of Swift Result cases.",
+      "the YouTubeLiveChatDelegate conformance is an internal delegate class forwarding to Model extension functions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58220,
-    "tokens_out": 5743,
-    "seconds": 22.0,
-    "ported_at": "2026-11-06T00:36:15+00:00"
+    "tokens_in": 57943,
+    "tokens_out": 4030,
+    "seconds": 16.2,
+    "ported_at": "2026-11-06T23:51:35+00:00"
   },
   "MoblinTests/Moblin/Obs/ObsWebSocketSuite.swift": {
     "status": "ok",
@@ -18208,53 +18209,6 @@
     "seconds": 50.2,
     "ported_at": "2026-10-26T23:25:39+00:00"
   },
-  "Moblin/Various/Model/ModelWidgetOutlines.swift": {
-    "status": "ok",
-    "sha256": "d96a5ebe1013bf7900bc9992e14c06da49acc08a94dda1fab74d857795760ded",
-    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
-    "mode": "incremental",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWidgetOutlines.kt",
-    "notes": [
-      "updateWidgetOutlines now takes an optional SceneResolver and returns early when neither the normal nor the scene-editor outlines are enabled.",
-      "The private updateWidgetOutlines resolves the scene once through SceneResolver.resolve(includeRemote = true, includeDisabledSceneWidgets = sceneEditor) instead of getDrawnSceneWidgets.",
-      "In scene-editor mode a full-canvas outline is added for every resolved .scene widget whose SettingsSceneWidget belongs to the edited scene.",
-      "Outlines now carry alignment = layout.alignment and enabled = resolvedWidget.enabled instead of widget.enabled.",
-      "The non-scene-editor loop skips widgets that the resolver reports as not enabled.",
-      "WidgetOutline equality now also compares alignment.",
-      "CGPoint is imported for the CGRect(origin = CGPoint.zero, size = canvasSize) scene outlines."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 45616,
-    "tokens_out": 5479,
-    "seconds": 22.4,
-    "ported_at": "2026-11-01T23:35:25+00:00"
-  },
-  "Moblin/View/Stream/WidgetOutlinesView.swift": {
-    "status": "ok",
-    "sha256": "ba6ac6764c771f7fd65178998e888e84f015bb6c0edf6522d2bd70f74dda4005",
-    "moblin_commit": "a04b3ed01577174ed701e23996f459631354b418",
-    "mode": "incremental",
-    "tier": "ui",
-    "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
-    "notes": [
-      "WidgetOutlineLabelView gained a `selected: Boolean = false` parameter; existing call sites (labelOutside and sizedView) keep passing nothing and get the default, as in Swift.",
-      "The label font moved from caption2 (11.sp) to footnote (13.sp); both the SystemImage icon and the Text now use 13.sp because Swift applies .font to the whole HStack.",
-      "Selected labels use FontWeight.SemiBold and the accent background formPalette().accent; unselected keep the black 60% background, matching Color.accentColor vs .black.opacity(0.6).",
-      "Compose modifier order is reversed from SwiftUI, so the accent background is still applied before the padding and clipped to the 3.dp rounded corners.",
-      "Vertical padding grew from 1.dp to 2.dp as in the Swift change.",
-      "No other members changed: widgetOutlineViewRect, labelOutside, sizedView, anchorView, WidgetOutlineView and WidgetOutlinesView are untouched."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 51274,
-    "tokens_out": 3213,
-    "seconds": 13.9,
-    "ported_at": "2026-11-03T01:52:20+00:00"
-  },
   "Moblin/Various/Model/ModelSceneEditor.swift": {
     "status": "ok",
     "sha256": "55084aa4ceb617f462ddb76bbe21f2d83f1049f1d77a666192525727d28ac55f",
@@ -18502,5 +18456,52 @@
     "tokens_out": 10960,
     "seconds": 32.8,
     "ported_at": "2026-11-05T00:36:14+00:00"
+  },
+  "Moblin/View/Stream/WidgetOutlinesView.swift": {
+    "status": "ok",
+    "sha256": "ba6ac6764c771f7fd65178998e888e84f015bb6c0edf6522d2bd70f74dda4005",
+    "moblin_commit": "a04b3ed01577174ed701e23996f459631354b418",
+    "mode": "incremental",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/WidgetOutlinesView.kt",
+    "notes": [
+      "WidgetOutlineLabelView gained a `selected: Boolean = false` parameter; existing call sites (labelOutside and sizedView) keep passing nothing and get the default, as in Swift.",
+      "The label font moved from caption2 (11.sp) to footnote (13.sp); both the SystemImage icon and the Text now use 13.sp because Swift applies .font to the whole HStack.",
+      "Selected labels use FontWeight.SemiBold and the accent background formPalette().accent; unselected keep the black 60% background, matching Color.accentColor vs .black.opacity(0.6).",
+      "Compose modifier order is reversed from SwiftUI, so the accent background is still applied before the padding and clipped to the 3.dp rounded corners.",
+      "Vertical padding grew from 1.dp to 2.dp as in the Swift change.",
+      "No other members changed: widgetOutlineViewRect, labelOutside, sizedView, anchorView, WidgetOutlineView and WidgetOutlinesView are untouched."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 51274,
+    "tokens_out": 3213,
+    "seconds": 13.9,
+    "ported_at": "2026-11-03T01:52:20+00:00"
+  },
+  "Moblin/Various/Model/ModelWidgetOutlines.swift": {
+    "status": "ok",
+    "sha256": "d96a5ebe1013bf7900bc9992e14c06da49acc08a94dda1fab74d857795760ded",
+    "moblin_commit": "218bcfb64a6fce5eb3fa9327f4aab095de912cc1",
+    "mode": "incremental",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWidgetOutlines.kt",
+    "notes": [
+      "updateWidgetOutlines now takes an optional SceneResolver and returns early when neither the normal nor the scene-editor outlines are enabled.",
+      "The private updateWidgetOutlines resolves the scene once through SceneResolver.resolve(includeRemote = true, includeDisabledSceneWidgets = sceneEditor) instead of getDrawnSceneWidgets.",
+      "In scene-editor mode a full-canvas outline is added for every resolved .scene widget whose SettingsSceneWidget belongs to the edited scene.",
+      "Outlines now carry alignment = layout.alignment and enabled = resolvedWidget.enabled instead of widget.enabled.",
+      "The non-scene-editor loop skips widgets that the resolver reports as not enabled.",
+      "WidgetOutline equality now also compares alignment.",
+      "CGPoint is imported for the CGRect(origin = CGPoint.zero, size = canvasSize) scene outlines."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 45616,
+    "tokens_out": 5479,
+    "seconds": 22.4,
+    "ported_at": "2026-11-01T23:35:25+00:00"
   }
 }
