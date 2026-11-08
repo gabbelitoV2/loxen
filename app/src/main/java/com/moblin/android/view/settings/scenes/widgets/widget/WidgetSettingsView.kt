@@ -341,85 +341,94 @@ fun WidgetNameView(widget: SettingsWidget) {
 }
 
 @Composable
+fun WidgetSettingsSectionsView(
+    model: Model = LocalModel.current,
+    database: Database,
+    widget: SettingsWidget,
+) {
+    Section {
+        NameEditView(
+            name = widget.name,
+            onNameChange = { widget.name = it },
+            existingNames = database.widgets,
+        )
+    }
+    when (widget.type) {
+        SettingsWidgetType.image ->
+            WidgetImageSettingsView(model = model, widget = widget)
+        SettingsWidgetType.browser ->
+            WidgetBrowserSettingsView(model = model, widget = widget, browser = widget.browser)
+        SettingsWidgetType.text ->
+            WidgetTextSettingsView(widget = widget, text = widget.text)
+        SettingsWidgetType.crop ->
+            WidgetCropSettingsView(widget = widget)
+        SettingsWidgetType.map ->
+            WidgetMapSettingsView(
+                widget = widget,
+                initialDelay = widget.map.delay,
+                initialSize = widget.map.size,
+            )
+        SettingsWidgetType.scene ->
+            WidgetSceneSettingsView(widget = widget, scene = widget.scene)
+        SettingsWidgetType.slideshow ->
+            WidgetSlideshowSettingsView(widget = widget)
+        SettingsWidgetType.qrCode ->
+            WidgetQrCodeSettingsView(model = model, widget = widget)
+        SettingsWidgetType.alerts ->
+            WidgetAlertsSettingsView(model = model, widget = widget)
+        SettingsWidgetType.videoSource ->
+            WidgetVideoSourceSettingsView(
+                widget = widget,
+                videoSource = widget.videoSource,
+                videoSources = model.videoSources,
+            )
+        SettingsWidgetType.scoreboard ->
+            WidgetScoreboardSettingsView(
+                model = model,
+                widget = widget,
+                scoreboard = widget.scoreboard,
+                web = database.remoteControl.web,
+            )
+        SettingsWidgetType.vTuber ->
+            WidgetVTuberSettingsView(
+                model = model,
+                widget = widget,
+                vTuber = widget.vTuber,
+                videoSources = model.videoSources,
+            )
+        SettingsWidgetType.pngTuber ->
+            WidgetPngTuberSettingsView(
+                model = model,
+                widget = widget,
+                pngTuber = widget.pngTuber,
+                videoSources = model.videoSources,
+            )
+        SettingsWidgetType.snapshot ->
+            WidgetSnapshotSettingsView(model = model, widget = widget, snapshot = widget.snapshot)
+        SettingsWidgetType.chat ->
+            WidgetChatSettingsView(model = model, database = database, widget = widget, chat = widget.chat)
+        SettingsWidgetType.chatEmoteCombo ->
+            WidgetChatEmoteComboSettingsView(
+                model = model,
+                widget = widget,
+                chatEmoteCombo = widget.chatEmoteCombo,
+            )
+        SettingsWidgetType.wheelOfLuck ->
+            WidgetWheelOfLuckSettingsView(model = model, widget = widget, wheelOfLuck = widget.wheelOfLuck)
+        SettingsWidgetType.bingoCard ->
+            WidgetBingoCardSettingsView(model = model, widget = widget, bingoCard = widget.bingoCard)
+        SettingsWidgetType.pomodoroTimer ->
+            WidgetPomodoroTimerSettingsView(model = model, pomodoroTimer = widget.pomodoroTimer)
+    }
+}
+
+@Composable
 fun WidgetSettingsView(
     model: Model = LocalModel.current,
     database: Database,
     widget: SettingsWidget,
 ) {
     Form(title = "${widget.type} widget") {
-        Section {
-            NameEditView(
-                name = widget.name,
-                onNameChange = { widget.name = it },
-                existingNames = database.widgets,
-            )
-        }
-        when (widget.type) {
-            SettingsWidgetType.image ->
-                WidgetImageSettingsView(model = model, widget = widget)
-            SettingsWidgetType.browser ->
-                WidgetBrowserSettingsView(model = model, widget = widget, browser = widget.browser)
-            SettingsWidgetType.text ->
-                WidgetTextSettingsView(widget = widget, text = widget.text)
-            SettingsWidgetType.crop ->
-                WidgetCropSettingsView(widget = widget)
-            SettingsWidgetType.map ->
-                WidgetMapSettingsView(
-                    widget = widget,
-                    initialDelay = widget.map.delay,
-                    initialSize = widget.map.size,
-                )
-            SettingsWidgetType.scene ->
-                WidgetSceneSettingsView(widget = widget, selectedSceneId = widget.scene.sceneId)
-            SettingsWidgetType.slideshow ->
-                WidgetSlideshowSettingsView(widget = widget)
-            SettingsWidgetType.qrCode ->
-                WidgetQrCodeSettingsView(model = model, widget = widget)
-            SettingsWidgetType.alerts ->
-                WidgetAlertsSettingsView(model = model, widget = widget)
-            SettingsWidgetType.videoSource ->
-                WidgetVideoSourceSettingsView(
-                    widget = widget,
-                    videoSource = widget.videoSource,
-                    videoSources = model.videoSources,
-                )
-            SettingsWidgetType.scoreboard ->
-                WidgetScoreboardSettingsView(
-                    model = model,
-                    widget = widget,
-                    scoreboard = widget.scoreboard,
-                    web = database.remoteControl.web,
-                )
-            SettingsWidgetType.vTuber ->
-                WidgetVTuberSettingsView(
-                    model = model,
-                    widget = widget,
-                    vTuber = widget.vTuber,
-                    videoSources = model.videoSources,
-                )
-            SettingsWidgetType.pngTuber ->
-                WidgetPngTuberSettingsView(
-                    model = model,
-                    widget = widget,
-                    pngTuber = widget.pngTuber,
-                    videoSources = model.videoSources,
-                )
-            SettingsWidgetType.snapshot ->
-                WidgetSnapshotSettingsView(model = model, widget = widget, snapshot = widget.snapshot)
-            SettingsWidgetType.chat ->
-                WidgetChatSettingsView(model = model, database = database, widget = widget, chat = widget.chat)
-            SettingsWidgetType.chatEmoteCombo ->
-                WidgetChatEmoteComboSettingsView(
-                    model = model,
-                    widget = widget,
-                    chatEmoteCombo = widget.chatEmoteCombo,
-                )
-            SettingsWidgetType.wheelOfLuck ->
-                WidgetWheelOfLuckSettingsView(model = model, widget = widget, wheelOfLuck = widget.wheelOfLuck)
-            SettingsWidgetType.bingoCard ->
-                WidgetBingoCardSettingsView(model = model, widget = widget, bingoCard = widget.bingoCard)
-            SettingsWidgetType.pomodoroTimer ->
-                WidgetPomodoroTimerSettingsView(model = model, pomodoroTimer = widget.pomodoroTimer)
-        }
+        WidgetSettingsSectionsView(model = model, database = database, widget = widget)
     }
 }

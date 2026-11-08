@@ -15,7 +15,6 @@ import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.ingests.IngestsSettingsView
 import com.moblin.android.view.settings.remotecontrol.RemoteControlSettingsWebView
 import com.moblin.android.view.settings.remotecontrol.RemoteControlStreamersView
-import com.moblin.android.view.settings.scenes.ScenesSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetSettingsView
 import com.moblin.android.view.settings.streams.stream.StreamPlatformsSettingsView
 
@@ -39,21 +38,6 @@ fun WidgetShortcutView(
         },
     ) {
         Text("Widget")
-    }
-}
-
-@Composable
-fun ScenesShortcutView(
-    model: Model = LocalModel.current,
-    database: Database,
-    onNavigate: (String) -> Unit = LocalOnNavigate.current,
-) {
-    NavigationLink(
-        destination = {
-            ScenesSettingsView(model = model, database = database)
-        },
-    ) {
-        Label("Scenes", systemImage = "photo.on.rectangle")
     }
 }
 

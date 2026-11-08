@@ -1,6 +1,8 @@
 package com.moblin.android.various.model
 
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlState
+import com.moblin.android.remotecontrol.RemoteControlZoomCamera
+import com.moblin.android.remotecontrol.RemoteControlZoomCameraPosition
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
@@ -56,7 +58,6 @@ fun Model.setZoomPreset(id: UUID) {
 }
 
 fun Model.setZoomX(x: Float, rate: Float? = null, setPinch: Boolean = true) {
-    clearZoomPresetId()
     val newX = setCameraZoomX(x, rate)
     if (newX != null) {
         setZoomXWhenInRange(newX, setPinch)
@@ -90,7 +91,7 @@ private fun Model.remoteControlZoomChanged() {
         zoom.remoteControlPending = true
         return
     }
-    remoteControlStateChanged(RemoteControlAssistantStreamerState(zoom = zoom.x.value))
+    remoteControlStateChanged(RemoteControlState(zoom = zoom.x.value))
     zoom.remoteControlTimerRunning = true
     zoom.remoteControlTimer.startSingleShot(timeout = 0.5) {
         zoom.remoteControlTimerRunning = false
@@ -167,7 +168,7 @@ private fun Model.setBackZoomPreset(presetId: UUID) {
     }
     zoom.backPresetId.value = presetId
     if (cameraPosition == AVCaptureDevice.Position.BACK.ordinal) {
-        remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))
+        remoteControlStateChanged(RemoteControlState(zoomPreset = presetId))
         if (isWatchLocal()) {
             sendZoomPresetToWatch()
         }
@@ -180,7 +181,7 @@ private fun Model.setFrontZoomPreset(presetId: UUID) {
     }
     zoom.frontPresetId.value = presetId
     if (cameraPosition == AVCaptureDevice.Position.FRONT.ordinal) {
-        remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))
+        remoteControlStateChanged(RemoteControlState(zoomPreset = presetId))
         if (isWatchLocal()) {
             sendZoomPresetToWatch()
         }
@@ -212,27 +213,50 @@ fun Model.frontZoomPresetSettingUpdated() {
 fun Model.updateFrontZoomPresets() {
     zoom.frontZoomPresets.value = database.zoom.front.filter { showPreset(it) }
     if (cameraPosition == AVCaptureDevice.Position.FRONT.ordinal) {
-        zoomPresetsMayHaveChanged()
+        activeZoomPresetsMayHaveChanged()
     }
 }
 
 fun Model.updateBackZoomPresets() {
     zoom.backZoomPresets.value = database.zoom.back.filter { showPreset(it) }
     if (cameraPosition == AVCaptureDevice.Position.BACK.ordinal) {
-        zoomPresetsMayHaveChanged()
+        activeZoomPresetsMayHaveChanged()
     }
 }
 
-fun Model.zoomPresetsMayHaveChanged() {
+fun Model.activeZoomPresetsMayHaveChanged() {
     val presets: List<SettingsZoomPreset> = when (cameraPosition) {
         AVCaptureDevice.Position.BACK.ordinal -> zoom.backZoomPresets.value
         AVCaptureDevice.Position.FRONT.ordinal -> zoom.frontZoomPresets.value
         else -> emptyList()
     }
-    val zoomPresets = presets.map { RemoteControlZoomPreset(it.id, it.name) }
-    remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPresets = zoomPresets))
+    remoteControlStateChanged(RemoteControlState(
+        zoomPreset = getRemoteControlZoomPresetId(),
+        zoomCamera = makeRemoteControlZoomCamera()
+    ))
     if (isWatchLocal()) {
         sendZoomPresetsToWatch(presets)
+    }
+}
+
+fun Model.makeRemoteControlZoomPresets(presets: List<SettingsZoomPreset>): List<RemoteControlZoomPreset> {
+    return presets.map { RemoteControlZoomPreset(it.id, it.name, it.x) }
+}
+
+fun Model.makeRemoteControlZoomCamera(): RemoteControlZoomCamera {
+    val position: RemoteControlZoomCameraPosition = when (cameraPosition) {
+        AVCaptureDevice.Position.FRONT.ordinal -> RemoteControlZoomCameraPosition.Front
+        AVCaptureDevice.Position.BACK.ordinal -> RemoteControlZoomCameraPosition.Back
+        else -> RemoteControlZoomCameraPosition.Other
+    }
+    return RemoteControlZoomCamera(position, cameraZoomXMinimum, cameraZoomXMaximum)
+}
+
+fun Model.getRemoteControlZoomPresetId(): UUID? {
+    return when (cameraPosition) {
+        AVCaptureDevice.Position.FRONT.ordinal -> zoom.frontPresetId.value
+        AVCaptureDevice.Position.BACK.ordinal -> zoom.backPresetId.value
+        else -> null
     }
 }
 
@@ -244,21 +268,16 @@ fun Model.lowEnergyCameraUpdateBackZoom(force: Boolean) {
 
 private fun Model.updateBackZoomPresetId() {
     val preset = database.zoom.back.firstOrNull { it.x == zoom.backX }
-    if (preset != null) {
-        setBackZoomPreset(preset.id)
-    }
+    setBackZoomPreset(preset?.id ?: noBackZoomPresetId)
 }
 
 private fun Model.updateFrontZoomPresetId() {
     val preset = database.zoom.front.firstOrNull { it.x == zoom.frontX }
-    if (preset != null) {
-        setFrontZoomPreset(preset.id)
-    }
+    setFrontZoomPreset(preset?.id ?: noFrontZoomPresetId)
 }
 
 fun Model.updateBackZoomSwitchTo() {
     if (database.zoom.switchToBack.enabled) {
-        clearZoomPresetId()
         zoom.backX = database.zoom.switchToBack.x
         updateBackZoomPresetId()
     }
@@ -266,7 +285,6 @@ fun Model.updateBackZoomSwitchTo() {
 
 fun Model.updateFrontZoomSwitchTo() {
     if (database.zoom.switchToFront.enabled) {
-        clearZoomPresetId()
         zoom.frontX = database.zoom.switchToFront.x
         updateFrontZoomPresetId()
     }

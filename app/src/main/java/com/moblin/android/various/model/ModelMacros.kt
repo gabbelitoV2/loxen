@@ -1,8 +1,8 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.platform.log.Log
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlMacro
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.ChatPostState
@@ -146,7 +146,7 @@ fun Model.getRemoteControlMacros(): List<RemoteControlMacro> {
 
 fun Model.remoteControlMacrosStateChanged() {
     remoteControlStateChanged(
-        state = RemoteControlAssistantStreamerState(macros = getRemoteControlMacros())
+        state = RemoteControlState(macros = getRemoteControlMacros())
     )
 }
 

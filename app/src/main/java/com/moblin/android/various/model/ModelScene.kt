@@ -7,7 +7,7 @@ import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.video.CaptureDevice
 import com.moblin.android.media.haishinkit.media.video.CaptureDevices
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.various.AudioPlayer
 import com.moblin.android.various.Variables
 import com.moblin.android.various.settings.MacroEvent
@@ -101,6 +101,7 @@ import com.moblin.android.AppDelegate
 import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coregraphics.toCGSize
+import com.moblin.android.various.utils.bestFrontCameraId
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.settings.SettingsCameraId
 
@@ -118,6 +119,10 @@ class CreateWidgetWizard {
         type.value = SettingsWidgetType.text
         widget = SettingsWidget(name = "")
         widget.text.formatString = ""
+        if (bestFrontCameraId.isNotEmpty()) {
+            widget.vTuber.videoSource = widget.vTuber.videoSource.copy(cameraPosition = SettingsSceneCameraPosition.front)
+            widget.pngTuber.videoSource = widget.pngTuber.videoSource.copy(cameraPosition = SettingsSceneCameraPosition.front)
+        }
         val yes = SettingsWidgetWheelOfLuckOption()
         yes.text = localized("Yes")
         val no = SettingsWidgetWheelOfLuckOption()
@@ -482,6 +487,11 @@ fun Model.createScene(): SettingsScene {
 fun Model.deleteScene(scene: SettingsScene) {
     val deletedSelectedScene = getSelectedScene() === scene
     database.scenes.removeAll { it === scene }
+    for (widget in database.widgets) {
+        if (widget.scene.sceneId == scene.id) {
+            widget.scene.sceneId = null
+        }
+    }
     if (sceneEditor.sceneId == scene.id) {
         sceneEditor.sceneId.value = null
     }
@@ -1522,7 +1532,7 @@ private fun Model.isFaceEnabled(): Boolean {
 
 private fun Model.setSceneId(id: UUID) {
     sceneSelector.selectedSceneId = id
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(scene = id))
+    remoteControlStateChanged(state = RemoteControlState(scene = id))
     if (isWatchLocal()) {
         sendSceneToWatch(id = sceneSelector.selectedSceneId)
     }
@@ -1982,7 +1992,8 @@ private fun Model.findWidgetCrops(
 fun Model.isCaptureDeviceWidget(widget: SettingsWidget): Boolean {
     when (widget.type) {
         SettingsWidgetType.scene -> {
-            val scene = database.findScene(id = widget.scene.sceneId) ?: return false
+            val sceneId = widget.scene.sceneId ?: return false
+            val scene = database.findScene(id = sceneId) ?: return false
             return resolveScene(scene, includeDisabledSceneWidgets = true).widgets.any {
                 it.widget.type != SettingsWidgetType.scene && isCaptureDeviceWidget(widget = it.widget)
             }

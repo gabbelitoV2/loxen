@@ -64,15 +64,17 @@ import com.moblin.android.view.settings.scenes.scene.SceneWizardSheetView
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSheetView
 import com.moblin.android.view.settings.settingsHalfWidth
 import com.moblin.android.view.stream.StreamPreviewView
-import com.moblin.android.view.stream.WidgetOutlineLabelView
-import com.moblin.android.view.stream.widgetOutlineViewRect
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.SceneEditor
 import com.moblin.android.various.model.SceneSelector
 import com.moblin.android.various.model.StreamOverlay
 import com.moblin.android.various.model.WidgetOutline
-import com.moblin.android.various.model.WidgetOutlines
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAlignment
 import com.moblin.android.various.settings.SettingsScene
@@ -99,6 +101,41 @@ import com.moblin.android.various.model.sceneEditorScene
 import com.moblin.android.various.model.sceneEditorSelectScene
 import com.moblin.android.various.model.sceneEditorSetWidgetAlignment
 import com.moblin.android.various.model.sceneEditorToggleWidgetEnabled
+
+private fun widgetOutlineViewRect(rect: CGRect, canvasSize: CGSize, mirror: Boolean, size: CGSize): CGRect {
+    val scale = canvasSize.width / size.width
+    val x = if (mirror) canvasSize.width - rect.maxX else rect.minX
+    return CGRect(
+        x = x / scale,
+        y = rect.minY / scale,
+        width = rect.width / scale,
+        height = rect.height / scale,
+    )
+}
+
+@Composable
+private fun WidgetOutlineLabelView(widget: SettingsWidget, selected: Boolean = false) {
+    val backgroundColor = if (selected) formPalette().accent else Color.Black.copy(alpha = 0.6f)
+    Row(
+        modifier = Modifier
+            .wrapContentSize(unbounded = true)
+            .clip(RoundedCornerShape(3.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SystemImage(name = widget.image(), fontSize = 13.sp)
+        Text(
+            text = widget.name,
+            color = Color.White,
+            fontSize = 13.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
 
 private enum class SceneEditorEditMode {
     move,
@@ -137,14 +174,14 @@ private fun diagonalDirection(alignment: SettingsAlignment): CGSize =
 @Composable
 private fun SceneEditorCanvasView(
     model: Model = LocalModel.current,
-    widgetOutlines: WidgetOutlines,
+    sceneEditor: SceneEditor,
     mirror: Boolean,
     size: CGSize,
     selection: SceneEditorSelection,
 ) {
     val palette = formPalette()
-    val allOutlines by widgetOutlines.outlines.collectAsState()
-    val canvasSize by widgetOutlines.canvasSize.collectAsState()
+    val allOutlines by sceneEditor.outlines.collectAsState()
+    val canvasSize by sceneEditor.canvasSize.collectAsState()
     val selectedId by selection.sceneWidgetIdFlow.collectAsState()
     var edit by remember { mutableStateOf<SceneEditorEdit?>(null) }
     var lastTapLocation by remember { mutableStateOf<CGPoint?>(null) }
@@ -591,6 +628,28 @@ private fun SceneEditorButtonView(
 }
 
 @Composable
+private fun SceneEditorButtonGroupView(
+    vertical: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (vertical) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            content()
+        }
+    } else {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
 private fun SceneEditorEnableButtonView(model: Model = LocalModel.current, widget: SettingsWidget) {
     val enabled = widget.enabled
     SceneEditorButtonView(image = if (enabled) "eye" else "eye.slash") {
@@ -850,7 +909,7 @@ private fun SceneEditorAddWidgetButtonView(
 }
 
 @Composable
-private fun SceneEditorToolbarDivider(vertical: Boolean) {
+private fun SceneEditorToolbarSeparator(vertical: Boolean) {
     val palette = formPalette()
     Box(
         modifier = Modifier
@@ -872,59 +931,69 @@ private fun SceneEditorToolbarView(
     val palette = formPalette()
 
     val buttons: @Composable () -> Unit = {
-        SceneEditorButtonView(image = "xmark") {
-            model.presentingSceneEditor.value = false
+        SceneEditorButtonGroupView(vertical = vertical) {
+            SceneEditorButtonView(image = "xmark") {
+                model.presentingSceneEditor.value = false
+            }
         }
-        SceneEditorToolbarDivider(vertical = vertical)
-        SceneEditorScenesButtonView(model = model, database = database, scene = scene, selection = selection)
-        if (scene != null) {
-            if (selected != null) {
-                SceneEditorToolbarDivider(vertical = vertical)
-                val sceneWidget = selected.sceneWidget
-                val widget = selected.widget
-                SceneEditorEnableButtonView(model = model, widget = widget)
-                if (widget.hasAlignment()) {
-                    SceneEditorAlignmentButtonView(
-                        model = model,
-                        sceneWidget = sceneWidget,
-                        size = selected.rect.size,
-                    )
-                }
-                SceneEditorDrawOrderButtonsView(model = model, scene = scene, sceneWidget = sceneWidget)
-                SceneEditorButtonView(image = "slider.horizontal.3") {
-                    selection.showingSettings.value = !selection.showingSettings.value
-                }
-                CompositionLocalProvider(LocalTint provides palette.red) {
-                    SceneEditorButtonView(image = "trash", role = ButtonRole.destructive) {
-                        presentingRemoveWidgetConfirmation = true
+        SceneEditorToolbarSeparator(vertical = vertical)
+        SceneEditorButtonGroupView(vertical = vertical) {
+            SceneEditorScenesButtonView(model = model, database = database, scene = scene, selection = selection)
+        }
+        val currentScene = scene
+        val currentSelected = selected
+        if (currentScene != null) {
+            if (currentSelected != null) {
+                SceneEditorToolbarSeparator(vertical = vertical)
+                SceneEditorButtonGroupView(vertical = vertical) {
+                    val sceneWidget = currentSelected.sceneWidget
+                    val widget = currentSelected.widget
+                    SceneEditorEnableButtonView(model = model, widget = widget)
+                    if (widget.hasAlignment()) {
+                        SceneEditorAlignmentButtonView(
+                            model = model,
+                            sceneWidget = sceneWidget,
+                            size = currentSelected.rect.size,
+                        )
                     }
-                }
-                ConfirmationDialog(
-                    title = widget.name,
-                    isPresented = presentingRemoveWidgetConfirmation,
-                    onDismissRequest = { presentingRemoveWidgetConfirmation = false },
-                    titleVisibility = Visibility.visible,
-                ) {
-                    Button(title = "Remove widget from scene", role = ButtonRole.destructive) {
-                        model.sceneEditorRemoveWidget(scene = scene, sceneWidget = sceneWidget)
-                        selection.sceneWidgetId = null
+                    SceneEditorDrawOrderButtonsView(model = model, scene = currentScene, sceneWidget = sceneWidget)
+                    SceneEditorButtonView(image = "slider.horizontal.3") {
+                        selection.showingSettings.value = !selection.showingSettings.value
                     }
-                    Button(title = "Delete widget", role = ButtonRole.destructive) {
-                        selection.sceneWidgetId = null
-                        model.deleteWidget(widget = widget)
+                    CompositionLocalProvider(LocalTint provides palette.red) {
+                        SceneEditorButtonView(image = "trash", role = ButtonRole.destructive) {
+                            presentingRemoveWidgetConfirmation = true
+                        }
+                    }
+                    ConfirmationDialog(
+                        title = widget.name,
+                        isPresented = presentingRemoveWidgetConfirmation,
+                        onDismissRequest = { presentingRemoveWidgetConfirmation = false },
+                        titleVisibility = Visibility.visible,
+                    ) {
+                        Button(title = "Remove widget from scene", role = ButtonRole.destructive) {
+                            model.sceneEditorRemoveWidget(scene = currentScene, sceneWidget = sceneWidget)
+                            selection.sceneWidgetId = null
+                        }
+                        Button(title = "Delete widget", role = ButtonRole.destructive) {
+                            selection.sceneWidgetId = null
+                            model.deleteWidget(widget = widget)
+                        }
                     }
                 }
             } else {
-                SceneEditorAddWidgetButtonView(
-                    model = model,
-                    database = database,
-                    scene = scene,
-                    selection = selection,
-                )
-                SceneEditorButtonView(image = "slider.horizontal.3") {
-                    selection.showingSettings.value = !selection.showingSettings.value
+                SceneEditorButtonGroupView(vertical = vertical) {
+                    SceneEditorAddWidgetButtonView(
+                        model = model,
+                        database = database,
+                        scene = currentScene,
+                        selection = selection,
+                    )
+                    SceneEditorButtonView(image = "slider.horizontal.3") {
+                        selection.showingSettings.value = !selection.showingSettings.value
+                    }
+                    SceneEditorDeleteSceneButtonView(model = model, scene = currentScene, selection = selection)
                 }
-                SceneEditorDeleteSceneButtonView(model = model, scene = scene, selection = selection)
             }
         }
     }
@@ -933,7 +1002,8 @@ private fun SceneEditorToolbarView(
         Column(
             modifier = Modifier
                 .width(52.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -943,7 +1013,8 @@ private fun SceneEditorToolbarView(
         Row(
             modifier = Modifier
                 .height(52.dp)
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(rememberScrollState())
+                .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -955,13 +1026,13 @@ private fun SceneEditorToolbarView(
 @Composable
 private fun videoArea(
     model: Model = LocalModel.current,
-    widgetOutlines: WidgetOutlines,
+    sceneEditor: SceneEditor,
     scene: SettingsScene?,
     selection: SceneEditorSelection,
     mirror: Boolean,
 ) {
     val palette = formPalette()
-    val canvasSize by widgetOutlines.canvasSize.collectAsState()
+    val canvasSize by sceneEditor.canvasSize.collectAsState()
 
     fun fitSize(available: CGSize): CGSize {
         if (available.width <= 0 || available.height <= 0 || canvasSize.width <= 0 || canvasSize.height <= 0) {
@@ -996,7 +1067,7 @@ private fun videoArea(
             }
             SceneEditorCanvasView(
                 model = model,
-                widgetOutlines = widgetOutlines,
+                sceneEditor = sceneEditor,
                 mirror = mirror,
                 size = size,
                 selection = selection,
@@ -1046,7 +1117,6 @@ fun SceneEditorView(
     model: Model = LocalModel.current,
     database: Database,
     sceneSelector: SceneSelector,
-    widgetOutlines: WidgetOutlines,
     streamOverlay: StreamOverlay,
     sceneEditor: SceneEditor,
 ) {
@@ -1054,8 +1124,9 @@ fun SceneEditorView(
     val showingSettings by selection.showingSettings.collectAsState()
     val selectedSceneWidgetId by selection.sceneWidgetIdFlow.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
-    val canvasSize by widgetOutlines.canvasSize.collectAsState()
-    val allOutlines by widgetOutlines.outlines.collectAsState()
+    val canvasSize by sceneEditor.canvasSize.collectAsState()
+    val allOutlines by sceneEditor.outlines.collectAsState()
+    val palette = formPalette()
 
     fun mirror(scene: SettingsScene?): Boolean {
         if (database.mirrorFrontCameraOnStream) {
@@ -1084,7 +1155,7 @@ fun SceneEditorView(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(palette.groupedBackground),
     ) {
         val metricsWidth = maxWidth.value.toDouble()
         val metricsHeight = maxHeight.value.toDouble()
@@ -1101,7 +1172,7 @@ fun SceneEditorView(
                 Box(modifier = Modifier.weight(1f)) {
                     videoArea(
                         model = model,
-                        widgetOutlines = widgetOutlines,
+                        sceneEditor = sceneEditor,
                         scene = scene,
                         selection = selection,
                         mirror = mirror(scene),
@@ -1135,7 +1206,7 @@ fun SceneEditorView(
                 Box(modifier = Modifier.weight(1f)) {
                     videoArea(
                         model = model,
-                        widgetOutlines = widgetOutlines,
+                        sceneEditor = sceneEditor,
                         scene = scene,
                         selection = selection,
                         mirror = mirror(scene),

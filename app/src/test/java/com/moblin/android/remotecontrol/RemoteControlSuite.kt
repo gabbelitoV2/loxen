@@ -20,6 +20,10 @@ import kotlin.test.fail
 import com.moblin.android.integrations.workoutdevice.WorkoutDeviceRunningMetrics
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import com.moblin.android.common.various.RgbColor
+import com.moblin.android.various.model.Tally
+import com.moblin.android.various.settings.SettingsWidgetScene
+import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
 class RemoteControlSuite {
@@ -35,6 +39,73 @@ class RemoteControlSuite {
         formatJson(json.encodeToJsonElement(value), prettyPrint)
 
     @Test
+    fun activeZoomPresets() {
+        val cases = listOf(
+            RemoteControlZoomCamera(position = RemoteControlZoomCameraPosition.Front, minX = 1f, maxX = 2f) to listOf("1x", "2x"),
+            RemoteControlZoomCamera(position = RemoteControlZoomCameraPosition.Front, minX = 1f, maxX = 1.5f) to listOf("1x"),
+            RemoteControlZoomCamera(position = RemoteControlZoomCameraPosition.Back, minX = 0.5f, maxX = 15f) to listOf("0.5x", "1x", "5x"),
+            RemoteControlZoomCamera(position = RemoteControlZoomCameraPosition.Back, minX = 1f, maxX = 15f) to listOf("1x", "5x"),
+            RemoteControlZoomCamera(position = RemoteControlZoomCameraPosition.Back, minX = 1f, maxX = 4.9f) to listOf("1x"),
+            RemoteControlZoomCamera(position = RemoteControlZoomCameraPosition.Other, minX = 0.5f, maxX = 15f) to listOf()
+        )
+        for ((camera, names) in cases) {
+            val zoomPresets = RemoteControlSettingsZoomPresets(
+                front = listOf(
+                    RemoteControlZoomPreset(id = UUID.randomUUID(), name = "1x", x = 1f),
+                    RemoteControlZoomPreset(id = UUID.randomUUID(), name = "2x", x = 2f)
+                ),
+                back = listOf(
+                    RemoteControlZoomPreset(id = UUID.randomUUID(), name = "0.5x", x = 0.5f),
+                    RemoteControlZoomPreset(id = UUID.randomUUID(), name = "1x", x = 1f),
+                    RemoteControlZoomPreset(id = UUID.randomUUID(), name = "5x", x = 5f)
+                )
+            )
+            assertEquals(names, zoomPresets.active(camera = camera).map { it.name })
+        }
+    }
+
+    @Test
+    fun stateChangesOnlyContainChangedFields() {
+        var sent = RemoteControlState(zoom = 0.5f, torchOn = false)
+        assertEquals(RemoteControlState(torchOn = true),
+                     sent.applyChanges(state =RemoteControlState(zoom = 0.5f, torchOn = true)))
+        assertEquals(RemoteControlState(zoom = 0.5f, torchOn = true), sent)
+    }
+
+    @Test
+    fun stateChangesAreNilWhenNothingChanged() {
+        var sent = RemoteControlState(
+            zoomPreset = UUID.fromString("7E3854FA-A449-4C72-B2BF-C2246541CCE8"),
+            zoomCamera = RemoteControlZoomCamera(position = RemoteControlZoomCameraPosition.Back, minX = 0.5f, maxX = 15f)
+        )
+        assertNull(sent.applyChanges(state =sent))
+    }
+
+    @Test
+    fun stateChangesKeepFieldsMissingInUpdate() {
+        var sent = RemoteControlState(torchOn = false)
+        assertEquals(RemoteControlState(streaming = false),
+                     sent.applyChanges(state =RemoteControlState(streaming = false)))
+        assertEquals(RemoteControlState(streaming = false, torchOn = false), sent)
+    }
+
+    @Test
+    fun stateChangesOnlyContainChangedFilters() {
+        var sent = RemoteControlState(filters = mapOf(RemoteControlFilter.Movie to true))
+        assertEquals(
+            RemoteControlState(filters = mapOf(RemoteControlFilter.Sepia to true)),
+            sent.applyChanges(state =RemoteControlState(filters = mapOf(RemoteControlFilter.Movie to true, RemoteControlFilter.Sepia to true)))
+        )
+        assertEquals(RemoteControlState(filters = mapOf(RemoteControlFilter.Movie to true, RemoteControlFilter.Sepia to true)), sent)
+    }
+
+    @Test
+    fun stateChangesAreNilWhenNoFilterChanged() {
+        var sent = RemoteControlState(filters = mapOf(RemoteControlFilter.Movie to true, RemoteControlFilter.Sepia to false))
+        assertNull(sent.applyChanges(state =RemoteControlState(filters = mapOf(RemoteControlFilter.Sepia to false))))
+    }
+
+    @Test
     fun gimbalRequests() {
         assertEquals("""{"setGimbalTracking":{"on":true}}""",
                      encode(RemoteControlRequest.SetGimbalTracking(on = true)))
@@ -44,6 +115,42 @@ class RemoteControlSuite {
                      encode(RemoteControlRequest.AnimateGimbal(motion = SettingsGimbalMotion.KAPOW)))
         assertEquals("""{"saveGimbalPreset":{}}""",
                      encode(RemoteControlRequest.SaveGimbalPreset))
+    }
+
+    @Test
+    fun tallyRequests() {
+        assertEquals(
+            """{"showTally":{"background":{"blue":0,"green":0,"red":255},"foreground":{"blue":255,"green":255,"red":255},"message":"On air"}}""",
+            encode(RemoteControlRequest.ShowTally(
+                message = "On air",
+                background = RgbColor(red = 255, green = 0, blue = 0),
+                foreground = RgbColor(red = 255, green = 255, blue = 255)
+            ))
+        )
+        assertEquals("""{"hideTally":{}}""", encode(RemoteControlRequest.HideTally))
+        val request = RemoteControlRequest.fromJsonElement(
+            json.parseToJsonElement("""{"showTally":{"message":"Hi","background":{"red":1,"green":2,"blue":3},"foreground":{"red":4,"green":5,"blue":6}}}""")
+        )
+        val tally = request as? RemoteControlRequest.ShowTally ?: fail("not a tally")
+        assertEquals(RgbColor(red = 1, green = 2, blue = 3), tally.background)
+        assertEquals(RgbColor(red = 4, green = 5, blue = 6), tally.foreground)
+        assertEquals("Hi", tally.message)
+    }
+
+    @Test
+    fun tallyShowAndHide() {
+        val tally = Tally()
+        assertNull(tally.state.value)
+        tally.show(message = "Preview", background = RgbColor(red = 255, green = 255, blue = 255), foreground = RgbColor(red = 0, green = 0, blue = 0))
+        assertEquals(RgbColor(red = 255, green = 255, blue = 255), tally.state.value?.background)
+        assertEquals(RgbColor(red = 0, green = 0, blue = 0), tally.state.value?.foreground)
+        assertEquals("Preview", tally.state.value?.message)
+        tally.show(message = "Program", background = RgbColor(red = 0, green = 0, blue = 0), foreground = RgbColor(red = 255, green = 255, blue = 255))
+        assertEquals(RgbColor(red = 0, green = 0, blue = 0), tally.state.value?.background)
+        assertEquals(RgbColor(red = 255, green = 255, blue = 255), tally.state.value?.foreground)
+        assertEquals("Program", tally.state.value?.message)
+        tally.hide()
+        assertNull(tally.state.value)
     }
 
     @Test
@@ -430,6 +537,22 @@ class RemoteControlSuite {
             latestFollower = "Follower",
             systemMonitor = "12% 300 MB"
         )
+
+    @Test
+    fun sceneWidgetWithoutSceneOverRemoteControl() {
+        val data = encode(RemoteControlRemoteSceneSettingsWidgetTypeScene(scene = SettingsWidgetScene()), prettyPrint = false)
+        assertEquals("""{"sceneId":"00000000-0000-0000-0000-000000000000"}""", data)
+        val decoded = json.decodeFromString<RemoteControlRemoteSceneSettingsWidgetTypeScene>(data)
+        assertNull(decoded.toSettings().sceneId)
+    }
+
+    @Test
+    fun sceneWidgetWithSceneOverRemoteControl() {
+        val scene = SettingsWidgetScene()
+        scene.sceneId = UUID.randomUUID()
+        val wire = RemoteControlRemoteSceneSettingsWidgetTypeScene(scene = scene)
+        assertEquals(scene.sceneId, wire.toSettings().sceneId)
+    }
 
     private fun formatJson(element: JsonElement, prettyPrint: Boolean, indent: Int = 0): String = when (element) {
         is JsonObject -> {

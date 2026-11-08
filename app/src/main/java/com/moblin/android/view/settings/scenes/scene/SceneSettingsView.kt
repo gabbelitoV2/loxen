@@ -469,17 +469,6 @@ private fun WidgetsView(
 }
 
 @Composable
-fun SceneShortcutView(
-    database: Database,
-    scene: SettingsScene,
-    onNavigate: (String) -> Unit = LocalOnNavigate.current,
-) {
-    NavigationLink(destination = { SceneSettingsView(database = database, scene = scene) }) {
-        Text(localized("Scene"))
-    }
-}
-
-@Composable
 fun SceneSettingsView(
     model: Model = LocalModel.current,
     database: Database,

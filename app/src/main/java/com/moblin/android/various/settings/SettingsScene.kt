@@ -1329,8 +1329,10 @@ class SettingsWidgetMap(
 
 @Serializable(with = SettingsWidgetScene.Serializer::class)
 class SettingsWidgetScene(
-    var sceneId: UUID = UUID.randomUUID()
+    sceneId: UUID? = null
 ) {
+    var sceneId: UUID? by Published(sceneId)
+
     fun encode(): JsonObject = encodeContainer {
         encode("sceneId", sceneId)
     }
@@ -1338,7 +1340,7 @@ class SettingsWidgetScene(
     companion object {
         fun decode(container: JsonObject): SettingsWidgetScene {
             val scene = SettingsWidgetScene()
-            scene.sceneId = container.decodeSynthesized("sceneId")
+            scene.sceneId = container.decode<UUID?>("sceneId", null)
             return scene
         }
     }

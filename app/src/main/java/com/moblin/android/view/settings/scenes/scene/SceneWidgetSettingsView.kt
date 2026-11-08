@@ -8,10 +8,8 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidget
-import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetLayoutView
-import com.moblin.android.view.utils.ShortcutSectionView
-import com.moblin.android.view.utils.WidgetShortcutView
+import com.moblin.android.view.settings.scenes.widgets.widget.WidgetSettingsSectionsView
 
 @Composable
 fun SceneWidgetSettingsView(
@@ -33,14 +31,6 @@ fun SceneWidgetSettingsView(
             widget = widget,
             numericInput = numericInput,
         )
-        ShortcutSectionView {
-            WidgetShortcutView(model = model, database = model.database, widget = widget)
-            if (widget.type == SettingsWidgetType.scene) {
-                val scene = model.database.findScene(id = widget.scene.sceneId)
-                if (scene != null) {
-                    SceneShortcutView(database = model.database, scene = scene)
-                }
-            }
-        }
+        WidgetSettingsSectionsView(model = model, database = database, widget = widget)
     }
 }

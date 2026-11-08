@@ -175,4 +175,15 @@ class SceneResolverSuite {
             resolver.selectableScenes(sceneWidget).map { it.name },
         )
     }
+
+    @Test
+    fun sceneWidgetWithoutScene() {
+        val sceneWidget = makeWidget("Scene")
+        sceneWidget.type = SettingsWidgetType.scene
+        val main = makeScene("Main", listOf(sceneWidget))
+        val resolver = SceneResolver(listOf(main), listOf(sceneWidget))
+        val resolved = resolver.resolve(main)
+        assertEquals(listOf("Scene"), resolved.widgets.map { it.widget.name })
+        assertEquals(setOf(main.id), resolved.sceneIds)
+    }
 }

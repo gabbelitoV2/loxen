@@ -1,28 +1,25 @@
 package com.moblin.android.view.controlbar.quickbutton
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.moblin.android.LocalModel
+import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.SceneSelector
-import com.moblin.android.various.settings.Database
-import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
-import com.moblin.android.view.settings.scenes.OpenSceneEditorButtonView
-import com.moblin.android.view.settings.scenes.scene.SceneWidgetSettingsView
+import com.moblin.android.view.settings.scenes.widgets.widget.WidgetSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.bingocard.WidgetBingoCardQuickButtonControlsView
 import com.moblin.android.view.settings.scenes.widgets.widget.pomodorotimer.WidgetPomodoroTimerQuickButtonControlsView
 import com.moblin.android.view.settings.scenes.widgets.widget.scoreboard.WidgetScoreboardQuickButtonControlsView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.WidgetTextQuickButtonControlsView
 import com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck.WidgetWheelOfLuckQuickButtonControlsView
 import com.moblin.android.view.utils.IconAndTextView
-import com.moblin.android.view.utils.ScenesShortcutView
-import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.various.model.getBingoCardEffect
 import com.moblin.android.various.model.isCaptureDeviceWidget
 import com.moblin.android.various.model.reloadSpeechToText
@@ -32,17 +29,14 @@ import com.moblin.android.various.model.sceneWidgetsInSelectedScene
 @Composable
 private fun WidgetView(
     model: Model = LocalModel.current,
-    database: Database,
     widget: SettingsWidget,
-    sceneWidget: SettingsSceneWidget,
 ) {
     Column {
         NavigationLink(
             destination = {
-                SceneWidgetSettingsView(
+                WidgetSettingsView(
                     model = model,
-                    database = database,
-                    sceneWidget = sceneWidget,
+                    database = model.database,
                     widget = widget,
                 )
             },
@@ -96,20 +90,16 @@ fun QuickButtonSceneWidgetsView(
     model: Model = LocalModel.current,
     sceneSelector: SceneSelector,
 ) {
+    val widgets = model.sceneWidgetsInSelectedScene()
     Form(title = "Scene widgets") {
         Section {
-            model.sceneWidgetsInSelectedScene().forEach { widget ->
-                WidgetView(
-                    model = model,
-                    database = model.database,
-                    widget = widget.widget,
-                    sceneWidget = widget.sceneWidget,
-                )
+            if (widgets.isEmpty()) {
+                Text(localized("No widgets in this scene"))
+            } else {
+                widgets.forEach {
+                    WidgetView(model = model, widget = it.widget)
+                }
             }
-        }
-        OpenSceneEditorButtonView(model = model)
-        ShortcutSectionView {
-            ScenesShortcutView(model = model, database = model.database)
         }
     }
 }

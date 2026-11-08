@@ -272,7 +272,10 @@ private fun isValidSceneWidgetUpdate(
     database: Database,
 ): Boolean {
     return isValidChange(widget.scene.sceneId, new.scene.sceneId) { sceneId ->
-        if (sceneId == null || !database.scenes.any { it.id == sceneId }) {
+        if (sceneId == null) {
+            return@isValidChange true
+        }
+        if (!database.scenes.any { it.id == sceneId }) {
             return@isValidChange creating
         }
         SceneResolver(scenes = database.scenes, widgets = database.widgets)

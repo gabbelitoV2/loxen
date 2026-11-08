@@ -1,7 +1,7 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.localized
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.remotecontrol.RemoteControlSettingsGimbalPreset
 import com.moblin.android.various.Gimbal
 import com.moblin.android.various.Vector3D
@@ -23,7 +23,7 @@ fun Model.setGimbalTracking(on: Boolean) {
     database.gimbal.tracking = on
     Gimbal.shared?.setTracking(on)
     setQuickButton(type = SettingsQuickButtonType.gimbalTracking, isOn = on)
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(gimbalTracking = on))
+    remoteControlStateChanged(state = RemoteControlState(gimbalTracking = on))
 }
 
 fun Model.setGimbalMovement(x: Float, y: Float) {
@@ -72,7 +72,7 @@ fun Model.saveGimbalPreset(id: UUID?) {
                 database.gimbal.presets = database.gimbal.presets + preset
             }
             remoteControlStateChanged(
-                state = RemoteControlAssistantStreamerState(
+                state = RemoteControlState(
                     gimbalPresets = getRemoteControlGimbalPresets(),
                 ),
             )

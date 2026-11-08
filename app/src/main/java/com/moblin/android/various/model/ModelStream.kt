@@ -20,7 +20,7 @@ import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderSettings
 import com.moblin.android.media.haishinkit.media.RecorderDataSegment
 import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.media.haishinkit.mpeg.MpegTsPacket
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.BondingConnection
 import com.moblin.android.various.network.httpRequest
@@ -531,7 +531,7 @@ fun Model.togglePreviewStream() {
 fun Model.setIsPreviewStreaming(value: Boolean) {
     isPreviewStreaming.value = value
     setQuickButton(type = SettingsQuickButtonType.previewStream, isOn = value)
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(previewStream = value))
+    remoteControlStateChanged(state = RemoteControlState(previewStream = value))
 }
 
 fun Model.stopNetStream() {
@@ -1031,7 +1031,7 @@ fun Model.setIsLive(value: Boolean) {
     if (isWatchLocal()) {
         sendIsLiveToWatch(isLive = isLive.value)
     }
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(streaming = isLive.value))
+    remoteControlStateChanged(state = RemoteControlState(streaming = isLive.value))
 }
 
 fun Model.setStreamFps(fps: Int? = null) {
@@ -1067,7 +1067,7 @@ fun Model.setBitrate(bitrate: Int) {
         setStreamBitrate(stream = stream.value)
     }
     val preset = getBitratePresetByBitrate(bitrate = bitrate) ?: return
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(bitrate = preset.id))
+    remoteControlStateChanged(state = RemoteControlState(bitrate = preset.id))
 }
 
 private fun Model.getBitrate(): Int {

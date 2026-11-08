@@ -66,7 +66,7 @@ interface RemoteControlAssistantDelegate {
     fun remoteControlAssistantConnected()
     fun remoteControlAssistantDisconnected()
     fun remoteControlAssistantPreview(preview: ByteArray)
-    fun remoteControlAssistantStateChanged(state: RemoteControlAssistantStreamerState)
+    fun remoteControlAssistantStateChanged(state: RemoteControlState)
     fun remoteControlAssistantLog(entry: String)
     fun remoteControlAssistantStatus(
         general: RemoteControlStatusGeneral?,
@@ -878,7 +878,7 @@ class RemoteControlAssistant(
         gotPing = true
     }
 
-    private fun handleStateEvent(state: RemoteControlAssistantStreamerState) {
+    private fun handleStateEvent(state: RemoteControlState) {
         delegate?.remoteControlAssistantStateChanged(state = state)
     }
 

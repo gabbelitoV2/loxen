@@ -4,7 +4,7 @@ import com.moblin.android.common.various.formatBytes
 import com.moblin.android.common.various.noValue
 import com.moblin.android.common.various.sizeFormatter
 import com.moblin.android.localized
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.various.settings.MacroEvent
 import com.moblin.android.various.settings.SettingsColorSpace
 import com.moblin.android.various.settings.SettingsMacrosEvent
@@ -136,7 +136,7 @@ fun Model.setIsRecording(value: Boolean) {
     if (isWatchLocal()) {
         sendIsRecordingToWatch(isRecording = isRecording)
     }
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(recording = isRecording.value))
+    remoteControlStateChanged(state = RemoteControlState(recording = isRecording.value))
 }
 
 fun Model.setCleanRecordings() {

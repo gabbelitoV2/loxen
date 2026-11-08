@@ -1,6 +1,7 @@
 package com.moblin.android.remotecontrol
 
 import android.util.Base64
+import com.moblin.android.common.various.RgbColor
 import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.various.MainTimer
@@ -42,6 +43,8 @@ interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerSetBitratePreset(id: UUID)
     fun remoteControlStreamerSetRecord(on: Boolean)
     fun remoteControlStreamerSetLive(on: Boolean)
+    fun remoteControlStreamerShowTally(message: String, background: RgbColor, foreground: RgbColor)
+    fun remoteControlStreamerHideTally()
     fun remoteControlStreamerSetPreviewStream(on: Boolean)
     fun remoteControlStreamerSetDebugLogging(on: Boolean)
     fun remoteControlStreamerSetZoom(x: Float)
@@ -181,7 +184,7 @@ class RemoteControlStreamer(
         return connected
     }
 
-    fun stateChanged(state: RemoteControlAssistantStreamerState) {
+    fun stateChanged(state: RemoteControlState) {
         if (!connected) {
             return
         }
@@ -410,6 +413,18 @@ class RemoteControlStreamer(
             }
             is RemoteControlRequest.SetLive -> {
                 delegate.remoteControlStreamerSetLive(data.on)
+                sendEmptyOkResponse(id)
+            }
+            is RemoteControlRequest.ShowTally -> {
+                delegate.remoteControlStreamerShowTally(
+                    data.message,
+                    data.background,
+                    data.foreground,
+                )
+                sendEmptyOkResponse(id)
+            }
+            is RemoteControlRequest.HideTally -> {
+                delegate.remoteControlStreamerHideTally()
                 sendEmptyOkResponse(id)
             }
             is RemoteControlRequest.SetPreviewStream -> {

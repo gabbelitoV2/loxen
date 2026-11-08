@@ -188,11 +188,12 @@ private data class SceneWalk(
             if (widget.type != SettingsWidgetType.scene || !(widget.enabled || includeDisabledSceneWidgets)) {
                 continue
             }
-            var nestedSceneId = widget.scene.sceneId
+            var nestedSceneId: UUID? = widget.scene.sceneId
             if (change is SceneWidgetsChange.SetScene && change.widgetId == widget.id) {
                 nestedSceneId = change.sceneId
             }
-            val nestedScene = resolver.findScene(nestedSceneId) ?: continue
+            val resolvedNestedSceneId = nestedSceneId ?: continue
+            val nestedScene = resolver.findScene(resolvedNestedSceneId) ?: continue
             if (!resolved.sceneIds.add(nestedScene.id)) {
                 continue
             }

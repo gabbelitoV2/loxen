@@ -8,7 +8,7 @@ import com.moblin.android.platform.avfoundation.AVAudioSession
 import com.moblin.android.platform.avfoundation.AVAudioSessionDataSourceDescription
 import com.moblin.android.platform.avfoundation.AVAudioSessionPortDescription
 import com.moblin.android.platform.core.Notification
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.various.KeepSpeakerAlivePlayer
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsMic
@@ -369,7 +369,7 @@ fun Model.selectMicDefault(mic: SettingsMicsMic) {
         runCatching { session.setInputDataSource(dataSource) }
     }
     media.attachDefaultAudioDevice(builtinDelay = database.debug.builtinAudioAndVideoDelay.value)
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(mic = mic.id))
+    remoteControlStateChanged(state = RemoteControlState(mic = mic.id))
 }
 
 fun Model.keepSpeakerAlive(now: Instant) {
@@ -783,7 +783,7 @@ private fun Model.attachBufferedAudio(cameraId: UUID?, micId: String) {
         return
     }
     media.attachBufferedAudio(cameraId = cameraId)
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(mic = micId))
+    remoteControlStateChanged(state = RemoteControlState(mic = micId))
 }
 
 private fun Model.startTalkback(mic: SettingsMicsMic) {

@@ -5,11 +5,13 @@ import com.moblin.android.various.network.DefaultTcpPorts
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
 import com.moblin.android.various.ChatPostSegment
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.util.UUID
 
 @RunWith(RobolectricTestRunner::class)
 class SettingsSuite {
@@ -124,5 +126,24 @@ class SettingsSuite {
             codableJson.encodeToString(SettingsChat.serializer(), chat),
         )
         assertTrue(decoded.textToSpeechSayEmotes)
+    }
+
+    @Test
+    fun widgetSceneId() {
+        val scene = SettingsWidgetScene()
+        assertNull(scene.sceneId)
+        var decoded = codableJson.decodeFromString(
+            SettingsWidgetScene.serializer(),
+            codableJson.encodeToString(SettingsWidgetScene.serializer(), scene),
+        )
+        assertNull(decoded.sceneId)
+        scene.sceneId = UUID.randomUUID()
+        decoded = codableJson.decodeFromString(
+            SettingsWidgetScene.serializer(),
+            codableJson.encodeToString(SettingsWidgetScene.serializer(), scene),
+        )
+        assertEquals(scene.sceneId, decoded.sceneId)
+        decoded = codableJson.decodeFromString(SettingsWidgetScene.serializer(), "{}")
+        assertNull(decoded.sceneId)
     }
 }

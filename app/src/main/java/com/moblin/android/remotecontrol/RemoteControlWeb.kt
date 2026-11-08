@@ -1,6 +1,7 @@
 package com.moblin.android.remotecontrol
 
 import android.net.nsd.NsdServiceInfo
+import com.moblin.android.common.various.RgbColor
 import com.moblin.android.platform.log.Log
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.HttpServer
@@ -45,6 +46,8 @@ interface RemoteControlWebDelegate {
     fun remoteControlWebSetBitratePreset(id: UUID)
     fun remoteControlWebSetRecord(on: Boolean)
     fun remoteControlWebSetLive(on: Boolean)
+    fun remoteControlWebShowTally(message: String, background: RgbColor, foreground: RgbColor)
+    fun remoteControlWebHideTally()
     fun remoteControlWebSetPreviewStream(on: Boolean)
     fun remoteControlWebSetZoom(x: Float)
     fun remoteControlWebSetZoomPreset(id: UUID)
@@ -153,7 +156,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
         stopWebsocketServer()
     }
 
-    fun stateChanged(state: RemoteControlAssistantStreamerState) {
+    fun stateChanged(state: RemoteControlState) {
         for (connection in connections) {
             send(
                 connection = connection,
@@ -269,6 +272,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
 
     private fun stopWebsocketServer() {
         for (connection in connections) {
+            delegate?.remoteControlWebDisconnected()
             connection.cancel()
         }
         connections.clear()
@@ -529,6 +533,18 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
             }
             is RemoteControlRequest.SetLive -> {
                 delegate.remoteControlWebSetLive(on = data.on)
+                sendEmptyOkResponse(connection = connection, id = id)
+            }
+            is RemoteControlRequest.ShowTally -> {
+                delegate.remoteControlWebShowTally(
+                    message = data.message,
+                    background = data.background,
+                    foreground = data.foreground,
+                )
+                sendEmptyOkResponse(connection = connection, id = id)
+            }
+            is RemoteControlRequest.HideTally -> {
+                delegate.remoteControlWebHideTally()
                 sendEmptyOkResponse(connection = connection, id = id)
             }
             is RemoteControlRequest.SetPreviewStream -> {

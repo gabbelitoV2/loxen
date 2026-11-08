@@ -417,7 +417,7 @@ class SceneCodableSuite {
         Case("SettingsWidgetCrop", SettingsWidgetCrop.serializer(), { SettingsWidgetCrop() }),
         Case("SettingsWidgetBrowser", SettingsWidgetBrowser.serializer(), { SettingsWidgetBrowser() }),
         Case("SettingsWidgetMap", SettingsWidgetMap.serializer(), { SettingsWidgetMap() }),
-        Case("SettingsWidgetScene", SettingsWidgetScene.serializer(), { SettingsWidgetScene() }, synthesized = true),
+        Case("SettingsWidgetScene", SettingsWidgetScene.serializer(), { SettingsWidgetScene() }),
         Case("SettingsWidgetQrCode", SettingsWidgetQrCode.serializer(), { SettingsWidgetQrCode() }, synthesized = true),
         Case("SettingsWidgetAlertFacePosition", SettingsWidgetAlertFacePosition.serializer(), {
             SettingsWidgetAlertFacePosition()

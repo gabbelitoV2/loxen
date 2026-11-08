@@ -626,6 +626,26 @@ sealed class RemoteControlRequest {
         }
     }
 
+    data class ShowTally(
+        val message: String,
+        val background: RgbColor,
+        val foreground: RgbColor,
+    ) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("showTally") {
+                put("message", message)
+                put("background", remoteControlJson.encodeToJsonElement(background))
+                put("foreground", remoteControlJson.encodeToJsonElement(foreground))
+            }
+        }
+    }
+
+    data object HideTally : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("hideTally") {}
+        }
+    }
+
     companion object {
         fun fromJson(data: String): RemoteControlRequest =
             fromJsonElement(remoteControlJson.parseToJsonElement(data))
@@ -813,6 +833,12 @@ sealed class RemoteControlRequest {
                         if (it is JsonNull) null else UUID.fromString(it.jsonPrimitive.content)
                     },
                 )
+                "showTally" -> ShowTally(
+                    message = params.getValue("message").jsonPrimitive.content,
+                    background = remoteControlJson.decodeFromJsonElement(params.getValue("background")),
+                    foreground = remoteControlJson.decodeFromJsonElement(params.getValue("foreground")),
+                )
+                "hideTally" -> HideTally
                 else -> throw SerializationException("Unknown request ${entry.key}")
             }
         }
@@ -1077,7 +1103,7 @@ sealed class RemoteControlEvent {
 
     fun toJson(): String = remoteControlJson.encodeToString(JsonElement.serializer(), toJsonElement())
 
-    data class State(val data: RemoteControlAssistantStreamerState) : RemoteControlEvent() {
+    data class State(val data: RemoteControlState) : RemoteControlEvent() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("state") { put("data", remoteControlJson.encodeToJsonElement(data)) }
         }
@@ -1947,18 +1973,20 @@ data class RemoteControlRemoteSceneSettingsWidgetTypeMap(
     }
 }
 
+private val noSceneId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000000")
+
 @Serializable
 data class RemoteControlRemoteSceneSettingsWidgetTypeScene(
     @Serializable(with = UUIDSerializer::class)
     val sceneId: UUID,
 ) {
     constructor(scene: SettingsWidgetScene) : this(
-        sceneId = scene.sceneId,
+        sceneId = scene.sceneId ?: noSceneId,
     )
 
     fun toSettings(): SettingsWidgetScene {
         val scene = SettingsWidgetScene()
-        scene.sceneId = sceneId
+        scene.sceneId = if (sceneId == noSceneId) null else sceneId
         return scene
     }
 }
@@ -2434,7 +2462,23 @@ data class RemoteControlSettings(
     var mics: List<RemoteControlSettingsMic>,
     var srt: RemoteControlSettingsSrt,
     var moblinCloud: RemoteControlSettingsMoblinCloud? = null,
+    var zoomPresets: RemoteControlSettingsZoomPresets? = null,
 )
+
+@Serializable
+data class RemoteControlSettingsZoomPresets(
+    val front: List<RemoteControlZoomPreset>,
+    val back: List<RemoteControlZoomPreset>,
+) {
+    fun active(camera: RemoteControlZoomCamera): List<RemoteControlZoomPreset> {
+        val presets = when (camera.position) {
+            RemoteControlZoomCameraPosition.Front -> front
+            RemoteControlZoomCameraPosition.Back -> back
+            RemoteControlZoomCameraPosition.Other -> emptyList()
+        }
+        return presets.filter { it.x >= camera.minX && it.x <= camera.maxX }
+    }
+}
 
 @Serializable
 data class RemoteControlStateAutoSceneSwitcher(
@@ -2447,6 +2491,26 @@ data class RemoteControlZoomPreset(
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
+    val x: Float,
+)
+
+@Serializable
+enum class RemoteControlZoomCameraPosition(val rawValue: String) {
+    @SerialName("front")
+    Front("front"),
+
+    @SerialName("back")
+    Back("back"),
+
+    @SerialName("other")
+    Other("other"),
+}
+
+@Serializable
+data class RemoteControlZoomCamera(
+    val position: RemoteControlZoomCameraPosition,
+    val minX: Float,
+    val maxX: Float,
 )
 
 @Serializable
@@ -2458,7 +2522,7 @@ data class RemoteControlMacro(
 )
 
 @Serializable
-data class RemoteControlAssistantStreamerState(
+data class RemoteControlState(
     @Serializable(with = UUIDSerializer::class)
     var scene: UUID? = null,
     var autoSceneSwitcher: RemoteControlStateAutoSceneSwitcher? = null,
@@ -2466,9 +2530,9 @@ data class RemoteControlAssistantStreamerState(
     @Serializable(with = UUIDSerializer::class)
     var bitrate: UUID? = null,
     var zoom: Float? = null,
-    var zoomPresets: List<RemoteControlZoomPreset>? = null,
     @Serializable(with = UUIDSerializer::class)
     var zoomPreset: UUID? = null,
+    var zoomCamera: RemoteControlZoomCamera? = null,
     var debugLogging: Boolean? = null,
     var streaming: Boolean? = null,
     var recording: Boolean? = null,
@@ -2481,7 +2545,186 @@ data class RemoteControlAssistantStreamerState(
     var gimbalTracking: Boolean? = null,
     var gimbalPresets: List<RemoteControlSettingsGimbalPreset>? = null,
     var macros: List<RemoteControlMacro>? = null,
-)
+) {
+    fun applyChanges(state: RemoteControlState): RemoteControlState? {
+        val changes = state.copy()
+        var changed = false
+        val scene = state.scene
+        if (scene != null) {
+            if (scene == this.scene) {
+                changes.scene = null
+            } else {
+                this.scene = scene
+                changed = true
+            }
+        }
+        val autoSceneSwitcher = state.autoSceneSwitcher
+        if (autoSceneSwitcher != null) {
+            if (autoSceneSwitcher == this.autoSceneSwitcher) {
+                changes.autoSceneSwitcher = null
+            } else {
+                this.autoSceneSwitcher = autoSceneSwitcher
+                changed = true
+            }
+        }
+        val mic = state.mic
+        if (mic != null) {
+            if (mic == this.mic) {
+                changes.mic = null
+            } else {
+                this.mic = mic
+                changed = true
+            }
+        }
+        val bitrate = state.bitrate
+        if (bitrate != null) {
+            if (bitrate == this.bitrate) {
+                changes.bitrate = null
+            } else {
+                this.bitrate = bitrate
+                changed = true
+            }
+        }
+        val zoom = state.zoom
+        if (zoom != null) {
+            if (zoom == this.zoom) {
+                changes.zoom = null
+            } else {
+                this.zoom = zoom
+                changed = true
+            }
+        }
+        val zoomPreset = state.zoomPreset
+        if (zoomPreset != null) {
+            if (zoomPreset == this.zoomPreset) {
+                changes.zoomPreset = null
+            } else {
+                this.zoomPreset = zoomPreset
+                changed = true
+            }
+        }
+        val zoomCamera = state.zoomCamera
+        if (zoomCamera != null) {
+            if (zoomCamera == this.zoomCamera) {
+                changes.zoomCamera = null
+            } else {
+                this.zoomCamera = zoomCamera
+                changed = true
+            }
+        }
+        val debugLogging = state.debugLogging
+        if (debugLogging != null) {
+            if (debugLogging == this.debugLogging) {
+                changes.debugLogging = null
+            } else {
+                this.debugLogging = debugLogging
+                changed = true
+            }
+        }
+        val streaming = state.streaming
+        if (streaming != null) {
+            if (streaming == this.streaming) {
+                changes.streaming = null
+            } else {
+                this.streaming = streaming
+                changed = true
+            }
+        }
+        val recording = state.recording
+        if (recording != null) {
+            if (recording == this.recording) {
+                changes.recording = null
+            } else {
+                this.recording = recording
+                changed = true
+            }
+        }
+        val previewStream = state.previewStream
+        if (previewStream != null) {
+            if (previewStream == this.previewStream) {
+                changes.previewStream = null
+            } else {
+                this.previewStream = previewStream
+                changed = true
+            }
+        }
+        val muted = state.muted
+        if (muted != null) {
+            if (muted == this.muted) {
+                changes.muted = null
+            } else {
+                this.muted = muted
+                changed = true
+            }
+        }
+        val stealthMode = state.stealthMode
+        if (stealthMode != null) {
+            if (stealthMode == this.stealthMode) {
+                changes.stealthMode = null
+            } else {
+                this.stealthMode = stealthMode
+                changed = true
+            }
+        }
+        val torchOn = state.torchOn
+        if (torchOn != null) {
+            if (torchOn == this.torchOn) {
+                changes.torchOn = null
+            } else {
+                this.torchOn = torchOn
+                changed = true
+            }
+        }
+        val batteryCharging = state.batteryCharging
+        if (batteryCharging != null) {
+            if (batteryCharging == this.batteryCharging) {
+                changes.batteryCharging = null
+            } else {
+                this.batteryCharging = batteryCharging
+                changed = true
+            }
+        }
+        val gimbalTracking = state.gimbalTracking
+        if (gimbalTracking != null) {
+            if (gimbalTracking == this.gimbalTracking) {
+                changes.gimbalTracking = null
+            } else {
+                this.gimbalTracking = gimbalTracking
+                changed = true
+            }
+        }
+        val gimbalPresets = state.gimbalPresets
+        if (gimbalPresets != null) {
+            if (gimbalPresets == this.gimbalPresets) {
+                changes.gimbalPresets = null
+            } else {
+                this.gimbalPresets = gimbalPresets
+                changed = true
+            }
+        }
+        val macros = state.macros
+        if (macros != null) {
+            if (macros == this.macros) {
+                changes.macros = null
+            } else {
+                this.macros = macros
+                changed = true
+            }
+        }
+        val filters = state.filters
+        if (filters != null) {
+            val changedFilters = filters.filter { (filter, on) -> this.filters?.get(filter) != on }
+            if (changedFilters.isEmpty()) {
+                changes.filters = null
+            } else {
+                this.filters = (this.filters ?: emptyMap()) + changedFilters
+                changes.filters = changedFilters
+                changed = true
+            }
+        }
+        return if (changed) changes else null
+    }
+}
 
 @Serializable
 data class RemoteControlScoreboardControl(

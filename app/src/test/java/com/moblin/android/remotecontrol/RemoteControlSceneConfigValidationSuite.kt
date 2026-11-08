@@ -547,6 +547,9 @@ class RemoteControlSceneConfigValidationSuite {
             WidgetCase("Other scene", SettingsWidgetType.scene) { fixture, widget ->
                 widget.scene.sceneId = fixture.mainScene.id
             },
+            WidgetCase("No scene", SettingsWidgetType.scene) { _, widget ->
+                widget.scene.sceneId = null
+            },
             WidgetCase("Known padel player", SettingsWidgetType.scoreboard) { fixture, widget ->
                 val player = SettingsWidgetScoreboardPlayer()
                 fixture.database.scoreboardPlayers = mutableListOf(player)

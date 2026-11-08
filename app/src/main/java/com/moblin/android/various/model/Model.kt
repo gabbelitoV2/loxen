@@ -415,30 +415,6 @@ class StreamOverlay {
     val isTorchOn = MutableStateFlow(false)
 }
 
-data class WidgetOutline(
-    val sceneWidget: SettingsSceneWidget,
-    val widget: SettingsWidget,
-    val rect: com.moblin.android.platform.coregraphics.CGRect,
-    val alignment: SettingsAlignment,
-    val sized: Boolean,
-    val inScene: Boolean,
-    val enabled: Boolean,
-) {
-    val id: UUID
-        get() = sceneWidget.id
-}
-
-class SceneEditor {
-    val sceneId = MutableStateFlow<UUID?>(null)
-}
-
-class WidgetOutlines {
-    val enabled = MutableStateFlow(false)
-    val outlines = MutableStateFlow<List<WidgetOutline>>(emptyList())
-    val canvasSize = MutableStateFlow(com.moblin.android.platform.coregraphics.CGSize(width = 1920, height = 1080))
-    var imageSizes: MutableMap<UUID, com.moblin.android.platform.coregraphics.CGSize?> = mutableMapOf()
-}
-
 class Store {
     val myIcons = MutableStateFlow<List<Icon>>(emptyList())
     val iconsInStore = MutableStateFlow<List<Icon>>(emptyList())
@@ -608,8 +584,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val store = Store()
     val show = Show()
     val streamOverlay = StreamOverlay()
-    val widgetOutlines = WidgetOutlines()
-    val sceneEditorWidgetOutlines = WidgetOutlines()
+    val tally = Tally()
     val sceneEditor = SceneEditor()
     val sceneSelector = SceneSelector()
     val toast = Toast()
@@ -762,7 +737,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private var lastAttachCompletedTime: Instant? = null
     private var relaxedBitrateStartTime: Instant? = null
     var relaxedBitrate = false
-    var remoteControlAssistantStreamerState = RemoteControlAssistantStreamerState()
+    var remoteControlAssistantStreamerState = RemoteControlState()
+    var remoteControlSentState = RemoteControlState()
     var remoteControlStreamer: RemoteControlStreamer? = null
     var remoteControlHandledRequestIds: MutableList<String> = mutableListOf()
     var remoteControlAssistant: RemoteControlAssistant? = null
@@ -1014,7 +990,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         } else {
             showingPanel.value = panel
         }
-        updateWidgetOutlinesForShowingPanel()
         panelHidden.value = false
         for (pageButtonPairs in quickButtons.pairs.value) {
             for (pair in pageButtonPairs) {
@@ -2433,7 +2408,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val filter = RemoteControlFilter.fromType(type)
         if (filter != null) {
             remoteControlStateChanged(
-                state = RemoteControlAssistantStreamerState(filters = mapOf(filter to button.isOn.value)),
+                state = RemoteControlState(filters = mapOf(filter to button.isOn.value)),
             )
         }
     }
@@ -2588,7 +2563,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setDebugLogging(on: Boolean) {
         com.moblin.android.various.logger.debugEnabled = on
-        remoteControlStateChanged(state = RemoteControlAssistantStreamerState(debugLogging = on))
+        remoteControlStateChanged(state = RemoteControlState(debugLogging = on))
     }
 
     fun isEventsConfigured(): Boolean = isTwitchEventSubConfigured()
@@ -2790,7 +2765,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (state != battery.state.value) {
             battery.state.value = state
             remoteControlStateChanged(
-                state = RemoteControlAssistantStreamerState(batteryCharging = isBatteryCharging()),
+                state = RemoteControlState(batteryCharging = isBatteryCharging()),
             )
         }
     }
@@ -3036,14 +3011,84 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun attachBackTripleLowEnergyCamera(force: Boolean = true) {
         cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTripleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < 1.0f) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
+        attachBackLowEnergyCamera(
+            bestDeviceType = AVCaptureDevice.DeviceType.builtInTripleCamera,
+            force = force,
+        ) { backX, switchOverX ->
+            if (backX < 1.0f) {
+                AVCaptureDevice.DeviceType.builtInUltraWideCamera
+            } else if (backX < switchOverX) {
+                AVCaptureDevice.DeviceType.builtInWideAngleCamera
+            } else {
+                AVCaptureDevice.DeviceType.builtInTelephotoCamera
+            }
+        }
     }
 
     fun attachBackDualLowEnergyCamera(force: Boolean = true) {
         cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
+        attachBackLowEnergyCamera(
+            bestDeviceType = AVCaptureDevice.DeviceType.builtInDualCamera,
+            force = force,
+        ) { backX, switchOverX ->
+            if (backX < switchOverX) {
+                AVCaptureDevice.DeviceType.builtInWideAngleCamera
+            } else {
+                AVCaptureDevice.DeviceType.builtInTelephotoCamera
+            }
+        }
     }
 
     fun attachBackWideDualLowEnergyCamera(force: Boolean = true) {
         cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
+        attachBackLowEnergyCamera(
+            bestDeviceType = AVCaptureDevice.DeviceType.builtInDualWideCamera,
+            force = force,
+        ) { backX, switchOverX ->
+            if (backX < switchOverX) {
+                AVCaptureDevice.DeviceType.builtInUltraWideCamera
+            } else {
+                AVCaptureDevice.DeviceType.builtInWideAngleCamera
+            }
+        }
+    }
+
+    private fun attachBackLowEnergyCamera(
+        bestDeviceType: AVCaptureDevice.DeviceType,
+        force: Boolean,
+        getDeviceType: (Float, Float) -> AVCaptureDevice.DeviceType,
+    ) {
+        cameraPosition = CameraSelector.LENS_FACING_BACK
+        lowEnergyCameraUpdateBackZoom(force = force)
+        zoom.x.value = zoom.backX
+        val bestDevice = AVCaptureDevice.default(
+            bestDeviceType,
+            com.moblin.android.platform.avfoundation.AVMediaType.video,
+            AVCaptureDevice.Position.back,
+        ) ?: return
+        val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return
+        val scale = bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)
+        val switchOverX = (lastZoomFactor * scale).roundToInt().toFloat()
+        val deviceType = getDeviceType(zoom.backX, switchOverX)
+        val device = AVCaptureDevice.default(
+            deviceType,
+            com.moblin.android.platform.avfoundation.AVMediaType.video,
+            AVCaptureDevice.Position.back,
+        ) ?: return
+        val scene = getSelectedScene() ?: return
+        if (!force && device == cameraDevice?.device) {
+            return
+        }
+        cameraDevice = CaptureDevice(
+            device = device,
+            id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(),
+            isVideoMirrored = false,
+        )
+        cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)
+        val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera)
+        cameraZoomXMinimum = range.first
+        cameraZoomXMaximum = range.second
+        attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
     }
 
     fun attachCamera(scene: SettingsScene, position: Int, resolver: SceneResolver) {
@@ -3171,7 +3216,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         )
         media.usePendingAfterAttachEffects()
         updateVideoPreviews()
-        zoomPresetsMayHaveChanged()
+        activeZoomPresetsMayHaveChanged()
     }
 
     fun attachExternalCamera(scene: SettingsScene, resolver: SceneResolver) {
@@ -3209,7 +3254,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         media.setTorchLevel(level = database.torchLevel)
         media.setTorch(on = streamOverlay.isTorchOn.value)
         remoteControlStateChanged(
-            state = RemoteControlAssistantStreamerState(torchOn = streamOverlay.isTorchOn.value),
+            state = RemoteControlState(torchOn = streamOverlay.isTorchOn.value),
         )
     }
 
@@ -3234,7 +3279,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         }
         updateTextEffects(now = Instant.now(), timestamp = TimeSource.Monotonic.markNow())
         forceUpdateTextEffects()
-        remoteControlStateChanged(state = RemoteControlAssistantStreamerState(muted = audio.muted.value))
+        remoteControlStateChanged(state = RemoteControlState(muted = audio.muted.value))
     }
 
     private fun makeFlameRedToast() {

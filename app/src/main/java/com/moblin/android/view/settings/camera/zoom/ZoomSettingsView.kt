@@ -22,7 +22,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.backZoomPresetSettingsUpdated
 import com.moblin.android.various.model.frontZoomPresetSettingUpdated
 import com.moblin.android.various.model.getMinMaxZoomX
-import com.moblin.android.various.model.zoomPresetsMayHaveChanged
+import com.moblin.android.various.model.activeZoomPresetsMayHaveChanged
 import com.moblin.android.various.settings.SettingsZoom
 import com.moblin.android.various.settings.SettingsZoomPreset
 import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
@@ -186,12 +186,12 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                 opacity = true
             ) {
                 zoom.backgroundColor = it
-                model.zoomPresetsMayHaveChanged()
+                model.activeZoomPresetsMayHaveChanged()
             }
             TextButtonView("Reset") {
                 zoom.backgroundColor = defaultSegmentedPickerSelectedColor
                 zoom.backgroundColorColor = zoom.backgroundColor.color()
-                model.zoomPresetsMayHaveChanged()
+                model.activeZoomPresetsMayHaveChanged()
             }
         }
     }

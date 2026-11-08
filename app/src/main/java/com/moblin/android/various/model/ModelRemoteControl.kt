@@ -16,7 +16,6 @@ import com.moblin.android.platform.core.uuidString
 import com.moblin.android.remotecontrol.RemoteControlAppAttest
 import com.moblin.android.remotecontrol.RemoteControlAssistant
 import com.moblin.android.remotecontrol.RemoteControlAssistantDelegate
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlChatMessage
 import com.moblin.android.remotecontrol.RemoteControlEditorOptions
 import com.moblin.android.remotecontrol.RemoteControlFilter
@@ -45,8 +44,10 @@ import com.moblin.android.remotecontrol.RemoteControlSettingsScene
 import com.moblin.android.remotecontrol.RemoteControlSettingsSrt
 import com.moblin.android.remotecontrol.RemoteControlSettingsSrtConnectionPriority
 import com.moblin.android.remotecontrol.RemoteControlSettingsStream
+import com.moblin.android.remotecontrol.RemoteControlSettingsZoomPresets
 import com.moblin.android.remotecontrol.RemoteControlStartStatsFilter
 import com.moblin.android.remotecontrol.RemoteControlStartStatusFilter
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.remotecontrol.RemoteControlStateAutoSceneSwitcher
 import com.moblin.android.remotecontrol.RemoteControlStats
 import com.moblin.android.remotecontrol.RemoteControlStatusGeneral
@@ -268,7 +269,18 @@ fun Model.updateRemoteControlAssistantStatus() {
     }
     remoteControlAssistant?.getSettings { settings ->
         remoteControl.settings.value = settings
+        updateRemoteControlAssistantZoomPresets()
     }
+}
+
+private fun Model.updateRemoteControlAssistantZoomPresets() {
+    val camera = remoteControlAssistantStreamerState.zoomCamera
+    val zoomPresets = remoteControl.settings.value?.zoomPresets
+    if (camera == null || zoomPresets == null) {
+        remoteControl.zoomPresets.value = emptyList()
+        return
+    }
+    remoteControl.zoomPresets.value = zoomPresets.active(camera = camera)
 }
 
 fun Model.isRemoteControlAssistantConfigured(): Boolean {
@@ -689,8 +701,8 @@ fun Model.isRemoteControlWebPreviewActive(): Boolean {
     return isRemoteControlWebRequestingPreview
 }
 
-fun Model.createRemoteControlStateChanged(): RemoteControlAssistantStreamerState {
-    val state = RemoteControlAssistantStreamerState()
+fun Model.createRemoteControlStateChanged(): RemoteControlState {
+    val state = RemoteControlState()
     if (sceneSelector.sceneIndex.value < enabledScenes.size) {
         state.scene = enabledScenes[sceneSelector.sceneIndex.value].id
     }
@@ -700,11 +712,8 @@ fun Model.createRemoteControlStateChanged(): RemoteControlAssistantStreamerState
     if (preset != null) {
         state.bitrate = preset.id
     }
-    when (cameraPosition) {
-        else -> {
-            state.zoomPresets = mutableListOf()
-        }
-    }
+    state.zoomPreset = getRemoteControlZoomPresetId()
+    state.zoomCamera = makeRemoteControlZoomCamera()
     state.zoom = zoom.x.value
     state.debugLogging = database.debug.debugLogging.value
     state.streaming = isLive.value
@@ -725,10 +734,11 @@ fun Model.createRemoteControlStateChanged(): RemoteControlAssistantStreamerState
     return state
 }
 
-fun Model.remoteControlStateChanged(state: RemoteControlAssistantStreamerState) {
-    remoteControlStreamer?.stateChanged(state = state)
-    remoteControlWeb?.stateChanged(state = state)
-    moblinCloud?.stateChanged(state = state)
+fun Model.remoteControlStateChanged(state: RemoteControlState) {
+    val changes = remoteControlSentState.applyChanges(state = state) ?: return
+    remoteControlStreamer?.stateChanged(state = changes)
+    remoteControlWeb?.stateChanged(state = changes)
+    moblinCloud?.stateChanged(state = changes)
 }
 
 fun Model.remoteControlLog(entry: String) {
@@ -816,7 +826,11 @@ fun Model.remoteControlGetSettings(): RemoteControlSettings {
             connectionPrioritiesEnabled = connectionPrioritiesEnabled,
             connectionPriorities = connectionPriorities
         ),
-        moblinCloud = moblinCloud
+        moblinCloud = moblinCloud,
+        zoomPresets = RemoteControlSettingsZoomPresets(
+            front = makeRemoteControlZoomPresets(presets = database.zoom.front),
+            back = makeRemoteControlZoomPresets(presets = database.zoom.back)
+        )
     )
 }
 
@@ -837,12 +851,13 @@ fun Model.remoteControlStreamerConnected() {
     remoteControlStreamerStopStats()
     setLowFpsImage()
     updateRemoteControlStatus()
-    remoteControlStateChanged(state = createRemoteControlStateChanged())
+    remoteControlStreamer?.stateChanged(state = createRemoteControlStateChanged())
 }
 
 fun Model.remoteControlStreamerDisconnected() {
     makeToast(title = localized("Remote control assistant disconnected"))
     setGimbalMovement(x = 0f, y = 0f)
+    tally.hide()
     isRemoteControlAssistantRequestingPreview = false
     isRemoteControlAssistantRequestingStatus = false
     remoteControlStreamerStopStats()
@@ -938,6 +953,14 @@ fun Model.remoteControlStreamerSetLive(on: Boolean) {
     remoteControlSetLive(on = on)
 }
 
+fun Model.remoteControlStreamerShowTally(message: String, background: RgbColor, foreground: RgbColor) {
+    tally.show(message = message, background = background, foreground = foreground)
+}
+
+fun Model.remoteControlStreamerHideTally() {
+    tally.hide()
+}
+
 fun Model.remoteControlStreamerSetPreviewStream(on: Boolean) {
     remoteControlSetPreviewStream(on = on)
 }
@@ -948,6 +971,7 @@ fun Model.remoteControlStreamerSetDebugLogging(on: Boolean) {
 }
 
 fun Model.remoteControlSetZoom(x: Float) {
+    remoteControlSentState.zoom = null
     setZoomX(x = x, rate = database.zoom.speed)
 }
 
@@ -1444,7 +1468,7 @@ fun Model.remoteControlAssistantDisconnected() {
     updateRemoteControlStatus()
 }
 
-fun Model.remoteControlAssistantStateChanged(state: RemoteControlAssistantStreamerState) {
+fun Model.remoteControlAssistantStateChanged(state: RemoteControlState) {
     state.scene?.let {
         remoteControlAssistantStreamerState.scene = it
         remoteControl.scene.value = it
@@ -1461,9 +1485,9 @@ fun Model.remoteControlAssistantStateChanged(state: RemoteControlAssistantStream
         remoteControlAssistantStreamerState.bitrate = it
         remoteControl.bitrate.value = it
     }
-    state.zoomPresets?.let {
-        remoteControlAssistantStreamerState.zoomPresets = it
-        remoteControl.zoomPresets.value = it
+    state.zoomCamera?.let {
+        remoteControlAssistantStreamerState.zoomCamera = it
+        updateRemoteControlAssistantZoomPresets()
     }
     state.gimbalPresets?.let {
         remoteControlAssistantStreamerState.gimbalPresets = it
@@ -1564,6 +1588,7 @@ fun Model.remoteControlAssistantStats(data: RemoteControlStats) {
 
 fun Model.remoteControlWebDisconnected() {
     setGimbalMovement(x = 0f, y = 0f)
+    tally.hide()
 }
 
 fun Model.remoteControlWebConnected() {
@@ -1603,6 +1628,14 @@ fun Model.remoteControlWebSetRecord(on: Boolean) {
 
 fun Model.remoteControlWebSetLive(on: Boolean) {
     remoteControlStreamerSetLive(on = on)
+}
+
+fun Model.remoteControlWebShowTally(message: String, background: RgbColor, foreground: RgbColor) {
+    remoteControlStreamerShowTally(message = message, background = background, foreground = foreground)
+}
+
+fun Model.remoteControlWebHideTally() {
+    remoteControlStreamerHideTally()
 }
 
 fun Model.remoteControlWebSetPreviewStream(on: Boolean) {
@@ -1831,6 +1864,14 @@ private class RemoteControlStreamerDelegateAdapter(
 
     override fun remoteControlStreamerSetLive(on: Boolean) {
         model.remoteControlStreamerSetLive(on = on)
+    }
+
+    override fun remoteControlStreamerShowTally(message: String, background: RgbColor, foreground: RgbColor) {
+        model.remoteControlStreamerShowTally(message = message, background = background, foreground = foreground)
+    }
+
+    override fun remoteControlStreamerHideTally() {
+        model.remoteControlStreamerHideTally()
     }
 
     override fun remoteControlStreamerSetPreviewStream(on: Boolean) {
@@ -2109,7 +2150,7 @@ private class RemoteControlAssistantDelegateAdapter(
         model.remoteControlAssistantPreview(preview = preview)
     }
 
-    override fun remoteControlAssistantStateChanged(state: RemoteControlAssistantStreamerState) {
+    override fun remoteControlAssistantStateChanged(state: RemoteControlState) {
         model.remoteControlAssistantStateChanged(state = state)
     }
 
@@ -2171,6 +2212,14 @@ private class RemoteControlWebDelegateAdapter(
 
     override fun remoteControlWebSetLive(on: Boolean) {
         model.remoteControlWebSetLive(on = on)
+    }
+
+    override fun remoteControlWebShowTally(message: String, background: RgbColor, foreground: RgbColor) {
+        model.remoteControlWebShowTally(message = message, background = background, foreground = foreground)
+    }
+
+    override fun remoteControlWebHideTally() {
+        model.remoteControlWebHideTally()
     }
 
     override fun remoteControlWebSetPreviewStream(on: Boolean) {

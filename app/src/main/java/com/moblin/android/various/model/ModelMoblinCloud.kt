@@ -49,7 +49,7 @@ import com.moblin.android.platform.codable.DataSerializer
 import com.moblin.android.platform.codable.codableJson
 import kotlinx.coroutines.CoroutineScope
 import com.moblin.android.remotecontrol.RemoteControlAppAttest
-import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.httpUrlSession
 import com.moblin.android.various.settings.SettingsStream
@@ -555,7 +555,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
         streamer?.sendIcon(id = id)
     }
 
-    open fun stateChanged(state: RemoteControlAssistantStreamerState) {
+    open fun stateChanged(state: RemoteControlState) {
         if (!requestingStatus) {
             return
         }
@@ -614,6 +614,7 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
     override fun remoteControlStreamerDisconnected() {
         setRequestingStatus(on = false)
         setRequestingPreview(on = false)
+        model?.tally?.hide()
         model?.updateMoblinCloudStatus()
     }
 
@@ -671,6 +672,14 @@ open class MoblinCloud(model: Model, url: String, streamerId: String) : RemoteCo
 
     override fun remoteControlStreamerSetLive(on: Boolean) {
         model?.remoteControlSetLive(on = on)
+    }
+
+    override fun remoteControlStreamerShowTally(message: String, background: RgbColor, foreground: RgbColor) {
+        model?.tally?.show(message = message, background = background, foreground = foreground)
+    }
+
+    override fun remoteControlStreamerHideTally() {
+        model?.tally?.hide()
     }
 
     override fun remoteControlStreamerSetPreviewStream(on: Boolean) {
