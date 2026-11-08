@@ -26,6 +26,21 @@ data class Version(
 
 private val versions: List<Version> = listOf(
     Version(
+        "40.0.0",
+        "2026-11-08",
+        listOf(
+            "• Only show widget outlines in scene editor, and less features in Scene widgets quick button.",
+            "• Show video source picker when creating VTuber and PNGTuber widgets.",
+            "  • With front camera selected by default.",
+            "• Breaking changes in remote control protocol for zoom.",
+            "• Send less remote control events.",
+            "• Refactoring of zoom preset handling.",
+            "• Liquid glass buttons in scene editor.",
+            "• Fix UI layout when opening Moblin laying flat. 🐛 xcopy94",
+            "• Show/hide tally via remote control. 🧑‍🏭 jkondo",
+        ),
+    ),
+    Version(
         "35.7.0",
         "2026-11-06",
         listOf(

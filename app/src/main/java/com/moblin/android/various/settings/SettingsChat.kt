@@ -1153,30 +1153,6 @@ class SettingsChat {
         encode("compactEvents", compactEvents)
     }
 
-    fun getRotation(): Double {
-        return if (newMessagesAtTop) {
-            0.0
-        } else {
-            180.0
-        }
-    }
-
-    fun getScaleX(): Double {
-        return if (newMessagesAtTop) {
-            1.0
-        } else {
-            -1.0
-        }
-    }
-
-    fun isMirrored(): Float {
-        return if (mirrored) {
-            -1f
-        } else {
-            1f
-        }
-    }
-
     object Serializer : KSerializer<SettingsChat> by JsonObjectSerializer(
         "SettingsChat",
         { it.encode() },

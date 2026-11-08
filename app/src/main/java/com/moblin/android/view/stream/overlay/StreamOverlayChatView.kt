@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -43,8 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.text.font.FontWeight
@@ -72,7 +67,7 @@ import com.moblin.android.view.stream.ChatInfo
 import com.moblin.android.view.utils.ChatActionButtonsView
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineView
-import java.util.UUID
+import com.moblin.android.view.utils.ChatScrollView
 import kotlinx.coroutines.launch
 
 private fun makeChatLineStyle(chat: SettingsChat, interactive: Boolean): ChatLineStyle {
@@ -182,8 +177,6 @@ private fun LineView(
     )
 }
 
-private val startId: UUID = UUID.randomUUID()
-
 @Composable
 private fun PostView(
     chatSettings: SettingsChat,
@@ -268,15 +261,9 @@ private fun MessagesView(
     linkUrl: String?,
     onLinkUrlChange: (String?) -> Unit,
 ) {
-    val rotation = chatSettings.getRotation()
-    val scaleX = chatSettings.getScaleX()
     val style = makeChatLineStyle(chat = chatSettings, interactive = interactive)
-    val posts by chat.posts.collectAsState()
     val interactiveChat by chat.interactiveChat.collectAsState()
-    val triggerScrollToBottom by chat.triggerScrollToBottom.collectAsState()
     val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
-
-    val listState = rememberLazyListState()
     val mainScope = rememberCoroutineScope()
 
     fun tryPause() {
@@ -297,74 +284,36 @@ private fun MessagesView(
         }
     }
 
-    OnChange(interactiveChat) {
-        listState.scrollToItem(0)
-    }
-    OnChange(triggerScrollToBottom) {
-        listState.scrollToItem(0)
-    }
-    LaunchedEffect(Unit) {
-        mainScope.launch {
-            tryUnpause()
+    Box(
+        modifier = Modifier
+            .width(width.dp)
+            .fillMaxHeight(),
+    ) {
+        ChatScrollView(
+            chat = chat,
+            newMessagesAtTop = chatSettings.newMessagesAtTop,
+            mirrored = chatSettings.mirrored,
+            onLatestAppear = { tryUnpause() },
+            onLatestDisappear = { tryPause() },
+        ) { post ->
+            PostView(
+                chatSettings = chatSettings,
+                style = style,
+                moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
+                post = post,
+                state = post.state,
+                interactive = interactive && interactiveChat,
+                selectedPost = selectedPost,
+                onSelectedPostChange = onSelectedPostChange,
+                linkUrl = linkUrl,
+                onLinkUrlChange = onLinkUrlChange,
+            )
         }
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier
-            .width(width.dp)
-            .fillMaxHeight()
-            .graphicsLayer(
-                rotationZ = rotation.toFloat(),
-                scaleX = (scaleX * chatSettings.isMirrored()).toFloat(),
-                scaleY = 1f,
-                transformOrigin = TransformOrigin.Center,
-            ),
-        verticalArrangement = Arrangement.spacedBy(1.dp),
-        userScrollEnabled = interactiveChat,
-    ) {
-        item(key = startId.toString()) {
-            Box(
-                modifier = Modifier
-                    .height(1.dp)
-                    .fillMaxWidth(),
-            )
-            LaunchedEffect(Unit) {
-                mainScope.launch {
-                    tryUnpause()
-                }
-            }
-            DisposableEffect(Unit) {
-                onDispose {
-                    tryPause()
-                }
-            }
-        }
-        items(posts, key = { it.id.toString() }) { post ->
-            Box(
-                modifier = Modifier.graphicsLayer(
-                    rotationZ = rotation.toFloat(),
-                    scaleX = scaleX.toFloat(),
-                    scaleY = 1f,
-                    transformOrigin = TransformOrigin.Center,
-                ),
-            ) {
-                PostView(
-                    chatSettings = chatSettings,
-                    style = style,
-                    moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
-                    post = post,
-                    state = post.state,
-                    interactive = interactive && interactiveChat,
-                    selectedPost = selectedPost,
-                    onSelectedPostChange = onSelectedPostChange,
-                    linkUrl = linkUrl,
-                    onLinkUrlChange = onLinkUrlChange,
-                )
-            }
-        }
-        item {
-            Spacer(modifier = Modifier.height(0.dp))
+    LaunchedEffect(Unit) {
+        mainScope.launch {
+            tryUnpause()
         }
     }
 }
@@ -465,7 +414,7 @@ private fun SeparatorView(
         hasNewPosts = false
     }
 
-    OnChange(posts.firstOrNull()?.id) {
+    OnChange(posts.lastOrNull()?.id) {
         handleNewPost()
     }
     OnChange(pausedPostsCount) {

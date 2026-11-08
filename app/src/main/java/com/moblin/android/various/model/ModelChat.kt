@@ -94,9 +94,9 @@ private fun Model.removeOldChatMessages(now: Instant, chat: ChatProvider) {
         return
     }
     while (true) {
-        val post = chat.posts.value.lastOrNull() ?: break
+        val post = chat.posts.value.firstOrNull() ?: break
         if (Duration.between(post.timestampTime, now).seconds > database.chat.maximumAge.toDouble()) {
-            chat.posts.value = chat.posts.value.dropLast(1)
+            chat.posts.value = chat.posts.value.drop(1)
         } else {
             break
         }

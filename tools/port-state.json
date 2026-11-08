@@ -11510,24 +11510,22 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "5ad11b6ba8fcf83cf202a12c15b9780e00b87ca4e12e8498f6d7be440384bc84",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "789ed62e6c0c42b40f0a5c54633175c6468d6a115776be424cd62d714e1a57d5",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "Added the elevenLabs case to SettingsVoiceType with raw value elevenLabs.",
-      "Added SettingsVoiceElevenLabs and SettingsElevenLabs with Kotlin codable serializers matching the new Swift CodingKeys.",
-      "SettingsVoice now encodes and decodes elevenLabs and uses default values instead of throwing for missing keys, matching the new explicit Swift init(from:).",
-      "SettingsChat now persists and exposes SettingsElevenLabs through the elevenLabs property."
+      "Removed getRotation(), getScaleX() and isMirrored() from SettingsChat; the rest of the file is byte-identical to the previous Kotlin port.",
+      "An unused import or reference to these helpers elsewhere must now call the properties (newMessagesAtTop, mirrored) directly."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62302,
-    "tokens_out": 14400,
-    "seconds": 46.8,
-    "ported_at": "2026-10-23T22:42:10+00:00"
+    "tokens_in": 61690,
+    "tokens_out": 10685,
+    "seconds": 33.0,
+    "ported_at": "2026-11-08T23:13:07+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -11810,24 +11808,25 @@
   },
   "Moblin/View/ExternalDisplay/ExternalDisplayView.swift": {
     "status": "ok",
-    "sha256": "f35614d47a3ad490e21832493f17c8a6151add759c49834445cbd72e5111f437",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "20159333d704ff894fed351045e90d2155052cfa0f9378045d7c1aaba314dc71",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/externaldisplay/ExternalDisplayView.kt",
     "notes": [
-      "PostView lost its size parameter and the red placeholder rectangle; the deleted-or-visible check is now the outermost branch.",
-      "The Kotlin BoxWithConstraints wrapper in MessagesView remains (it stands in for Swift's GeometryReader) but its unused size value and the now-unused IntSize, LocalDensity and layout.size imports were dropped.",
-      "state.deleted is still read through collectAsState so the row recomposes when the post is deleted.",
-      "Everything else in the file is unchanged."
+      "Removed the rotation/scaleX parameters from PostView and their graphicsLayer modifiers, as the Swift diff did.",
+      "MessagesView now delegates to ChatScrollView(chat, newMessagesAtTop, mirrored) with a trailing content lambda, replacing the hand-rolled LazyColumn + rotation/scale wrapper.",
+      "moreThanOneStreamingPlatform is still read from its StateFlow via collectAsState at MessagesView level so the content lambda can use it.",
+      "Dropped the now unused imports (BoxWithConstraints, LazyColumn, items, graphicsLayer) that only served the removed scroll implementation.",
+      "Added the ChatScrollView import from com.moblin.android.view.utils."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50436,
-    "tokens_out": 3168,
-    "seconds": 11.4,
-    "ported_at": "2026-09-30T23:15:01+00:00"
+    "tokens_in": 48283,
+    "tokens_out": 3046,
+    "seconds": 13.6,
+    "ported_at": "2026-11-08T23:12:57+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift": {
     "status": "ok",
@@ -12036,23 +12035,23 @@
   },
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
-    "sha256": "461d0ad607dd746fcca97956dc6692831b1d02cf92038726d5a078c25e2923a4",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "18ab47bf4822dc82ab0289df78fbfa6a1bd4dfc0d08bac59c01d8c5cd65e9876",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
     "notes": [
-      "Only the chat-bot guard changed: the message-count limit moved into the outer condition and the inner if was removed.",
-      "The printChatMessage guards were already merged in Kotlin because CIImage(cgImage:) returns a non-null Bitmap, so no code changed there.",
-      "Everything else stays byte-identical, including the hand-written Android clipboard, coroutine delay and CacheAsyncImage calls."
+      "Only the removeOldChatMessages loop changed: the oldest post is now the first element of chat.posts instead of the last.",
+      "chat.posts.value.lastOrNull() became firstOrNull() and dropLast(1) became drop(1), matching Swift's first/removeFirst.",
+      "Everything else in the file is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66020,
-    "tokens_out": 5234,
-    "seconds": 16.7,
-    "ported_at": "2026-10-22T22:50:54+00:00"
+    "tokens_in": 65764,
+    "tokens_out": 4949,
+    "seconds": 16.2,
+    "ported_at": "2026-11-08T23:12:50+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -13425,27 +13424,26 @@
   },
   "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift": {
     "status": "ok",
-    "sha256": "4cf7c08f5623f75be98cf47258821c16439248b50c0bb66bdaf463cbd8434464",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "a9dc710f1b8f6f92c4ba465a421938f088dedbddede90903939c0884b71c4f0d",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/QuickButtonChatView.kt",
     "notes": [
-      "PostView and AlertsPostView no longer take the GeometryReader size and no longer draw the red size-wide rule for posts without a user; those branches (and the size parameters) were removed.",
-      "The `val size = IntSize(...)` locals were dropped from MessagesView and AlertsMessagesView because nothing consumes the constraints any more.",
-      "PostView now starts directly with the `!deleted || showDeletedMessages` guard, as in the new Swift body.",
-      "AlertsMessagesView iterates `chat.posts` instead of `quickButtonChat.chatAlertsPosts`.",
-      "ChatAlertsView now takes the alerts ChatProvider (`chat`) and reads `chat.paused` / `chat.pausedPostsCount`; quickButtonChat is only passed through for the first-time-chatter and new-follower switches.",
-      "The ChatAlertsView call site passes `model.quickButtonChatAlerts` as the new `chat` argument.",
-      "No SwiftUI/UIKit API in this file lacks an Android counterpart."
+      "PostView and AlertsPostView lose their rotation/scaleX parameters and the graphicsLayer blocks that applied them; the highlight bar drawBehind and leading padding stay.",
+      "MessagesView and AlertsMessagesView now delegate scrolling to com.moblin.android.view.utils.ChatScrollView, passing newMessagesAtTop, mirrored, onLatestAppear and onLatestDisappear instead of building a LazyColumn with LaunchedEffect/DisposableEffect.",
+      "The old getRotation(), getScaleX(), isMirrored() calls and the manual posts/collectAsState list are gone because ChatScrollView owns paging and the mirror transform.",
+      "onLatestAppear/onLatestDisappear are passed as lambdas calling the imported Model extension functions so they are read at call time.",
+      "Unused imports for BoxWithConstraints, LazyColumn, lazy items and DisposableEffect were removed; ChatScrollView was added to the view.utils imports.",
+      "Everything else in the file (predefined messages, selectors, control bars, QuickButtonChatView) is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 70525,
-    "tokens_out": 13134,
-    "seconds": 40.8,
-    "ported_at": "2026-09-30T23:15:43+00:00"
+    "tokens_in": 68450,
+    "tokens_out": 11024,
+    "seconds": 39.6,
+    "ported_at": "2026-11-08T23:13:24+00:00"
   },
   "Moblin/View/Utils/ChatActionButtonsView.swift": {
     "status": "ok",
@@ -13986,19 +13984,20 @@
   },
   "Moblin/Various/Model/ModelAppleWatch.swift": {
     "status": "ok",
-    "sha256": "a32c839bdf5f0536f080f146aa2765f1c34d8589cbdb91d0b4fd6e5a576c6bce",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "f9daea6310b8ea76f429090ef9d5bfee00146951120c67aadd8c0aee5dacd2af",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt",
     "notes": [
-      "The Swift diff only renames the call zoomPresetsMayHaveChanged() to activeZoomPresetsMayHaveChanged() inside sendInitToWatch().",
-      "The current Kotlin sendInitToWatch() is a stubbed Unit body, so that call has no Kotlin line to rename; the file is therefore returned unchanged.",
-      "All WatchConnectivity entry points (isWatchReachable, session delegates) stay stubbed since there is no Android counterpart.",
-      "The existing TODO() in makePng is kept as is and listed as unsupported."
+      "The only Swift change is the argument to sendZoomToWatch inside sendInitToWatch (zoom.x -> zoom.level.x).",
+      "In the current Kotlin file sendInitToWatch() is a stubbed body (Unit), so the changed Swift line has no Kotlin counterpart; nothing changes in Kotlin.",
+      "The whole file stays byte-identical to the current Kotlin file, including imports, declaration order and the existing TODO() in makePng.",
+      "WatchConnectivity has no Android counterpart in this port, so the messaging, session delegate and message handlers remain empty stubs that keep their Swift signatures (the watch protocol types themselves live in com.moblin.android.moblinwatch.shared).",
+      "When the stubs are implemented, the new Swift shape must be written as sendZoomToWatch(x = model.zoom.level.x) to match the Kotlin Zoom.level struct."
     ],
     "unsupported": [
-      "UIImage.resize(height:)/pngData() in Model.makePng (TODO())"
+      "WatchConnectivity (WCSession, WCSessionDelegate, sendMessage, isReachable, isWatchAppInstalled) - no Android counterpart; bodies stubbed"
     ],
     "apple_only": [
       "WatchConnectivity (WCSession, WCSessionDelegate, WCSessionActivationState)",
@@ -14008,10 +14007,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 68397,
-    "tokens_out": 1706,
-    "seconds": 8.1,
-    "ported_at": "2026-11-07T23:07:53+00:00"
+    "tokens_in": 68401,
+    "tokens_out": 1971,
+    "seconds": 10.1,
+    "ported_at": "2026-11-08T23:12:58+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/ReplayView.swift": {
     "status": "ok",
@@ -15284,22 +15283,26 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift": {
     "status": "ok",
-    "sha256": "3510431854b653e24cd7b632a9ce75da2360e3269949c27cccff61e45cb6c30a",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "bdb1a8083f899cc7f06f6e267f3cac60519f04b917ab5d1492486d7aa4586659",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayChatView.kt",
     "notes": [
-      "Only the tryPause condition changed: the nested `!chat.paused` / `!chat.posts.isEmpty` checks are now one combined `if`, matching the Swift diff.",
-      "Everything else in the file, including imports, formatting and the hand-written Android drag/tap handling, is unchanged."
+      "MessagesView now delegates scrolling to the shared ChatScrollView (newMessagesAtTop, mirrored, onLatestAppear, onLatestDisappear) instead of the hand-rolled LazyColumn with rotation/scale graphics layers.",
+      "The rotation/scaleX effects, the startId sentinel item and the interactiveChat/triggerScrollToBottom scroll resets are removed because ChatScrollView owns them and takes mirrored instead.",
+      "ChatScrollView has no modifier parameter in this codebase style, so the width and height are applied by a wrapping Box; .scrollIndicators(.hidden) and .allowsHitTesting(chat.interactiveChat) have no Compose modifier and are left to ChatScrollView, which already gates scrolling on chat.interactiveChat.",
+      "PostView still receives interactive && interactiveChat, the existing Android behaviour kept from the previous port.",
+      "SeparatorView now watches activityFeed.posts.lastOrNull()?.id instead of firstOrNull()?.id, matching the Swift change.",
+      "The unused startId UUID global and its java.util.UUID import were removed together with the LazyColumn imports."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61708,
-    "tokens_out": 5584,
-    "seconds": 17.2,
-    "ported_at": "2026-10-22T22:52:01+00:00"
+    "tokens_in": 62319,
+    "tokens_out": 9413,
+    "seconds": 38.0,
+    "ported_at": "2026-11-08T23:13:36+00:00"
   },
   "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift": {
     "status": "ok",
@@ -15658,27 +15661,24 @@
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",
-    "sha256": "d0c9eb3e5dc15e93a02b95a59c826c1e51926adc9205c7cb12e8fbb558294c05",
+    "sha256": "0b59fca7f266f9df90f440afd67655df86c2b631b57684743187760a6c79a3bd",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/StreamButton.kt",
     "notes": [
-      "Each SwiftUI private struct becomes a private @Composable function with the same name; StreamButton stays public.",
-      "@EnvironmentObject/@ObservedObject model objects become parameters; @Binding becomes a value parameter plus an onChange lambda named onPresentingGoLiveNotificationConfirmChange.",
-      "StateFlow-backed model properties that drive UI branching (model.isLive, show.chatPhone, createStreamWizard.presentingSetup) are read with collectAsState(); nested settings such as stream.obsAutoStopStream are read directly.",
-      "createStreamWizard.presentingSetup is written with .value =, so CreateStreamWizard is assumed to expose it as a MutableStateFlow (public getter, .value setter).",
-      "confirmationDialog maps to AlertDialog (title, confirmButton); the Stop dialog's conditional OBS buttons stay a conditional chain inside the confirmButton slot.",
-      ".sheet(isPresented:) maps to ModalBottomSheet with onDismissRequest clearing presentingSetup.",
-      "The NavigationStack wrapper and navigationBarTitleDisplayMode(.inline) are dropped; StreamWizardSettingsView is rendered directly inside the ModalBottomSheet (navigation is owned by that view).",
-      ".disabled(show.chatPhone) becomes an `enabled` parameter on EndButtonView/GoLiveButtonView that omits the tap/long-press gestures; .opacity maps to Modifier.alpha and minimumScaleFactor(0.5) is approximated with maxLines = 1 + TextOverflow.Ellipsis."
+      "The Swift change replaces `.background(color).cornerRadius(10)` with a rounded-rectangle fill background; translated as `Modifier.background(color, RoundedCornerShape(10.dp))`, which draws the same shape without clipping content, like SwiftUI.",
+      "The modifier order is unchanged: widthIn(min = 60.dp) innermost, then padding(5.dp), then the background, matching Swift's `.frame(minWidth: 60).padding(5).background(...)`.",
+      "The `.clip(...)` modifier is dropped from StreamButtonText; the import is kept byte-identical to the previous file. Its remaining uses are none, but removing imports is outside the diff.",
+      "Everything else (dialogs, sheets, long-press panels, alpha/disabled handling for show.chatPhone) is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4811,
-    "tokens_out": 13038,
-    "seconds": 48.9,
-    "ported_at": "2026-09-22T14:06:43+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 44295,
+    "tokens_out": 3609,
+    "seconds": 15.4,
+    "ported_at": "2026-11-08T23:13:43+00:00"
   },
   "Moblin/View/ControlBar/ControlBarPortraitView.swift": {
     "status": "ok",
@@ -15725,22 +15725,23 @@
   },
   "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift": {
     "status": "ok",
-    "sha256": "b14a248c32cec43506b2fb03b75b832aa61f49b4f5514bb171c6d221fb70c0ff",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "41324e56e9d2d85c535d4adc6063ac7c73ea64e11bdaa69444def1bda9b2ffbe",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt",
     "notes": [
-      "Only the versions list changed: a new 35.7.0 entry was prepended, translated in the existing Version(...) style.",
-      "The rest of the file (Version data class, AboutVersionHistorySettingsView composable, imports) is unchanged."
+      "Added the new 40.0.0 Version entry at the top of the versions list, keeping the existing Kotlin list formatting and style.",
+      "Only the data changed; the composable, imports and all other entries stay byte-identical.",
+      "Change strings are copied verbatim from the Swift source, including the indented sub-bullets."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 149883,
-    "tokens_out": 18004,
-    "seconds": 69.1,
-    "ported_at": "2026-11-07T23:34:00+00:00"
+    "tokens_in": 150198,
+    "tokens_out": 17414,
+    "seconds": 58.8,
+    "ported_at": "2026-11-08T23:14:27+00:00"
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
@@ -17773,28 +17774,23 @@
   },
   "MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift": {
     "status": "ok",
-    "sha256": "d56b83926a8409a6548647a3a5fafd3cbbf89a866b6a42ca041717642566567b",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
-    "mode": "full",
+    "sha256": "cabe33216491ab41f2fc06767db76b24a10e79617a64b51fe4033f9f87161b4d",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/model/chat/ChatProviderSuite.kt",
     "notes": [
-      "The @MainActor Swift suite becomes a JUnit 4 class; every test body runs inside runMainTest { } from com.moblin.android (TestUtils.kt).",
-      "posts, pausedPostsCount and paused are MutableStateFlow in the Kotlin ChatProvider, so they are read with .value; Swift's chat.posts.map(\\.id) becomes chat.posts.value.map { it.id }.",
-      "RgbColor is imported from com.moblin.android.platform.swiftui because it is not listed in the glossary; move the import if the platform layer declares it in another package.",
-      "ChatPost.userId has no Swift default in the call site, so it is passed explicitly as userId = null.",
-      "Swift timestampTime .now becomes Instant.now() (java.time.Instant).",
-      "maximumNumberOfChatMessages is imported from com.moblin.android.various.model.",
-      "makePost is kept as a private method of the suite class, called inside runMainTest.",
-      "No ByteArray comparisons occur, so assertEquals on the mapped id lists is correct."
+      "Post ordering expectations flipped to oldest-first in four assertions.",
+      "Only the four changed expectations and the renamed test were modified; imports, helpers and Android hooks stay identical.",
+      "Redundant imports (assertTrue, assertFalse) are kept untouched since the diff does not touch them."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 31483,
-    "tokens_out": 4756,
-    "seconds": 18.2,
-    "ported_at": "2026-09-30T23:29:03+00:00"
+    "tokens_in": 33146,
+    "tokens_out": 1030,
+    "seconds": 4.5,
+    "ported_at": "2026-11-08T23:12:38+00:00"
   },
   "Moblin/View/Main/KeyPressView.swift": {
     "status": "ok",
@@ -18487,5 +18483,52 @@
     "tokens_out": 4675,
     "seconds": 30.2,
     "ported_at": "2026-11-07T23:28:27+00:00"
+  },
+  "Moblin/View/Utils/EndAnchoredScrollView.swift": {
+    "status": "ok",
+    "sha256": "c188f5f67241c406b1875e21df433197c51fbcebe4af3d506cae188cdec95bff",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/EndAnchoredScrollView.kt",
+    "notes": [
+      "EndAnchoredScrollView becomes a @Composable function with content: @Composable () -> Unit, the usual translation for a generic SwiftUI View struct.",
+      "SwiftUI's ScrollView(defaultScrollAnchor:) has no Compose counterpart, so the view keeps a ScrollState and a LaunchedEffect that scrolls to maxValue whenever the content size changes (bottom for vertical, trailing for horizontal).",
+      "The iOS 16 and earlier scaleEffect(x:y:) flip hack in the else branch is dropped: the scroll state anchor gives the same result without mirrored content.",
+      "Axis is not part of Compose, so the SwiftUI Axis enum is declared in this package with the same entries (vertical, horizontal).",
+      "The private axes() helper only mapped Axis to Axis.Set for ScrollView; it is replaced by a private isVertical() check used by the two branches.",
+      "VStack/HStack default spacing of 8.dp does not apply, the SwiftUI ScrollView had no spacing argument and the content is a single child, so Column/Row use no Arrangement."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 35659,
+    "tokens_out": 2624,
+    "seconds": 15.6,
+    "ported_at": "2026-11-08T23:12:49+00:00"
+  },
+  "Moblin/View/Utils/ChatScrollView.swift": {
+    "status": "ok",
+    "sha256": "24b3c162a4ed79126121a5220ecf568f6f795634bdae64b7975d9df036c70720",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/ChatScrollView.kt",
+    "notes": [
+      "Swift generic Row: View is translated to a @Composable row lambda parameter.",
+      "newMessagesAtTop is implemented with LazyColumn.reverseLayout instead of SwiftUI's vertical scaleEffect.",
+      "mirrored still flips the LazyColumn horizontally with graphicsLayer.",
+      "LatestPostView uses LaunchedEffect and DisposableEffect for onAppear and onDisappear.",
+      "interactiveChat and triggerScrollToBottom scroll to item 0 only when their values change.",
+      "The latest marker uses latestPostId as its LazyColumn item key; post rows use ChatPost.id.",
+      "chatScrollEdgeEffectHidden is a no-op because Android has no iOS 26 scroll edge effect."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 36848,
+    "tokens_out": 8909,
+    "seconds": 49.3,
+    "ported_at": "2026-11-08T23:13:23+00:00"
   }
 }

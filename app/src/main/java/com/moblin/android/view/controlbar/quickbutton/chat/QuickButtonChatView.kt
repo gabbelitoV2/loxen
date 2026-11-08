@@ -8,7 +8,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,8 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -28,7 +25,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -85,6 +81,7 @@ import com.moblin.android.view.utils.BorderlessButtonView
 import com.moblin.android.view.utils.ChatActionButtonsView
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineView
+import com.moblin.android.view.utils.ChatScrollView
 import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.DraggableItemPrefixView
@@ -170,8 +167,6 @@ private fun PostView(
     onLinkUrl: (String?) -> Unit,
     post: ChatPost,
     state: ChatPostState,
-    rotation: Double,
-    scaleX: Double,
 ) {
     val deleted by state.deleted.collectAsState()
     if (deleted && !chatSettings.showDeletedMessages) {
@@ -181,10 +176,6 @@ private fun PostView(
     if (highlight != null) {
         Row(
             modifier = Modifier
-                .graphicsLayer {
-                    rotationZ = rotation.toFloat()
-                    this.scaleX = scaleX.toFloat()
-                }
                 .drawBehind {
                     drawRect(color = highlight.barColor, size = Size(3.dp.toPx(), this.size.height))
                 }
@@ -219,10 +210,6 @@ private fun PostView(
     } else {
         Box(
             modifier = Modifier
-                .graphicsLayer {
-                    rotationZ = rotation.toFloat()
-                    this.scaleX = scaleX.toFloat()
-                }
                 .padding(start = 3.dp),
         ) {
             LineView(
@@ -245,46 +232,24 @@ private fun MessagesView(
     onSelectedPost: (ChatPost?) -> Unit,
     onLinkUrl: (String?) -> Unit,
 ) {
-    val rotation = chatSettings.getRotation()
-    val scaleX = chatSettings.getScaleX()
     val style = makeChatLineStyle(chatSettings)
-    val posts by chat.posts.collectAsState()
     val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                rotationZ = rotation.toFloat()
-                this.scaleX = (scaleX * chatSettings.isMirrored()).toFloat()
-            },
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                Box(modifier = Modifier.height(1.dp)) {
-                    LaunchedEffect(Unit) {
-                        model.endOfQuickButtonChatReachedWhenPaused()
-                    }
-                    DisposableEffect(Unit) {
-                        onDispose {
-                            model.pauseQuickButtonChat()
-                        }
-                    }
-                }
-            }
-            items(posts) { post ->
-                PostView(
-                    chatSettings = chatSettings,
-                    style = style,
-                    moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
-                    onSelectedPost = onSelectedPost,
-                    onLinkUrl = onLinkUrl,
-                    post = post,
-                    state = post.state,
-                    rotation = rotation,
-                    scaleX = scaleX,
-                )
-            }
-        }
+    ChatScrollView(
+        chat = chat,
+        newMessagesAtTop = chatSettings.newMessagesAtTop,
+        mirrored = chatSettings.mirrored,
+        onLatestAppear = { model.endOfQuickButtonChatReachedWhenPaused() },
+        onLatestDisappear = { model.pauseQuickButtonChat() },
+    ) { post ->
+        PostView(
+            chatSettings = chatSettings,
+            style = style,
+            moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
+            onSelectedPost = onSelectedPost,
+            onLinkUrl = onLinkUrl,
+            post = post,
+            state = post.state,
+        )
     }
 }
 
@@ -326,8 +291,6 @@ private fun AlertsPostView(
     onLinkUrl: (String?) -> Unit,
     post: ChatPost,
     state: ChatPostState,
-    rotation: Double,
-    scaleX: Double,
 ) {
     val deleted by state.deleted.collectAsState()
 
@@ -352,10 +315,6 @@ private fun AlertsPostView(
         }
         Row(
             modifier = Modifier
-                .graphicsLayer {
-                    rotationZ = rotation.toFloat()
-                    this.scaleX = scaleX.toFloat()
-                }
                 .drawBehind {
                     drawRect(color = highlight.barColor, size = Size(3.dp.toPx(), this.size.height))
                 }
@@ -390,10 +349,6 @@ private fun AlertsPostView(
     } else {
         Box(
             modifier = Modifier
-                .graphicsLayer {
-                    rotationZ = rotation.toFloat()
-                    this.scaleX = scaleX.toFloat()
-                }
                 .padding(start = 3.dp),
         ) {
             LineView(
@@ -417,50 +372,28 @@ private fun AlertsMessagesView(
     onSelectedPost: (ChatPost?) -> Unit,
     onLinkUrl: (String?) -> Unit,
 ) {
-    val rotation = chatSettings.getRotation()
-    val scaleX = chatSettings.getScaleX()
     val style = makeChatLineStyle(chatSettings)
-    val posts by chat.posts.collectAsState()
     val showFirstTimeChatterMessage by quickButtonChat.showFirstTimeChatterMessage.collectAsState()
     val showNewFollowerMessage by quickButtonChat.showNewFollowerMessage.collectAsState()
     val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                rotationZ = rotation.toFloat()
-                this.scaleX = (scaleX * chatSettings.isMirrored()).toFloat()
-            },
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
-            item {
-                Box(modifier = Modifier.height(1.dp)) {
-                    LaunchedEffect(Unit) {
-                        model.endOfQuickButtonChatAlertsReachedWhenPaused()
-                    }
-                    DisposableEffect(Unit) {
-                        onDispose {
-                            model.pauseQuickButtonChatAlerts()
-                        }
-                    }
-                }
-            }
-            items(posts) { post ->
-                AlertsPostView(
-                    chatSettings = chatSettings,
-                    style = style,
-                    moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
-                    showFirstTimeChatterMessage = showFirstTimeChatterMessage,
-                    showNewFollowerMessage = showNewFollowerMessage,
-                    onSelectedPost = onSelectedPost,
-                    onLinkUrl = onLinkUrl,
-                    post = post,
-                    state = post.state,
-                    rotation = rotation,
-                    scaleX = scaleX,
-                )
-            }
-        }
+    ChatScrollView(
+        chat = chat,
+        newMessagesAtTop = chatSettings.newMessagesAtTop,
+        mirrored = chatSettings.mirrored,
+        onLatestAppear = { model.endOfQuickButtonChatAlertsReachedWhenPaused() },
+        onLatestDisappear = { model.pauseQuickButtonChatAlerts() },
+    ) { post ->
+        AlertsPostView(
+            chatSettings = chatSettings,
+            style = style,
+            moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
+            showFirstTimeChatterMessage = showFirstTimeChatterMessage,
+            showNewFollowerMessage = showNewFollowerMessage,
+            onSelectedPost = onSelectedPost,
+            onLinkUrl = onLinkUrl,
+            post = post,
+            state = post.state,
+        )
     }
 }
 

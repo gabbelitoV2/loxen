@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-07T23:27:28+00:00",
+  "generated": "2026-11-08T23:12:23+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -5180,8 +5180,8 @@
     },
     {
       "path": "Moblin/Various/Utils/UiUtils.swift",
-      "lines": 85,
-      "sha256": "3fa1545b2554c959bd8804e654831b5d338a403f2bd91546a8e272ead2959170",
+      "lines": 90,
+      "sha256": "7ffd314e2be486c1e5ad0f92783eb20a93786da6a77b97cb7a9be0de115e76da",
       "imports": [
         "AVKit",
         "SwiftUI"
@@ -5338,25 +5338,6 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/TwinEffect.kt",
       "deps": [
         "Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift"
-      ],
-      "wave": 5
-    },
-    {
-      "path": "Moblin/View/ControlBar/ControlBarUtils.swift",
-      "lines": 15,
-      "sha256": "134a545001c4fd0ee206652e4df3d4a2826184afa5406f3686ccd03a7eed4f86",
-      "imports": [],
-      "tier": "logic",
-      "declared_types": [],
-      "private_types": [],
-      "declared_functions": [
-        "controlBarScrollTargetBehavior"
-      ],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.view.controlbar",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarUtils.kt",
-      "deps": [
-        "Moblin/Various/Model/Model.swift"
       ],
       "wave": 5
     },
@@ -5697,6 +5678,27 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/EmotesPlayer.kt",
       "deps": [
         "Common/Various/CommonUtils.swift"
+      ],
+      "wave": 5
+    },
+    {
+      "path": "Moblin/View/Utils/EndAnchoredScrollView.swift",
+      "lines": 28,
+      "sha256": "c188f5f67241c406b1875e21df433197c51fbcebe4af3d506cae188cdec95bff",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "EndAnchoredScrollView"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.utils",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/EndAnchoredScrollView.kt",
+      "deps": [
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift"
       ],
       "wave": 5
     },
@@ -8865,8 +8867,8 @@
     },
     {
       "path": "Moblin/Various/Model/Chat/ChatProvider.swift",
-      "lines": 93,
-      "sha256": "f8c2ee14856db561753700d543993440e05e76bad4e840462ae7dcf941ac0769",
+      "lines": 94,
+      "sha256": "efa412e04618f0cd1f391b7bd57b2206acee4cefd55c9bb229222e132c6a83de",
       "imports": [
         "Collections",
         "Foundation"
@@ -10461,6 +10463,31 @@
       "wave": 13
     },
     {
+      "path": "Moblin/View/Utils/ChatScrollView.swift",
+      "lines": 66,
+      "sha256": "24b3c162a4ed79126121a5220ecf568f6f795634bdae64b7975d9df036c70720",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "LatestPostView",
+        "ChatScrollView"
+      ],
+      "private_types": [
+        "LatestPostView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.utils",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/ChatScrollView.kt",
+      "deps": [
+        "Moblin/Various/ChatPost.swift",
+        "Moblin/Various/Model/Chat/ChatProvider.swift"
+      ],
+      "wave": 13
+    },
+    {
       "path": "Moblin/View/Utils/IconAndTextView.swift",
       "lines": 55,
       "sha256": "159e653dbe4e1ca24018e739e212479bcd79dc2cef79de3f49e22c3480105cfa",
@@ -11568,7 +11595,7 @@
     {
       "path": "MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift",
       "lines": 84,
-      "sha256": "d56b83926a8409a6548647a3a5fafd3cbbf89a866b6a42ca041717642566567b",
+      "sha256": "cabe33216491ab41f2fc06767db76b24a10e79617a64b51fe4033f9f87161b4d",
       "imports": [
         "Testing"
       ],
@@ -12468,8 +12495,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsChat.swift",
-      "lines": 1088,
-      "sha256": "5ad11b6ba8fcf83cf202a12c15b9780e00b87ca4e12e8498f6d7be440384bc84",
+      "lines": 1064,
+      "sha256": "789ed62e6c0c42b40f0a5c54633175c6468d6a115776be424cd62d714e1a57d5",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -12745,6 +12772,31 @@
         "Common/Various/CommonUtils.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/VideoEffects/Scoreboard/ScoreboardEffect.swift"
+      ],
+      "wave": 19
+    },
+    {
+      "path": "Moblin/View/ControlBar/ControlBarUtils.swift",
+      "lines": 29,
+      "sha256": "722a5f95f13db523c5b85092a799fc9b095bd10e83f04669935c698b8e627a8c",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "SettingsButtonImage"
+      ],
+      "private_types": [],
+      "declared_functions": [
+        "controlBarScrollTargetBehavior"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.controlbar",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarUtils.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Model/Model.swift"
       ],
       "wave": 19
     },
@@ -14332,7 +14384,7 @@
     {
       "path": "Moblin/Various/Model/ModelChat.swift",
       "lines": 519,
-      "sha256": "461d0ad607dd746fcca97956dc6692831b1d02cf92038726d5a078c25e2923a4",
+      "sha256": "18ab47bf4822dc82ab0289df78fbfa6a1bd4dfc0d08bac59c01d8c5cd65e9876",
       "imports": [
         "Collections",
         "Foundation",
@@ -14705,7 +14757,7 @@
     {
       "path": "Moblin/Various/Gimbal.swift",
       "lines": 196,
-      "sha256": "7215845b9bb20945a43f6c00db2cf6fa43efd5f327d4bfff6a194c314578c02d",
+      "sha256": "0c6d32f3fd35b4e5523faae933888a62e0786b435872e5f4119dcc3c92db8afb",
       "imports": [
         "DockKit",
         "Foundation",
@@ -15112,8 +15164,8 @@
     },
     {
       "path": "Moblin/View/ExternalDisplay/ExternalDisplayView.swift",
-      "lines": 170,
-      "sha256": "f35614d47a3ad490e21832493f17c8a6151add759c49834445cbd72e5111f437",
+      "lines": 151,
+      "sha256": "20159333d704ff894fed351045e90d2155052cfa0f9378045d7c1aaba314dc71",
       "imports": [
         "AVFoundation",
         "Foundation",
@@ -15150,7 +15202,8 @@
         "Moblin/Various/Settings/SettingsChat.swift",
         "Moblin/View/Stream/StreamView.swift",
         "Moblin/View/Utils/ChatLineStyle.swift",
-        "Moblin/View/Utils/ChatLineView.swift"
+        "Moblin/View/Utils/ChatLineView.swift",
+        "Moblin/View/Utils/ChatScrollView.swift"
       ],
       "wave": 25
     },
@@ -16321,8 +16374,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift",
-      "lines": 768,
-      "sha256": "4cf7c08f5623f75be98cf47258821c16439248b50c0bb66bdaf463cbd8434464",
+      "lines": 716,
+      "sha256": "a9dc710f1b8f6f92c4ba465a421938f088dedbddede90903939c0884b71c4f0d",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -16394,6 +16447,7 @@
         "Moblin/View/Utils/ChatActionButtonsView.swift",
         "Moblin/View/Utils/ChatLineStyle.swift",
         "Moblin/View/Utils/ChatLineView.swift",
+        "Moblin/View/Utils/ChatScrollView.swift",
         "Moblin/View/Utils/CloseToolbarView.swift",
         "Moblin/View/Utils/DraggableItemPrefixView.swift",
         "Moblin/View/Utils/IconAndTextView.swift",
@@ -17232,7 +17286,7 @@
     {
       "path": "Moblin/Various/Model/ModelAppleWatch.swift",
       "lines": 657,
-      "sha256": "a32c839bdf5f0536f080f146aa2765f1c34d8589cbdb91d0b4fd6e5a576c6bce",
+      "sha256": "f9daea6310b8ea76f429090ef9d5bfee00146951120c67aadd8c0aee5dacd2af",
       "imports": [
         "SwiftUI",
         "WatchConnectivity"
@@ -17260,7 +17314,7 @@
     {
       "path": "Moblin/Various/Model/ModelCamera.swift",
       "lines": 963,
-      "sha256": "0ac83f8e0194bc5656a9af6c1c06226849f31287e697c438eefeae46a02189f2",
+      "sha256": "a7a43e3367287b80c7eb3619e2317b64f7a9bed5622ec0f1fec1e5b7c0e688e0",
       "imports": [
         "Foundation"
       ],
@@ -17348,7 +17402,7 @@
     {
       "path": "Moblin/Various/Model/ModelGimbal.swift",
       "lines": 106,
-      "sha256": "49ad6f34f8e84f430fa0b1c1f68bd72897bd86aafb966ad764baffde5f0b2e7b",
+      "sha256": "525d0ed612f7b95c18e7901aa854a31abaa53fe1e8650e77aba5b06874d8f649",
       "imports": [
         "Foundation",
         "Spatial"
@@ -17621,7 +17675,7 @@
     {
       "path": "Moblin/VideoEffects/ChatEffect.swift",
       "lines": 308,
-      "sha256": "5fd8932b58c039ea0b8077e645c3c559085136fece43e9d1b24a00d97c6137d3",
+      "sha256": "76284ef0276fb07699159233a2929d6b5b9546958c31e9998c4ab0036266ac2f",
       "imports": [
         "Collections",
         "Combine",
@@ -19766,10 +19820,9 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift",
-      "lines": 486,
-      "sha256": "3510431854b653e24cd7b632a9ce75da2360e3269949c27cccff61e45cb6c30a",
+      "lines": 458,
+      "sha256": "bdb1a8083f899cc7f06f6e267f3cac60519f04b917ab5d1492486d7aa4586659",
       "imports": [
-        "Collections",
         "SwiftUI"
       ],
       "tier": "ui",
@@ -19813,7 +19866,8 @@
         "Moblin/View/Stream/StreamOverlayView.swift",
         "Moblin/View/Utils/ChatActionButtonsView.swift",
         "Moblin/View/Utils/ChatLineStyle.swift",
-        "Moblin/View/Utils/ChatLineView.swift"
+        "Moblin/View/Utils/ChatLineView.swift",
+        "Moblin/View/Utils/ChatScrollView.swift"
       ],
       "wave": 29
     },
@@ -20001,8 +20055,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButtonsView.swift",
-      "lines": 1030,
-      "sha256": "5ed4dd5ff58cd53de84284331d09c444a2660572b021f21abd6e200e77777559",
+      "lines": 1038,
+      "sha256": "b98b7f01d474c8dcb1df4250a5cad6133db57772c07a85eec59b324959bce5c1",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -20635,8 +20689,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/ControlBarLandscapeView.swift",
-      "lines": 364,
-      "sha256": "f16d74f063e2c067cd9d6c75ef257214f1d7ae3156e30613b092a3e022c8c61b",
+      "lines": 365,
+      "sha256": "3bf0968791a896e69e5848a22e644109bae26d4e5cd93230b8efbeba13744a7e",
       "imports": [
         "SwiftUI"
       ],
@@ -20682,6 +20736,7 @@
         "Moblin/View/ControlBar/QuickButtonsView.swift",
         "Moblin/View/ControlBar/StreamButton.swift",
         "Moblin/View/ControlBar/ThermalStateSheetView.swift",
+        "Moblin/View/Utils/EndAnchoredScrollView.swift",
         "Moblin/View/Utils/HCenter.swift"
       ],
       "wave": 37
@@ -20960,7 +21015,7 @@
     {
       "path": "Moblin/View/ControlBar/ControlBarPortraitView.swift",
       "lines": 257,
-      "sha256": "a5760d7de010f22ca4e26e733ed257792c63a406e437eb4ff46624e25978b561",
+      "sha256": "dedec0936aa5210a69b831aa42b74c95e692218e6071c4388f6bbf67e36ad712",
       "imports": [
         "SwiftUI"
       ],
@@ -20998,7 +21053,8 @@
         "Moblin/View/ControlBar/ControlBarUtils.swift",
         "Moblin/View/ControlBar/QuickButtonsView.swift",
         "Moblin/View/ControlBar/StreamButton.swift",
-        "Moblin/View/ControlBar/ThermalStateSheetView.swift"
+        "Moblin/View/ControlBar/ThermalStateSheetView.swift",
+        "Moblin/View/Utils/EndAnchoredScrollView.swift"
       ],
       "wave": 38
     },
@@ -21083,8 +21139,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelZoom.swift",
-      "lines": 414,
-      "sha256": "6ab8288df2a15ed23f6b88b76af3cc744659976df40637d0ce9815f38912ac85",
+      "lines": 419,
+      "sha256": "d5ca161e4e8e7c9b419f4bcedb49b7fcb7c99748be2a2b233869fc85e7c2203a",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -21092,6 +21148,7 @@
       "tier": "media",
       "declared_types": [
         "MacZoomRamp",
+        "ZoomLevel",
         "Zoom"
       ],
       "private_types": [],
@@ -21112,8 +21169,8 @@
     },
     {
       "path": "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
-      "lines": 4418,
-      "sha256": "b14a248c32cec43506b2fb03b75b832aa61f49b4f5514bb171c6d221fb70c0ff",
+      "lines": 4429,
+      "sha256": "41324e56e9d2d85c535d4adc6063ac7c73ea64e11bdaa69444def1bda9b2ffbe",
       "imports": [
         "SwiftUI"
       ],
@@ -21230,7 +21287,7 @@
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayLeftView.swift",
       "lines": 278,
-      "sha256": "f6ef426e573629df9e14bae3fafbf5a4728f9e7ae3a4fff94021fe27a1e6e3a2",
+      "sha256": "c72a6b5e8eaf257d6aa84d4352999cb4fc10fb3d4cc795544231a9b0b24fdbc3",
       "imports": [
         "SwiftUI",
         "WebKit"
@@ -21361,8 +21418,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1745,
-      "sha256": "5fd915b3bcd3546ff452e649d20e961ba199e4b2ea51765597037f91f5906f04",
+      "lines": 1757,
+      "sha256": "64acb2ad6323abf8285e4cd6630ba0a1813da793cf9008554bd6d8151c135060",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21371,6 +21428,7 @@
       ],
       "tier": "media",
       "declared_types": [
+        "RemoteControlPreview",
         "RemoteControl",
         "RemoteControlAssistantPreviewUser"
       ],
@@ -21629,8 +21687,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/StreamButton.swift",
-      "lines": 130,
-      "sha256": "d0c9eb3e5dc15e93a02b95a59c826c1e51926adc9205c7cb12e8fbb558294c05",
+      "lines": 129,
+      "sha256": "0b59fca7f266f9df90f440afd67655df86c2b631b57684743187760a6c79a3bd",
       "imports": [
         "SwiftUI"
       ],
@@ -21713,7 +21771,7 @@
     {
       "path": "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift",
       "lines": 117,
-      "sha256": "5f8277e990f5bada3d4032d447a96047e3f0ff3759034ece0ce46ba5acfed6ea",
+      "sha256": "3317ffbfa53449a550fe99d34f2edf1fff50aa2dcf7326ec0d160b1affadb16e",
       "imports": [
         "SwiftUI"
       ],
@@ -22001,8 +22059,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3519,
-      "sha256": "6c42eb32d33bfaf4a5c306b49d1a2d9c0bf10f6f587652dade9a84975fc31218",
+      "lines": 3526,
+      "sha256": "09cfe89d1b2e942364c1d0f661691171e575a33bd002261b5a388fc4a54649d9",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -22065,6 +22123,7 @@
         "ExternalDisplay",
         "GoProState",
         "QuickButtons",
+        "QuickButtonsPages",
         "Snapshot",
         "Orientation",
         "CameraLevel",
@@ -22689,14 +22748,15 @@
     },
     {
       "path": "Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift",
-      "lines": 1132,
-      "sha256": "801080acebd746c2ff54706c67adeb38cb6a5acf7fd01fa19d22c2a31be30985",
+      "lines": 1141,
+      "sha256": "3fc4f45788915088c6ac5ecf4302b2c86728b3051a20c486725fb78564a0b09c",
       "imports": [
         "Collections",
         "SwiftUI"
       ],
       "tier": "ui",
       "declared_types": [
+        "PreviewImageView",
         "StatusItemView",
         "RemoteControlSrtConnectionPriorityView",
         "RemoteControlSrtConnectionPrioritiesView",
@@ -22730,6 +22790,7 @@
         "ControlBarRemoteControlAssistantView"
       ],
       "private_types": [
+        "PreviewImageView",
         "StatusItemView",
         "RemoteControlSrtConnectionPriorityView",
         "RemoteControlSrtConnectionPrioritiesView",
@@ -22915,7 +22976,7 @@
     {
       "path": "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift",
       "lines": 271,
-      "sha256": "6d357308c1c191a219a425db4ae3e0583a779f883275e1892e133eb81dc84065",
+      "sha256": "fce1e27d9ea4e81bf5c4bf6248afa67d3fcf63fbefdae4bfbae5fa27c32c24fa",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -25099,7 +25160,7 @@
     {
       "path": "Moblin/View/MainView.swift",
       "lines": 769,
-      "sha256": "5f532b3f265f794a0659f0d8d3eabeb936a5b5a2a90caec3a5d2b0d518b0ca5a",
+      "sha256": "1f23e1fc7a87e46d2295e29cd61f30a60dcb38a0f6cc2f33a01609f21dee38da",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -25275,7 +25336,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
       "lines": 958,
-      "sha256": "48471a23c4cc1dc9cae22bb332558e4eafd996576f58a88004296cf988aa2bc3",
+      "sha256": "c2c32fcd0950bdc1bc934f41dadf24ec45290c34ed913c510a6d76879287ce4e",
       "imports": [
         "SwiftUI"
       ],

@@ -40,13 +40,13 @@ class ChatProviderSuite {
     }
 
     @Test
-    fun newestPostFirst() = runMainTest {
+    fun oldestPostFirst() = runMainTest {
         val chat = ChatProvider()
         for (id in 0 until 3) {
             chat.appendMessage(post = makePost(id = id))
         }
         chat.update()
-        assertEquals(listOf(2, 1, 0), chat.posts.value.map { it.id })
+        assertEquals(listOf(0, 1, 2), chat.posts.value.map { it.id })
     }
 
     @Test
@@ -57,8 +57,8 @@ class ChatProviderSuite {
         }
         chat.update()
         assertEquals(maximumNumberOfChatMessages, chat.posts.value.size)
-        assertEquals(maximumNumberOfChatMessages + 9, chat.posts.value.firstOrNull()?.id)
-        assertEquals(10, chat.posts.value.lastOrNull()?.id)
+        assertEquals(10, chat.posts.value.firstOrNull()?.id)
+        assertEquals(maximumNumberOfChatMessages + 9, chat.posts.value.lastOrNull()?.id)
     }
 
     @Test
@@ -75,7 +75,7 @@ class ChatProviderSuite {
         assertEquals(listOf(0), chat.posts.value.map { it.id })
         chat.endReachedWhenPaused()
         assertFalse(chat.paused.value)
-        assertEquals(listOf(2, 1, 0), chat.posts.value.map { it.id })
+        assertEquals(listOf(0, 1, 2), chat.posts.value.map { it.id })
     }
 
     @Test
@@ -90,7 +90,7 @@ class ChatProviderSuite {
         assertEquals(2 * maximumNumberOfChatMessages, chat.pausedPostsCount.value)
         chat.endReachedWhenPaused()
         assertEquals(maximumNumberOfChatMessages, chat.posts.value.size)
-        assertEquals(count - 1, chat.posts.value.firstOrNull()?.id)
-        assertEquals(count - maximumNumberOfChatMessages, chat.posts.value.lastOrNull()?.id)
+        assertEquals(count - maximumNumberOfChatMessages, chat.posts.value.firstOrNull()?.id)
+        assertEquals(count - 1, chat.posts.value.lastOrNull()?.id)
     }
 }

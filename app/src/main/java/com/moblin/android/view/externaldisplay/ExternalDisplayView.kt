@@ -3,21 +3,17 @@ package com.moblin.android.view.externaldisplay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.moblin.android.various.ChatHighlight
@@ -33,6 +29,7 @@ import com.moblin.android.view.utils.ChatLineItem
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineTextStyle
 import com.moblin.android.view.utils.ChatLineView
+import com.moblin.android.view.utils.ChatScrollView
 import com.moblin.android.LocalModel
 
 @Composable
@@ -98,8 +95,6 @@ private fun PostView(
     moreThanOneStreamingPlatform: Boolean,
     post: ChatPost,
     state: ChatPostState,
-    rotation: Double,
-    scaleX: Double,
 ) {
     val compactEvents = chatSettings.compactEvents
     val showDeletedMessages = chatSettings.showDeletedMessages
@@ -107,14 +102,7 @@ private fun PostView(
     if (!deleted || showDeletedMessages) {
         val highlight = post.highlight
         if (highlight != null) {
-            Row(
-                modifier = Modifier.graphicsLayer(
-                    rotationZ = rotation.toFloat(),
-                    scaleX = scaleX.toFloat(),
-                    scaleY = 1f,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
                 Box(
                     modifier = Modifier
                         .width(3.dp)
@@ -137,15 +125,7 @@ private fun PostView(
                 }
             }
         } else {
-            Box(
-                modifier = Modifier
-                    .padding(start = 3.dp)
-                    .graphicsLayer(
-                        rotationZ = rotation.toFloat(),
-                        scaleX = scaleX.toFloat(),
-                        scaleY = 1f,
-                    ),
-            ) {
+            Box(modifier = Modifier.padding(start = 3.dp)) {
                 LineView(
                     deleted = deleted,
                     post = post,
@@ -159,34 +139,20 @@ private fun PostView(
 
 @Composable
 private fun MessagesView(chatSettings: SettingsChat, chat: ChatProvider) {
-    val rotation = chatSettings.getRotation()
-    val scaleX = chatSettings.getScaleX()
     val style = makeChatLineStyle(chat = chatSettings)
-    val posts by chat.posts.collectAsState()
     val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    rotationZ = rotation.toFloat(),
-                    scaleX = (scaleX * chatSettings.isMirrored()).toFloat(),
-                    scaleY = 1f,
-                ),
-            verticalArrangement = Arrangement.spacedBy(1.dp),
-        ) {
-            items(posts) { post ->
-                PostView(
-                    chatSettings = chatSettings,
-                    style = style,
-                    moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
-                    post = post,
-                    state = post.state,
-                    rotation = rotation,
-                    scaleX = scaleX,
-                )
-            }
-        }
+    ChatScrollView(
+        chat = chat,
+        newMessagesAtTop = chatSettings.newMessagesAtTop,
+        mirrored = chatSettings.mirrored,
+    ) { post ->
+        PostView(
+            chatSettings = chatSettings,
+            style = style,
+            moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
+            post = post,
+            state = post.state,
+        )
     }
 }
 

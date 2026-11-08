@@ -89,8 +89,7 @@ private fun StreamButtonText(database: Database, text: String) {
         color = Color.White,
         textAlign = TextAlign.Center,
         modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(database.streamButtonColorColor)
+            .background(database.streamButtonColorColor, RoundedCornerShape(10.dp))
             .padding(5.dp)
             .widthIn(min = 60.dp),
     )
