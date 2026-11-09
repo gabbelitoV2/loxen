@@ -19,7 +19,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 private val noBackZoomPresetId = UUID.randomUUID()
 private val noFrontZoomPresetId = UUID.randomUUID()
 
+class ZoomLevel {
+    val x = MutableStateFlow(1.0f)
+
+    fun statusText(): String {
+        return String.format(Locale.US, "%.1f", x.value)
+    }
+}
+
 class Zoom {
+    val level = ZoomLevel()
     var xPinch: Float = 1.0f
     var backX: Float = 0.5f
     var frontX: Float = 0.5f
@@ -30,14 +39,9 @@ class Zoom {
     var remoteControlPending = false
     val backPresetId = MutableStateFlow(UUID.randomUUID())
     val frontPresetId = MutableStateFlow(UUID.randomUUID())
-    val x = MutableStateFlow(1.0f)
     val hasZoom = MutableStateFlow(true)
     val backZoomPresets = MutableStateFlow<List<SettingsZoomPreset>>(emptyList())
     val frontZoomPresets = MutableStateFlow<List<SettingsZoomPreset>>(emptyList())
-
-    fun statusText(): String {
-        return String.format(Locale.US, "%.1f", x.value)
-    }
 }
 
 fun Model.setZoomPreset(id: UUID) {
@@ -76,13 +80,13 @@ fun Model.setZoomXWhenInRange(x: Float, setPinch: Boolean = true) {
         }
         else -> {}
     }
-    zoom.x.value = x
+    zoom.level.x.value = x
     remoteControlZoomChanged()
     if (isWatchLocal()) {
         sendZoomToWatch(x)
     }
     if (setPinch) {
-        zoom.xPinch = zoom.x.value
+        zoom.xPinch = zoom.level.x.value
     }
 }
 
@@ -91,7 +95,7 @@ private fun Model.remoteControlZoomChanged() {
         zoom.remoteControlPending = true
         return
     }
-    remoteControlStateChanged(RemoteControlState(zoom = zoom.x.value))
+    remoteControlStateChanged(RemoteControlState(zoom = zoom.level.x.value))
     zoom.remoteControlTimerRunning = true
     zoom.remoteControlTimer.startSingleShot(timeout = 0.5) {
         zoom.remoteControlTimerRunning = false
@@ -150,7 +154,7 @@ fun Model.stopZoomSpeed() {
 private fun Model.updateZoomXFromCamera() {
     val device = cameraDevice as? AVCaptureDevice
     if (device != null) {
-        zoom.x.value = device.videoZoomFactor * cameraZoomLevelToXScale
+        zoom.level.x.value = device.videoZoomFactor * cameraZoomLevelToXScale
     }
 }
 

@@ -871,7 +871,8 @@ fun MainView(
             database = model.database,
             sceneSelector = model.sceneSelector,
             streamOverlay = model.streamOverlay,
-            sceneEditor = model.sceneEditor
+            sceneEditor = model.sceneEditor,
+            orientation = model.orientation,
         )
     }
     ConfirmationDialog(

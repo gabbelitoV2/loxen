@@ -24,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -117,7 +116,6 @@ private fun QuickButtonImage(
     onTapGesture: () -> Unit,
 ) {
     val isOn by button.isOn.collectAsState()
-    val buttonColor by button.color.collectAsState()
     val bigButtons by quickButtonsSettings.bigButtons.collectAsState()
 
     fun getImage(): String {
@@ -135,8 +133,6 @@ private fun QuickButtonImage(
             Color.White
         }
     }
-
-    val backgroundColor = remember(buttonColor) { button.backgroundColor.color() }
 
     fun iconSize(): TextUnit {
         return if (bigButtons) {
@@ -157,9 +153,7 @@ private fun QuickButtonImage(
     ) {
         Box(
             modifier = Modifier
-                .size(buttonSize.dp)
-                .clip(CircleShape)
-                .background(backgroundColor),
+                .size(buttonSize.dp),
             contentAlignment = Alignment.Center,
         ) {
             SystemImage(
@@ -188,14 +182,10 @@ private fun InstantReplayView(
 ) {
     val isPlaying by replay.isPlaying.collectAsState()
     val timeLeft by replay.timeLeft.collectAsState()
-    val buttonColor by button.color.collectAsState()
-    val backgroundColor = remember(buttonColor) { button.backgroundColor.color() }
     if (isPlaying) {
         Box(
             modifier = Modifier
                 .size(size.dp)
-                .clip(CircleShape)
-                .background(backgroundColor)
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -285,6 +275,7 @@ fun QuickButtonsInnerView(
     val isPortrait by orientation.isPortrait.collectAsState()
     val isOn by button.isOn.collectAsState()
     val buttonColor by button.color.collectAsState()
+    val backgroundColor = remember(buttonColor) { button.backgroundColor.color() }
     var presentingRecordConfirm by remember { mutableStateOf(false) }
     var presentingPreviewStreamConfirm by remember { mutableStateOf(false) }
     var presentingStartWorkoutTypePicker by remember { mutableStateOf(false) }
@@ -572,8 +563,15 @@ fun QuickButtonsInnerView(
         model.presentingSceneEditor.value = true
     }
 
+    val selectedRing: @Composable () -> Unit = {
+        Box(
+            modifier = Modifier
+                .size(size.dp)
+                .border(2.dp, Color(0xFFFFCC00), CircleShape),
+        )
+    }
+
     Column(
-        modifier = Modifier.rotate(180.0f),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -1004,17 +1002,27 @@ fun QuickButtonsInnerView(
                     }
                 }
             }
-            if (button.type == selectedButtonType) {
-                Box(contentAlignment = Alignment.Center) {
+            if (button.type == SettingsQuickButtonType.unknown) {
+                buttonView()
+            } else if (button.type == selectedButtonType) {
+                Box(
+                    modifier = Modifier
+                        .size(size.dp)
+                        .background(backgroundColor, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
                     buttonView()
-                    Box(
-                        modifier = Modifier
-                            .size(size.dp)
-                            .border(2.dp, Color(0xFFFFCC00), CircleShape),
-                    )
+                    selectedRing()
                 }
             } else {
-                buttonView()
+                Box(
+                    modifier = Modifier
+                        .size(size.dp)
+                        .background(backgroundColor, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    buttonView()
+                }
             }
         }
         if (showName && !isPortrait) {

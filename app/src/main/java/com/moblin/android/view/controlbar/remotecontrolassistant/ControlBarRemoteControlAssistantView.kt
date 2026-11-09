@@ -1,5 +1,6 @@
 package com.moblin.android.view.controlbar.remotecontrolassistant
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -93,6 +94,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.RemoteControl
 import com.moblin.android.various.model.RemoteControlAssistantPreviewUser
+import com.moblin.android.various.model.RemoteControlPreview
 import com.moblin.android.various.model.clearRemoteControlAssistantLog
 import com.moblin.android.various.model.isRemoteControlAssistantConfigured
 import com.moblin.android.various.model.isRemoteControlAssistantConnected
@@ -141,6 +143,20 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import com.moblin.android.various.model.maximumMusicQueueLength
 import com.moblin.android.various.model.remoteControlAssistantMusic
+
+@Composable
+private fun PreviewImageView(
+    preview: RemoteControlPreview,
+    content: @Composable (Bitmap) -> Unit,
+) {
+    val image by preview.image.collectAsState()
+    val bitmap = image
+    if (bitmap != null) {
+        content(bitmap)
+    } else {
+        Text(localized("No preview received yet."), color = formPalette().label)
+    }
+}
 
 @Composable
 private fun StatusItemView(icon: String, status: RemoteControlStatusItem?) {
@@ -362,7 +378,6 @@ private fun ControlBarRemoteControlAssistantStatusView(
     title: String = "",
 ) {
     val presentingPreview by remoteControl.presentingPreview.collectAsState()
-    val preview by remoteControl.preview.collectAsState()
     val general by remoteControl.general.collectAsState()
     val topLeft by remoteControl.topLeft.collectAsState()
     val topRight by remoteControl.topRight.collectAsState()
@@ -372,8 +387,7 @@ private fun ControlBarRemoteControlAssistantStatusView(
         footer = if (presentingPreview) "Tap the preview to hide it. Double tap to toggle full screen." else null,
     ) {
         if (presentingPreview) {
-            val image = preview
-            if (image != null) {
+            PreviewImageView(preview = remoteControl.preview) { image ->
                 Image(
                     bitmap = image.asImageBitmap(),
                     contentDescription = null,
@@ -393,8 +407,6 @@ private fun ControlBarRemoteControlAssistantStatusView(
                         },
                     contentScale = ContentScale.Fit,
                 )
-            } else {
-                Text(localized("No preview received yet."))
             }
         } else {
             TextButtonView("Show") {
@@ -1259,7 +1271,6 @@ private fun ControlBarRemoteControlAssistantInnerView(
 ) {
     val presentingPreviewFullScreen by remoteControl.presentingPreviewFullScreen.collectAsState()
     val presentingStreamers by remoteControl.presentingStreamers.collectAsState()
-    val preview by remoteControl.preview.collectAsState()
     val isPortrait by orientation.isPortrait.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -1267,8 +1278,7 @@ private fun ControlBarRemoteControlAssistantInnerView(
             if (!model.isRemoteControlAssistantConfigured()) {
                 StreamerNotConfiguredView()
             } else if (model.isRemoteControlAssistantConnected()) {
-                val image = preview
-                if (image != null) {
+                PreviewImageView(preview = remoteControl.preview) { image ->
                     Image(
                         bitmap = image.asImageBitmap(),
                         contentDescription = null,
@@ -1283,8 +1293,6 @@ private fun ControlBarRemoteControlAssistantInnerView(
                             },
                         contentScale = ContentScale.Fit,
                     )
-                } else {
-                    Text(localized("No preview received yet."), color = formPalette().label)
                 }
             } else {
                 WaitingForStreamerView()

@@ -177,8 +177,8 @@ fun QuickButtonsButtonSettingsView(
                 options = (1..controlBarPages).toList(),
             ) { newPage ->
                 button.page.value = newPage
-                model.quickButtons.page = newPage
-                model.quickButtons.activePage.value = newPage
+                model.quickButtonsPages.page = newPage
+                model.quickButtonsPages.activePage.value = newPage
                 model.updateQuickButtonPairs()
                 Unit
             }

@@ -154,8 +154,7 @@ private class ChatRenderer(
 
     private fun render() {
         val posts = chat.posts.value
-            .take(settings.maximumNumberOfMessages)
-            .reversed()
+            .takeLast(settings.maximumNumberOfMessages)
             .filter { !it.state.deleted.value }
         for (cancellable in stateCancellables) {
             cancellable.cancel()

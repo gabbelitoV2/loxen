@@ -848,7 +848,7 @@ fun Model.isExternalCameraConnected(cameraId: String): Boolean {
 
 fun Model.setColorSpace() {
     media.setColorSpace(colorSpace = MediaFormat.COLOR_STANDARD_BT709) {
-        setCameraZoomX(x = zoom.x.value)?.let { x ->
+        setCameraZoomX(x = zoom.level.x.value)?.let { x ->
             setZoomXWhenInRange(x = x)
         }
         lutEnabledUpdated()

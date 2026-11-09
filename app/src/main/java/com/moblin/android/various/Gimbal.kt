@@ -123,9 +123,9 @@ class Gimbal(private val model: Model) {
         val zoomSpeed = 1 + gimbal.zoomSpeed / 1000
         val rate = 1 + 2 * (gimbal.zoomSpeed.toDouble() / 50.0).pow(1.3).toFloat()
         if (zoomIn) {
-            model.setZoomX(x = model.zoom.x.value * zoomSpeed, rate = rate)
+            model.setZoomX(x = model.zoom.level.x.value * zoomSpeed, rate = rate)
         } else {
-            model.setZoomX(x = model.zoom.x.value / zoomSpeed, rate = rate)
+            model.setZoomX(x = model.zoom.level.x.value / zoomSpeed, rate = rate)
         }
     }
 }

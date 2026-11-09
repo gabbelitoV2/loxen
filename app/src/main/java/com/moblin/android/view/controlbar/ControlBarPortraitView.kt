@@ -6,11 +6,9 @@ import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollScope
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,30 +37,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.common.various.controlBarButtonSize
 import com.moblin.android.common.various.controlBarQuickButtonSingleQuickButtonSize
 import com.moblin.android.common.various.controlBarWidthDefault
 import com.moblin.android.common.view.ThermalStateView
 import com.moblin.android.platform.Bundle
-import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.QuickButtons
+import com.moblin.android.various.model.QuickButtonsPages
 import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.Store
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.storages.toThermalState
+import com.moblin.android.view.utils.Axis
+import com.moblin.android.view.utils.EndAnchoredScrollView
 
 private class ControlBarPortraitPageScrollTargetBehavior(
     private val model: Model,
@@ -112,7 +108,7 @@ private fun QuickButtonsView(
         }
     }
 
-    val pagePairs = remember(pairs, page) { model.getQuickButtonPairs(page = page + 1) }
+    val pagePairs = remember(pairs, page) { model.getQuickButtonPairs(page = page + 1).reversed() }
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -123,8 +119,18 @@ private fun QuickButtonsView(
                 if (twoColumns) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        horizontalAlignment = Alignment.Start,
+                        horizontalAlignment = Alignment.End,
                     ) {
+                        QuickButtonsInnerView(
+                            model = model,
+                            quickButtons = quickButtons,
+                            quickButtonsSettings = quickButtonsSettings,
+                            orientation = model.orientation,
+                            button = pair.first,
+                            size = buttonSize(),
+                            nameSize = buttonSize(),
+                            nameWidth = buttonSize(),
+                        )
                         val second = pair.second
                         if (second != null) {
                             QuickButtonsInnerView(
@@ -140,6 +146,12 @@ private fun QuickButtonsView(
                         } else {
                             QuickButtonPlaceholderImage(size = buttonSize())
                         }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.height((height - 10).dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         QuickButtonsInnerView(
                             model = model,
                             quickButtons = quickButtons,
@@ -151,7 +163,6 @@ private fun QuickButtonsView(
                             nameWidth = buttonSize(),
                         )
                     }
-                } else {
                     val second = pair.second
                     if (second != null) {
                         Box(
@@ -170,21 +181,6 @@ private fun QuickButtonsView(
                             )
                         }
                     }
-                    Box(
-                        modifier = Modifier.height((height - 10).dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        QuickButtonsInnerView(
-                            model = model,
-                            quickButtons = quickButtons,
-                            quickButtonsSettings = quickButtonsSettings,
-                            orientation = model.orientation,
-                            button = pair.first,
-                            size = buttonSize(),
-                            nameSize = buttonSize(),
-                            nameWidth = buttonSize(),
-                        )
-                    }
                 }
             }
         }
@@ -202,15 +198,10 @@ private fun PageView(
 ) {
     val enableScroll by quickButtonsSettings.enableScroll.collectAsState()
 
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .rotate(180f)
-            .horizontalScroll(state = rememberScrollState(), enabled = enableScroll),
-    ) {
+    val content: @Composable () -> Unit = {
         Box(
             modifier = Modifier.fillMaxHeight(),
-            contentAlignment = Alignment.BottomCenter,
+            contentAlignment = Alignment.TopCenter,
         ) {
             QuickButtonsView(
                 model = model,
@@ -219,6 +210,20 @@ private fun PageView(
                 page = page,
                 height = height,
             )
+        }
+    }
+    Box(modifier = modifier) {
+        if (enableScroll) {
+            EndAnchoredScrollView(axis = Axis.horizontal) {
+                content()
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxHeight(),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                content()
+            }
         }
     }
 }
@@ -262,17 +267,14 @@ private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store)
         Box(
             modifier = Modifier
                 .padding(start = 10.dp)
-                .size(controlBarButtonSize.dp)
-                .border(1.dp, Color(0x99EBEBF5), CircleShape)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                 ) {
                     model.toggleShowingPanel(type = null, panel = ShowingPanel.settings)
                 },
-            contentAlignment = Alignment.Center,
         ) {
-            SystemImage(name = "gearshape", fontSize = 17.sp, tint = Color.White)
+            SettingsButtonImage()
         }
     }
 }
@@ -356,14 +358,15 @@ private fun MainPageView(
 private fun PagesView(
     model: Model = LocalModel.current,
     quickButtons: QuickButtons,
+    pages: QuickButtonsPages,
     quickButtonsSettings: SettingsQuickButtons,
     height: Double,
     modifier: Modifier = Modifier,
 ) {
     val pairs by quickButtons.pairs.collectAsState()
-    val activePage by quickButtons.activePage.collectAsState()
+    val activePage by pages.activePage.collectAsState()
 
-    val pages = buildList {
+    val pageIds = buildList {
         add(1)
         for (page in 1 until controlBarPages) {
             if (pairs[page].isNotEmpty()) {
@@ -377,7 +380,7 @@ private fun PagesView(
         val scrollState = rememberScrollState()
         val density = LocalDensity.current
         val decay = rememberSplineBasedDecay<Float>()
-        val scrollTargetBehavior = remember(model, scrollState, density, decay, containerHeight, pages) {
+        val scrollTargetBehavior = remember(model, scrollState, density, decay, containerHeight, pageIds) {
             ControlBarPortraitPageScrollTargetBehavior(
                 model = model,
                 scrollState = scrollState,
@@ -385,11 +388,11 @@ private fun PagesView(
                 decay = decay,
                 containerHeight = containerHeight,
             ) {
-                quickButtons.activePage.value = pages.getOrNull(quickButtons.page - 1)
+                pages.activePage.value = pageIds.getOrNull(pages.page - 1)
             }
         }
-        LaunchedEffect(activePage, pages, containerHeight) {
-            val index = pages.indexOf(activePage)
+        LaunchedEffect(activePage, pageIds, containerHeight) {
+            val index = pageIds.indexOf(activePage)
             if (index >= 0) {
                 scrollState.animateScrollTo(
                     with(density) { (index * (containerHeight + 8)).dp.roundToPx() },
@@ -402,7 +405,7 @@ private fun PagesView(
                 .verticalScroll(state = scrollState, flingBehavior = scrollTargetBehavior),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            pages.forEach { page ->
+            pageIds.forEach { page ->
                 key(page) {
                     Box(
                         modifier = Modifier
@@ -453,6 +456,7 @@ fun ControlBarPortraitView(model: Model = LocalModel.current, quickButtons: Sett
         PagesView(
             model = model,
             quickButtons = model.quickButtons,
+            pages = model.quickButtonsPages,
             quickButtonsSettings = model.database.quickButtonsGeneral,
             height = height,
             modifier = Modifier.fillMaxSize(),

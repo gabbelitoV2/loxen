@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -71,6 +72,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.SceneEditor
 import com.moblin.android.various.model.SceneSelector
 import com.moblin.android.various.model.StreamOverlay
@@ -1119,14 +1121,14 @@ fun SceneEditorView(
     sceneSelector: SceneSelector,
     streamOverlay: StreamOverlay,
     sceneEditor: SceneEditor,
+    orientation: Orientation,
 ) {
     val selection = remember { SceneEditorSelection() }
     val showingSettings by selection.showingSettings.collectAsState()
     val selectedSceneWidgetId by selection.sceneWidgetIdFlow.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
-    val canvasSize by sceneEditor.canvasSize.collectAsState()
     val allOutlines by sceneEditor.outlines.collectAsState()
-    val palette = formPalette()
+    val isPortrait by orientation.isPortrait.collectAsState()
 
     fun mirror(scene: SettingsScene?): Boolean {
         if (database.mirrorFrontCameraOnStream) {
@@ -1138,101 +1140,82 @@ fun SceneEditorView(
         return isFrontCameraSelected
     }
 
-    fun fitSize(available: CGSize): CGSize {
-        if (available.width <= 0 || available.height <= 0 || canvasSize.width <= 0 || canvasSize.height <= 0) {
-            return CGSize.zero
-        }
-        val scale = min(available.width / canvasSize.width, available.height / canvasSize.height)
-        return CGSize(width = canvasSize.width * scale, height = canvasSize.height * scale)
-    }
-
     fun selectedOutline(): WidgetOutline? =
         allOutlines.firstOrNull { it.id == selectedSceneWidgetId && it.inScene }
 
     val scene = model.sceneEditorScene()
     val selected = selectedOutline()
 
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(palette.groupedBackground),
-    ) {
-        val metricsWidth = maxWidth.value.toDouble()
-        val metricsHeight = maxHeight.value.toDouble()
-        val landscape = metricsWidth > metricsHeight
-        LaunchedEffect(Unit) {
-            model.sceneEditorPresentationChanged()
-        }
-        val preview = fitSize(CGSize(width = metricsWidth - 16, height = metricsHeight - 16))
-        if (landscape) {
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    videoArea(
-                        model = model,
-                        sceneEditor = sceneEditor,
-                        scene = scene,
-                        selection = selection,
-                        mirror = mirror(scene),
-                    )
-                }
-                if (showingSettings) {
-                    Box(modifier = Modifier.width(settingsHalfWidth.dp)) {
-                        settingsPanel(
-                            model = model,
-                            database = database,
-                            scene = scene,
-                            selected = selected,
-                            selection = selection,
-                        )
-                    }
-                }
-                SceneEditorToolbarView(
+    LaunchedEffect(Unit) {
+        model.sceneEditorPresentationChanged()
+    }
+    if (isPortrait) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
+                videoArea(
                     model = model,
-                    database = database,
+                    sceneEditor = sceneEditor,
                     scene = scene,
-                    selected = selected,
                     selection = selection,
-                    vertical = landscape,
+                    mirror = mirror(scene),
                 )
             }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    videoArea(
+            if (showingSettings) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    settingsPanel(
                         model = model,
-                        sceneEditor = sceneEditor,
+                        database = database,
                         scene = scene,
+                        selected = selected,
                         selection = selection,
-                        mirror = mirror(scene),
                     )
                 }
-                if (showingSettings) {
-                    Box(modifier = Modifier.height((metricsHeight * 0.45).dp)) {
-                        settingsPanel(
-                            model = model,
-                            database = database,
-                            scene = scene,
-                            selected = selected,
-                            selection = selection,
-                        )
-                    }
-                }
-                SceneEditorToolbarView(
+            }
+            SceneEditorToolbarView(
+                model = model,
+                database = database,
+                scene = scene,
+                selected = selected,
+                selection = selection,
+                vertical = false,
+            )
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
+                videoArea(
                     model = model,
-                    database = database,
+                    sceneEditor = sceneEditor,
                     scene = scene,
-                    selected = selected,
                     selection = selection,
-                    vertical = landscape,
+                    mirror = mirror(scene),
                 )
             }
+            if (showingSettings) {
+                Box(modifier = Modifier.width(settingsHalfWidth.dp)) {
+                    settingsPanel(
+                        model = model,
+                        database = database,
+                        scene = scene,
+                        selected = selected,
+                        selection = selection,
+                    )
+                }
+            }
+            SceneEditorToolbarView(
+                model = model,
+                database = database,
+                scene = scene,
+                selected = selected,
+                selection = selection,
+                vertical = true,
+            )
         }
-        preview.hashCode()
     }
 }

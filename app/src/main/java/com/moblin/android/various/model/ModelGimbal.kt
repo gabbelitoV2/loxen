@@ -58,7 +58,7 @@ fun Model.saveGimbalPreset(id: UUID?) {
                 if (preset != null) {
                     preset.x = angles.x.toFloat()
                     preset.y = angles.y.toFloat()
-                    preset.zoomX = zoom.x.value
+                    preset.zoomX = zoom.level.x.value
                 }
             } else {
                 val preset = SettingsGimbalPreset()
@@ -68,7 +68,7 @@ fun Model.saveGimbalPreset(id: UUID?) {
                 )
                 preset.x = angles.x.toFloat()
                 preset.y = angles.y.toFloat()
-                preset.zoomX = zoom.x.value
+                preset.zoomX = zoom.level.x.value
                 database.gimbal.presets = database.gimbal.presets + preset
             }
             remoteControlStateChanged(

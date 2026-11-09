@@ -458,6 +458,9 @@ class GoProState {
 class QuickButtons {
     val pairs = MutableStateFlow<List<List<QuickButtonPair>>>(List(controlBarPages) { emptyList() })
     val selectedButtonType = MutableStateFlow<SettingsQuickButtonType?>(null)
+}
+
+class QuickButtonsPages {
     var page = 1
     val activePage = MutableStateFlow<Int?>(1)
 }
@@ -569,6 +572,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private var isDevicePortrait = false
     val snapshot = Snapshot()
     val quickButtons = QuickButtons()
+    val quickButtonsPages = QuickButtonsPages()
     val mic = Mic()
     val goPro = GoProState()
     val obsQuickButton = QuickButtonObs()
@@ -1318,7 +1322,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             } else {
                 zoom.backX = cameraZoomXMinimum
             }
-            zoom.x.value = zoom.backX
+            zoom.level.x.value = zoom.backX
         }
         updateFrontZoomPresets()
         updateBackZoomPresets()
@@ -1476,6 +1480,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             return
         }
         if (isAppActive) {
+            updateOrientation()
             media.setShowCameraPreview(updateShowCameraPreview())
         } else if (pictureInPictureEnabled()) {
             media.setShowCameraPreview(false)
@@ -1938,19 +1943,20 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateOrientation() {
-        when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {
-            com.moblin.android.platform.uikit.UIDeviceOrientation.portrait -> isDevicePortrait = true
-            com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft,
-            com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> isDevicePortrait = false
+        val deviceOrientation = getOrientation()
+        when (deviceOrientation) {
+            com.moblin.android.various.utils.DeviceOrientation.PORTRAIT -> isDevicePortrait = true
+            com.moblin.android.various.utils.DeviceOrientation.LANDSCAPE_LEFT,
+            com.moblin.android.various.utils.DeviceOrientation.LANDSCAPE_RIGHT -> isDevicePortrait = false
             else -> {}
         }
         updateIsPortrait()
         if (stream.value.portrait) {
             media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)
         } else {
-            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {
-                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
-                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)
+            when (deviceOrientation) {
+                com.moblin.android.various.utils.DeviceOrientation.LANDSCAPE_LEFT -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
+                com.moblin.android.various.utils.DeviceOrientation.LANDSCAPE_RIGHT -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)
                 else -> {}
             }
         }
@@ -2985,10 +2991,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         } else if (stream.value.portrait) {
             cameraPreviewView.setVideoOrientation(videoOrientation = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)
         } else {
-            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {
-                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft ->
+            when (getOrientation()) {
+                com.moblin.android.various.utils.DeviceOrientation.LANDSCAPE_LEFT ->
                     cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
-                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight ->
+                com.moblin.android.various.utils.DeviceOrientation.LANDSCAPE_RIGHT ->
                     cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)
                 else -> cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
             }
@@ -3010,7 +3016,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun attachBackTripleLowEnergyCamera(force: Boolean = true) {
-        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTripleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < 1.0f) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
+        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.level.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTripleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < 1.0f) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
         attachBackLowEnergyCamera(
             bestDeviceType = AVCaptureDevice.DeviceType.builtInTripleCamera,
             force = force,
@@ -3026,7 +3032,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun attachBackDualLowEnergyCamera(force: Boolean = true) {
-        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
+        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.level.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
         attachBackLowEnergyCamera(
             bestDeviceType = AVCaptureDevice.DeviceType.builtInDualCamera,
             force = force,
@@ -3040,7 +3046,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun attachBackWideDualLowEnergyCamera(force: Boolean = true) {
-        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
+        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.level.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene, resolver = makeSceneResolver())
         attachBackLowEnergyCamera(
             bestDeviceType = AVCaptureDevice.DeviceType.builtInDualWideCamera,
             force = force,
@@ -3060,7 +3066,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     ) {
         cameraPosition = CameraSelector.LENS_FACING_BACK
         lowEnergyCameraUpdateBackZoom(force = force)
-        zoom.x.value = zoom.backX
+        zoom.level.x.value = zoom.backX
         val bestDevice = AVCaptureDevice.default(
             bestDeviceType,
             com.moblin.android.platform.avfoundation.AVMediaType.video,
@@ -3103,11 +3109,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         when (position) {
             CameraSelector.LENS_FACING_BACK -> {
                 updateBackZoomSwitchTo()
-                zoom.x.value = zoom.backX
+                zoom.level.x.value = zoom.backX
             }
             CameraSelector.LENS_FACING_FRONT -> {
                 updateFrontZoomSwitchTo()
-                zoom.x.value = zoom.frontX
+                zoom.level.x.value = zoom.frontX
             }
             else -> {}
         }
@@ -3152,7 +3158,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             onSuccess = {
                 streamPreviewView.isMirrored = isMirrored
                 externalDisplayStreamPreviewView.isMirrored = isMirrored
-                val x = setCameraZoomX(x = zoom.x.value)
+                val x = setCameraZoomX(x = zoom.level.x.value)
                 if (x != null) {
                     setZoomXWhenInRange(x = x)
                 }
@@ -3172,7 +3178,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 activatePhotoShoot()
             },
         )
-        zoom.xPinch = zoom.x.value
+        zoom.xPinch = zoom.level.x.value
         zoom.hasZoom.value = true
         updateFrontZoomPresets()
         updateBackZoomPresets()

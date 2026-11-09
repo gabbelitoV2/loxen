@@ -29,9 +29,11 @@ enum class DeviceOrientation {
 fun getOrientation(): DeviceOrientation {
     when (com.moblin.android.platform.uikit.UIDevice.current.orientation) { com.moblin.android.platform.uikit.UIDeviceOrientation.portrait -> return DeviceOrientation.PORTRAIT; com.moblin.android.platform.uikit.UIDeviceOrientation.portraitUpsideDown -> return DeviceOrientation.PORTRAIT_UPSIDE_DOWN; com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft -> return DeviceOrientation.LANDSCAPE_LEFT; com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> return DeviceOrientation.LANDSCAPE_RIGHT; com.moblin.android.platform.uikit.UIDeviceOrientation.faceUp -> return DeviceOrientation.FACE_UP; com.moblin.android.platform.uikit.UIDeviceOrientation.faceDown -> return DeviceOrientation.FACE_DOWN }
     val interfaceOrientation = UIApplication.shared.connectedScenes
-        .firstOrNull { it is UIWindowScene }
-        ?.let { it as UIWindowScene }?.interfaceOrientation
+        .mapNotNull { it as? UIWindowScene }
+        .firstOrNull()?.interfaceOrientation
     return when (interfaceOrientation) {
+        UIInterfaceOrientation.portrait -> DeviceOrientation.PORTRAIT
+        UIInterfaceOrientation.portraitUpsideDown -> DeviceOrientation.PORTRAIT_UPSIDE_DOWN
         UIInterfaceOrientation.landscapeLeft -> DeviceOrientation.LANDSCAPE_RIGHT
         UIInterfaceOrientation.landscapeRight -> DeviceOrientation.LANDSCAPE_LEFT
         else -> DeviceOrientation.UNKNOWN

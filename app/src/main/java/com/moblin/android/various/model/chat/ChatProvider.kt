@@ -79,15 +79,9 @@ class ChatProvider {
                 pausedPostsCount.value = pausedPosts.size
             }
         } else {
-            val updated = posts.value.toMutableList()
             while (newPosts.isNotEmpty()) {
-                val post = newPosts.removeFirst()
-                if (updated.size > maximumNumberOfChatMessages - 1) {
-                    updated.removeAt(updated.size - 1)
-                }
-                updated.add(0, post)
+                appendPost(newPosts.removeFirst())
             }
-            posts.value = updated
         }
     }
 
@@ -101,15 +95,18 @@ class ChatProvider {
     }
 
     fun endReachedWhenPaused() {
-        val updated = posts.value.toMutableList()
         while (pausedPosts.isNotEmpty()) {
-            val post = pausedPosts.removeFirst()
-            if (updated.size > maximumNumberOfChatMessages - 1) {
-                updated.removeAt(updated.size - 1)
-            }
-            updated.add(0, post)
+            appendPost(pausedPosts.removeFirst())
         }
-        posts.value = updated
         paused.value = false
+    }
+
+    private fun appendPost(post: ChatPost) {
+        val updated = posts.value.toMutableList()
+        if (updated.size > maximumNumberOfChatMessages - 1) {
+            updated.removeAt(0)
+        }
+        updated.add(post)
+        posts.value = updated
     }
 }

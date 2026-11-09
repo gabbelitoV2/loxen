@@ -43,7 +43,7 @@ import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.PlatformStatus
 import com.moblin.android.various.model.StatusTopLeft
-import com.moblin.android.various.model.Zoom
+import com.moblin.android.various.model.ZoomLevel
 import com.moblin.android.various.model.hasChatEmotes
 import com.moblin.android.various.model.isChatConfigured
 import com.moblin.android.various.model.isChatConnected
@@ -224,11 +224,11 @@ private fun StreamStatusView(status: StatusTopLeft, textPlacement: StreamOverlay
 }
 
 @Composable
-private fun ZoomView(zoom: Zoom, textPlacement: StreamOverlayIconAndTextPlacement) {
-    val x by zoom.x.collectAsState()
+private fun ZoomView(level: ZoomLevel, textPlacement: StreamOverlayIconAndTextPlacement) {
+    val x by level.x.collectAsState()
     StreamOverlayIconAndTextView(
         icon = "magnifyingglass",
-        text = remember(x) { zoom.statusText() },
+        text = remember(x) { level.statusText() },
         textPlacement = textPlacement,
     )
 }
@@ -311,7 +311,7 @@ private fun StatusesView(
             )
         }
         if (textPlacement != StreamOverlayIconAndTextPlacement.Hide && model.isShowingStatusZoom()) {
-            ZoomView(zoom = model.zoom, textPlacement = textPlacement)
+            ZoomView(level = model.zoom.level, textPlacement = textPlacement)
         }
         if (model.isShowingStatusObs()) {
             StreamOverlayIconAndTextView(

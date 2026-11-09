@@ -20,33 +20,6 @@
       "occurrence": 1
     },
     {
-      "id": "H11.3",
-      "file": "various/model/Model.kt",
-      "scope": "fun updateOrientation",
-      "op": "replace",
-      "old": "            when (deviceRotation()) {",
-      "new": "            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {",
-      "occurrence": 1
-    },
-    {
-      "id": "H11.4",
-      "file": "various/model/Model.kt",
-      "scope": "fun updateOrientation",
-      "op": "replace",
-      "old": "                Surface.ROTATION_90 -> media.setVideoOrientation(value = Surface.ROTATION_90)",
-      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)",
-      "occurrence": 1
-    },
-    {
-      "id": "H11.5",
-      "file": "various/model/Model.kt",
-      "scope": "fun updateOrientation",
-      "op": "replace",
-      "old": "                Surface.ROTATION_270 -> media.setVideoOrientation(value = Surface.ROTATION_270)",
-      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)",
-      "occurrence": 1
-    },
-    {
       "id": "H11.6",
       "file": "various/Media.kt",
       "scope": "fun setNetStream",
@@ -308,39 +281,12 @@
       "occurrence": 1
     },
     {
-      "id": "H11.38",
-      "file": "various/model/Model.kt",
-      "scope": "fun updateCameraPreviewRotation",
-      "op": "replace",
-      "old": "            when (deviceRotation()) {",
-      "new": "            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {",
-      "occurrence": 1
-    },
-    {
-      "id": "H11.39",
-      "file": "various/model/Model.kt",
-      "scope": "fun updateCameraPreviewRotation",
-      "op": "replace",
-      "old": "                Surface.ROTATION_90 ->",
-      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft ->",
-      "occurrence": 1
-    },
-    {
       "id": "H11.40",
       "file": "various/model/Model.kt",
       "scope": "fun updateCameraPreviewRotation",
       "op": "replace",
       "old": "                    cameraPreviewView.setVideoOrientation(Surface.ROTATION_90)",
       "new": "                    cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)",
-      "occurrence": 1
-    },
-    {
-      "id": "H11.41",
-      "file": "various/model/Model.kt",
-      "scope": "fun updateCameraPreviewRotation",
-      "op": "replace",
-      "old": "                Surface.ROTATION_270 ->",
-      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight ->",
       "occurrence": 1
     },
     {

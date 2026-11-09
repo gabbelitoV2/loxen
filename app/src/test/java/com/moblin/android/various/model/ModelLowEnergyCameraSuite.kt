@@ -89,7 +89,7 @@ class ModelLowEnergyCameraSuite {
             runMain()
             assertEquals(CameraSelector.LENS_FACING_BACK, model.cameraPosition)
             assertSame(multiCamera, model.cameraDevice?.device)
-            assertEquals(backX, model.zoom.x.value)
+            assertEquals(backX, model.zoom.level.x.value)
             assertEquals(multiCamera.getZoomFactorScale(hasUltraWideBackCamera), model.cameraZoomLevelToXScale)
             val range = multiCamera.getUIZoomRange(hasUltraWideBackCamera)
             assertEquals(range.first, model.cameraZoomXMinimum)

@@ -82,16 +82,27 @@ import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.utils.emojiFlag
 import com.moblin.android.view.settings.streams.stream.srt.clampConnectionPriority
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URI
 import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID
+import java.util.concurrent.Executors
 import com.moblin.android.AppDelegate
+
+private val mainScope = CoroutineScope(kotlinx.coroutines.Dispatchers.Main)
+private val previewQueue =CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
+
+class RemoteControlPreview {
+    val image = MutableStateFlow<Bitmap?>(null)
+}
 
 class RemoteControl {
     val general = MutableStateFlow<RemoteControlStatusGeneral?>(null)
@@ -108,7 +119,7 @@ class RemoteControl {
     val macros = MutableStateFlow<List<RemoteControlMacro>>(emptyList())
     val zoomPreset = MutableStateFlow(UUID.randomUUID())
     val debugLogging = MutableStateFlow(false)
-    val preview = MutableStateFlow<Bitmap?>(null)
+    val preview = RemoteControlPreview()
     val recording = MutableStateFlow(false)
     val streaming = MutableStateFlow(false)
     val muted = MutableStateFlow(false)
@@ -545,7 +556,7 @@ private fun Model.createRemoteControlStatusTopLeft(): RemoteControlStatusTopLeft
     topLeft.camera = RemoteControlStatusItem(message = statusTopLeft.statusCameraText.value)
     topLeft.mic = RemoteControlStatusItem(message = mic.current.value.name)
     if (zoom.hasZoom.value) {
-        topLeft.zoom = RemoteControlStatusItem(message = zoom.statusText())
+        topLeft.zoom = RemoteControlStatusItem(message = zoom.level.statusText())
     }
     if (isObsRemoteControlConfigured()) {
         topLeft.obs = RemoteControlStatusItem(message = statusTopLeft.statusObsText.value)
@@ -714,7 +725,7 @@ fun Model.createRemoteControlStateChanged(): RemoteControlState {
     }
     state.zoomPreset = getRemoteControlZoomPresetId()
     state.zoomCamera = makeRemoteControlZoomCamera()
-    state.zoom = zoom.x.value
+    state.zoom = zoom.level.x.value
     state.debugLogging = database.debug.debugLogging.value
     state.streaming = isLive.value
     state.recording = isRecording.value
@@ -1559,7 +1570,12 @@ fun Model.remoteControlAssistantStateChanged(state: RemoteControlState) {
 }
 
 fun Model.remoteControlAssistantPreview(preview: ByteArray) {
-    remoteControl.preview.value = BitmapFactory.decodeByteArray(preview, 0, preview.size)
+    previewQueue.launch {
+        val image = BitmapFactory.decodeByteArray(preview, 0, preview.size)
+        mainScope.launch {
+            remoteControl.preview.image.value = image
+        }
+    }
     if (isWatchRemoteControl()) {
         sendPreviewToWatch(image = preview)
     }

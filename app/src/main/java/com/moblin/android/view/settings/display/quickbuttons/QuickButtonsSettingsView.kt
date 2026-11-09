@@ -82,8 +82,8 @@ private fun ButtonSettingsView(model: Model = LocalModel.current, button: Settin
             )
             DisposableEffect(Unit) {
                 model.quickButtons.selectedButtonType.value = button.type
-                model.quickButtons.page = button.page.value
-                model.quickButtons.activePage.value = button.page.value
+                model.quickButtonsPages.page = button.page.value
+                model.quickButtonsPages.activePage.value = button.page.value
                 onDispose {
                     if (model.showingPanel.value != ShowingPanel.quickButtonSettings) {
                         model.quickButtons.selectedButtonType.value = null

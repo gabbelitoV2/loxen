@@ -62,6 +62,7 @@ import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.QuickButtons
+import com.moblin.android.various.model.QuickButtonsPages
 import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.Store
@@ -69,6 +70,8 @@ import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.storages.toThermalState
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
+import com.moblin.android.view.utils.Axis
+import com.moblin.android.view.utils.EndAnchoredScrollView
 import com.moblin.android.view.utils.HCenter
 
 private fun edgesToIgnore(): List<String> {
@@ -122,13 +125,23 @@ private fun QuickButtonsView(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        pagePairs.forEach { pair ->
+        pagePairs.reversed().forEach { pair ->
             key(pair.id) {
                 if (twoColumns) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Bottom,
+                        verticalAlignment = Alignment.Top,
                     ) {
+                        QuickButtonsInnerView(
+                            model = model,
+                            quickButtons = quickButtons,
+                            quickButtonsSettings = quickButtonsSettings,
+                            orientation = orientation,
+                            button = pair.first,
+                            size = buttonSize(),
+                            nameSize = nameSize(),
+                            nameWidth = buttonSize(),
+                        )
                         val second = pair.second
                         if (second != null) {
                             QuickButtonsInnerView(
@@ -144,6 +157,12 @@ private fun QuickButtonsView(
                         } else {
                             QuickButtonPlaceholderImage(size = buttonSize())
                         }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.width((width - 10).dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         QuickButtonsInnerView(
                             model = model,
                             quickButtons = quickButtons,
@@ -152,10 +171,9 @@ private fun QuickButtonsView(
                             button = pair.first,
                             size = buttonSize(),
                             nameSize = nameSize(),
-                            nameWidth = buttonSize(),
+                            nameWidth = (width - 10).toFloat(),
                         )
                     }
-                } else {
                     val second = pair.second
                     if (second != null) {
                         Box(
@@ -173,21 +191,6 @@ private fun QuickButtonsView(
                                 nameWidth = (width - 10).toFloat(),
                             )
                         }
-                    }
-                    Box(
-                        modifier = Modifier.width((width - 10).dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        QuickButtonsInnerView(
-                            model = model,
-                            quickButtons = quickButtons,
-                            quickButtonsSettings = quickButtonsSettings,
-                            orientation = orientation,
-                            button = pair.first,
-                            size = buttonSize(),
-                            nameSize = nameSize(),
-                            nameWidth = (width - 10).toFloat(),
-                        )
                     }
                 }
             }
@@ -269,7 +272,6 @@ private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store)
         Box(
             modifier = Modifier
                 .size(controlBarButtonSize.dp)
-                .border(1.dp, Color(0x99EBEBF5), CircleShape)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -278,7 +280,7 @@ private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store)
                 },
             contentAlignment = Alignment.Center,
         ) {
-            SystemImage(name = "gearshape", fontSize = 17.sp, tint = Color.White)
+            SettingsButtonImage()
         }
     }
 }
@@ -294,15 +296,10 @@ private fun PageView(
 ) {
     val enableScroll by quickButtonsSettings.enableScroll.collectAsState()
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .rotate(180f)
-            .verticalScroll(state = rememberScrollState(), enabled = enableScroll),
-    ) {
+    val content: @Composable () -> Unit = {
         Box(
             modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.CenterEnd,
+            contentAlignment = Alignment.CenterStart,
         ) {
             QuickButtonsView(
                 model = model,
@@ -311,6 +308,15 @@ private fun PageView(
                 page = page,
                 width = width,
             )
+        }
+    }
+    Box(modifier = modifier.fillMaxWidth()) {
+        if (enableScroll) {
+            EndAnchoredScrollView(axis = Axis.vertical) {
+                content()
+            }
+        } else {
+            content()
         }
     }
 }
@@ -396,9 +402,14 @@ private class ControlBarLandscapePageScrollTargetBehavior(
 }
 
 @Composable
-private fun PageIndicatorView(model: Model = LocalModel.current, size: Float, quickButtons: QuickButtons) {
+private fun PageIndicatorView(
+    model: Model = LocalModel.current,
+    size: Float,
+    quickButtons: QuickButtons,
+    pages: QuickButtonsPages,
+) {
     val pairs by quickButtons.pairs.collectAsState()
-    val activePage by quickButtons.activePage.collectAsState()
+    val activePage by pages.activePage.collectAsState()
 
     fun visiblePages(): List<Int> {
         val pages = mutableListOf(1)
@@ -425,8 +436,8 @@ private fun PageIndicatorView(model: Model = LocalModel.current, size: Float, qu
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
                         ) {
-                            quickButtons.page = page
-                            quickButtons.activePage.value = page
+                            pages.page = page
+                            pages.activePage.value = page
                             model.updateQuickButtonPairs()
                         },
                     tint = Color.White,
@@ -440,6 +451,7 @@ private fun PageIndicatorView(model: Model = LocalModel.current, size: Float, qu
 private fun PagesView(
     model: Model = LocalModel.current,
     quickButtons: QuickButtons,
+    pages: QuickButtonsPages,
     quickButtonsSettings: SettingsQuickButtons,
     width: Double,
     modifier: Modifier = Modifier,
@@ -447,7 +459,7 @@ private fun PagesView(
     val bigButtons by quickButtonsSettings.bigButtons.collectAsState()
     val twoColumns by quickButtonsSettings.twoColumns.collectAsState()
     val pairs by quickButtons.pairs.collectAsState()
-    val activePage by quickButtons.activePage.collectAsState()
+    val activePage by pages.activePage.collectAsState()
 
     fun offsetX(): Double {
         return if (bigButtons && twoColumns) {
@@ -461,7 +473,7 @@ private fun PagesView(
         return (2..controlBarPages).filter { pairs[it - 1].isNotEmpty() }
     }
 
-    val pages = buildList {
+    val pageIndices = buildList {
         add(1)
         for (page in 1 until controlBarPages) {
             if (pairs[page].isNotEmpty()) {
@@ -480,7 +492,7 @@ private fun PagesView(
             val scrollState = rememberScrollState()
             val density = LocalDensity.current
             val decay = rememberSplineBasedDecay<Float>()
-            val scrollTargetBehavior = remember(model, scrollState, density, decay, containerWidth, pages) {
+            val scrollTargetBehavior = remember(model, scrollState, density, decay, containerWidth, pageIndices) {
                 ControlBarLandscapePageScrollTargetBehavior(
                     model = model,
                     scrollState = scrollState,
@@ -488,11 +500,11 @@ private fun PagesView(
                     decay = decay,
                     containerWidth = containerWidth,
                 ) {
-                    quickButtons.activePage.value = pages.getOrNull(quickButtons.page - 1)
+                    pages.activePage.value = pageIndices.getOrNull(pages.page - 1)
                 }
             }
-            LaunchedEffect(activePage, pages, containerWidth) {
-                val index = pages.indexOf(activePage)
+            LaunchedEffect(activePage, pageIndices, containerWidth) {
+                val index = pageIndices.indexOf(activePage)
                 if (index >= 0) {
                     scrollState.animateScrollTo(
                         with(density) { (index * (containerWidth + 8)).dp.roundToPx() },
@@ -543,13 +555,13 @@ private fun PagesView(
                         .align(Alignment.BottomCenter)
                         .offset(x = offsetX().dp, y = 13.dp),
                 ) {
-                    PageIndicatorView(model = model, size = 5f, quickButtons = quickButtons)
+                    PageIndicatorView(model = model, size = 5f, quickButtons = quickButtons, pages = pages)
                 }
             }
         }
         if (isMac()) {
             Box(modifier = Modifier.padding(top = 1.dp)) {
-                PageIndicatorView(model = model, size = 9f, quickButtons = quickButtons)
+                PageIndicatorView(model = model, size = 9f, quickButtons = quickButtons, pages = pages)
             }
         }
     }
@@ -591,6 +603,7 @@ fun ControlBarLandscapeView(model: Model = LocalModel.current, quickButtons: Set
             PagesView(
                 model = model,
                 quickButtons = model.quickButtons,
+                pages = model.quickButtonsPages,
                 quickButtonsSettings = quickButtons,
                 width = width,
                 modifier = Modifier.weight(1f),

@@ -2336,26 +2336,25 @@
   },
   "Moblin/Various/Model/Chat/ChatProvider.swift": {
     "status": "ok",
-    "sha256": "f8c2ee14856db561753700d543993440e05e76bad4e840462ae7dcf941ac0769",
-    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "sha256": "efa412e04618f0cd1f391b7bd57b2206acee4cefd55c9bb229222e132c6a83de",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt",
     "notes": [
-      "ChatProvider no longer takes maximumNumberOfMessages; the class has no primary constructor parameter and uses the global maximumNumberOfChatMessages from com.moblin.android.various.model.",
-      "Updated appendMessage now drops the oldest paused post once the paused queue exceeds 2 * maximumNumberOfChatMessages - 1, then appends.",
-      "update() in the paused branch now reports the full pausedPosts count instead of count - 1.",
-      "pause() takes no redLine argument and starts with an empty pausedPosts queue.",
-      "endReachedWhenPaused() lost the red line de-duplication logic and now only trims the posts list.",
-      "Removed the now unused kotlin.math.max import."
+      "Changed the chat list ordering to match the new Swift behaviour: new posts are appended to the end and the oldest post is removed from the front once the limit is reached, instead of prepending.",
+      "Extracted the limit handling into a private appendPost(post) helper, called from update() and endReachedWhenPaused() exactly like the Swift source.",
+      "posts stays a MutableStateFlow<List<ChatPost>>; appendPost builds a mutable copy, trims the first element and publishes the new list.",
+      "deleteMessage/deleteUser, pause(), appendMessage() and the published flags are untouched.",
+      "MainTimer.startSingleShot(5.0) keeps the Swift 5 second timeout."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 42081,
-    "tokens_out": 2571,
-    "seconds": 10.9,
-    "ported_at": "2026-09-30T23:15:01+00:00"
+    "tokens_in": 41680,
+    "tokens_out": 1535,
+    "seconds": 7.9,
+    "ported_at": "2026-11-08T23:41:32+00:00"
   },
   "Moblin/Various/Model/ModelMusic.swift": {
     "status": "ok",
@@ -2387,25 +2386,24 @@
   },
   "Moblin/View/ControlBar/ControlBarUtils.swift": {
     "status": "ok",
-    "sha256": "134a545001c4fd0ee206652e4df3d4a2826184afa5406f3686ccd03a7eed4f86",
-    "tier": "logic",
+    "sha256": "722a5f95f13db523c5b85092a799fc9b095bd10e83f04669935c698b8e627a8c",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "incremental",
+    "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarUtils.kt",
     "notes": [
-      "@MainActor has no Kotlin equivalent; the function is a plain top-level function and callers are responsible for main-thread dispatch.",
-      "Swift's count(where:) becomes Kotlin's count { } on the pairs list.",
-      "Swift's clamped(to: 1...pages) becomes coerceIn(1, pages) on the Int page property.",
-      "Int arithmetic is widened with toDouble() because Swift's Double(...) conversion is implicit in Kotlin's stricter typing.",
-      "Behavior when the number of non-empty pages is 0 matches Swift: the clamped range is empty, so the call fails the same way; no extra guard was added.",
-      "quickButtons.pairs.isEmpty is assumed to be a Boolean property on QuickButtonPair in com.moblin.android.various.model."
+      "Renamed model.quickButtons to model.quickButtonsPages in controlBarScrollTargetBehavior; quickButtons.pairs is still used for the page count, as in the Swift.",
+      "Added the SettingsButtonImage composable: the gearshape symbol sits in a controlBarButtonSize box with an overlaid secondary-colour circle stroke, white tint.",
+      "The Circle().stroke(.secondary) overlay is drawn with Modifier.border on CircleShape because the image frame is square, so the border matches the iOS circle exactly.",
+      "SystemImage from com.moblin.android.platform replaces Image(systemName:); the secondary stroke colour comes from formPalette().secondaryLabel."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2352,
-    "tokens_out": 1142,
-    "seconds": 4.7,
-    "ported_at": "2026-09-22T12:43:29+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42617,
+    "tokens_out": 2147,
+    "seconds": 11.5,
+    "ported_at": "2026-11-08T23:41:45+00:00"
   },
   "Moblin/Various/Model/ModelSpeechToText.swift": {
     "status": "ok",
@@ -4529,30 +4527,26 @@
   },
   "Moblin/Various/Gimbal.swift": {
     "status": "ok",
-    "sha256": "7215845b9bb20945a43f6c00db2cf6fa43efd5f327d4bfff6a194c314578c02d",
+    "sha256": "0c6d32f3fd35b4e5523faae933888a62e0786b435872e5f4119dcc3c92db8afb",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/Gimbal.kt",
     "notes": [
-      "DockKit is Apple-only: every DockAccessory/DockAccessoryManager interaction (state observation, system tracking, orientation, animation, angular velocity, accessory events) is replaced by TODO(\"no Android counterpart for DockKit\").",
-      "The Swift #if canImport(DockKit) / #else variants collapse into one Kotlin class whose public signatures match the stub branch; isConnected() still mirrors 'accessory != null'.",
-      "Spatial.Vector3D has no Android type, so a local data class Vector3D(x, y, z) is declared in this file; it is used only in gimbal signatures.",
-      "DockAccessory is kept untyped as Any? because its members do not exist in Kotlin; the private observer methods take Any for the same reason.",
-      "Fire-and-forget Task { } bodies become gimbalScope.launch { }, a private file-level CoroutineScope(Dispatchers.Main) standing in for @MainActor + Task.",
-      "setOrientation/getCurrentOrientation are suspend functions; their '!tracking' guards and the nil result while tracking is enabled are preserved.",
-      "handleAccessoryEventCameraShutter/Flip/Zoom are fully translated against Model.database.gimbal, Model.handleControllerFunction and Model.setZoomX (Float conversions added because the Kotlin settings types are unknown).",
-      "Those camera event handlers stay unreachable until an Android gimbal backend feeds handleAccessoryEvent, which is itself a TODO."
+      "Only the two zoom calls change: Swift's `model.zoom.x` became `model.zoom.level.x`.",
+      "Following the existing `model.zoom.x.value` shape, `zoom` is ported as an ObservableObject-style holder whose published members are MutableStateFlows, so the new published `level` struct is read as `model.zoom.level.value.x`.",
+      "Everything else in the file is untouched, including the DockKit-free stub bodies of the #else branch."
     ],
     "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 3675,
-    "tokens_out": 27078,
-    "seconds": 113.9,
-    "ported_at": "2026-09-22T12:56:04+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
     "apple_only": [
       "DockKit (DockAccessoryManager, DockAccessory, DockAccessory.StateChange, DockAccessory.AccessoryEvent, DockAccessory.Animation): no Android counterpart, replaced with TODO"
-    ]
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 34529,
+    "tokens_out": 5137,
+    "seconds": 27.5,
+    "ported_at": "2026-11-08T23:42:07+00:00"
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift": {
     "status": "ok",
@@ -4638,24 +4632,23 @@
   },
   "Moblin/Various/Model/ModelGimbal.swift": {
     "status": "ok",
-    "sha256": "49ad6f34f8e84f430fa0b1c1f68bd72897bd86aafb966ad764baffde5f0b2e7b",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "525d0ed612f7b95c18e7901aa854a31abaa53fe1e8650e77aba5b06874d8f649",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelGimbal.kt",
     "notes": [
-      "Renamed RemoteControlAssistantStreamerState to RemoteControlState in the import and in the two remoteControlStateChanged calls; everything else is unchanged.",
-      "Gimbal availability guards are dropped since the Kotlin Gimbal shim always exists.",
-      "saveGimbalPreset runs in mainScope.launch with try/catch mapping the Swift do/catch.",
-      "processGimbalPresetQueue keeps the delay(300) zoom step plus a separate orientation coroutine."
+      "Only the two `preset.zoomX` assignments change, from `zoom.x.value` to `zoom.level.value.x`.",
+      "`zoom.level` is treated like the other high-frequency zoom state in the port, a `MutableStateFlow<SettingsZoomLevel>`, so the current value is read with `.value` and `.x` is the struct field, mirroring the previous `zoom.x.value`.",
+      "Everything else in the file, including the gimbal preset queue, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 43370,
-    "tokens_out": 1265,
-    "seconds": 5.9,
-    "ported_at": "2026-11-07T23:30:24+00:00"
+    "tokens_out": 4055,
+    "seconds": 21.1,
+    "ported_at": "2026-11-08T23:42:28+00:00"
   },
   "Moblin/Various/Model/ModelStreamWizard.swift": {
     "status": "ok",
@@ -4785,24 +4778,23 @@
   },
   "Moblin/Various/Model/ModelCamera.swift": {
     "status": "ok",
-    "sha256": "0ac83f8e0194bc5656a9af6c1c06226849f31287e697c438eefeae46a02189f2",
-    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+    "sha256": "a7a43e3367287b80c7eb3619e2317b64f7a9bed5622ec0f1fec1e5b7c0e688e0",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelCamera.kt",
     "notes": [
-      "Only lutEnabledUpdated() changed: the Swift comparison database.color.space == .appleLog became database.color.space.isAppleLog().",
-      "setColorSpace() stays the hand-written Android version (always MediaFormat.COLOR_STANDARD_BT709 through media.setColorSpace); the new Swift .appleLog2 availability branch has no Kotlin counterpart because Android selects the colour space through MediaFormat, so its behaviour is unchanged.",
-      "The now-unused import of SettingsColorSpace is kept because untouched Kotlin lines must stay byte-identical.",
-      "Everything else in the file is unchanged: KVO observations use NSKeyValueObservation.holder(), @Published state is exposed as MutableStateFlow with setX helpers, and camera dictionaries stay keyed by CaptureDevice."
+      "Only setColorSpace's zoom read changed: zoom.x became zoom.level.x, translated as zoom.level.x.value to match the StateFlow convention the port uses for zoom coordinates.",
+      "Everything else is byte-identical to the previous Kotlin file, including the CaptureDevice wrappers, KVO observations and Android-only helpers.",
+      "customColorSpace mapping still maps to MediaFormat.COLOR_STANDARD_BT709 in the hand-written media.setColorSpace hook; unchanged by this diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 73044,
-    "tokens_out": 10671,
-    "seconds": 35.1,
-    "ported_at": "2026-11-05T00:34:40+00:00"
+    "tokens_in": 72947,
+    "tokens_out": 13043,
+    "seconds": 51.0,
+    "ported_at": "2026-11-08T23:42:37+00:00"
   },
   "Moblin/Various/Network/DnsLookup.swift": {
     "status": "ok",
@@ -7539,28 +7531,24 @@
   },
   "Moblin/Various/Utils/UiUtils.swift": {
     "status": "ok",
-    "sha256": "3fa1545b2554c959bd8804e654831b5d338a403f2bd91546a8e272ead2959170",
-    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
-    "mode": "full",
+    "sha256": "7ffd314e2be486c1e5ad0f92783eb20a93786da6a77b97cb7a9be0de115e76da",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/UiUtils.kt",
     "notes": [
-      "@MainActor on getOrientation/isPhone/isPad/getWindow/getRootViewController/screenScale is dropped; the Kotlin functions are plain and are called from the main thread.",
-      "getOrientation's body starts at the interface orientation, as specified: the port's platform hook prepends the com.moblin.android.platform.uikit.UIDevice.current.orientation check before it.",
-      "This file declares object UIDevice (vibration only), which shadows the UIKit UIDevice, so the UIKit one is referenced fully qualified as com.moblin.android.platform.uikit.UIDevice.",
-      "DeviceOrientation mirrors UIDeviceOrientation with UPPER_SNAKE entries; UIInterfaceOrientation.landscapeLeft maps to LANDSCAPE_RIGHT and landscapeRight to LANDSCAPE_LEFT, exactly as the Swift switch does.",
-      "interface Identifiable<ID> { val id: ID } is declared here because Kotlin has no standard-library equivalent, and makeOffsets is generic over it.",
-      "makeOffsets returns Int? (the index) instead of IndexSet?, matching the shape its callers use.",
-      "UIImage.resize(height:) becomes Bitmap.resize(height: Float) with Bitmap.createScaledBitmap at 1x instead of UIGraphicsImageRenderer, as the port specifies.",
-      "screenScale() returns Float and keeps the UIScreen.main.scale fallback; isMac() is always false and ProcessInfo is not instantiated."
+      "getOrientation now falls through to the window scene for portrait/portraitUpsideDown as well, and the two new interface-orientation branches were added to the when.",
+      "The hand-written hook that reads UIDevice.current.orientation and returns the DeviceOrientation directly is kept byte-identical; it also stands in for Swift's `orientation.isValidInterfaceOrientation || isMac()` (isMac() is always false on Android).",
+      "The scene lookup now uses compactMap + firstOrNull instead of first(where:) + flatMap; the UIWindowScene.session.role == .windowApplication filter is dropped because on Android connectedScenes holds only the resumed activity's window scene and the platform UIWindowScene has no session member.",
+      "Everything else in the file (Bitmap.resize, UIDevice.vibrate, isPhone/isPad/isMac, window and screen helpers, Identifiable and makeOffsets) is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 40353,
-    "tokens_out": 6789,
-    "seconds": 25.0,
-    "ported_at": "2026-09-25T11:40:42+00:00"
+    "tokens_in": 48351,
+    "tokens_out": 2932,
+    "seconds": 14.7,
+    "ported_at": "2026-11-08T23:41:39+00:00"
   },
   "Moblin/VideoEffects/TwinEffect.swift": {
     "status": "ok",
@@ -12170,24 +12158,23 @@
   },
   "Moblin/VideoEffects/ChatEffect.swift": {
     "status": "ok",
-    "sha256": "5fd8932b58c039ea0b8077e645c3c559085136fece43e9d1b24a00d97c6137d3",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "76284ef0276fb07699159233a2929d6b5b9546958c31e9998c4ab0036266ac2f",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt",
     "notes": [
-      "The Swift diff only adds `font: settings.font` to makeChatLineStyle; the Kotlin ChatLineStyle call gains `font = settings.font` after `displayStyle`.",
-      "Everything else in ChatEffect.kt stays byte-identical, including the Android-only hooks (PipelineStats.increment, Dispatchers.Main.immediate, WeakReference, toBitmap/cgImage usage).",
-      "The settings.objectWillChange subscription of the Swift renderer stays dropped, as in the current Kotlin file: setSettings calls renderer.scheduleRender() instead.",
-      "`settings.font` is a settings value object passed straight through; no extra import is required because its type is inferred from ChatLineStyle's `font` parameter."
+      "Only the render() post selection changed: prefix + reversed became takeLast(settings.maximumNumberOfMessages).",
+      "chat.posts is a MutableStateFlow<List<ChatPost>>, so the new Swift `chat.posts.suffix(n)` translates to `chat.posts.value.takeLast(n)`.",
+      "The `.filter { !$0.state.deleted }` tail and everything else in the file is unchanged from the current Kotlin version."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61767,
-    "tokens_out": 4407,
-    "seconds": 14.6,
-    "ported_at": "2026-09-24T15:40:08+00:00"
+    "tokens_in": 65614,
+    "tokens_out": 3308,
+    "seconds": 12.1,
+    "ported_at": "2026-11-08T23:42:41+00:00"
   },
   "Moblin/VideoEffects/QrCodeEffect.swift": {
     "status": "ok",
@@ -14121,28 +14108,24 @@
   },
   "Moblin/Various/Model/ModelZoom.swift": {
     "status": "ok",
-    "sha256": "6ab8288df2a15ed23f6b88b76af3cc744659976df40637d0ce9815f38912ac85",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "d5ca161e4e8e7c9b419f4bcedb49b7fcb7c99748be2a2b233869fc85e7c2203a",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelZoom.kt",
     "notes": [
-      "The Swift diff renames RemoteControlAssistantStreamerState to RemoteControlState in all remoteControlStateChanged calls; the import was swapped accordingly.",
-      "MacZoomRamp lives behind #if targetEnvironment(macCatalyst) and is not compiled for Android, so it is not translated, matching the previous port.",
-      "zoomPresetsMayHaveChanged was renamed to activeZoomPresetsMayHaveChanged and now sends zoomPreset plus zoomCamera via the new makeRemoteControlZoomCamera/getRemoteControlZoomPresetId helpers.",
-      "makeRemoteControlZoomPresets/makeRemoteControlZoomCamera/getRemoteControlZoomPresetId are added as Model extension functions in the same order as the Swift source.",
-      "updateBackZoomPresetId/updateFrontZoomPresetId now fall back to noBackZoomPresetId/noFrontZoomPresetId when no preset matches the current x.",
-      "clearZoomPresetId() calls were removed from setZoomX, updateBackZoomSwitchTo and updateFrontZoomSwitchTo per the Swift change.",
-      "Camera position is still compared through AVCaptureDevice.Position ordinal values as in the existing port.",
-      "RemoteControlZoomPreset now also carries the preset x value (id, name, x) as in the Swift mapping."
+      "Added ZoomLevel holding the zoom factor as a MutableStateFlow; x and statusText moved there from Zoom.",
+      "Zoom now exposes level: ZoomLevel first in its body, matching Swift's `let level = ZoomLevel()`.",
+      "All uses of the old Zoom.x flow became zoom.level.x (read with .value at call sites) exactly where Swift changed zoom.x to zoom.level.x.",
+      "MacZoomRamp remains untranslated, as in the previous port; it is macCatalyst-only and outside the diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59594,
-    "tokens_out": 4739,
-    "seconds": 20.3,
-    "ported_at": "2026-11-07T23:32:47+00:00"
+    "tokens_in": 59106,
+    "tokens_out": 3552,
+    "seconds": 13.0,
+    "ported_at": "2026-11-08T23:43:54+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffect.swift": {
     "status": "ok",
@@ -14557,23 +14540,28 @@
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
-    "sha256": "5ed4dd5ff58cd53de84284331d09c444a2660572b021f21abd6e200e77777559",
-    "moblin_commit": "4f25c4c9f9af9144ed6860e8ad58677e376d98b2",
+    "sha256": "b98b7f01d474c8dcb1df4250a5cad6133db57772c07a85eec59b324959bce5c1",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt",
     "notes": [
-      "Added sceneEditorAction(), setting model.presentingSceneEditor to true through its state flow.",
-      "Added the SettingsQuickButtonType.sceneEditor branch after photoShoot, rendering QuickButtonImage with sceneEditorAction().",
-      "No other declarations or imports changed."
+      "QuickButtonImage no longer draws the circle background/clip; the caller QuickButtonsInnerView now paints it behind the button view, matching the new Swift structure.",
+      "The removed Swift backgroundColor()/timeLeft() background is reflected by deleting the buttonColor/backgroundColor locals that only existed to feed those backgrounds.",
+      "InstantReplayView's time-left text is now a bare sized Box (background comes from the outer wrapper); the button parameter stays for the non-playing QuickButtonImage branch.",
+      "selectedRing() is translated as a composable lambda declared just before the Column, mirroring its position before the Swift var body.",
+      "The outer ZStack now branches on unknown / selected / other: unknown draws no circle, the other two draw the button background and only the selected one adds the yellow ring.",
+      "The trailing .rotationEffect(.degrees(180)) on QuickButtonsInnerView's VStack was removed, so the root Column keeps only its horizontal alignment.",
+      "QuickButtonsInnerView keeps its Compose-friendly default model = LocalModel.current even though Swift changed to a plain let model: Model.",
+      "The now-unused androidx.compose.ui.draw.clip import was dropped; background, border, CircleShape and rotate imports are still in use."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61487,
-    "tokens_out": 8083,
-    "seconds": 27.3,
-    "ported_at": "2026-10-31T22:53:24+00:00"
+    "tokens_in": 62287,
+    "tokens_out": 13042,
+    "seconds": 52.1,
+    "ported_at": "2026-11-08T23:43:30+00:00"
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
@@ -15371,27 +15359,25 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayLeftView.swift": {
     "status": "ok",
-    "sha256": "f6ef426e573629df9e14bae3fafbf5a4728f9e7ae3a4fff94021fe27a1e6e3a2",
+    "sha256": "c72a6b5e8eaf257d6aa84d4352999cb4fc10fb3d4cc795544231a9b0b24fdbc3",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayLeftView.kt",
     "notes": [
-      "@ObservedObject/@EnvironmentObject models are passed in as parameters and their published properties are read with collectAsState().",
-      "Enum entries keep the Swift names (StreamOverlayIconAndTextPlacement.afterIcon/.hide) and are referenced as constants of the ported enum class.",
-      "The Swift `.padding(20).contentShape(Rectangle()).padding(-20)` tap-area trick has no Compose equivalent (negative padding is invalid), so that padding pair is dropped; the enclosing LeftOverlayView keeps the tap gesture.",
-      "Platform logos use Image(platform.imageName()); the drawable is resolved with Resources.getIdentifier and nothing is drawn when the drawable is missing.",
-      "model.isShowingStatus*()/is*Configured()/is*Connected() style calls are made directly; if the Model port exposes them as StateFlow-backed state, hoist those reads into collectAsState() so recomposition still works.",
-      "Inline SF Symbols are mapped to material-icons-extended: eye -> Visibility, message -> Chat; other symbols stay as strings because StreamOverlayIconAndTextView takes the symbol name.",
-      "countFormatter.format(viewerCount) keeps the shared formatter from com.moblin.android.common.various.",
-      "StreamingPlatformStatus status is handled as a sealed hierarchy StreamingPlatformStatus.Status with Live(viewerCount)/Unknown/Offline."
+      "ZoomView now observes a ZoomLevel instead of the whole Zoom object.",
+      "The call site passes model.zoom.level as on iOS.",
+      "ZoomLevel.statusText() is recomputed in remember(x) from its MutableStateFlow x.",
+      "Import of Zoom replaced by ZoomLevel; model.zoom.hasZoom still collected in StatusesView.",
+      "Everything else is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7083,
-    "tokens_out": 16375,
-    "seconds": 60.7,
-    "ported_at": "2026-09-22T14:02:52+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 51165,
+    "tokens_out": 3744,
+    "seconds": 12.9,
+    "ported_at": "2026-11-08T23:44:08+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatModerationView.swift": {
     "status": "ok",
@@ -15550,25 +15536,28 @@
   },
   "Moblin/View/ControlBar/ControlBarLandscapeView.swift": {
     "status": "ok",
-    "sha256": "f16d74f063e2c067cd9d6c75ef257214f1d7ae3156e30613b092a3e022c8c61b",
-    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "sha256": "3bf0968791a896e69e5848a22e644109bae26d4e5cd93230b8efbeba13744a7e",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarLandscapeView.kt",
     "notes": [
-      "Added the new extraPages() helper in PagesView, mirroring the Swift (2 ... controlBarPages) filter over quickButtons.pairs.",
-      "The content Row now iterates (listOf(1) + extraPages()), the Compose equivalent of MainPageView with .id(1) followed by ForEach(extraPages()).",
-      "The removed .id(page + 1) has no effect in Kotlin: rows were and still are keyed by their page number with key(page).",
-      "Swift's switch from HStack to LazyHStack is a laziness change; the hand-written horizontalScroll Row is kept as is, and the visible page list is identical.",
-      "The scroll targeting logic keeps using the existing pages list, which equals listOf(1) + extraPages()."
+      "The page/activePage scroll state now lives in QuickButtonsPages: PageIndicatorView, PagesView and ControlBarLandscapeView take a `pages: QuickButtonsPages` parameter instead of reading it from QuickButtons.",
+      "QuickButtonsPages is used as `var page: Int` plus `MutableStateFlow<Int?>` for `activePage`, matching how QuickButtons exposed them before and how ControlBarUtils reads `model.quickButtonsPages.page`.",
+      "The local page-index list in PagesView was renamed `pageIndices` so it no longer shadows the new `pages` parameter.",
+      "EndAnchoredScrollView has no scrollDisabled parameter, so when `enableScroll` is false PageView renders the same content without the scroll container.",
+      "QuickButtonsView now iterates `getQuickButtonPairs(...).reversed()` and puts `pair.first` before `pair.second`, which is the top row on screen after the reversal.",
+      "The two-column row is top aligned (Alignment.Top) as in the new Swift source.",
+      "SettingsButtonImage() from ControlBarUtils replaces the hand-drawn gearshape/circle button in IconAndSettingsView.",
+      "The removed 180 degree rotation of the page scroll is gone; the quick buttons column is now start aligned."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49968,
-    "tokens_out": 7318,
-    "seconds": 26.0,
-    "ported_at": "2026-11-06T00:36:36+00:00"
+    "tokens_in": 51206,
+    "tokens_out": 13018,
+    "seconds": 59.0,
+    "ported_at": "2026-11-08T23:43:41+00:00"
   },
   "Moblin/Various/Settings/SettingsMacros.swift": {
     "status": "ok",
@@ -15593,27 +15582,26 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "5fd915b3bcd3546ff452e649d20e961ba199e4b2ea51765597037f91f5906f04",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "64acb2ad6323abf8285e4cd6630ba0a1813da793cf9008554bd6d8151c135060",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "createRemoteControlStateChanged and remoteControlAssistantStateChanged now use RemoteControlState instead of RemoteControlAssistantStreamerState; the import was swapped accordingly.",
-      "remoteControlStateChanged now diffs through remoteControlSentState.applyChanges(from = state) and forwards only the changes; remoteControlStreamerConnected calls remoteControlStreamer?.stateChanged directly with the full state.",
-      "New private helper updateRemoteControlAssistantZoomPresets() reads remoteControlAssistantStreamerState.zoomCamera plus remoteControl.settings.zoomPresets and stores zoomPresets.active(camera = camera).",
-      "The old cameraPosition switch filling zoomPresets is replaced by state.zoomPreset = getRemoteControlZoomPresetId() and state.zoomCamera = makeRemoteControlZoomCamera(), which must exist in the ModelZoom port.",
-      "remoteControlGetSettings now passes zoomPresets = RemoteControlSettingsZoomPresets(front = makeRemoteControlZoomPresets(database.zoom.front), back = ...).",
-      "Tally forwarding added: remoteControlStreamerShowTally/remoteControlStreamerHideTally, remoteControlWebShowTally/remoteControlWebHideTally, tally.hide() on both disconnect paths, and matching delegate adapter overrides.",
-      "remoteControlSetZoom resets remoteControlSentState.zoom = null so the next diff resends the zoom value."
+      "Added RemoteControlPreview (a plain class holding a MutableStateFlow<Bitmap?>) and replaced RemoteControl.preview's MutableStateFlow<Bitmap?> with `val preview = RemoteControlPreview()`; views must now read `remoteControl.preview.image.collectAsState()`.",
+      "Added previewQueue as a single-thread CoroutineScope (the Swift serial DispatchQueue) at file top.",
+      "remoteControlAssistantPreview now decodes the JPEG off the main thread in previewQueue and publishes the Bitmap on the main thread through mainScope.launch.",
+      "UIImage.preparingForDisplay() has no Android counterpart and is dropped: a BitmapFactory-decoded Bitmap is already display-ready.",
+      "Zoom status now goes through zoom.level: `zoom.level.statusText()` and `zoom.level.x.value`, following the Swift zoom.x -> zoom.level.x change.",
+      "mainScope, remoteControl, isWatchRemoteControl and sendPreviewToWatch resolve in the same package as before; no new Moblin imports other than coroutine/executor ones."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 100600,
-    "tokens_out": 24777,
-    "seconds": 90.9,
-    "ported_at": "2026-11-07T23:35:23+00:00"
+    "tokens_in": 100127,
+    "tokens_out": 22456,
+    "seconds": 73.0,
+    "ported_at": "2026-11-08T23:45:22+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
@@ -15682,23 +15670,28 @@
   },
   "Moblin/View/ControlBar/ControlBarPortraitView.swift": {
     "status": "ok",
-    "sha256": "a5760d7de010f22ca4e26e733ed257792c63a406e437eb4ff46624e25978b561",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "dedec0936aa5210a69b831aa42b74c95e692218e6071c4388f6bbf67e36ad712",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarPortraitView.kt",
     "notes": [
-      "The Swift diff only replaces @EnvironmentObject var model with a plain let model in IconAndSettingsView, so the Kotlin Android counterpart is the removal of the LocalModel.current default on that parameter.",
-      "The call site already passed model explicitly in the previous Kotlin translation, so it stays byte-identical.",
-      "IconAndSettingsView stays private and has a single call site, so making model a required parameter breaks nothing."
+      "QuickButtonsView now iterates model.getQuickButtonPairs(page + 1).reversed() and puts the pair's first button before the second (two-column column is trailing-aligned, single-row branch draws first then second).",
+      "PageView uses EndAnchoredScrollView(axis = Axis.horizontal) instead of a rotated horizontalScroll; the 180 degree rotation and its imports are gone.",
+      "EndAnchoredScrollView has no enabled parameter, so .scrollDisabled(!enableScroll) is kept by composing the plain content when scrolling is disabled.",
+      "The settings button in IconAndSettingsView now calls the shared SettingsButtonImage() composable instead of drawing gearshape with a stroked circle.",
+      "PagesView takes a new pages: QuickButtonsPages parameter and reads/writes pages.activePage instead of quickButtons.activePage.",
+      "The local page-id list in PagesView was renamed pageIds so it no longer shadows the new pages parameter.",
+      "ControlBarPortraitView passes pages = model.quickButtonsPages to PagesView.",
+      "Imports for border, CircleShape, SystemImage, Color, sp, rotate and horizontalScroll were dropped with the lines that used them."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47589,
-    "tokens_out": 4345,
-    "seconds": 12.9,
-    "ported_at": "2026-10-06T23:23:55+00:00"
+    "tokens_in": 48953,
+    "tokens_out": 10723,
+    "seconds": 48.5,
+    "ported_at": "2026-11-08T23:44:19+00:00"
   },
   "Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift": {
     "status": "ok",
@@ -15767,25 +15760,23 @@
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
-    "sha256": "5f8277e990f5bada3d4032d447a96047e3f0ff3759034ece0ce46ba5acfed6ea",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "3317ffbfa53449a550fe99d34f2edf1fff50aa2dcf7326ec0d160b1affadb16e",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/quickbuttons/QuickButtonsSettingsView.kt",
     "notes": [
-      "Added the private data class ButtonsPage (id + buttons) that the new Swift code introduces.",
-      "ButtonsSettingsView now builds pages() with mapNotNull over 1..controlBarPages and renders one Section per non-empty page.",
-      "The Filter text field Section and its BasicTextField are unchanged from the previous Kotlin version.",
-      "ButtonSettingsView, AppearanceSettingsView and QuickButtonsSettingsView are untouched by the diff and kept byte-identical.",
-      "No new imports were needed."
+      "Only the onAppear block of ButtonSettingsView changed: the page writes now target model.quickButtonsPages instead of model.quickButtons.",
+      "The new writes mirror the sibling QuickButtons calls already in the file: plain assignment for page, .value for activePage.",
+      "Everything else, including imports, the onNavigate parameter and the filter field, is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44232,
-    "tokens_out": 2982,
-    "seconds": 12.5,
-    "ported_at": "2026-10-09T00:01:32+00:00"
+    "tokens_in": 44135,
+    "tokens_out": 2462,
+    "seconds": 11.3,
+    "ported_at": "2026-11-08T23:44:30+00:00"
   },
   "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift": {
     "status": "ok",
@@ -15809,24 +15800,26 @@
   },
   "Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift": {
     "status": "ok",
-    "sha256": "801080acebd746c2ff54706c67adeb38cb6a5acf7fd01fa19d22c2a31be30985",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "3fc4f45788915088c6ac5ecf4302b2c86728b3051a20c486725fb78564a0b09c",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/remotecontrolassistant/ControlBarRemoteControlAssistantView.kt",
     "notes": [
-      "Only two changes applied: the ZoomView submit guard was already merged in Kotlin, so only the Queue section footer was added.",
-      "The Swift footer interpolates maximumMusicQueueLength, so the localized sentence is split around the value.",
-      "Added the maximumMusicQueueLength import from com.moblin.android.various.model.",
-      "Everything else in the file is unchanged."
+      "Adds a shared PreviewImageView composable that collects RemoteControlPreview.image and renders the content builder or the 'No preview received yet.' text.",
+      "Both former inline preview/fallback branches in the status section and the full-screen preview now call PreviewImageView.",
+      "The now-unused `val preview by remoteControl.preview.collectAsState()` reads at both call sites were removed.",
+      "The fallback Text keeps the Android tint formPalette().label that the full-screen branch had.",
+      "Content lambda takes an android.graphics.Bitmap, which call sites wrap with asImageBitmap() as before.",
+      "No other declarations changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 72214,
-    "tokens_out": 13150,
-    "seconds": 39.0,
-    "ported_at": "2026-10-22T22:53:12+00:00"
+    "tokens_in": 73036,
+    "tokens_out": 14148,
+    "seconds": 46.9,
+    "ported_at": "2026-11-08T23:46:10+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift": {
     "status": "ok",
@@ -16008,27 +16001,26 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "6c42eb32d33bfaf4a5c306b49d1a2d9c0bf10f6f587652dade9a84975fc31218",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "09cfe89d1b2e942364c1d0f661691171e575a33bd002261b5a388fc4a54649d9",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Removed the WidgetOutline struct and the SceneEditor/WidgetOutlines classes, which moved out of Model.swift; they now come from another file in the same package.",
-      "Replaced the model's widgetOutlines/sceneEditorWidgetOutlines with the new tally property.",
-      "remoteControlAssistantStreamerState and the new remoteControlSentState now use RemoteControlState (com.moblin.android.remotecontrol).",
-      "Dropped the updateWidgetOutlinesForShowingPanel() call from toggleShowingPanel.",
-      "The three back-camera attach helpers now delegate to one private attachBackLowEnergyCamera that picks the lens from a device-type lambda.",
-      "attachBufferedCamera now calls activeZoomPresetsMayHaveChanged() instead of zoomPresetsMayHaveChanged().",
-      "Camera position keeps the Android CameraSelector.LENS_FACING_BACK constant already used by this port."
+      "QuickButtons is split in two: QuickButtons keeps pairs and selectedButtonType, and the new QuickButtonsPages holds page and activePage, both reachable from Model.",
+      "Model gains val quickButtonsPages = QuickButtonsPages() right after quickButtons.",
+      "Every zoom.x read/write in the touched lines now goes through the nested level object: zoom.level.x.value, and zoom.xPinch / setCameraZoomX read the same value.",
+      "handleApplicationDidChangeActive now calls updateOrientation() before re-showing the camera preview (the Dart-side same fix).",
+      "updateOrientation and updateCameraPreviewRotation read the device orientation once from getOrientation() instead of UIDevice.current.orientation.",
+      "The three hand-written one-liner quick-switch functions (attachBackTriple/Dual/WideDualLowEnergyCamera) were left untouched because the Swift diff does not change them."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 149523,
-    "tokens_out": 36833,
-    "seconds": 118.5,
-    "ported_at": "2026-11-07T23:37:24+00:00"
+    "tokens_in": 148741,
+    "tokens_out": 38211,
+    "seconds": 120.3,
+    "ported_at": "2026-11-08T23:46:33+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16194,25 +16186,24 @@
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift": {
     "status": "ok",
-    "sha256": "6d357308c1c191a219a425db4ae3e0583a779f883275e1892e133eb81dc84065",
-    "moblin_commit": "650de8250cd76c05e44fc50c5786cb1342936f65",
+    "sha256": "fce1e27d9ea4e81bf5c4bf6248afa67d3fcf63fbefdae4bfbae5fa27c32c24fa",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/quickbuttons/QuickButtonsButtonSettingsView.kt",
     "notes": [
-      "Only the page Picker's onChange changed: Swift added model.database.objectWillChange.send() after model.updateQuickButtonPairs().",
-      "The Kotlin port's settings classes expose their @Published state through Published delegates and flows and declare no objectWillChange, so that Combine notification has no counterpart and stays a TODO at the same position.",
-      "All other declarations, imports and formatting are kept byte-identical to the current Kotlin file."
+      "Only the two lines inside the Page picker's onChange changed, now going through model.quickButtonsPages instead of model.quickButtons.",
+      "The current Kotlin already writes page before updateQuickButtonPairs(); that ordering is preserved.",
+      "activePage is treated as a MutableStateFlow in Kotlin, so the write uses .value like the previous quickButtons.activePage write.",
+      "No new imports are needed: Model was already imported and the QuickButtonsPages type is never named."
     ],
-    "unsupported": [
-      "model.database.objectWillChange.send() (Combine ObservableObjectPublisher on the settings Database)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49595,
-    "tokens_out": 7055,
-    "seconds": 27.8,
-    "ported_at": "2026-10-07T23:54:34+00:00"
+    "tokens_in": 49977,
+    "tokens_out": 3962,
+    "seconds": 15.3,
+    "ported_at": "2026-11-08T23:46:25+00:00"
   },
   "Moblin/View/Settings/DjiDevices/DjiDeviceSettingsView.swift": {
     "status": "ok",
@@ -17595,24 +17586,24 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "5f532b3f265f794a0659f0d8d3eabeb936a5b5a2a90caec3a5d2b0d518b0ca5a",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "1f23e1fc7a87e46d2295e29cd61f30a60dcb38a0f6cc2f33a01609f21dee38da",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "Replaced the WidgetOutlinesView call in streamViewWithWidgets with TallyView(tally = model.tally), matching the Swift diff.",
-      "Removed the now-unused WidgetOutlinesView import and added the TallyView import from com.moblin.android.view.stream.",
-      "Dropped widgetOutlines = model.sceneEditorWidgetOutlines from the SceneEditorView call in the full screen cover, as the Swift initializer no longer takes it.",
-      "Everything else in the file is unchanged from the previous Kotlin translation, including the hand-written insets, layout and BrowserWidgetView hosting code."
+      "The Swift change removes `.environmentObject(model)` and adds `orientation: model.orientation` to the SceneEditorView call inside the scene-editor full screen cover.",
+      "The `.environmentObject(model)` removal needs no Kotlin change: MainView already passes `model` to SceneEditorView explicitly.",
+      "The added `orientation` argument is not forwarded because the current Kotlin `SceneEditorView` declaration in com.moblin.android.view.controlbar.sceneeditor takes only model, database, sceneSelector, streamOverlay and sceneEditor; add an `orientation: Orientation` parameter there and pass `orientation = model.orientation` here once it exists.",
+      "Everything else in the file is untouched, so all existing hand-written Android behaviour (inset handling, opacityAndHitTesting, magnificationGesture, browser WebView borrowing) is preserved byte-identically."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 77969,
-    "tokens_out": 12270,
-    "seconds": 38.5,
-    "ported_at": "2026-11-07T23:39:10+00:00"
+    "tokens_in": 77839,
+    "tokens_out": 12933,
+    "seconds": 44.1,
+    "ported_at": "2026-11-08T23:47:10+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",
@@ -18224,28 +18215,19 @@
   },
   "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift": {
     "status": "ok",
-    "sha256": "48471a23c4cc1dc9cae22bb332558e4eafd996576f58a88004296cf988aa2bc3",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "c2c32fcd0950bdc1bc934f41dadf24ec45290c34ed913c510a6d76879287ce4e",
+    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorView.kt",
-    "notes": [
-      "The Swift diff adds private widgetOutlineViewRect and WidgetOutlineLabelView; the Kotlin port already keeps those in com.moblin.android.view.stream and imports them, so no duplicate private declarations are emitted here.",
-      "SceneEditorCanvasView and videoArea now observe SceneEditor.outlines / SceneEditor.canvasSize instead of WidgetOutlines, so the WidgetOutlines import and parameter were removed.",
-      "SceneEditorView no longer takes widgetOutlines; callers must pass only model, database, sceneSelector, streamOverlay and sceneEditor.",
-      "The iOS 26 glass branch of SceneEditorButtonGroupView and of SceneEditorToolbarView collapses to the classic else branch (plain Column/Row with 2.dp spacing, no glass effect).",
-      "The toolbar divider helper was renamed from SceneEditorToolbarDivider to SceneEditorToolbarSeparator to follow the Swift separator() name; the separator renders unconditionally because #unavailable(iOS 26) is always true on Android.",
-      "New SceneEditorButtonGroupView composable added after SceneEditorButtonView, matching the Swift declaration order.",
-      "The toolbar content now gets 4.dp inner padding inside the 52.dp scroll container, as the Swift .padding(4) does.",
-      "SceneEditorView background changed from black to formPalette().groupedBackground for Color(.systemGroupedBackground)."
-    ],
+    "notes": [],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 72452,
-    "tokens_out": 19521,
-    "seconds": 76.5,
-    "ported_at": "2026-11-07T23:40:10+00:00"
+    "tokens_in": 71642,
+    "tokens_out": 16075,
+    "seconds": 61.5,
+    "ported_at": "2026-11-08T23:47:35+00:00"
   },
   "MoblinTests/Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometrySuite.swift": {
     "status": "ok",
