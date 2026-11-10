@@ -203,8 +203,7 @@ private fun ReplayStatusView(
 }
 
 @Composable
-private fun CollapsedAdsRemainingTimerView(status: StatusTopRight) {
-    val adsRemainingTimerStatus by status.adsRemainingTimerStatus.collectAsState()
+private fun CollapsedAdsRemainingTimerView(adsRemainingTimerStatus: String) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -229,13 +228,12 @@ private fun CollapsedAdsRemainingTimerView(status: StatusTopRight) {
 @Composable
 private fun AdsRemainingTimerView(
     model: Model = LocalModel.current,
-    status: StatusTopRight,
+    adsRemainingTimerStatus: String,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val adsRemainingTimerStatus by status.adsRemainingTimerStatus.collectAsState()
     if (model.isShowingStatusAdsRemainingTimer()) {
         if (textPlacement == hidePlacement) {
-            CollapsedAdsRemainingTimerView(status = status)
+            CollapsedAdsRemainingTimerView(adsRemainingTimerStatus = adsRemainingTimerStatus)
         } else {
             StreamOverlayIconAndTextView(
                 icon = "cup.and.saucer",
@@ -409,14 +407,12 @@ private fun MoblinkStatusView(
 private fun RemoteControlStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    remoteControlStatus: String,
+    remoteControlOk: Boolean,
     streamer: SettingsRemoteControlStreamer,
     assistant: SettingsRemoteControlAssistant,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val remoteControlOk by status.remoteControlOk.collectAsState()
-    val remoteControlStatus by status.remoteControlStatus.collectAsState()
-
     fun remoteControlColor(): Color {
         return if (remoteControlOk) {
             Color.White
@@ -439,12 +435,11 @@ private fun RemoteControlStatusView(
 private fun MoblinCloudStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    moblinCloudStatus: String,
+    moblinCloudOk: Boolean,
     moblinCloud: SettingsMoblinCloud,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val moblinCloudOk by status.moblinCloudOk.collectAsState()
-    val moblinCloudStatus by status.moblinCloudStatus.collectAsState()
     if (model.isShowingStatusMoblinCloud()) {
         StreamOverlayIconAndTextView(
             icon = "cloud",
@@ -459,10 +454,9 @@ private fun MoblinCloudStatusView(
 private fun DjiDevicesStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    djiDevicesStatus: String,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val djiDevicesStatus by status.djiDevicesStatus.collectAsState()
     if (model.isShowingStatusDjiDevices()) {
         StreamOverlayIconAndTextView(
             icon = "appletvremote.gen1",
@@ -477,10 +471,9 @@ private fun DjiDevicesStatusView(
 private fun GameControllersStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    gameControllersTotal: String,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val gameControllersTotal by status.gameControllersTotal.collectAsState()
     if (model.isShowingStatusGameController()) {
         StreamOverlayIconAndTextView(
             icon = "gamecontroller",
@@ -514,14 +507,13 @@ private fun LocationStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
     location: SettingsLocation,
-    status: StatusTopRight,
+    locationStatus: String,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val statusLocation by status.location.collectAsState()
     if (model.isShowingStatusLocation()) {
         StreamOverlayIconAndTextView(
             icon = "location",
-            text = statusLocation,
+            text = locationStatus,
             textPlacement = textPlacement,
         )
     }
@@ -548,11 +540,9 @@ private fun RecordingStatusView(
 private fun BrowserWidgetsStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    browserWidgetsStatus: String,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    status.browserWidgetsStatusChanged.observe()
-    val browserWidgetsStatus by status.browserWidgetsStatus.collectAsState()
     if (model.isShowingStatusBrowserWidgets()) {
         StreamOverlayIconAndTextView(
             icon = "globe",
@@ -566,25 +556,16 @@ private fun BrowserWidgetsStatusView(
 private fun CatPrinterStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    catPrinterStatus: String,
+    color: Color,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    status.catPrinterState.observe()
-    val catPrinterStatus by status.catPrinterStatus.collectAsState()
-
-    fun catPrinterColor(): Color {
-        if (model.isAnyCatPrinterConfigured() && !model.areAllCatPrintersConnected()) {
-            return Color.Red
-        }
-        return Color.White
-    }
-
     if (model.isShowingStatusCatPrinter()) {
         StreamOverlayIconAndTextView(
             icon = "pawprint",
             text = catPrinterStatus,
             textPlacement = textPlacement,
-            color = catPrinterColor(),
+            color = color,
         )
     }
 }
@@ -593,25 +574,16 @@ private fun CatPrinterStatusView(
 private fun WorkoutDeviceStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    workoutDeviceStatus: String,
+    color: Color,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    status.workoutDeviceState.observe()
-    val workoutDeviceStatus by status.workoutDeviceStatus.collectAsState()
-
-    fun workoutDeviceColor(): Color {
-        if (model.isAnyWorkoutDeviceConfigured() && !model.areAllWorkoutDevicesConnected()) {
-            return Color.Red
-        }
-        return Color.White
-    }
-
     if (model.isShowingStatusWorkoutDevice()) {
         StreamOverlayIconAndTextView(
             icon = "figure.walk.motion",
             text = workoutDeviceStatus,
             textPlacement = textPlacement,
-            color = workoutDeviceColor(),
+            color = color,
         )
     }
 }
@@ -620,10 +592,9 @@ private fun WorkoutDeviceStatusView(
 private fun FixedHorizonStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    status: StatusTopRight,
+    fixedHorizonStatus: String,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val fixedHorizonStatus by status.fixedHorizonStatus.collectAsState()
     if (model.isShowingStatusFixedHorizon()) {
         StreamOverlayIconAndTextView(
             icon = "circle.and.line.horizontal",
@@ -636,16 +607,15 @@ private fun FixedHorizonStatusView(
 @Composable
 private fun BlackSharkCoolerDeviceStatusView(
     show: SettingsShow,
-    status: StatusTopRight,
+    deviceState: BlackSharkCoolerDeviceState?,
+    phoneTemp: Int?,
+    exhaustTemp: Int?,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val blackSharkCoolerDeviceState by status.blackSharkCoolerDeviceState.collectAsState()
-    val blackSharkCoolerPhoneTemp by status.blackSharkCoolerPhoneTemp.collectAsState()
-    val blackSharkCoolerExhaustTemp by status.blackSharkCoolerExhaustTemp.collectAsState()
-    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.connected) {
+    if (deviceState == BlackSharkCoolerDeviceState.connected) {
         StreamOverlayIconAndTextView(
             icon = "fan",
-            text = "${blackSharkCoolerPhoneTemp ?: 0} °C / ${blackSharkCoolerExhaustTemp ?: 0} °C",
+            text = "${phoneTemp ?: 0} °C / ${exhaustTemp ?: 0} °C",
             textPlacement = textPlacement,
         )
     }
@@ -685,9 +655,42 @@ private fun StatusesView(
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
     val stream by model.stream.collectAsState()
+    status.catPrinterState.observe()
+    status.workoutDeviceState.observe()
+    status.browserWidgetsStatusChanged.observe()
+    val adsRemainingTimerStatus by status.adsRemainingTimerStatus.collectAsState()
+    val remoteControlStatus by status.remoteControlStatus.collectAsState()
+    val remoteControlOk by status.remoteControlOk.collectAsState()
+    val moblinCloudStatus by status.moblinCloudStatus.collectAsState()
+    val moblinCloudOk by status.moblinCloudOk.collectAsState()
+    val djiDevicesStatus by status.djiDevicesStatus.collectAsState()
+    val gameControllersTotal by status.gameControllersTotal.collectAsState()
+    val locationStatus by status.location.collectAsState()
+    val browserWidgetsStatus by status.browserWidgetsStatus.collectAsState()
+    val catPrinterStatus by status.catPrinterStatus.collectAsState()
+    val workoutDeviceStatus by status.workoutDeviceStatus.collectAsState()
+    val fixedHorizonStatus by status.fixedHorizonStatus.collectAsState()
+    val blackSharkCoolerDeviceState by status.blackSharkCoolerDeviceState.collectAsState()
+    val blackSharkCoolerPhoneTemp by status.blackSharkCoolerPhoneTemp.collectAsState()
+    val blackSharkCoolerExhaustTemp by status.blackSharkCoolerExhaustTemp.collectAsState()
+
+    fun catPrinterColor(): Color {
+        if (model.isAnyCatPrinterConfigured() && !model.areAllCatPrintersConnected()) {
+            return Color.Red
+        }
+        return Color.White
+    }
+
+    fun workoutDeviceColor(): Color {
+        if (model.isAnyWorkoutDeviceConfigured() && !model.areAllWorkoutDevicesConnected()) {
+            return Color.Red
+        }
+        return Color.White
+    }
+
     AdsRemainingTimerView(
         model = model,
-        status = model.statusTopRight,
+        adsRemainingTimerStatus = adsRemainingTimerStatus,
         textPlacement = textPlacement,
     )
     IngestsStatusView(
@@ -709,7 +712,8 @@ private fun StatusesView(
     RemoteControlStatusView(
         model = model,
         show = model.database.show,
-        status = model.statusTopRight,
+        remoteControlStatus = remoteControlStatus,
+        remoteControlOk = remoteControlOk,
         streamer = model.database.remoteControl.streamer,
         assistant = model.database.remoteControl.assistant,
         textPlacement = textPlacement,
@@ -717,20 +721,21 @@ private fun StatusesView(
     MoblinCloudStatusView(
         model = model,
         show = model.database.show,
-        status = model.statusTopRight,
+        moblinCloudStatus = moblinCloudStatus,
+        moblinCloudOk = moblinCloudOk,
         moblinCloud = model.database.moblinCloud,
         textPlacement = textPlacement,
     )
     DjiDevicesStatusView(
         model = model,
         show = model.database.show,
-        status = model.statusTopRight,
+        djiDevicesStatus = djiDevicesStatus,
         textPlacement = textPlacement,
     )
     GameControllersStatusView(
         model = model,
         show = model.database.show,
-        status = model.statusTopRight,
+        gameControllersTotal = gameControllersTotal,
         textPlacement = textPlacement,
     )
     BitrateStatusView(
@@ -757,7 +762,7 @@ private fun StatusesView(
     LocationStatusView(
         show = model.database.show,
         location = model.database.location,
-        status = model.statusTopRight,
+        locationStatus = locationStatus,
         textPlacement = textPlacement,
     )
     RecordingStatusView(
@@ -767,28 +772,32 @@ private fun StatusesView(
     )
     BrowserWidgetsStatusView(
         show = model.database.show,
-        status = model.statusTopRight,
+        browserWidgetsStatus = browserWidgetsStatus,
         textPlacement = textPlacement,
     )
     CatPrinterStatusView(
         show = model.database.show,
-        status = model.statusTopRight,
+        catPrinterStatus = catPrinterStatus,
+        color = catPrinterColor(),
         textPlacement = textPlacement,
     )
     WorkoutDeviceStatusView(
         show = model.database.show,
-        status = model.statusTopRight,
+        workoutDeviceStatus = workoutDeviceStatus,
+        color = workoutDeviceColor(),
         textPlacement = textPlacement,
     )
     FixedHorizonStatusView(
         model = model,
         show = model.database.show,
-        status = model.statusTopRight,
+        fixedHorizonStatus = fixedHorizonStatus,
         textPlacement = textPlacement,
     )
     BlackSharkCoolerDeviceStatusView(
         show = model.database.show,
-        status = model.statusTopRight,
+        deviceState = blackSharkCoolerDeviceState,
+        phoneTemp = blackSharkCoolerPhoneTemp,
+        exhaustTemp = blackSharkCoolerExhaustTemp,
         textPlacement = textPlacement,
     )
     AutoSceneSwitcherStatusView(

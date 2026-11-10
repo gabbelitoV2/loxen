@@ -27,7 +27,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
-private class MoblinSettingsUrlError(message: String) : Exception(message)
+private class MoblinSettingsUrlError(message: String) : com.moblin.android.platform.codable.DecodingError(message)
 
 private fun <T : Any> JsonObject.decodeEnumIfPresent(
     key: String,
@@ -120,7 +120,7 @@ class MoblinSettingsUrlStreamVideo {
             video.codec = container.decodeEnumIfPresent(
                 "codec",
                 localized("Unsupported video codec"),
-            ) { SettingsStreamCodec.fromRawValue(it) }
+            ) { value -> SettingsStreamCodec.entries.firstOrNull { it.rawValue == value } }
             video.bFrames = container.decodeIfPresent("bFrames")
             video.maxKeyFrameInterval = container.decodeIfPresent("maxKeyFrameInterval")
             video.maxKeyFrameInterval?.let { maxKeyFrameInterval ->

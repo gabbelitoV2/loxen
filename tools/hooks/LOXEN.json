@@ -440,6 +440,15 @@
       "old": "            val output = socket.getOutputStream()",
       "new": "            val output = com.moblin.android.platform.network.OffMainSocket.output(socket)",
       "note": "See HLOXEN.46. Each flush of the handshake response or a frame is queued and written in order on the connection's own IO queue, like NWConnection.send."
+    },
+    {
+      "id": "HLOXEN.49",
+      "file": "various/MoblinSettingsUrl.kt",
+      "scope": "class MoblinSettingsUrlError",
+      "op": "replace",
+      "old": "private class MoblinSettingsUrlError(message: String) : Exception(message)",
+      "new": "private class MoblinSettingsUrlError(message: String) : com.moblin.android.platform.codable.DecodingError(message)",
+      "note": "Swift decodeIfPresent rethrows the error of the nested decoder; the shim only swallows other failures."
     }
   ]
 }

@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-11-10T02:40:22+00:00
+Generated 2026-11-10T03:05:01+00:00
 
 ## Summary
 
@@ -8,9 +8,9 @@ Generated 2026-11-10T02:40:22+00:00
 |---|---|---|---|---|---|
 | logic | 160 | 0 | 0 | 0 | 0 |
 | platform | 57 | 0 | 0 | 0 | 0 |
-| test | 75 | 0 | 0 | 1 | 0 |
+| test | 76 | 0 | 0 | 0 | 0 |
 | media | 162 | 0 | 0 | 0 | 0 |
-| ui | 371 | 0 | 1 | 0 | 0 |
+| ui | 372 | 0 | 0 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -792,7 +792,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Stream/Overlay/StreamOverlayDebugView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayDebugView.kt | deepseek-flash | 5.2 |
 | Moblin/View/Stream/Overlay/StreamOverlayLeftView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayLeftView.kt | deepseek-flash | 26.8 |
 | Moblin/View/Stream/Overlay/StreamOverlayNavigationView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayNavigationView.kt | deepseek-flash | 14.2 |
-| Moblin/View/Stream/Overlay/StreamOverlayRightView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt | deepseek-flash | 23.9 |
+| Moblin/View/Stream/Overlay/StreamOverlayRightView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt | deepseek-flash | 47.4 |
 | Moblin/View/Stream/StreamGridView.swift | app/src/main/java/com/moblin/android/view/stream/StreamGridView.kt | deepseek-flash | 4.0 |
 | Moblin/View/Stream/StreamOverlayView.swift | app/src/main/java/com/moblin/android/view/stream/StreamOverlayView.kt | deepseek-flash | 82.2 |
 | Moblin/View/Stream/StreamView.swift | app/src/main/java/com/moblin/android/view/stream/StreamView.kt | deepseek-flash | 36.0 |
@@ -897,6 +897,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | MoblinTests/Moblin/Various/ChatBotCommandSuite.swift | app/src/test/java/com/moblin/android/various/ChatBotCommandSuite.kt | deepseek-flash | 45.2 |
 | MoblinTests/Moblin/Various/ChatPostEmoteSuite.swift | app/src/test/java/com/moblin/android/various/ChatPostEmoteSuite.kt | deepseek-flash | 6.3 |
 | MoblinTests/Moblin/Various/ChatPostTextSuite.swift | app/src/test/java/com/moblin/android/various/ChatPostTextSuite.kt | deepseek-flash | 16.2 |
+| MoblinTests/Moblin/Various/MoblinSettingsUrlSuite.swift | app/src/test/java/com/moblin/android/various/MoblinSettingsUrlSuite.kt | deepseek-flash | 12.8 |
 | MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift | app/src/test/java/com/moblin/android/various/model/chat/ChatProviderSuite.kt | deepseek-flash | 4.5 |
 | MoblinTests/Moblin/Various/Model/ModelMusicSuite.swift | app/src/test/java/com/moblin/android/various/model/ModelMusicSuite.kt | deepseek-flash | 11.9 |
 | MoblinTests/Moblin/Various/Model/ModelWebBrowserSuite.swift | app/src/test/java/com/moblin/android/various/model/ModelWebBrowserSuite.kt | deepseek-flash | 12.5 |

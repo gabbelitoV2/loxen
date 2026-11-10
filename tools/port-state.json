@@ -15965,25 +15965,25 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift": {
     "status": "ok",
-    "sha256": "356b3e4757bf69846a844b6ff4b9906180220fdeb882e2ee26e9f34e56c97ec7",
-    "moblin_commit": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
+    "sha256": "cccd267ab88b70c5c8b1d867c9919f5d069fc5cde49ea23d2c94487a58808dce",
+    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt",
     "notes": [
-      "Added the zoom slider checks (show.zoomSlider && hasZoom) in the vertical, horizontal and video preview branches, matching the Swift diff.",
-      "Zoom slider state is read with the already collected `hasZoom` flow and the plain `show.zoomSlider` settings property, like the existing zoomPresets checks.",
-      "Imported StreamOverlayRightZoomSliderView from com.moblin.android.view.stream.overlay.right; no other lines changed.",
-      "In the vertical branch the slider goes inside the trailing Column after the torch view; in the horizontal branch it goes after the torch view before the zoom presets.",
-      "In the video preview branch the slider is emitted before the zoom preset selector and the scene selector."
+      "Status children now receive plain values instead of StatusTopRight, so StatusTopRight's StateFlows are collected once in StatusesView and passed down.",
+      "The catPrinterState and workoutDeviceState observers are kept in StatusesView because the catPrinterColor()/workoutDeviceColor() helpers now live there and need to recompose when connections change.",
+      "BlackSharkCoolerDeviceStatusView takes nullable deviceState/phoneTemp/exhaustTemp and compares against BlackSharkCoolerDeviceState.connected.",
+      "CatPrinterStatusView and WorkoutDeviceStatusView take a precomputed Color instead of computing it from the model.",
+      "Every other view, layout modifier and call site is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 71200,
-    "tokens_out": 9151,
-    "seconds": 23.9,
-    "ported_at": "2026-10-19T23:09:09+00:00"
+    "tokens_in": 75494,
+    "tokens_out": 12167,
+    "seconds": 47.4,
+    "ported_at": "2026-11-10T02:47:09+00:00"
   },
   "Moblin/View/Settings/Audio/AudioSettingsView.swift": {
     "status": "ok",
@@ -18568,5 +18568,30 @@
     "tokens_out": 11802,
     "seconds": 70.6,
     "ported_at": "2026-11-10T02:28:03+00:00"
+  },
+  "MoblinTests/Moblin/Various/MoblinSettingsUrlSuite.swift": {
+    "status": "ok",
+    "sha256": "2de1c2b97ef01178c4ff3d4f24253580d8ab02307b2b534b5417c4bfcc5e130b",
+    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/MoblinSettingsUrlSuite.kt",
+    "notes": [
+      "Translates the Swift Testing suite to a JUnit 4 class with kotlin.test assertions.",
+      "InvalidCase/ValidCase/CleanUrlCase become nested classes with a testDescription override for readable output.",
+      "@Test(arguments:) becomes a single @Test looping over the argument list.",
+      "#expect(throws:) -> assertFailsWith; #expect(error?.localizedDescription == message) -> assertEquals.",
+      "String(localized:) -> localized(); interpolated messages use Kotlin string templates.",
+      "Raw string JSON literals are copied byte for byte, using Kotlin raw strings with \\n kept literal where Swift used an escaped newline.",
+      "MoblinSettingsUrl.fromString(query:) is called as fromString(query = ...) per the glossary port.",
+      "kotlin.test assertEquals compares nullable strings; the error message is read from localizedDescription."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 41110,
+    "tokens_out": 3033,
+    "seconds": 12.8,
+    "ported_at": "2026-11-10T02:46:15+00:00"
   }
 }

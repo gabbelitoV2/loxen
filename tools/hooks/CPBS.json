@@ -64,15 +64,6 @@
       "note": "Swift BlackSharkCoolerDevice()."
     },
     {
-      "id": "HCPBS.8",
-      "file": "view/stream/overlay/StreamOverlayRightView.kt",
-      "scope": "fun BlackSharkCoolerDeviceStatusView",
-      "op": "replace",
-      "old": "    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.CONNECTED) {",
-      "new": "    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.connected) {",
-      "note": "Swift case .connected."
-    },
-    {
       "id": "HCPBS.9",
       "file": "integrations/catprinter/CatPrinterCommandsMxw01.kt",
       "scope": "fun unpack",

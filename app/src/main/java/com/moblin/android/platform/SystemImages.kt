@@ -354,6 +354,7 @@ private val symbols: Map<String, ImageVector> = controllerSymbols + mapOf(
     "qrcode" to Icons.Filled.QrCode,
     "chart.bar.xaxis" to Icons.Filled.BarChart,
     "cart" to Icons.Filled.ShoppingCart,
+    "book" to Icons.Filled.Book,
     "bookmark" to Icons.Filled.Bookmark,
     "bolt.fill" to Icons.Filled.Bolt,
     "bolt.slash.fill" to Icons.Filled.FlashOff,

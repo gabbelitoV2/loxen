@@ -83,6 +83,8 @@ object DataSerializer : KSerializer<ByteArray> {
     }
 }
 
+open class DecodingError(message: String) : Exception(message)
+
 class MutableStateFlowSerializer<T>(private val valueSerializer: KSerializer<T>) :
     KSerializer<MutableStateFlow<T>> {
     override val descriptor: SerialDescriptor = valueSerializer.descriptor
@@ -242,6 +244,8 @@ fun <T : Any> JsonObject.decodeIfPresent(key: String, serializer: KSerializer<T>
     }
     return try {
         json.decodeFromJsonElement(serializer, element)
+    } catch (error: DecodingError) {
+        throw error
     } catch (error: Exception) {
         null
     }
