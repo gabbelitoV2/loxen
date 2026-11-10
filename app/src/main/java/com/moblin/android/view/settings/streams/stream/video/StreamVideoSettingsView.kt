@@ -212,7 +212,7 @@ private fun BitrateSettingsView(
 
 private fun submitMaxKeyFrameInterval(value: String, stream: SettingsStream, model: Model) {
     val interval = value.toIntOrNull() ?: return
-    if (interval < 0 || interval > 10) {
+    if (!SettingsStream.isValidMaxKeyFrameInterval(interval = interval)) {
         return
     }
     stream.maxKeyFrameInterval = interval

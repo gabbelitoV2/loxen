@@ -36,13 +36,6 @@ fun isValidPort(value: String): String? {
     return null
 }
 
-fun isValidAudioBitrate(bitrate: Int): Boolean {
-    if (bitrate < 32000 || bitrate > 320_000 || bitrate % 32000 != 0) {
-        return false
-    }
-    return true
-}
-
 fun isValidRtmpUrl(url: String, rtmpStreamKeyRequired: Boolean): String? {
     if (!rtmpStreamKeyRequired) {
         return null

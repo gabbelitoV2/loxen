@@ -61,7 +61,7 @@ private fun createDeepLinkStream(stream: DeepLinkCreatorStream): MoblinSettingsU
         newStream.video!!.fps = stream.video.fps
     }
     if (stream.video.bitrate != 5_000_000) {
-        newStream.video!!.bitrate = stream.video.bitrate.toUInt()
+        newStream.video!!.bitrate = stream.video.bitrate
     }
     newStream.video!!.codec = stream.video.codec
     if (stream.video.bFrames) {

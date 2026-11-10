@@ -42,6 +42,7 @@ import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.ObsSceneMediaSource
+import com.moblin.android.various.model.ObsScreenshot
 import com.moblin.android.various.model.QuickButtonObs
 import com.moblin.android.various.model.fallbackStream
 import com.moblin.android.various.model.isObsConnected
@@ -208,13 +209,13 @@ private fun ObsSettingsView(
 
 @Composable
 private fun ObsSnapshotView(
-    obsQuickButton: QuickButtonObs,
+    screenshot: ObsScreenshot,
 ) {
     Section(header = localized("Current scene snapshot")) {
-        val screenshot = obsQuickButton.screenshot.collectAsState().value
-        if (screenshot != null) {
+        val image = screenshot.image.collectAsState().value
+        if (image != null) {
             Image(
-                bitmap = screenshot.asImageBitmap(),
+                bitmap = image.asImageBitmap(),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -414,7 +415,7 @@ private fun ObsConnectedView(
     val streamName = stream.name
     ObsStartStopStreamingView(obsQuickButton = obsQuickButton)
     ObsStartStopRecordingView(obsQuickButton = obsQuickButton)
-    ObsSnapshotView(obsQuickButton = obsQuickButton)
+    ObsSnapshotView(screenshot = obsQuickButton.screenshot)
     ObsScenesView(obsQuickButton = obsQuickButton)
     ObsSceneAudioInputsView(obsQuickButton = obsQuickButton)
     ObsSceneMediaSourcesView(obsQuickButton = obsQuickButton)

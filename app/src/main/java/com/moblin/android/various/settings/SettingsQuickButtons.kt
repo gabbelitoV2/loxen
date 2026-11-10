@@ -6,6 +6,7 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.view.controlbar.controlBarPages
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
@@ -238,6 +239,10 @@ class SettingsQuickButton {
     }
 
     companion object {
+        fun isValidPage(page: Int): Boolean {
+            return page in 1..controlBarPages
+        }
+
         fun decode(container: JsonObject): SettingsQuickButton {
             val button = SettingsQuickButton(type = SettingsQuickButtonType.unknown, imageOn = "")
             button.type = container.decode("type", SettingsQuickButtonType.unknown)

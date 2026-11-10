@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.common.various.cleanUrl
@@ -17,7 +20,24 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamRecording
 import com.moblin.android.view.settings.streams.stream.DiscordLogoAndNameView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.view.utils.TradingCardView
+import com.moblin.android.view.utils.strokeTradingCardDash
 import com.moblin.android.various.model.setCleanSnapshots
+
+private fun DrawScope.drawSnapshotCard(time: Double) {
+    val path = Path()
+    path.moveTo(164f, 83f)
+    path.lineTo(186f, 83f)
+    strokeTradingCardDash(
+        context = this,
+        path = path,
+        color = Color(0x58 / 255f, 0x65 / 255f, 0xF2 / 255f),
+        lineWidth = 3f,
+        dash = 6f,
+        gap = 6f,
+        time = time,
+    )
+}
 
 @Composable
 fun StreamSnapshotSettingsView(
@@ -36,6 +56,13 @@ fun StreamSnapshotSettingsView(
     }
 
     Form(title = localized("Snapshot")) {
+        Section {
+            TradingCardView(
+                name = "Snapshot",
+                background = Color(0xDB / 255f, 0xD7 / 255f, 0xE7 / 255f),
+                draw = { scope, time -> scope.drawSnapshotCard(time) },
+            )
+        }
         Section(footer = localized("Do not show widgets in snapshots.")) {
             Toggle(localized("Clean snapshots"), isOn = recording.cleanSnapshots) { value ->
                 recording.cleanSnapshots = value

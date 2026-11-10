@@ -44,6 +44,7 @@ import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formFootnoteStyle
+import com.moblin.android.various.model.BannerMessage
 import com.moblin.android.various.model.Banners
 import com.moblin.android.various.model.HypeTrain
 import com.moblin.android.various.model.Model
@@ -107,7 +108,7 @@ private fun ProgressBarView(progress: ProgressBar) {
 }
 
 @Composable
-private fun HypeTrainProgressView(progress: ProgressBar, message: String) {
+private fun HypeTrainProgressView(progress: ProgressBar, message: BannerMessage) {
     val goal by progress.goal.collectAsState()
     val current by progress.progress.collectAsState()
     val percentage = if (goal > 0) {
@@ -139,11 +140,7 @@ private fun HypeTrainProgressView(progress: ProgressBar, message: String) {
                 style = formFootnoteStyle,
             )
             Spacer(Modifier.weight(1f))
-            Text(
-                text = message,
-                color = Color.White,
-                style = formFootnoteStyle,
-            )
+            BannerMessageView(message = message)
         }
     }
 }
@@ -152,7 +149,7 @@ private fun HypeTrainProgressView(progress: ProgressBar, message: String) {
 private fun HypeTrainView(model: Model = LocalModel.current, hypeTrain: HypeTrain) {
     val level by hypeTrain.level.collectAsState()
     val progress by hypeTrain.progress.collectAsState()
-    val message by hypeTrain.message.collectAsState()
+    val message = hypeTrain.message
 
     Column(
         modifier = Modifier.background(bannerBackgroundColor),
@@ -306,10 +303,20 @@ private fun OptionBarView(
 }
 
 @Composable
+private fun BannerMessageView(message: BannerMessage) {
+    val text by message.text.collectAsState()
+    Text(
+        text = text,
+        color = Color.White,
+        style = formFootnoteStyle,
+    )
+}
+
+@Composable
 private fun BannerView(
     image: String,
     title: String,
-    message: String,
+    message: BannerMessage,
     onClose: () -> Unit,
     content: @Composable () -> Unit,
 ) {
@@ -337,11 +344,7 @@ private fun BannerView(
             BannerButton(title = localized("Close"), onClick = onClose)
         }
         content()
-        Text(
-            text = message,
-            color = Color.White,
-            style = formFootnoteStyle,
-        )
+        BannerMessageView(message = message)
     }
 }
 
@@ -357,7 +360,7 @@ private fun formatPercentage(fraction: Double): String {
 private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) {
     val state by poll.state.collectAsState()
     val title by poll.title.collectAsState()
-    val message by poll.message.collectAsState()
+    val message = poll.message
     val choices by poll.choices.collectAsState()
     val totalVotes by poll.totalVotes.collectAsState()
 
@@ -378,7 +381,7 @@ private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) 
                 poll.title.value = ""
                 poll.choices.value = emptyList()
                 poll.totalVotes.value = 0
-                poll.message.value = ""
+                poll.message.text.value = ""
             },
         ) {
             choices.forEach { choice ->
@@ -400,7 +403,7 @@ private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) 
 private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: TwitchPrediction) {
     val state by prediction.state.collectAsState()
     val title by prediction.title.collectAsState()
-    val message by prediction.message.collectAsState()
+    val message = prediction.message
     val outcomes by prediction.outcomes.collectAsState()
     val totalChannelPoints by prediction.totalChannelPoints.collectAsState()
 
@@ -429,7 +432,7 @@ private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: 
                 prediction.title.value = ""
                 prediction.outcomes.value = emptyList()
                 prediction.totalChannelPoints.value = 0
-                prediction.message.value = ""
+                prediction.message.text.value = ""
             },
         ) {
             outcomes.forEach { outcome ->

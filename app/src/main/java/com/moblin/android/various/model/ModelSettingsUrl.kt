@@ -2,7 +2,6 @@ package com.moblin.android.various.model
 
 import android.net.Uri
 import com.moblin.android.localized
-import com.moblin.android.common.various.isValidAudioBitrate
 import com.moblin.android.common.various.trim
 import com.moblin.android.various.MoblinSettingsUrl
 import com.moblin.android.various.MoblinSettingsUrlStream
@@ -44,7 +43,7 @@ private fun Model.handleSettingsUrlsDefaultStreams(
             )
             database.streams.add(targetStream)
         }
-        targetStream.url = stream.url.trim()
+        targetStream.url = stream.url
         if (stream.selected == true) {
             newSelectedStream = targetStream
         }
@@ -63,11 +62,11 @@ private fun Model.handleSettingsUrlsDefaultStreams(
                 targetStream.resolution = resolution
             }
             val fps = video.fps
-            if (fps != null && fpss.contains(fps)) {
+            if (fps != null) {
                 targetStream.fps = fps
             }
             val bitrate = video.bitrate
-            if (bitrate != null && bitrate >= 50_000u && bitrate <= 50_000_000u) {
+            if (bitrate != null) {
                 targetStream.bitrate = bitrate.toInt()
             }
             val codec = video.codec
@@ -79,16 +78,13 @@ private fun Model.handleSettingsUrlsDefaultStreams(
                 targetStream.bFrames = bFrames
             }
             val maxKeyFrameInterval = video.maxKeyFrameInterval
-            if (maxKeyFrameInterval != null && maxKeyFrameInterval >= 0 && maxKeyFrameInterval <= 10) {
+            if (maxKeyFrameInterval != null) {
                 targetStream.maxKeyFrameInterval = maxKeyFrameInterval
             }
         }
-        val audio = stream.audio
-        if (audio != null) {
-            val bitrate = audio.bitrate
-            if (bitrate != null && isValidAudioBitrate(bitrate = bitrate)) {
-                targetStream.audioBitrate = bitrate
-            }
+        val bitrate = stream.audio?.bitrate
+        if (bitrate != null) {
+            targetStream.audioBitrate = bitrate
         }
         val srt = stream.srt
         if (srt != null) {
@@ -108,7 +104,7 @@ private fun Model.handleSettingsUrlsDefaultStreams(
         val obs = stream.obs
         if (obs != null) {
             targetStream.obsWebSocketEnabled = true
-            targetStream.obsWebSocketUrl = obs.webSocketUrl.trim()
+            targetStream.obsWebSocketUrl = obs.webSocketUrl
             targetStream.obsWebSocketPassword = obs.webSocketPassword.trim()
         }
         val twitch = stream.twitch
@@ -179,14 +175,14 @@ private fun Model.handleSettingsUrlsDefaultRemoteControl(settings: MoblinSetting
         val relay = assistant.relay
         if (relay != null) {
             database.remoteControl.assistant.relay.enabled = relay.enabled
-            database.remoteControl.assistant.relay.baseUrl = relay.baseUrl.trim()
-            database.remoteControl.assistant.relay.bridgeId = relay.bridgeId.trim()
+            database.remoteControl.assistant.relay.baseUrl = relay.baseUrl
+            database.remoteControl.assistant.relay.bridgeId = relay.bridgeId
         }
     }
     val streamer = remoteControl.streamer
     if (streamer != null) {
         database.remoteControl.streamer.enabled = streamer.enabled
-        database.remoteControl.streamer.url = streamer.url.trim()
+        database.remoteControl.streamer.url = streamer.url
     }
     database.remoteControl.password = remoteControl.password
     reloadRemoteControlStreamer()
@@ -200,7 +196,7 @@ private fun Model.handleSettingsUrlsDefaultMoblinCloud(settings: MoblinSettingsU
     database.moblinCloud.key = moblinCloud.key.trim()
     val url = moblinCloud.url
     if (url != null) {
-        database.moblinCloud.url = url.trim()
+        database.moblinCloud.url = url
     }
     reloadMoblinCloud()
 }
@@ -283,9 +279,9 @@ private fun Model.handleSettingsFileImport(url: Uri) {
 
 private fun Model.handleSettingsUrlWithConfirmation(url: Uri): String? {
     if (!url.path.isNullOrEmpty()) {
-        return "Custom URL path is not empty"
+        return localized("Custom URL path is not empty")
     }
-    val query = url.query ?: return "Custom URL query is missing"
+    val query = url.query ?: return localized("Custom URL query is missing")
     val settings = try {
         MoblinSettingsUrl.fromString(query = query)
     } catch (error: Throwable) {

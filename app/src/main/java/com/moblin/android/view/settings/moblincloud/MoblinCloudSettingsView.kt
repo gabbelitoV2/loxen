@@ -1,13 +1,31 @@
 package com.moblin.android.view.settings.moblincloud
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.moblin.android.common.various.isValidHttpUrl
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.AssetImage
+import com.moblin.android.platform.swiftui.Button
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.uikit.UIApplication
+import com.moblin.android.platform.uikit.open
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.moblinCloudApiUrl
 import com.moblin.android.various.model.moblinCloudSendWheelOfLuck
@@ -23,23 +41,53 @@ import com.moblin.android.LocalModel
 fun MoblinCloudSettingsView(model: Model = LocalModel.current, database: Database, moblinCloud: SettingsMoblinCloud) {
     Form(title = localized("Moblin Cloud")) {
         Section {
-            Text(
-                localized(
-                    "Let viewers interact with your stream from your page at https://cloud.moblin.app"
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                AssetImage(
+                    name = "MoblinCloudLogo",
+                    modifier = Modifier.height(110.dp),
+                    contentScale = ContentScale.Fit
                 )
-            )
-            Text(
-                localized(
-                    "1. Sign in at https://cloud.moblin.app and set up your page.\n" +
-                        "2. Scan the QR code in the dashboard's Moblin section, or paste your Moblin Cloud key below.\n" +
-                        "3. Pick the alerts widget that shows messages and the wheel of luck widget that viewers spin."
+                Text(
+                    localized("Moblin Cloud"),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
                 )
-            )
-            Text(
-                localized(
-                    "Guide: https://moblin.app/docs/#guides/moblin-cloud"
+                Text(
+                    localized("Let viewers interact with your stream from your own page."),
+                    fontSize = 15.sp,
+                    color = formPalette().secondaryLabel,
+                    textAlign = TextAlign.Center
                 )
+            }
+        }
+        Section(header = localized("Get started")) {
+            Label(
+                title = localized("Sign in at cloud.moblin.app and set up your page."),
+                systemImage = "1.circle.fill"
             )
+            Label(
+                title = localized(
+                    "Scan the QR code in the dashboard's Moblin section, or paste your Moblin Cloud key below."
+                ),
+                systemImage = "2.circle.fill"
+            )
+            Label(
+                title = localized(
+                    "Pick the alerts widget that shows messages and the wheel of luck widget that viewers spin."
+                ),
+                systemImage = "3.circle.fill"
+            )
+        }
+        Section {
+            Button(title = localized("Read the guide"), systemImage = "book") {
+                UIApplication.shared.open("https://moblin.app/docs/#guides/moblin-cloud")
+            }
         }
         Section(footer = localized("Keep the Moblin Cloud key to yourself.")) {
             Toggle(

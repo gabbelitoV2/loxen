@@ -16,7 +16,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,9 +55,11 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SliderView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.view.utils.strokeTradingCardDash
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.view.utils.TradingCardView
 import com.moblin.android.view.utils.UrlCopyView
 import com.moblin.android.view.utils.UrlsIpv4View
 import com.moblin.android.view.utils.UrlsIpv6View
@@ -703,6 +708,21 @@ fun RemoteControlSettingsWebView(
     }
 }
 
+private fun drawRemoteControlCard(context: DrawScope, time: Double) {
+    val path = Path()
+    path.moveTo(56f, 110f)
+    path.quadraticTo(130f, 10f, 206f, 110f)
+    strokeTradingCardDash(
+        context = context,
+        path = path,
+        color = Color(red = 0xFF / 255f, green = 0xD1 / 255f, blue = 0x66 / 255f),
+        lineWidth = 2.5f,
+        dash = 6f,
+        gap = 8f,
+        time = time,
+    )
+}
+
 @Composable
 fun RemoteControlSettingsView(
     model: Model = LocalModel.current,
@@ -712,6 +732,13 @@ fun RemoteControlSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Form(title = localized("Remote control")) {
+        Section {
+            TradingCardView(
+                name = "RemoteControl",
+                background = Color(red = 0x0F / 255f, green = 0x1B / 255f, blue = 0x2D / 255f),
+                draw = ::drawRemoteControlCard,
+            )
+        }
         Section {
             Text(localized("Control and monitor Moblin from another device."))
         }
@@ -894,7 +921,7 @@ private fun submitAssistantRelayUrl(
 }
 
 private fun changeAssistantRelayBridgeId(value: String): String? {
-    if (value.isEmpty()) {
+    if (!SettingsRemoteControlServerRelay.isValidBridgeId(bridgeId = value)) {
         return localized("Empty")
     }
     return null

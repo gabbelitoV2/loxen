@@ -35,6 +35,7 @@ import com.moblin.android.various.settings.DeepLinkCreatorStreamSrt
 import com.moblin.android.various.settings.DeepLinkCreatorStreamTwitch
 import com.moblin.android.various.settings.DeepLinkCreatorStreamVideo
 import com.moblin.android.various.settings.SettingsDnsLookupStrategy
+import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamCodec
 import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.various.settings.fpss
@@ -47,7 +48,7 @@ import kotlin.math.ceil
 
 private fun submitMaxKeyFrameInterval(video: DeepLinkCreatorStreamVideo, value: String) {
     val interval = value.toIntOrNull() ?: return
-    if (interval < 0 || interval > 10) {
+    if (!SettingsStream.isValidMaxKeyFrameInterval(interval = interval)) {
         return
     }
     video.maxKeyFrameInterval = interval

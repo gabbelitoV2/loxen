@@ -39,10 +39,12 @@ import com.moblin.android.localized
 import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.systemImage
 import com.moblin.android.streamingplatforms.Platform
+import com.moblin.android.various.model.ChatPlatformStatus
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.PlatformStatus
 import com.moblin.android.various.model.StatusTopLeft
+import com.moblin.android.various.model.StreamingPlatformStatus
 import com.moblin.android.various.model.ZoomLevel
 import com.moblin.android.various.model.hasChatEmotes
 import com.moblin.android.various.model.isChatConfigured
@@ -63,9 +65,7 @@ private val systemOrange = Color(0xFFFF9500)
 private val systemRed = Color(0xFFFF3B30)
 
 @Composable
-private fun CollapsedViewersView(status: StatusTopLeft) {
-    val numberOfViewersIconColor by status.numberOfViewersIconColor.collectAsState()
-    val numberOfViewersCompact by status.numberOfViewersCompact.collectAsState()
+private fun CollapsedViewersView(iconColor: Color, numberOfViewersCompact: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
@@ -77,7 +77,7 @@ private fun CollapsedViewersView(status: StatusTopLeft) {
         Icon(
             imageVector = systemImage("eye"),
             contentDescription = null,
-            tint = numberOfViewersIconColor,
+            tint = iconColor,
             modifier = Modifier
                 .padding(start = 2.dp)
                 .size(17.dp),
@@ -108,9 +108,7 @@ private fun ViewersLogoView(platform: Platform) {
 }
 
 @Composable
-private fun ViewersView(status: StatusTopLeft) {
-    val numberOfViewersIconColor by status.numberOfViewersIconColor.collectAsState()
-    val streamingPlatformStatuses by status.streamingPlatformStatuses.collectAsState()
+private fun ViewersView(iconColor: Color, streamingPlatformStatuses: List<StreamingPlatformStatus>) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
@@ -119,7 +117,7 @@ private fun ViewersView(status: StatusTopLeft) {
         Icon(
             imageVector = systemImage("eye"),
             contentDescription = null,
-            tint = numberOfViewersIconColor,
+            tint = iconColor,
             modifier = Modifier
                 .clip(RoundedCornerShape(5.dp))
                 .background(backgroundColor)
@@ -159,9 +157,11 @@ private fun ViewersView(status: StatusTopLeft) {
 }
 
 @Composable
-private fun ChatStatusView(status: StatusTopLeft, foregroundColor: Color) {
-    val chatPlatformStatuses by status.chatPlatformStatuses.collectAsState()
-    val statusChatText by status.statusChatText.collectAsState()
+private fun ChatStatusView(
+    chatPlatformStatuses: List<ChatPlatformStatus>,
+    statusChatText: String,
+    foregroundColor: Color,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
@@ -214,8 +214,7 @@ private fun ChatStatusView(status: StatusTopLeft, foregroundColor: Color) {
 }
 
 @Composable
-private fun StreamStatusView(status: StatusTopLeft, textPlacement: StreamOverlayIconAndTextPlacement) {
-    val streamText by status.streamText.collectAsState()
+private fun StreamStatusView(streamText: String, textPlacement: StreamOverlayIconAndTextPlacement) {
     StreamOverlayIconAndTextView(
         icon = "dot.radiowaves.left.and.right",
         text = streamText,
@@ -291,10 +290,14 @@ private fun StatusesView(
     val statusObsText by status.statusObsText.collectAsState()
     val statusEventsText by status.statusEventsText.collectAsState()
     val statusChatText by status.statusChatText.collectAsState()
+    val statusStreamText by status.streamText.collectAsState()
+    val chatPlatformStatuses by status.chatPlatformStatuses.collectAsState()
+    val numberOfViewersIconColor by status.numberOfViewersIconColor.collectAsState()
+    val numberOfViewersCompact by status.numberOfViewersCompact.collectAsState()
     val currentMic by mic.current.collectAsState()
     key(stream, isLive, hasZoom, streamingPlatformStatuses) {
         if (model.isShowingStatusStream()) {
-            StreamStatusView(status = status, textPlacement = textPlacement)
+            StreamStatusView(streamText = statusStreamText, textPlacement = textPlacement)
         }
         if (model.isShowingStatusCamera()) {
             StreamOverlayIconAndTextView(
@@ -338,14 +341,24 @@ private fun StatusesView(
                     color = chatColor(model),
                 )
             } else {
-                ChatStatusView(status = status, foregroundColor = chatColor(model))
+                ChatStatusView(
+                    chatPlatformStatuses = chatPlatformStatuses,
+                    statusChatText = statusChatText,
+                    foregroundColor = chatColor(model),
+                )
             }
         }
         if (model.isShowingStatusViewers()) {
             if (textPlacement == StreamOverlayIconAndTextPlacement.Hide) {
-                CollapsedViewersView(status = status)
+                CollapsedViewersView(
+                    iconColor = numberOfViewersIconColor,
+                    numberOfViewersCompact = numberOfViewersCompact,
+                )
             } else {
-                ViewersView(status = status)
+                ViewersView(
+                    iconColor = numberOfViewersIconColor,
+                    streamingPlatformStatuses = streamingPlatformStatuses,
+                )
             }
         }
     }

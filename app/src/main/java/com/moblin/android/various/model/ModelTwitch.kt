@@ -820,7 +820,7 @@ fun Model.updateTwitchPollCountdown() {
     }
     val endsAt = twitchPoll.endsAt ?: return
     val countdown = formatTwitchCountdown(endsAt)
-    twitchPoll.message.value = localized("Ends in $countdown")
+    twitchPoll.message.text.value = localized("Ends in $countdown")
 }
 
 fun Model.removeTwitchPoll() {
@@ -853,7 +853,7 @@ fun Model.updateTwitchPredictionCountdown() {
     }
     val locksAt = twitchPrediction.locksAt ?: return
     val countdown = formatTwitchCountdown(locksAt)
-    twitchPrediction.message.value = localized("Locks in $countdown")
+    twitchPrediction.message.text.value = localized("Locks in $countdown")
 }
 
 fun Model.removeTwitchPrediction() {
@@ -866,14 +866,14 @@ fun Model.updateHypeTrainCountdown() {
     }
     val expiresAt = hypeTrain.expiresAt ?: return
     val countdown = formatTwitchCountdown(expiresAt)
-    hypeTrain.message.value = localized("Ends in $countdown")
+    hypeTrain.message.text.value = localized("Ends in $countdown")
 }
 
 fun Model.removeHypeTrain() {
     hypeTrain.level.value = null
     hypeTrain.progress.value = null
     hypeTrain.expiresAt = null
-    hypeTrain.message.value = ""
+    hypeTrain.message.text.value = ""
 }
 
 fun Model.makeTwitchAlertSegments(
@@ -1394,7 +1394,7 @@ fun Model.twitchEventSubChannelHypeTrainEnd(event: TwitchEventSubChannelHypeTrai
     hypeTrain.progress.value?.progress?.value = 1f
     hypeTrain.progress.value?.goal?.value = 1f
     hypeTrain.expiresAt = null
-    hypeTrain.message.value = localized("Ended")
+    hypeTrain.message.text.value = localized("Ended")
     appendTwitchChatAlertMessage(
         user = stream.value.twitchChannelName,
         segments = makeTwitchAlertSegments(
@@ -1443,7 +1443,7 @@ fun Model.twitchEventSubChannelPollEnd(event: TwitchEventSubChannelPollEvent) {
     updateTwitchPoll(event = event, state = TwitchPollState.completed)
     val text: String
     if (event.status != "archived") {
-        twitchPoll.message.value = localized("Poll ended")
+        twitchPoll.message.text.value = localized("Poll ended")
         val winner = twitchPoll.choices.value.maxByOrNull { it.votes }
         if (winner != null) {
             text = localized("ended the poll: ${event.title} Winner: ${winner.title}")
@@ -1490,7 +1490,7 @@ fun Model.twitchEventSubChannelPredictionProgress(event: TwitchEventSubChannelPr
 
 fun Model.twitchEventSubChannelPredictionLock(event: TwitchEventSubChannelPredictionEvent) {
     updateTwitchPrediction(event = event, state = TwitchPredictionState.locked)
-    twitchPrediction.message.value = localized("Locked, waiting for outcome")
+    twitchPrediction.message.text.value = localized("Locked, waiting for outcome")
 }
 
 fun Model.twitchEventSubChannelPredictionEnd(event: TwitchEventSubChannelPredictionEvent) {
@@ -1498,10 +1498,10 @@ fun Model.twitchEventSubChannelPredictionEnd(event: TwitchEventSubChannelPredict
     val text: String
     val winner = twitchPrediction.outcomes.value.firstOrNull { it.winner }
     if (winner != null) {
-        twitchPrediction.message.value = localized("Outcome: ${winner.title}")
+        twitchPrediction.message.text.value = localized("Outcome: ${winner.title}")
         text = localized("ended the prediction: ${event.title} Outcome: ${winner.title}")
     } else {
-        twitchPrediction.message.value = localized("Prediction cancelled")
+        twitchPrediction.message.text.value = localized("Prediction cancelled")
         text = localized("cancelled the prediction: ${event.title}")
     }
     appendTwitchChatAlertMessage(

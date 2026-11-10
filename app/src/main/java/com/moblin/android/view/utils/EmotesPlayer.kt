@@ -325,8 +325,6 @@ class EmotesPlayer private constructor(private val context: Context) {
         val shared: EmotesPlayer by lazy { EmotesPlayer(AppDelegate.context) }
     }
 
-    val sizesVersion = MutableStateFlow(0)
-
     private val emotes: MutableMap<EmoteKey, AnimatedEmote> = mutableMapOf()
     private val animatingEmotes: MutableMap<EmoteKey, AnimatedEmote> = mutableMapOf()
     private var framesBytes = 0
@@ -343,19 +341,18 @@ class EmotesPlayer private constructor(private val context: Context) {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    fun size(source: ChatImageSource): Size? {
+    fun size(source: ChatImageSource, onLoaded: () -> Unit): Size? {
         val knownSize = sizes[source]
         if (knownSize != null) {
             return knownSize
         }
         var loading = true
         load(source) { image ->
-            if (sizes[source] != null) {
-                return@load
+            if (sizes[source] == null) {
+                sizes[source] = image.size
             }
-            sizes[source] = image.size
             if (!loading) {
-                sizesVersion.value += 1
+                onLoaded()
             }
         }
         loading = false

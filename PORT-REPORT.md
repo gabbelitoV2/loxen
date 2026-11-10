@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-11-08T23:59:37+00:00
+Generated 2026-11-10T02:40:22+00:00
 
 ## Summary
 
@@ -8,9 +8,9 @@ Generated 2026-11-08T23:59:37+00:00
 |---|---|---|---|---|---|
 | logic | 160 | 0 | 0 | 0 | 0 |
 | platform | 57 | 0 | 0 | 0 | 0 |
-| test | 74 | 0 | 0 | 0 | 0 |
+| test | 75 | 0 | 0 | 1 | 0 |
 | media | 162 | 0 | 0 | 0 | 0 |
-| ui | 371 | 0 | 0 | 0 | 0 |
+| ui | 371 | 0 | 1 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -101,7 +101,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Common/Various/CMFormatDescription+Extension.swift | app/src/main/java/com/moblin/android/common/various/CMFormatDescription+Extension.kt | deepseek-flash | 10.2 |
 | Common/Various/CMSampleBuffer+Extension.swift | app/src/main/java/com/moblin/android/common/various/CMSampleBuffer+Extension.kt | deepseek-flash | 7.7 |
 | Common/Various/CommonUtils.swift | app/src/main/java/com/moblin/android/common/various/CommonUtils.kt | deepseek-flash | 39.3 |
-| Common/Various/Validate.swift | app/src/main/java/com/moblin/android/common/various/Validate.kt | deepseek-flash | 6.7 |
+| Common/Various/Validate.swift | app/src/main/java/com/moblin/android/common/various/Validate.kt | deepseek-flash | 7.9 |
 | Common/View/StreamOverlayIconAndTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayIconAndTextView.kt | deepseek-flash | 23.0 |
 | Common/View/StreamOverlayTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayTextView.kt | deepseek-flash | 2.3 |
 | Common/View/ThermalStateView.swift | app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt | deepseek-flash | 13.9 |
@@ -326,9 +326,9 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Managers/WeatherManager.swift | app/src/main/java/com/moblin/android/various/managers/WeatherManager.kt | deepseek-flash | 10.5 |
 | Moblin/Various/Media.swift | app/src/main/java/com/moblin/android/various/Media.kt | deepseek-flash | 40.2 |
 | Moblin/Various/MediaPlayer.swift | app/src/main/java/com/moblin/android/various/MediaPlayer.kt | deepseek-flash | 18.2 |
-| Moblin/Various/MoblinSettingsUrl.swift | app/src/main/java/com/moblin/android/various/MoblinSettingsUrl.kt | deepseek-flash | 11.1 |
+| Moblin/Various/MoblinSettingsUrl.swift | app/src/main/java/com/moblin/android/various/MoblinSettingsUrl.kt | deepseek-flash | 134.9 |
 | Moblin/Various/Model/Chat/ChatProvider.swift | app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt | deepseek-flash | 7.9 |
-| Moblin/Various/Model/Model.swift | app/src/main/java/com/moblin/android/various/model/Model.kt | deepseek-flash | 120.3 |
+| Moblin/Various/Model/Model.swift | app/src/main/java/com/moblin/android/various/model/Model.kt | deepseek-flash | 122.6 |
 | Moblin/Various/Model/ModelAppIntents.swift | app/src/main/java/com/moblin/android/various/model/ModelAppIntents.kt | deepseek-flash | 2.9 |
 | Moblin/Various/Model/ModelAppMode.swift | app/src/main/java/com/moblin/android/various/model/ModelAppMode.kt | deepseek-flash | 10.0 |
 | Moblin/Various/Model/ModelAppleWatch.swift | app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt | deepseek-flash | 10.1 |
@@ -361,7 +361,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Model/ModelMoblink.swift | app/src/main/java/com/moblin/android/various/model/ModelMoblink.kt | deepseek-flash | 50.7 |
 | Moblin/Various/Model/ModelMusic.swift | app/src/main/java/com/moblin/android/various/model/ModelMusic.kt | deepseek-flash | 16.7 |
 | Moblin/Various/Model/ModelNavigation.swift | app/src/main/java/com/moblin/android/various/model/ModelNavigation.kt | deepseek-flash | 4.6 |
-| Moblin/Various/Model/ModelObs.swift | app/src/main/java/com/moblin/android/various/model/ModelObs.kt | deepseek-flash | 17.8 |
+| Moblin/Various/Model/ModelObs.swift | app/src/main/java/com/moblin/android/various/model/ModelObs.kt | deepseek-flash | 31.2 |
 | Moblin/Various/Model/ModelPhotoShoot.swift | app/src/main/java/com/moblin/android/various/model/ModelPhotoShoot.kt | deepseek-flash | 59.5 |
 | Moblin/Various/Model/ModelPictureInPicture.swift | app/src/main/java/com/moblin/android/various/model/ModelPictureInPicture.kt | deepseek-flash | 36.4 |
 | Moblin/Various/Model/ModelRecording.swift | app/src/main/java/com/moblin/android/various/model/ModelRecording.kt | deepseek-flash | 8.3 |
@@ -378,7 +378,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Model/ModelScoreboard.swift | app/src/main/java/com/moblin/android/various/model/ModelScoreboard.kt | deepseek-flash | 26.4 |
 | Moblin/Various/Model/ModelScreenCapture.swift | app/src/main/java/com/moblin/android/various/model/ModelScreenCapture.kt | deepseek-flash | 8.0 |
 | Moblin/Various/Model/ModelSettingsImportExport.swift | app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt | deepseek-flash | 3.8 |
-| Moblin/Various/Model/ModelSettingsUrl.swift | app/src/main/java/com/moblin/android/various/model/ModelSettingsUrl.kt | deepseek-flash | 13.1 |
+| Moblin/Various/Model/ModelSettingsUrl.swift | app/src/main/java/com/moblin/android/various/model/ModelSettingsUrl.kt | deepseek-flash | 14.6 |
 | Moblin/Various/Model/ModelSnapshot.swift | app/src/main/java/com/moblin/android/various/model/ModelSnapshot.kt | deepseek-flash | 43.5 |
 | Moblin/Various/Model/ModelSoop.swift | app/src/main/java/com/moblin/android/various/model/ModelSoop.kt | deepseek-flash | 16.0 |
 | Moblin/Various/Model/ModelSpeechToText.swift | app/src/main/java/com/moblin/android/various/model/ModelSpeechToText.kt | deepseek-flash | 10.3 |
@@ -392,10 +392,10 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Model/ModelTally.swift | app/src/main/java/com/moblin/android/various/model/ModelTally.kt | deepseek-flash | 7.9 |
 | Moblin/Various/Model/ModelTesla.swift | app/src/main/java/com/moblin/android/various/model/ModelTesla.kt | deepseek-flash | 43.3 |
 | Moblin/Various/Model/ModelTextToSpeech.swift | app/src/main/java/com/moblin/android/various/model/ModelTextToSpeech.kt | deepseek-flash | 7.3 |
-| Moblin/Various/Model/ModelTwitch.swift | app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt | deepseek-flash | 36.9 |
+| Moblin/Various/Model/ModelTwitch.swift | app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt | deepseek-flash | 88.2 |
 | Moblin/Various/Model/ModelVariables.swift | app/src/main/java/com/moblin/android/various/model/ModelVariables.kt | deepseek-flash | 24.9 |
 | Moblin/Various/Model/ModelVideoPreview.swift | app/src/main/java/com/moblin/android/various/model/ModelVideoPreview.kt | deepseek-flash | 4.3 |
-| Moblin/Various/Model/ModelWebBrowser.swift | app/src/main/java/com/moblin/android/various/model/ModelWebBrowser.kt | deepseek-flash | 38.6 |
+| Moblin/Various/Model/ModelWebBrowser.swift | app/src/main/java/com/moblin/android/various/model/ModelWebBrowser.kt | deepseek-flash | 14.7 |
 | Moblin/Various/Model/ModelWhepClient.swift | app/src/main/java/com/moblin/android/various/model/ModelWhepClient.kt | deepseek-flash | 9.4 |
 | Moblin/Various/Model/ModelWhipServer.swift | app/src/main/java/com/moblin/android/various/model/ModelWhipServer.kt | deepseek-flash | 6.5 |
 | Moblin/Various/Model/ModelWiFiAware.swift | app/src/main/java/com/moblin/android/various/model/ModelWiFiAware.kt | deepseek-flash | 97.5 |
@@ -431,11 +431,11 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Various/Settings/SettingsMacros.swift | app/src/main/java/com/moblin/android/various/settings/SettingsMacros.kt | deepseek-flash | 18.0 |
 | Moblin/Various/Settings/SettingsMoblink.swift | app/src/main/java/com/moblin/android/various/settings/SettingsMoblink.kt | deepseek-flash | 57.5 |
 | Moblin/Various/Settings/SettingsNavigation.swift | app/src/main/java/com/moblin/android/various/settings/SettingsNavigation.kt | deepseek-flash | 22.4 |
-| Moblin/Various/Settings/SettingsQuickButtons.swift | app/src/main/java/com/moblin/android/various/settings/SettingsQuickButtons.kt | deepseek-flash | 12.2 |
-| Moblin/Various/Settings/SettingsRemoteControl.swift | app/src/main/java/com/moblin/android/various/settings/SettingsRemoteControl.kt | deepseek-flash | 8.3 |
+| Moblin/Various/Settings/SettingsQuickButtons.swift | app/src/main/java/com/moblin/android/various/settings/SettingsQuickButtons.kt | deepseek-flash | 13.8 |
+| Moblin/Various/Settings/SettingsRemoteControl.swift | app/src/main/java/com/moblin/android/various/settings/SettingsRemoteControl.kt | deepseek-flash | 13.6 |
 | Moblin/Various/Settings/SettingsScene.swift | app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt | deepseek-flash | 141.0 |
 | Moblin/Various/Settings/SettingsSelfieStick.swift | app/src/main/java/com/moblin/android/various/settings/SettingsSelfieStick.kt | deepseek-flash | 70.7 |
-| Moblin/Various/Settings/SettingsStream.swift | app/src/main/java/com/moblin/android/various/settings/SettingsStream.kt | deepseek-flash | 63.2 |
+| Moblin/Various/Settings/SettingsStream.swift | app/src/main/java/com/moblin/android/various/settings/SettingsStream.kt | deepseek-flash | 83.1 |
 | Moblin/Various/Settings/SettingsStreamDeck.swift | app/src/main/java/com/moblin/android/various/settings/SettingsStreamDeck.kt | deepseek-flash | 101.4 |
 | Moblin/Various/Settings/SettingsTalkback.swift | app/src/main/java/com/moblin/android/various/settings/SettingsTalkback.kt | deepseek-flash | 29.2 |
 | Moblin/Various/SimpleTimer.swift | app/src/main/java/com/moblin/android/various/SimpleTimer.kt | deepseek-flash | 4.5 |
@@ -475,7 +475,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/VideoEffects/Browser/BrowserEffect.swift | app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt | deepseek-flash | 13.8 |
 | Moblin/VideoEffects/Browser/BrowserEffectServer.swift | app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt | deepseek-flash | 98.6 |
 | Moblin/VideoEffects/CameraManEffect.swift | app/src/main/java/com/moblin/android/videoeffects/CameraManEffect.kt | deepseek-flash | 21.3 |
-| Moblin/VideoEffects/ChatEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt | deepseek-flash | 12.1 |
+| Moblin/VideoEffects/ChatEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt | deepseek-flash | 12.7 |
 | Moblin/VideoEffects/ChatEmoteComboEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ChatEmoteComboEffect.kt | deepseek-flash | 95.9 |
 | Moblin/VideoEffects/Crt/CrtBarrelDistortionFilter.swift | app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt | deepseek-flash | 13.4 |
 | Moblin/VideoEffects/Crt/CrtEffect.swift | app/src/main/java/com/moblin/android/videoeffects/crt/CrtEffect.kt | deepseek-flash | 16.1 |
@@ -543,7 +543,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/ControlBar/QuickButton/QuickButtonLutsView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonLutsView.kt | deepseek-flash | 29.0 |
 | Moblin/View/ControlBar/QuickButton/QuickButtonMacrosView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonMacrosView.kt | deepseek-flash | 36.0 |
 | Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonMicView.kt | deepseek-flash | 8.9 |
-| Moblin/View/ControlBar/QuickButton/QuickButtonObsView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonObsView.kt | deepseek-flash | 16.4 |
+| Moblin/View/ControlBar/QuickButton/QuickButtonObsView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonObsView.kt | deepseek-flash | 16.6 |
 | Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonSceneWidgetsView.kt | deepseek-flash | 10.8 |
 | Moblin/View/ControlBar/QuickButton/QuickButtonStreamSwitcherView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonStreamSwitcherView.kt | deepseek-flash | 21.0 |
 | Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorGeometry.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/sceneeditor/SceneEditorGeometry.kt | deepseek-flash | 6.4 |
@@ -594,7 +594,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Debug/DebugVideoSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/debug/DebugVideoSettingsView.kt | deepseek-flash | 86.7 |
 | Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorQuickButtonsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorQuickButtonsSettingsView.kt | deepseek-flash | 36.5 |
 | Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorSettingsView.kt | deepseek-flash | 69.5 |
-| Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorStreamSettingsView.kt | deepseek-flash | 10.8 |
+| Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorStreamSettingsView.kt | deepseek-flash | 13.8 |
 | Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorStreamsSettingsView.kt | deepseek-flash | 21.6 |
 | Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorWebBrowserSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorWebBrowserSettingsView.kt | deepseek-flash | 9.0 |
 | Moblin/View/Settings/Display/DisplaySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/display/DisplaySettingsView.kt | deepseek-flash | 17.1 |
@@ -618,7 +618,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/ImportExport/ExportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/importexport/ExportSettingsView.kt | deepseek-flash | 15.0 |
 | Moblin/View/Settings/ImportExport/ImportExportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/importexport/ImportExportSettingsView.kt | deepseek-flash | 5.5 |
 | Moblin/View/Settings/ImportExport/ImportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/importexport/ImportSettingsView.kt | deepseek-flash | 5.6 |
-| Moblin/View/Settings/Ingests/IngestsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/ingests/IngestsSettingsView.kt | deepseek-flash | 4.4 |
+| Moblin/View/Settings/Ingests/IngestsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/ingests/IngestsSettingsView.kt | deepseek-flash | 24.1 |
 | Moblin/View/Settings/Ingests/RistServer/RistServerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/ingests/ristserver/RistServerSettingsView.kt | deepseek-flash | 7.1 |
 | Moblin/View/Settings/Ingests/RistServer/RistServerStreamSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/ingests/ristserver/RistServerStreamSettingsView.kt | deepseek-flash | 30.7 |
 | Moblin/View/Settings/Ingests/RtmpServer/RtmpServerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/ingests/rtmpserver/RtmpServerSettingsView.kt | deepseek-flash | 5.6 |
@@ -636,14 +636,14 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Keyboard/KeyboardKeySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/keyboard/KeyboardKeySettingsView.kt | deepseek-flash | 5.9 |
 | Moblin/View/Settings/Keyboard/KeyboardSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/keyboard/KeyboardSettingsView.kt | deepseek-flash | 43.5 |
 | Moblin/View/Settings/Location/LocationSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/location/LocationSettingsView.kt | deepseek-flash | 7.3 |
-| Moblin/View/Settings/Macros/MacrosSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/macros/MacrosSettingsView.kt | deepseek-flash | 20.5 |
+| Moblin/View/Settings/Macros/MacrosSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/macros/MacrosSettingsView.kt | deepseek-flash | 33.2 |
 | Moblin/View/Settings/MediaPlayer/MediaPlayerFileSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayerFileSettingsView.kt | deepseek-flash | 21.9 |
 | Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayerSettingsView.kt | deepseek-flash | 5.7 |
 | Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayersSettingsView.kt | deepseek-flash | 5.6 |
-| Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/moblincloud/MoblinCloudSettingsView.kt | deepseek-flash | 6.6 |
-| Moblin/View/Settings/Moblink/MoblinkSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/moblink/MoblinkSettingsView.kt | deepseek-flash | 20.4 |
+| Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/moblincloud/MoblinCloudSettingsView.kt | deepseek-flash | 40.6 |
+| Moblin/View/Settings/Moblink/MoblinkSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/moblink/MoblinkSettingsView.kt | deepseek-flash | 36.7 |
 | Moblin/View/Settings/Recordings/RecordingsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/recordings/RecordingsSettingsView.kt | deepseek-flash | 46.7 |
-| Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/remotecontrol/RemoteControlSettingsView.kt | deepseek-flash | 24.2 |
+| Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/remotecontrol/RemoteControlSettingsView.kt | deepseek-flash | 34.8 |
 | Moblin/View/Settings/SaveReset/SettingsResetView.swift | app/src/main/java/com/moblin/android/view/settings/savereset/SettingsResetView.kt | deepseek-flash | 5.6 |
 | Moblin/View/Settings/SaveReset/SettingsSaveView.swift | app/src/main/java/com/moblin/android/view/settings/savereset/SettingsSaveView.kt | deepseek-flash | 7.0 |
 | Moblin/View/Settings/Scenes/AutoSwitchers/AutoSwitchersSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/autoswitchers/AutoSwitchersSettingsView.kt | deepseek-flash | 127.3 |
@@ -706,7 +706,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVideoSourceSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardVideoSourceSettingsView.kt | deepseek-flash | 5.3 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardWheelOfLuckSettingsView.kt | deepseek-flash | 27.5 |
 | Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/WidgetsSettingsView.kt | deepseek-flash | 6.6 |
-| Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/selfiestick/SelfieStickSettingsView.kt | deepseek-flash | 25.7 |
+| Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/selfiestick/SelfieStickSettingsView.kt | deepseek-flash | 6.7 |
 | Moblin/View/Settings/SettingsView.swift | app/src/main/java/com/moblin/android/view/settings/SettingsView.kt | deepseek-flash | 16.1 |
 | Moblin/View/Settings/Store/StoreSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/store/StoreSettingsView.kt | deepseek-flash | 8.9 |
 | Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streamdeck/StreamDeckLayoutSettingsView.kt | deepseek-flash | 136.7 |
@@ -727,7 +727,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Streams/Stream/Replay/StreamReplaySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/replay/StreamReplaySettingsView.kt | deepseek-flash | 14.0 |
 | Moblin/View/Settings/Streams/Stream/Rist/StreamRistSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/rist/StreamRistSettingsView.kt | deepseek-flash | 12.3 |
 | Moblin/View/Settings/Streams/Stream/Rtmp/StreamRtmpSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/rtmp/StreamRtmpSettingsView.kt | deepseek-flash | 17.6 |
-| Moblin/View/Settings/Streams/Stream/Snapshot/StreamSnapshotSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/snapshot/StreamSnapshotSettingsView.kt | deepseek-flash | 7.8 |
+| Moblin/View/Settings/Streams/Stream/Snapshot/StreamSnapshotSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/snapshot/StreamSnapshotSettingsView.kt | deepseek-flash | 19.6 |
 | Moblin/View/Settings/Streams/Stream/Soop/StreamSoopSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/soop/StreamSoopSettingsView.kt | deepseek-flash | 11.4 |
 | Moblin/View/Settings/Streams/Stream/Srt/StreamSrtAdaptiveBitrateSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/srt/StreamSrtAdaptiveBitrateSettingsView.kt | deepseek-flash | 53.0 |
 | Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/srt/StreamSrtConnectionPriority2View.kt | deepseek-flash | 49.4 |
@@ -736,7 +736,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/StreamWizardSettingsView.kt | deepseek-flash | 13.1 |
 | Moblin/View/Settings/Streams/Stream/Twitch/StreamTwitchSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/twitch/StreamTwitchSettingsView.kt | deepseek-flash | 9.5 |
 | Moblin/View/Settings/Streams/Stream/Url/StreamUrlSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/url/StreamUrlSettingsView.kt | deepseek-flash | 35.5 |
-| Moblin/View/Settings/Streams/Stream/Video/StreamVideoSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/video/StreamVideoSettingsView.kt | deepseek-flash | 12.8 |
+| Moblin/View/Settings/Streams/Stream/Video/StreamVideoSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/video/StreamVideoSettingsView.kt | deepseek-flash | 19.6 |
 | Moblin/View/Settings/Streams/Stream/Whip/StreamWhipSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/whip/StreamWhipSettingsView.kt | deepseek-flash | 6.1 |
 | Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRistSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/wizard/custom/StreamWizardCustomRistSettingsView.kt | deepseek-flash | 44.3 |
 | Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRtmpSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/wizard/custom/StreamWizardCustomRtmpSettingsView.kt | deepseek-flash | 39.9 |
@@ -790,7 +790,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Stream/Overlay/Right/ZoomSliderView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/right/ZoomSliderView.kt | deepseek-flash | 46.2 |
 | Moblin/View/Stream/Overlay/StreamOverlayChatView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayChatView.kt | deepseek-flash | 38.0 |
 | Moblin/View/Stream/Overlay/StreamOverlayDebugView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayDebugView.kt | deepseek-flash | 5.2 |
-| Moblin/View/Stream/Overlay/StreamOverlayLeftView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayLeftView.kt | deepseek-flash | 12.9 |
+| Moblin/View/Stream/Overlay/StreamOverlayLeftView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayLeftView.kt | deepseek-flash | 26.8 |
 | Moblin/View/Stream/Overlay/StreamOverlayNavigationView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayNavigationView.kt | deepseek-flash | 14.2 |
 | Moblin/View/Stream/Overlay/StreamOverlayRightView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt | deepseek-flash | 23.9 |
 | Moblin/View/Stream/StreamGridView.swift | app/src/main/java/com/moblin/android/view/stream/StreamGridView.kt | deepseek-flash | 4.0 |
@@ -799,12 +799,12 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Stream/StreamViewLayout.swift | app/src/main/java/com/moblin/android/view/stream/StreamViewLayout.kt | deepseek-flash | 14.0 |
 | Moblin/View/Stream/TallyView.swift | app/src/main/java/com/moblin/android/view/stream/TallyView.kt | deepseek-flash | 30.2 |
 | Moblin/View/Utils/AddButtonView.swift | app/src/main/java/com/moblin/android/view/utils/AddButtonView.kt | deepseek-flash | 2.6 |
-| Moblin/View/Utils/BannersView.swift | app/src/main/java/com/moblin/android/view/utils/BannersView.kt | deepseek-flash | 20.5 |
+| Moblin/View/Utils/BannersView.swift | app/src/main/java/com/moblin/android/view/utils/BannersView.kt | deepseek-flash | 65.1 |
 | Moblin/View/Utils/BorderlessButtonView.swift | app/src/main/java/com/moblin/android/view/utils/BorderlessButtonView.kt | deepseek-flash | 2.4 |
 | Moblin/View/Utils/ButtonView.swift | app/src/main/java/com/moblin/android/view/utils/ButtonView.kt | deepseek-flash | 8.3 |
 | Moblin/View/Utils/ChatActionButtonsView.swift | app/src/main/java/com/moblin/android/view/utils/ChatActionButtonsView.kt | deepseek-flash | 67.2 |
 | Moblin/View/Utils/ChatLineStyle.swift | app/src/main/java/com/moblin/android/view/utils/ChatLineStyle.kt | deepseek-flash | 10.4 |
-| Moblin/View/Utils/ChatLineView.swift | app/src/main/java/com/moblin/android/view/utils/ChatLineView.kt | deepseek-flash | 19.4 |
+| Moblin/View/Utils/ChatLineView.swift | app/src/main/java/com/moblin/android/view/utils/ChatLineView.kt | deepseek-flash | 44.5 |
 | Moblin/View/Utils/ChatScrollView.swift | app/src/main/java/com/moblin/android/view/utils/ChatScrollView.kt | deepseek-flash | 49.3 |
 | Moblin/View/Utils/CloseToolbarView.swift | app/src/main/java/com/moblin/android/view/utils/CloseToolbarView.kt | deepseek-flash | 5.2 |
 | Moblin/View/Utils/CommandCopyView.swift | app/src/main/java/com/moblin/android/view/utils/CommandCopyView.kt | deepseek-flash | 5.9 |
@@ -812,7 +812,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Utils/ContextMenuDuplicateButtonView.swift | app/src/main/java/com/moblin/android/view/utils/ContextMenuDuplicateButtonView.kt | deepseek-flash | 3.3 |
 | Moblin/View/Utils/CreateButtonView.swift | app/src/main/java/com/moblin/android/view/utils/CreateButtonView.kt | deepseek-flash | 3.6 |
 | Moblin/View/Utils/DraggableItemPrefixView.swift | app/src/main/java/com/moblin/android/view/utils/DraggableItemPrefixView.kt | deepseek-flash | 2.9 |
-| Moblin/View/Utils/EmotesPlayer.swift | app/src/main/java/com/moblin/android/view/utils/EmotesPlayer.kt | deepseek-flash | 135.4 |
+| Moblin/View/Utils/EmotesPlayer.swift | app/src/main/java/com/moblin/android/view/utils/EmotesPlayer.kt | deepseek-flash | 24.1 |
 | Moblin/View/Utils/EndAnchoredScrollView.swift | app/src/main/java/com/moblin/android/view/utils/EndAnchoredScrollView.kt | deepseek-flash | 15.6 |
 | Moblin/View/Utils/FontPickerViews.swift | app/src/main/java/com/moblin/android/view/utils/FontPickerViews.kt | deepseek-flash | 58.0 |
 | Moblin/View/Utils/FormFieldError.swift | app/src/main/java/com/moblin/android/view/utils/FormFieldError.kt | deepseek-flash | 2.9 |
@@ -840,6 +840,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Utils/TextEditView.swift | app/src/main/java/com/moblin/android/view/utils/TextEditView.kt | deepseek-flash | 37.4 |
 | Moblin/View/Utils/TextItemView.swift | app/src/main/java/com/moblin/android/view/utils/TextItemView.kt | deepseek-flash | 5.4 |
 | Moblin/View/Utils/TextValueView.swift | app/src/main/java/com/moblin/android/view/utils/TextValueView.kt | deepseek-flash | 4.0 |
+| Moblin/View/Utils/TradingCardView.swift | app/src/main/java/com/moblin/android/view/utils/TradingCardView.kt | deepseek-flash | 70.6 |
 | Moblin/View/Utils/UrlsView.swift | app/src/main/java/com/moblin/android/view/utils/UrlsView.kt | deepseek-flash | 49.5 |
 | Moblin/View/Utils/ValueEditView.swift | app/src/main/java/com/moblin/android/view/utils/ValueEditView.kt | deepseek-flash | 47.0 |
 | Moblin/View/Utils/VideoSourceRotationView.swift | app/src/main/java/com/moblin/android/view/utils/VideoSourceRotationView.kt | deepseek-flash | 5.3 |
@@ -898,6 +899,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | MoblinTests/Moblin/Various/ChatPostTextSuite.swift | app/src/test/java/com/moblin/android/various/ChatPostTextSuite.kt | deepseek-flash | 16.2 |
 | MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift | app/src/test/java/com/moblin/android/various/model/chat/ChatProviderSuite.kt | deepseek-flash | 4.5 |
 | MoblinTests/Moblin/Various/Model/ModelMusicSuite.swift | app/src/test/java/com/moblin/android/various/model/ModelMusicSuite.kt | deepseek-flash | 11.9 |
+| MoblinTests/Moblin/Various/Model/ModelWebBrowserSuite.swift | app/src/test/java/com/moblin/android/various/model/ModelWebBrowserSuite.kt | deepseek-flash | 12.5 |
 | MoblinTests/Moblin/Various/Model/SceneResolverSuite.swift | app/src/test/java/com/moblin/android/various/model/SceneResolverSuite.kt | deepseek-flash | 9.6 |
 | MoblinTests/Moblin/Various/Network/HttpClientSuite.swift | app/src/test/java/com/moblin/android/various/network/HttpClientSuite.kt | deepseek-flash | 22.8 |
 | MoblinTests/Moblin/Various/Network/HttpProxyServerSuite.swift | app/src/test/java/com/moblin/android/various/network/HttpProxyServerSuite.kt | deepseek-flash | 17.9 |

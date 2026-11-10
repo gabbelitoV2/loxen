@@ -19,7 +19,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -54,7 +58,10 @@ import com.moblin.android.view.utils.CopyToClipboardButtonView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.view.utils.TradingCardView
 import com.moblin.android.view.utils.UrlsView
+import com.moblin.android.view.utils.strokeTradingCardDash
+import com.moblin.android.view.utils.tradingCardPulseOpacity
 
 private fun isAllowedPassword(password: String): Boolean {
     return password.isNotEmpty()
@@ -366,6 +373,56 @@ private fun StreamerView(
     }
 }
 
+private fun drawMoblinkCard(context: DrawScope, time: Double) {
+    val blue = Color(red = 0x2F / 255f, green = 0x7C / 255f, blue = 0xF6 / 255f)
+    val serverPath = Path()
+    serverPath.moveTo(44f, 54f)
+    serverPath.cubicTo(44f, 34f, 100f, 38f, 116f, 26f)
+    serverPath.moveTo(130f, 66f)
+    serverPath.lineTo(130f, 26f)
+    serverPath.moveTo(216f, 54f)
+    serverPath.cubicTo(216f, 34f, 160f, 38f, 144f, 26f)
+    strokeTradingCardDash(
+        context = context,
+        path = serverPath,
+        color = blue,
+        lineWidth = 2.0f,
+        dash = 4.0f,
+        gap = 4.0f,
+        time = time,
+    )
+    val hotspotPath = Path()
+    hotspotPath.moveTo(80f, 90f)
+    hotspotPath.lineTo(64f, 90f)
+    strokeTradingCardDash(
+        context = context,
+        path = hotspotPath,
+        color = Color(red = 0x0D / 255f, green = 0x7A / 255f, blue = 0x30 / 255f),
+        lineWidth = 2.5f,
+        dash = 4.0f,
+        gap = 4.0f,
+        time = time,
+    )
+    val moblinkPath = Path()
+    moblinkPath.moveTo(180f, 90f)
+    moblinkPath.lineTo(196f, 90f)
+    strokeTradingCardDash(
+        context = context,
+        path = moblinkPath,
+        color = blue,
+        lineWidth = 2.5f,
+        dash = 4.0f,
+        gap = 4.0f,
+        time = time,
+    )
+    context.drawCircle(
+        color = Color(red = 0x4C / 255f, green = 0xD9 / 255f, blue = 0x64 / 255f)
+            .copy(alpha = tradingCardPulseOpacity(time = time).toFloat()),
+        radius = 1.6f,
+        center = Offset(144f, 21f),
+    )
+}
+
 @Composable
 fun MoblinkSettingsView(
     model: Model = LocalModel.current,
@@ -383,6 +440,13 @@ fun MoblinkSettingsView(
     }
 
     Form(title = "Moblink") {
+        Section {
+            TradingCardView(
+                name = "Moblink",
+                background = Color(red = 0xE0 / 255f, green = 0xE4 / 255f, blue = 0xEC / 255f),
+                draw = ::drawMoblinkCard,
+            )
+        }
         Section {
             Text(
                 localized(

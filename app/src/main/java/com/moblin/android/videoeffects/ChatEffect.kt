@@ -28,7 +28,6 @@ import com.moblin.android.various.settings.SettingsWidgetChat
 import com.moblin.android.view.utils.ChatLineContent
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineUiView
-import com.moblin.android.view.utils.EmotesPlayer
 import java.lang.ref.WeakReference
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -88,10 +87,6 @@ private class ChatRenderer(
         chat.moreThanOneStreamingPlatform
             .sink { weakSelf.get()?.scheduleRender() }
             .store(into = cancellables)
-        EmotesPlayer.shared.sizesVersion
-            .dropFirst()
-            .sink { weakSelf.get()?.scheduleRender() }
-            .store(into = cancellables)
         scheduleRender()
     }
 
@@ -125,6 +120,7 @@ private class ChatRenderer(
         val lineView = ChatLineUiView(AppDelegate.context)
         val weakSelf = WeakReference(this)
         lineView.onImageLoaded = { weakSelf.get()?.scheduleRender() }
+        lineView.onImageSizeLoaded = { weakSelf.get()?.scheduleRender() }
         containerView.addSubview(lineView)
         lineViews[key] = lineView
         return lineView

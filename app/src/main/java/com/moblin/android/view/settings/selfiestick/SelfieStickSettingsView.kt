@@ -4,6 +4,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Section
@@ -13,6 +14,7 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsControllerFunction
 import com.moblin.android.various.settings.SettingsSelfieStick
 import com.moblin.android.view.settings.gamecontrollers.ControllerButtonView
+import com.moblin.android.view.utils.TradingCardView
 
 @Composable
 fun SelfieStickDoesNotWorkView(database: Database, selfieStick: SettingsSelfieStick) {
@@ -34,6 +36,12 @@ private fun functions(): List<SettingsControllerFunction> {
 @Composable
 fun SelfieStickSettingsView(model: Model = LocalModel.current, selfieStick: SettingsSelfieStick) {
     Form(title = "Selfie stick") {
+        Section {
+            TradingCardView(
+                name = "SelfieStick",
+                background = Color(red = 0xD2 / 255f, green = 0xE0 / 255f, blue = 0xD8 / 255f),
+            )
+        }
         Section(
             header = "Button",
             footer = "⚠️ Hijacks volume buttons. You can only change volume in Control Center when enabled.",

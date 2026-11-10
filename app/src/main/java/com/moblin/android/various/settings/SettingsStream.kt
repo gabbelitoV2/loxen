@@ -721,6 +721,10 @@ class SettingsStreamSrt(
     }
 
     companion object {
+        fun isValidLatency(latency: Int): Boolean {
+            return latency in 0..65535
+        }
+
         fun decode(container: JsonObject): SettingsStreamSrt {
             val srt = SettingsStreamSrt()
             srt.latency = container.decode("latency", defaultSrtLatency)
@@ -1803,6 +1807,22 @@ class SettingsStream(
         val defaultRealtimeIrlBaseUrl: String = "https://rtirl.com/api"
         val defaultResolution: SettingsStreamResolution = SettingsStreamResolution.r1920x1080
         val defaultFps: Int = 30
+
+        fun isValidFps(fps: Int): Boolean {
+            return fpss.contains(fps)
+        }
+
+        fun isValidBitrate(bitrate: Int): Boolean {
+            return bitrate in 50_000..50_000_000
+        }
+
+        fun isValidMaxKeyFrameInterval(interval: Int): Boolean {
+            return interval in 0..10
+        }
+
+        fun isValidAudioBitrate(bitrate: Int): Boolean {
+            return bitrate in 32_000..320_000 && bitrate % 32_000 == 0
+        }
 
         fun decode(container: JsonObject): SettingsStream {
             val stream = SettingsStream()

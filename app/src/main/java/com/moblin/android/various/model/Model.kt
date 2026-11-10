@@ -227,10 +227,14 @@ class Banners {
     val minimized = MutableStateFlow(false)
 }
 
+class BannerMessage {
+    val text = MutableStateFlow("")
+}
+
 class HypeTrain {
     val level = MutableStateFlow<Int?>(null)
     val progress = MutableStateFlow<ProgressBar?>(null)
-    val message = MutableStateFlow("")
+    val message = BannerMessage()
     var expiresAt: Instant? = null
 }
 
@@ -253,7 +257,7 @@ class TwitchPoll {
     val title = MutableStateFlow("")
     val choices = MutableStateFlow<List<TwitchPollChoice>>(emptyList())
     val totalVotes = MutableStateFlow(0)
-    val message = MutableStateFlow("")
+    val message = BannerMessage()
     var endsAt: Instant? = null
 }
 
@@ -273,7 +277,7 @@ class TwitchPrediction {
     val title = MutableStateFlow("")
     val outcomes = MutableStateFlow<List<TwitchPredictionOutcome>>(emptyList())
     val totalChannelPoints = MutableStateFlow(0)
-    val message = MutableStateFlow("")
+    val message = BannerMessage()
     var locksAt: Instant? = null
 }
 

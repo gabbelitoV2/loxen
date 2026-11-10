@@ -80,6 +80,7 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.view.utils.TradingCardView
 import java.util.UUID
 
 private fun <T> isSelected(values: Set<T>, type: T): Boolean {
@@ -954,6 +955,12 @@ fun MacrosSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Form(title = localized("Macros")) {
+        Section {
+            TradingCardView(
+                name = "Macros",
+                background = Color(0xFFE7E3D6),
+            )
+        }
         Section {
             Text(
                 localized(

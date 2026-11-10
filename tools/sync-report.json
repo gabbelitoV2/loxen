@@ -1,9 +1,33 @@
 {
-  "upstream": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+  "upstream": "ed0c4bd672433448859cd362023824b14d3b9ce5",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt",
+      "reason": "hook",
+      "ported_from": "1cdd55640f2aa94267fae0e1cbc17e8c035687ad",
+      "errors": [],
+      "hooks": [
+        "HCPBS.8 (CPBS.json) view/stream/overlay/StreamOverlayRightView.kt [fun BlackSharkCoolerDeviceStatusView]: neither the old nor the new line was found"
+      ]
+    },
+    {
+      "swift": "MoblinTests/Moblin/Various/MoblinSettingsUrlSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/various/MoblinSettingsUrlSuite.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "59: Too many arguments for 'fun localized(text: String): String'.",
+        "64: Too many arguments for 'fun localized(text: String): String'.",
+        "104: Too many arguments for 'fun localized(text: String): String'.",
+        "110: Too many arguments for 'fun localized(text: String): String'."
+      ],
+      "hooks": []
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

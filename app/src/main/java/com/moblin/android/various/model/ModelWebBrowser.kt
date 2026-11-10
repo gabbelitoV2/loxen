@@ -6,6 +6,8 @@ import android.webkit.JsResult
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.moblin.android.platform.core.CharacterSet
+import com.moblin.android.platform.core.addingPercentEncoding
 import com.moblin.android.platform.network.NWEndpoint
 import com.moblin.android.platform.webkit.WKWebViewConfiguration
 import com.moblin.android.platform.webkit.WebKitProxy
@@ -30,20 +32,22 @@ class WebBrowserState {
     }
 }
 
-private fun Model.getWebBrowserUrl(): String? {
-    val parsed = runCatching { URI(webBrowserUrl.value) }.getOrNull()
+fun makeWebBrowserUrl(text: String): String? {
+    val parsed = runCatching { URI(text) }.getOrNull()
     val scheme = parsed?.scheme
     if (parsed != null && !scheme.isNullOrEmpty()) {
-        return webBrowserUrl.value
+        return text
     }
-    if (webBrowserUrl.value.contains(".")) {
-        return "https://${webBrowserUrl.value}"
+    if (text.contains(".")) {
+        return "https://$text"
     }
-    return "https://www.google.com/search?q=${webBrowserUrl.value}"
+    val query = text.addingPercentEncoding(CharacterSet.urlQueryAllowed)
+        ?.replace("+", "%2B")
+    return "https://www.google.com/search?q=${query ?: ""}"
 }
 
 fun Model.loadWebBrowserUrl() {
-    val url = getWebBrowserUrl() ?: return
+    val url = makeWebBrowserUrl(text = webBrowserUrl.value) ?: return
     (webBrowser as? WebView)?.loadUrl(url)
 }
 

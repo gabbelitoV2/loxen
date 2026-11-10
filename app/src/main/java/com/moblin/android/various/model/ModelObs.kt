@@ -32,6 +32,10 @@ data class ObsSceneMediaSource(
     var input: String,
 )
 
+class ObsScreenshot {
+    val image = MutableStateFlow<Bitmap?>(null)
+}
+
 class QuickButtonObs {
     var sourceFetchScreenshot = false
     var sourceScreenshotIsFetching = false
@@ -45,13 +49,13 @@ class QuickButtonObs {
     val currentScenePicker = MutableStateFlow("")
     val currentScene = MutableStateFlow("")
     val scenes = MutableStateFlow<List<String>>(emptyList())
-    val screenshot = MutableStateFlow<Bitmap?>(null)
+    val screenshot = ObsScreenshot()
     val streaming = MutableStateFlow(false)
     val fixOngoing = MutableStateFlow(false)
     val audioDelay = MutableStateFlow(0)
 
     fun startObsSourceScreenshot() {
-        screenshot.value = null
+        screenshot.image.value = null
         sourceFetchScreenshot = true
         sourceScreenshotIsFetching = false
     }
@@ -85,12 +89,15 @@ fun Model.updateObsSourceScreenshot() {
     obsWebSocket?.getSourceScreenshot(
         name = obsQuickButton.currentScene.value,
         onSuccess = { data ->
-            obsQuickButton.screenshot.value = BitmapFactory.decodeByteArray(data, 0, data.size)
+            obsQuickButton.screenshot.image.value =
+                BitmapFactory.decodeByteArray(data, 0, data.size)
             obsQuickButton.sourceScreenshotIsFetching = false
         },
         onError = { message ->
             Log.d(TAG, "Failed to update screenshot with error $message")
-            obsQuickButton.screenshot.value = null
+            if (obsQuickButton.screenshot.image.value != null) {
+                obsQuickButton.screenshot.image.value = null
+            }
             obsQuickButton.sourceScreenshotIsFetching = false
         },
     )

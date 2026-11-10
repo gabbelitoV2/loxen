@@ -13,6 +13,7 @@ import android.text.style.CharacterStyle
 import android.text.style.ForegroundColorSpan
 import android.text.style.MetricAffectingSpan
 import android.text.style.ReplacementSpan
+import android.util.Size
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -195,8 +196,12 @@ private fun makeFont(content: ChatLineContent, style: ChatLineTextStyle): Typefa
     return Typeface.create(typeface, typefaceStyle)
 }
 
-private fun makeLayout(content: ChatLineContent, availableWidth: Float): ChatLineLayout {
-    val sizesVersion = EmotesPlayer.shared.sizesVersion.value
+private fun makeLayout(
+    content: ChatLineContent,
+    availableWidth: Float,
+    sizesVersion: Int,
+    imageSize: (ChatImageSource) -> Size?,
+): ChatLineLayout {
     val basePaint = TextPaint()
     basePaint.isAntiAlias = true
     basePaint.typeface = makeBaseFont(content = content)
@@ -244,15 +249,15 @@ private fun makeLayout(content: ChatLineContent, availableWidth: Float): ChatLin
                 val image = item.image
                 var contentWidth = 0f
                 var contentHeight = 0f
-                val imageSize = EmotesPlayer.shared.size(image.source)
-                if (imageSize != null && imageSize.width.toFloat() > 0f && imageSize.height.toFloat() > 0f) {
+                val size = imageSize(image.source)
+                if (size != null && size.width > 0 && size.height > 0) {
                     val height = image.height
                     if (height != null) {
                         contentHeight = max(height - 2 * image.verticalPadding, 0f)
-                        contentWidth = contentHeight * imageSize.width.toFloat() / imageSize.height.toFloat()
+                        contentWidth = contentHeight * size.width.toFloat() / size.height.toFloat()
                     } else {
-                        contentWidth = imageSize.width.toFloat()
-                        contentHeight = imageSize.height.toFloat()
+                        contentWidth = size.width.toFloat()
+                        contentHeight = size.height.toFloat()
                     }
                 } else {
                     hasUnknownImageSize = true
@@ -345,6 +350,9 @@ private fun makeLayout(content: ChatLineContent, availableWidth: Float): ChatLin
 
 class ChatLineUiView(context: Context) : FrameLayout(context) {
     var onImageLoaded: (() -> Unit)? = null
+    var onImageSizeLoaded: (() -> Unit)? = null
+    private var sizesVersion = 0
+    private val pendingSizeSources = mutableSetOf<ChatImageSource>()
     private var content: ChatLineContent? = null
     private val layouts = mutableListOf<ChatLineLayout>()
     private var currentLayout: ChatLineLayout? = null
@@ -400,17 +408,58 @@ class ChatLineUiView(context: Context) : FrameLayout(context) {
         val content = this.content ?: return null
         val existing = layouts.firstOrNull { it.availableWidth == availableWidth }
         if (existing != null) {
-            if (!existing.hasUnknownImageSize || existing.sizesVersion == EmotesPlayer.shared.sizesVersion.value) {
+            if (!existing.hasUnknownImageSize || existing.sizesVersion == sizesVersion) {
                 return existing
             }
             layouts.remove(existing)
         }
-        val layout = makeLayout(content = content, availableWidth = availableWidth)
+        val layout = makeLayout(
+            content = content,
+            availableWidth = availableWidth,
+            sizesVersion = sizesVersion,
+            imageSize = ::imageSize,
+        )
         layouts.add(layout)
         if (layouts.size > 3) {
             layouts.removeAt(0)
         }
         return layout
+    }
+
+    private fun imageSize(source: ChatImageSource): Size? {
+        val size = EmotesPlayer.shared.size(source) {
+            if (pendingSizeSources.remove(source)) {
+                sizesVersion += 1
+                requestLayout()
+                invalidate()
+                onImageSizeLoaded?.invoke()
+            }
+        }
+        if (size == null) {
+            pendingSizeSources.add(source)
+        } else {
+            pendingSizeSources.remove(source)
+        }
+        return size?.let { Size(it.width.toInt(), it.height.toInt()) }
+    }
+
+    fun onEmoteSizesChanged() {
+        var resolved = false
+        val iterator = pendingSizeSources.iterator()
+        while (iterator.hasNext()) {
+            val source = iterator.next()
+            if (EmotesPlayer.shared.size(source = source, onLoaded = {}) != null) {
+                iterator.remove()
+                resolved = true
+            }
+        }
+        if (!resolved) {
+            return
+        }
+        sizesVersion += 1
+        requestLayout()
+        invalidate()
+        onImageSizeLoaded?.invoke()
     }
 
     private fun availableWidthForBounds(): Float {
@@ -523,13 +572,15 @@ class ChatLineViewCoordinator(var onTap: ((String?) -> Unit)?) {
 
 @Composable
 fun ChatLineView(content: ChatLineContent, onTap: ((String?) -> Unit)? = null) {
-    val sizesVersion by EmotesPlayer.shared.sizesVersion.collectAsState()
+    val imageSizes = remember { mutableStateOf(0) }
+    val emoteSizesVersion by imageSizes
     val coordinator = remember { ChatLineViewCoordinator(onTap) }
     val viewState = remember { mutableStateOf<ChatLineUiView?>(null) }
     AndroidView(
         factory = { context ->
             ChatLineUiView(context).also { view ->
                 viewState.value = view
+                view.onImageSizeLoaded = { imageSizes.value += 1 }
                 view.setOnTouchListener { touched, event ->
                     if (coordinator.onTap == null) {
                         false
@@ -550,7 +601,10 @@ fun ChatLineView(content: ChatLineContent, onTap: ((String?) -> Unit)? = null) {
             view.unregister()
         },
     )
-    LaunchedEffect(sizesVersion) {
+    LaunchedEffect(emoteSizesVersion) {
+        viewState.value?.onEmoteSizesChanged()
+    }
+    LaunchedEffect(imageSizes.value) {
         viewState.value?.requestLayout()
         viewState.value?.invalidate()
     }

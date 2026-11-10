@@ -37,6 +37,8 @@ class SettingsRemoteControlAssistant(
     companion object {
         val baseName: String = localized("Streamer name")
 
+        fun isValidPort(port: Int): Boolean = port > 0
+
         fun decode(container: JsonObject): SettingsRemoteControlAssistant {
             val assistant = SettingsRemoteControlAssistant()
             assistant.id = container.decode("id", UUID.randomUUID())
@@ -157,6 +159,8 @@ class SettingsRemoteControlServerRelay(
     }
 
     companion object {
+        fun isValidBridgeId(bridgeId: String): Boolean = bridgeId.isNotEmpty()
+
         fun decode(container: JsonObject): SettingsRemoteControlServerRelay {
             val relay = SettingsRemoteControlServerRelay()
             relay.enabled = container.decode("enabled", false)
