@@ -2,6 +2,7 @@ package com.moblin.android.view.settings.gamecontrollers
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
@@ -16,6 +17,7 @@ import com.moblin.android.various.settings.SettingsGameController
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.view.utils.TradingCardView
 
 private fun gameControllerIndex(database: Database, gameController: SettingsGameController): Int {
     val index = database.gameControllers.indexOfFirst { gameController2 ->
@@ -31,6 +33,12 @@ fun GameControllersSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Form(title = "Game controllers") {
+        Section {
+            TradingCardView(
+                name = "GameController",
+                background = Color(red = 0x8F / 255f, green = 0xBC / 255f, blue = 0xF0 / 255f),
+            )
+        }
         Section {
             Text(localized("Use game controllers to zoom, set scene, and more, from a distance."))
         }

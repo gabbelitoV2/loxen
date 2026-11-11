@@ -11,6 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
@@ -47,6 +51,8 @@ import com.moblin.android.view.utils.OpenAiSettingsView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.view.utils.TradingCardView
+import com.moblin.android.view.utils.tradingCardPulseOpacity
 
 @Composable
 private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissionsCommand) {
@@ -992,12 +998,33 @@ private fun ChatBotAliasesSettingsView(
     }
 }
 
+private fun drawChatBotCard(context: DrawScope, time: Double) {
+    context.drawOval(
+        color = Color(
+            red = 0xFF / 255f,
+            green = 0x3B / 255f,
+            blue = 0x30 / 255f,
+            alpha = tradingCardPulseOpacity(time = time).toFloat(),
+        ),
+        topLeft = Offset(65.52f - 4.08f, 39.68f - 4.08f),
+        size = Size(8.16f, 8.16f),
+    )
+}
+
 @Composable
 fun ChatBotSettingsView(
     model: Model = LocalModel.current,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Form(title = "Bot") {
+        Section {
+            TradingCardView(
+                name = "ChatBot",
+                background = Color(red = 0xEA / 255f, green = 0xF4 / 255f, blue = 0xEA / 255f),
+                hasFront = false,
+                draw = ::drawChatBotCard,
+            )
+        }
         Section {
             NavigationLink(
                 destination = {

@@ -4,6 +4,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.moblinwatch.shared.WatchSettings
@@ -11,6 +12,7 @@ import com.moblin.android.platform.swiftui.*
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.settings.watch.chat.WatchChatSettingsView
 import com.moblin.android.view.settings.watch.display.WatchDisplaySettingsView
+import com.moblin.android.view.utils.TradingCardView
 
 @Composable
 fun WatchSettingsView(
@@ -21,6 +23,12 @@ fun WatchSettingsView(
 ) {
     val viaRemoteControl by watch.viaRemoteControl.collectAsState()
     Form(title = "Apple Watch") {
+        Section {
+            TradingCardView(
+                name = "AppleWatch",
+                background = Color(red = 0xF1 / 255f, green = 0xEF / 255f, blue = 0xE4 / 255f),
+            )
+        }
         Section {
             NavigationLink(
                 destination = {

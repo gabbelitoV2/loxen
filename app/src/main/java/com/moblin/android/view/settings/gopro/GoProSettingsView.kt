@@ -42,7 +42,6 @@ import com.moblin.android.view.settings.ingests.rtmpserver.RtmpServerSettingsVie
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemTextView
-import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.QrCodeImageView
 import com.moblin.android.view.utils.ShortcutSectionView
@@ -581,9 +580,7 @@ fun GoProSettingsView(
 ) {
     Form(title = "GoPro") {
         Section {
-            HCenter {
-                IntegrationImageView(imageName = "GoPro")
-            }
+            IntegrationImageView(imageName = "GoPro", height = 180.0)
         }
         GoProBleDevicesSettingsSection(goPro = model.database.goPro)
         Section {

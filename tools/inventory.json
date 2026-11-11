@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-10T02:45:37+00:00",
+  "generated": "2026-11-11T00:16:14+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -5915,8 +5915,8 @@
     },
     {
       "path": "Moblin/View/Utils/TradingCardView.swift",
-      "lines": 59,
-      "sha256": "74cc64ea5f2808eee8a1d98732954f416b6456c50f6ee11953cce0fed2c6be80",
+      "lines": 62,
+      "sha256": "2f89ef7c958d511c07b8defc52ce1344d3789d8754101964193db2f96f3bf93c",
       "imports": [
         "SwiftUI"
       ],
@@ -10403,8 +10403,8 @@
     },
     {
       "path": "Moblin/View/Settings/Watch/WatchSettingsView.swift",
-      "lines": 36,
-      "sha256": "7e1f55056fc9492c095cf9949d0d78463be62a468a9037e97b21552ea992d770",
+      "lines": 40,
+      "sha256": "8bd981e6501023b7d369e372051d0dc427209eae699b084c1f91a2799ceaa9c3",
       "imports": [
         "SwiftUI"
       ],
@@ -10422,7 +10422,8 @@
         "Moblin/Various/Model/Model.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
         "Moblin/View/Settings/Watch/Chat/WatchChatSettingsView.swift",
-        "Moblin/View/Settings/Watch/Display/WatchDisplaySettingsView.swift"
+        "Moblin/View/Settings/Watch/Display/WatchDisplaySettingsView.swift",
+        "Moblin/View/Utils/TradingCardView.swift"
       ],
       "wave": 13
     },
@@ -15295,8 +15296,8 @@
     },
     {
       "path": "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift",
-      "lines": 78,
-      "sha256": "1592c75016c17b9d568d6bd934b108567547cb6306ec26dd0fef8f51d7e2a7d7",
+      "lines": 88,
+      "sha256": "36500f7b5f0b4224019eef0caab4171cd36168b1361c7a22f500a45ddc29d940",
       "imports": [
         "SwiftUI"
       ],
@@ -15321,7 +15322,6 @@
         "Moblin/Various/Utils/Utils.swift",
         "Moblin/View/Settings/CatPrinters/CatPrinterSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift",
-        "Moblin/View/Utils/HCenter.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
       "wave": 25
@@ -18558,8 +18558,8 @@
     },
     {
       "path": "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift",
-      "lines": 51,
-      "sha256": "07a36c7a7ae06559a2beeb7c9aecc28c455b19214bd620057be5a2221d7787be",
+      "lines": 49,
+      "sha256": "ed678b2fef5bdea23d069e5153809e90e135227d08efcb6b2fac6e365b835678",
       "imports": [
         "SwiftUI"
       ],
@@ -18579,7 +18579,6 @@
         "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift",
         "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift",
-        "Moblin/View/Utils/HCenter.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
       "wave": 29
@@ -18704,8 +18703,8 @@
     },
     {
       "path": "Moblin/View/Settings/DjiDevices/DjiDevicesSettingsView.swift",
-      "lines": 72,
-      "sha256": "0cc8ccfac5014abf8c6fd5f3f29e1e6ee2c11a962aae2d87c0a984ab750ce879",
+      "lines": 70,
+      "sha256": "1d31dbe9a090a8e01194ed56f118a2a5a3b13b6bd6b7fd2a242ed294994cefad",
       "imports": [
         "SwiftUI"
       ],
@@ -18731,7 +18730,6 @@
         "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift",
         "Moblin/View/Utils/DraggableItemPrefixView.swift",
-        "Moblin/View/Utils/HCenter.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
       "wave": 29
@@ -19588,8 +19586,8 @@
     },
     {
       "path": "Moblin/View/Settings/Tesla/TeslaSettingsView.swift",
-      "lines": 164,
-      "sha256": "c067a13ba08b4d3cfed09e10c167101bcd7d983ca769c14b7765165809abe421",
+      "lines": 160,
+      "sha256": "e7c9912e88fe30aa4069a277c4c20f8cc2dcc863384289faeb84420d66391a11",
       "imports": [
         "SwiftUI"
       ],
@@ -19609,10 +19607,10 @@
         "Moblin/Integrations/Tesla/TeslaVehicle.swift",
         "Moblin/Integrations/Tesla/TeslaVehicleScanner.swift",
         "Moblin/StreamingPlatforms/OpenStreamingPlatform/OpenStreamingPlatformChat.swift",
-        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelTesla.swift",
         "Moblin/Various/Settings/Settings.swift",
+        "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift",
         "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
         "Moblin/View/Settings/Tesla/TeslaVehicleScannerSettingsView.swift",
         "Moblin/View/Utils/ButtonView.swift",
@@ -19652,8 +19650,8 @@
     },
     {
       "path": "Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift",
-      "lines": 46,
-      "sha256": "566ca663dccd259e601e67d89ea12bacf3e2758228664abbfdf4cc1a04837d09",
+      "lines": 56,
+      "sha256": "222d8218ff29bd3034e36450e271f354168af934579c857b0b9e10487173dd5e",
       "imports": [
         "SwiftUI"
       ],
@@ -19667,14 +19665,13 @@
       "kotlin_package": "com.moblin.android.view.settings.workoutdevices",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDevicesSettingsView.kt",
       "deps": [
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelWorkout.swift",
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Utils/Utils.swift",
-        "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift",
         "Moblin/View/Settings/WorkoutDevices/WorkoutDeviceSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift",
-        "Moblin/View/Utils/HCenter.swift",
         "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
       ],
       "wave": 29
@@ -20567,8 +20564,8 @@
     },
     {
       "path": "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift",
-      "lines": 51,
-      "sha256": "98e51bda9cdbc2ac007664abbd39afbfb91e17467a4bda8af6b782df5f1d09b3",
+      "lines": 55,
+      "sha256": "3198c42243e0082427e8304a90f441430caa83a0a099a7d1673d2db1cd2de48a",
       "imports": [
         "SwiftUI"
       ],
@@ -20587,7 +20584,8 @@
         "Moblin/Various/Settings/SettingsGameController.swift",
         "Moblin/View/Settings/GameControllers/GameControllersControllerSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift",
-        "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift"
+        "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift",
+        "Moblin/View/Utils/TradingCardView.swift"
       ],
       "wave": 36
     },
@@ -20620,8 +20618,8 @@
     },
     {
       "path": "Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift",
-      "lines": 298,
-      "sha256": "ce358a6899270fcd90f3da3a2463b893b3d15e5eff6a378a7c0003daaa77bf8d",
+      "lines": 296,
+      "sha256": "4ef973a1ea34c951e454a224a91360c12312fb0ef81a2ad2dacfd1e1f5af33c9",
       "imports": [
         "StreamDeckKit",
         "SwiftUI"
@@ -22591,8 +22589,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
-      "lines": 850,
-      "sha256": "2a3fbbe97609747bf9f9c9dc2e9e2f96289cac0a4b855ec283f602f7f31dd7e9",
+      "lines": 862,
+      "sha256": "d6efeb7f76a06012b276d4b5db87aeaf5cddaf36958c8b07fc584ae57e610188",
       "imports": [
         "SwiftUI"
       ],
@@ -22684,7 +22682,8 @@
         "Moblin/View/Utils/OpenAiSettingsView.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift",
         "Moblin/View/Utils/TextEditView.swift",
-        "Moblin/View/Utils/TextItemView.swift"
+        "Moblin/View/Utils/TextItemView.swift",
+        "Moblin/View/Utils/TradingCardView.swift"
       ],
       "wave": 44
     },
@@ -24560,8 +24559,8 @@
     },
     {
       "path": "Moblin/View/Settings/GoPro/GoProSettingsView.swift",
-      "lines": 460,
-      "sha256": "9e26b39ad96f18108c596d3bcabfee1ef512d6bd0abffa53ab949c10ad08823e",
+      "lines": 458,
+      "sha256": "0ab3700aea3563e166226609c7938673444e4e85b9e647047a65c5f0ee90f900",
       "imports": [
         "SwiftUI"
       ],
@@ -24613,7 +24612,6 @@
         "Moblin/View/Settings/Ingests/RtmpServer/RtmpServerSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift",
         "Moblin/View/Utils/DraggableItemPrefixView.swift",
-        "Moblin/View/Utils/HCenter.swift",
         "Moblin/View/Utils/NameEditView.swift",
         "Moblin/View/Utils/QrCodeImageView.swift",
         "Moblin/View/Utils/ShortcutView.swift",

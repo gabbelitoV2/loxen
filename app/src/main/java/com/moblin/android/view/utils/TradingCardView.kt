@@ -100,6 +100,7 @@ private fun rememberReduceMotion(): Boolean {
 fun TradingCardView(
     name: String,
     background: Color,
+    hasFront: Boolean = true,
     draw: ((DrawScope, Double) -> Unit)? = null,
 ) {
     val reduceMotion = rememberReduceMotion()
@@ -129,11 +130,13 @@ fun TradingCardView(
                         draw(this, time)
                     }
                 }
-                AssetImage(
-                    name = "${name}CardFront",
-                    modifier = Modifier.matchParentSize(),
-                    contentScale = ContentScale.FillBounds,
-                )
+                if (hasFront) {
+                    AssetImage(
+                        name = "${name}CardFront",
+                        modifier = Modifier.matchParentSize(),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                }
             } else {
                 AssetImage(
                     name = "${name}Card",

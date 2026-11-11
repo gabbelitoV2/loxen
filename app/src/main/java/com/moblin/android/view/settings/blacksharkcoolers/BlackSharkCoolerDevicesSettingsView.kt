@@ -13,7 +13,6 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.catprinters.IntegrationImageView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
-import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.LocalModel
 
@@ -24,9 +23,7 @@ fun BlackSharkCoolerDevicesSettingsView(
 ) {
     Form(title = "Black Shark coolers") {
         Section {
-            HCenter {
-                IntegrationImageView(imageName = "BlackSharkMagCooler4Pro")
-            }
+            IntegrationImageView(imageName = "BlackSharkMagCooler4Pro", height = 180.0)
         }
         Section(footerContent = {
             SwipeLeftToDeleteHelpView(kind = localized("a cooler"))

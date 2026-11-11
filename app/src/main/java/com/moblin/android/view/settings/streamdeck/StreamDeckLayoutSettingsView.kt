@@ -402,9 +402,7 @@ fun StreamDecksSettingsView(
 
     Form(title = "Stream deck") {
         Section {
-            HCenter {
-                IntegrationImageView(imageName = "StreamDeck")
-            }
+            IntegrationImageView(imageName = "StreamDeck")
         }
         if (!isDeviceDriverInstalled) {
             Section {

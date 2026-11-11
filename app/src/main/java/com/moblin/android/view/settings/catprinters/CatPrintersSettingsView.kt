@@ -1,7 +1,9 @@
 package com.moblin.android.view.settings.catprinters
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -9,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
@@ -26,16 +29,21 @@ import com.moblin.android.various.settings.SettingsCatPrinter
 import com.moblin.android.various.settings.SettingsCatPrinters
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.utils.CreateButtonView
-import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+
+fun Modifier.integrationImageRow(height: Double? = null): Modifier = this
+    .background(Color.White)
+    .fillMaxWidth()
+    .then(if (height != null) Modifier.height(height.dp) else Modifier)
+    .widthIn(max = 500.dp)
+    .clearAndSetSemantics {}
 
 @Composable
 fun IntegrationImageView(imageName: String, height: Double? = null) {
     AssetImage(
         name = imageName,
         modifier = Modifier
-            .height((height ?: 130.0).dp)
-            .background(Color.White),
+            .integrationImageRow(height = height),
         contentScale = ContentScale.Fit,
     )
 }
@@ -59,9 +67,9 @@ fun CatPrintersSettingsView(model: Model = LocalModel.current, catPrinters: Sett
     val backgroundPrinting by catPrinters.backgroundPrinting.collectAsState()
     Form(title = "Cat printers") {
         Section {
-            HCenter {
-                IntegrationImageView(imageName = "CatPrinter")
-            }
+            IntegrationImageView(imageName = "CatPrinter", height = 180.0)
+        }
+        Section {
             Text(localized("A small affordable black and white printer."))
         }
         Section(footer = "Print when the app is in background mode.") {

@@ -10333,24 +10333,24 @@
   },
   "Moblin/View/Settings/Watch/WatchSettingsView.swift": {
     "status": "ok",
-    "sha256": "7e1f55056fc9492c095cf9949d0d78463be62a468a9037e97b21552ea992d770",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "8bd981e6501023b7d369e372051d0dc427209eae699b084c1f91a2799ceaa9c3",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/watch/WatchSettingsView.kt",
     "notes": [
-      "Applied the diff: the Chat destination now passes model = model into WatchChatSettingsView; the rest of the file is unchanged.",
-      "model keeps its Android default Model = LocalModel.current so existing callers of WatchSettingsView keep compiling; the explicit argument from the Swift init now overrides it.",
-      "watch.chat still drives the hand-written conversion into com.moblin.android.view.settings.watch.chat.WatchSettingsChat, which is the type WatchChatSettingsView expects.",
-      "No imports, declaration order or formatting changed elsewhere."
+      "Added the new Section with TradingCardView at the top of the Form, before the Chat/Display section.",
+      "TradingCardView comes from com.moblin.android.view.utils and Color from Compose graphics; both imports added.",
+      "The 0xF1/0xEF/0xE4 Apple Watch colours are passed as Float fractions, matching Swift's Double division.",
+      "The Section has neither header nor footer, so both default arguments are left out."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38943,
-    "tokens_out": 2428,
-    "seconds": 10.8,
-    "ported_at": "2026-10-06T23:22:17+00:00"
+    "tokens_in": 39469,
+    "tokens_out": 964,
+    "seconds": 5.2,
+    "ported_at": "2026-11-11T00:16:31+00:00"
   },
   "Moblin/View/Stream/Overlay/StreamOverlayDebugView.swift": {
     "status": "ok",
@@ -13086,23 +13086,26 @@
   },
   "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift": {
     "status": "ok",
-    "sha256": "1592c75016c17b9d568d6bd934b108567547cb6306ec26dd0fef8f51d7e2a7d7",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "36500f7b5f0b4224019eef0caab4171cd36168b1361c7a22f500a45ddc29d940",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/catprinters/CatPrintersSettingsView.kt",
     "notes": [
-      "Only the model property changed: Swift @EnvironmentObject became a plain `let model: Model`, so the Kotlin parameter loses its LocalModel.current default and is now required.",
-      "The LocalModel import is kept unchanged even though it is no longer referenced by a default value.",
-      "Everything else in the file stays byte-identical."
+      "Added the Modifier.integrationImageRow extension, with the SwiftUI modifier chain reversed for Compose: white background outermost, then fillMaxWidth, the optional height and the 500.dp max width.",
+      "IntegrationImageView.height stays Double? and the fixed 130.0 default is gone, because SwiftUI's frame(height: nil) no longer constrains the image; the only caller now passes 180.",
+      "The HCenter wrapper around the printer picture is removed and the description Text moved into its own Section, matching the new Swift structure.",
+      "The 500 point cap is written as widthIn(max = 500.dp) innermost, so on phone widths the row still spans the full width as on iOS.",
+      "accessibilityHidden(true) becomes Modifier.clearAndSetSemantics { } so the decorative image is skipped by screen readers.",
+      "background(.white) keeps the animated Android asset image on a white plate, since the CatPrinter artwork has transparency."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 46250,
-    "tokens_out": 2490,
-    "seconds": 10.0,
-    "ported_at": "2026-10-06T23:22:48+00:00"
+    "tokens_in": 46870,
+    "tokens_out": 5171,
+    "seconds": 27.8,
+    "ported_at": "2026-11-11T00:16:54+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayerFileSettingsView.swift": {
     "status": "ok",
@@ -14380,24 +14383,23 @@
   },
   "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift": {
     "status": "ok",
-    "sha256": "07a36c7a7ae06559a2beeb7c9aecc28c455b19214bd620057be5a2221d7787be",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "ed678b2fef5bdea23d069e5153809e90e135227d08efcb6b2fac6e365b835678",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDevicesSettingsView.kt",
     "notes": [
-      "The Swift diff replaces @EnvironmentObject model with an explicit `let model: Model`, so the composable now takes a required `model: Model` parameter (no LocalModel default) and the unused LocalModel import is dropped.",
-      "`model = model` is now passed down to BlackSharkCoolerDeviceSettingsView, matching the new Swift call.",
-      "SettingsBlackSharkCoolerDevices.devices stays a read-only List, so onDelete keeps `.removing(atOffsets = offsets)` and the context-menu delete keeps `filterNot`.",
-      "ForEach keeps id = { it.id } and the row wrapper order ContextMenuDeleteButton -> BlackSharkCoolerDeviceSettingsView as before."
+      "Replaced the HCenter wrapper with IntegrationImageView's height parameter (180.0, since the parameter is a Double?).",
+      "Removed the now-unused HCenter import.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47291,
-    "tokens_out": 3980,
-    "seconds": 17.0,
-    "ported_at": "2026-10-06T23:23:14+00:00"
+    "tokens_in": 47292,
+    "tokens_out": 826,
+    "seconds": 4.5,
+    "ported_at": "2026-11-11T00:16:31+00:00"
   },
   "Moblin/View/Settings/Camera/VideoStabilization/VideoStabilizationSettingsView.swift": {
     "status": "ok",
@@ -14464,23 +14466,24 @@
   },
   "Moblin/View/Settings/DjiDevices/DjiDevicesSettingsView.swift": {
     "status": "ok",
-    "sha256": "0cc8ccfac5014abf8c6fd5f3f29e1e6ee2c11a962aae2d87c0a984ab750ce879",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "1d31dbe9a090a8e01194ed56f118a2a5a3b13b6bd6b7fd2a242ed294994cefad",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/djidevices/DjiDevicesSettingsView.kt",
     "notes": [
-      "Swift's `@EnvironmentObject var model` became a plain `let model` in both views, so the wrapper now forwards its parent's model to `DjiDeviceSettingsView` with `model = model`.",
-      "The Kotlin parameter defaults `LocalModel.current` / `LocalOnNavigate.current` are kept as the hand-written Android hook for the removed environment objects, so no caller breaks.",
-      "Everything outside the destination call of the private wrapper is unchanged, including the ContextMenuDeleteButton wrapper, the ForEach onDelete/onMove handlers and the CreateButtonView footer."
+      "Only the integration image row changed: the HCenter wrapper is gone and the image now takes height 180.",
+      "IntegrationImageView takes a Double? height, so the Swift 180 becomes 180.0.",
+      "The now unused HCenter import was removed.",
+      "Everything else, including the ForEach handlers and ContextMenuDeleteButton, is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51856,
-    "tokens_out": 3744,
-    "seconds": 14.6,
-    "ported_at": "2026-10-06T23:23:23+00:00"
+    "tokens_in": 51776,
+    "tokens_out": 1106,
+    "seconds": 5.7,
+    "ported_at": "2026-11-11T00:16:32+00:00"
   },
   "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift": {
     "status": "ok",
@@ -15011,41 +15014,47 @@
   },
   "Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift": {
     "status": "ok",
-    "sha256": "566ca663dccd259e601e67d89ea12bacf3e2758228664abbfdf4cc1a04837d09",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "222d8218ff29bd3034e36450e271f354168af934579c857b0b9e10487173dd5e",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDevicesSettingsView.kt",
     "notes": [
-      "Swift `@EnvironmentObject var model: Model` became `let model: Model`, so the Kotlin parameter no longer takes the `LocalModel.current` default and the `com.moblin.android.LocalModel` import is dropped; every caller must pass the model explicitly, as the Swift call site in this file already does.",
-      "The rest of the file is unchanged: Form title, the two Sections, the HCenter/IntegrationImageView header block, the ForEach with onDelete and contextMenuDeleteButton, and CreateButtonView keep the exact Kotlin they had."
+      "The HeartRateDevice/CyclingPowerDevice block was rewritten from IntegrationImageView/HCenter to AssetImage with the Swift aspect ratios, because the Swift now sizes the composite with aspectRatio and integrationImageRow.",
+      "Swift layoutPriority(1) has no Compose equivalent; the two images size themselves with fillMaxHeight + aspectRatio, which reproduces the exact 955/500 : 1 split of the row.",
+      "The images' natural ratios (955/500, 1, 931/500) are written as explicit aspect ratios so scaledToFit behaves like SwiftUI's intrinsic sizing.",
+      "The VStack aspect ratio 1 / (500 / 1455 + 500 / 931) and the 180 point row height are kept verbatim from the Swift.",
+      "Modifier.integrationImageRow(height = 180.0) is imported from com.moblin.android.view.settings.catprinters, next to the existing IntegrationImageView port.",
+      "Form, Section, ForEach, ContextMenuDeleteButton, CreateButtonView and SwipeLeftToDeleteHelpView are unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45518,
-    "tokens_out": 3043,
-    "seconds": 13.5,
-    "ported_at": "2026-10-06T23:23:45+00:00"
+    "tokens_in": 46335,
+    "tokens_out": 6321,
+    "seconds": 30.5,
+    "ported_at": "2026-11-11T00:16:57+00:00"
   },
   "Moblin/View/Settings/Tesla/TeslaSettingsView.swift": {
     "status": "ok",
-    "sha256": "c067a13ba08b4d3cfed09e10c167101bcd7d983ca769c14b7765165809abe421",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "e7c9912e88fe30aa4069a277c4c20f8cc2dcc863384289faeb84420d66391a11",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/tesla/TeslaSettingsView.kt",
     "notes": [
-      "The Swift diff only merges two guard statements into one; the Kotlin onDeviceChange already used two elvis early returns, which is exactly the merged-guard behaviour, so the file is unchanged.",
-      "Verified no other member of the file changed: formatting, imports and declaration order stay byte-identical."
+      "Replaced the resizable/scaledToFit Tesla asset with IntegrationImageView(imageName = \"Tesla\"), which draws the asset at its natural height.",
+      "Dropped the now-unused imports fillMaxWidth, Modifier, ContentScale and AssetImage.",
+      "Added the IntegrationImageView import from com.moblin.android.view.settings.catprinters.",
+      "All other lines are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 52438,
-    "tokens_out": 1820,
-    "seconds": 6.9,
-    "ported_at": "2026-10-22T22:51:47+00:00"
+    "tokens_in": 52230,
+    "tokens_out": 2027,
+    "seconds": 8.4,
+    "ported_at": "2026-11-11T00:16:34+00:00"
   },
   "Moblin/View/Settings/WorkoutDevices/WorkoutDeviceSettingsView.swift": {
     "status": "ok",
@@ -15304,27 +15313,23 @@
   },
   "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift": {
     "status": "ok",
-    "sha256": "98e51bda9cdbc2ac007664abbd39afbfb91e17467a4bda8af6b782df5f1d09b3",
+    "sha256": "3198c42243e0082427e8304a90f441430caa83a0a099a7d1673d2db1cd2de48a",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/gamecontrollers/GameControllersSettingsView.kt",
     "notes": [
-      "SwiftUI struct -> top-level @Composable fun; the private helper gameControllerIndex stays a file-private top-level function that now takes the Database as its first parameter.",
-      "NavigationLink -> onNavigate callback; because the callback only carries a String, the destination view plus the tapped controller id are encoded into the route string \"GameControllersControllerSettingsView/<id>\" and the caller must decode it.",
-      "model is kept as a parameter for signature parity but is unused here, since the destination view is no longer constructed in this file.",
-      "database.gameControllers is treated as a MutableStateFlow<List<SettingsGameController>>: it is read with collectAsState() and mutated by assigning .value (filterNot for delete, plus for append). If the port exposes a read-only StateFlow plus mutator methods on Database, replace those three assignments.",
-      "contextMenuDeleteButton (long press) and List.onDelete (swipe) both collapse onto Modifier.combinedClickable(onLongClick = ...); the SwipeLeftToDeleteHelpView footer is preserved unchanged.",
-      "Form -> LazyColumn, Section -> header text separated by HorizontalDivider, .navigationTitle -> TopAppBar inside a Scaffold (that is why ExperimentalMaterial3Api is opted in).",
-      "String(localized: \"a controller\") -> localized(\"a controller\") from package com.moblin.android.",
-      "GameControllersControllerSettingsView lives in this same package, so it needs no import; only the route string references it."
+      "Added the TradingCardView header section above the description section.",
+      "Imported Color and TradingCardView for the new card.",
+      "Everything else is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4007,
-    "tokens_out": 6631,
-    "seconds": 26.6,
-    "ported_at": "2026-09-22T14:01:59+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 44249,
+    "tokens_out": 1094,
+    "seconds": 5.4,
+    "ported_at": "2026-11-11T00:16:31+00:00"
   },
   "Moblin/Various/Settings/SettingsQuickButtons.swift": {
     "status": "ok",
@@ -15474,30 +15479,26 @@
   },
   "Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift": {
     "status": "ok",
-    "sha256": "ce358a6899270fcd90f3da3a2463b893b3d15e5eff6a378a7c0003daaa77bf8d",
+    "sha256": "4ef973a1ea34c951e454a224a91360c12312fb0ef81a2ad2dacfd1e1f5af33c9",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/streamdeck/StreamDeckLayoutSettingsView.kt",
     "notes": [
-      "Settings models are assumed to expose MutableStateFlow properties: they are read with collectAsState() and written with .value, matching the mapping used elsewhere in the port.",
-      "key.colorColor maps to androidx.compose.ui.graphics.Color and key.color to an Int RGB value; the Swift toRgb()/RGB black fallback becomes toArgb() and 0x00FFFFFF.",
-      "ColorPicker has no Compose counterpart and is left as TODO().",
-      "The NavigationLink in StreamDeckLayoutSettingsView is split into the row composable StreamDeckLayoutSettingsView (label + onNavigate) and the destination composable StreamDeckLayoutSettingsDetailView (the Form, kept public so a navigation graph in another file can host it).",
-      "The three Swift member helpers key(index:) became a single file-private composable streamDeckKeyView, and the static let size constants became file-private consts streamDeckMiniViewSize / streamDeckClassicViewSize / streamDeckXlViewSize.",
-      "List onMove/onDelete are not available in LazyColumn; each layout row gets arrow up/down and delete IconButtons that rewrite streamDecks.layouts.",
-      "Picker plus its onChange became an ExposedDropdownMenuBox whose item click sets the selection and calls model.setSelectedStreamDeck() directly.",
-      "minimumScaleFactor(0.5) on the key caption has no Compose equivalent; the Text is limited to maxLines = 2."
+      "Only the Section wrapping the StreamDeck integration image changed: HCenter was removed so IntegrationImageView is emitted directly inside the Section.",
+      "Everything else, including the Model/default parameter signatures, the StateFlow helpers and the Android-specific ColorPicker swatch row, is kept byte-identical.",
+      "HCenter is still imported because the mini, classic and xl deck views use it."
     ],
     "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 5670,
-    "tokens_out": 35238,
-    "seconds": 136.7,
-    "ported_at": "2026-09-22T14:03:55+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
     "apple_only": [
       "ColorPicker -> TODO(\"ColorPicker has no Compose counterpart\")"
-    ]
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 55488,
+    "tokens_out": 4906,
+    "seconds": 15.5,
+    "ported_at": "2026-11-11T00:16:48+00:00"
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
@@ -16068,23 +16069,25 @@
   },
   "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
     "status": "ok",
-    "sha256": "2a3fbbe97609747bf9f9c9dc2e9e2f96289cac0a4b855ec283f602f7f31dd7e9",
-    "moblin_commit": "4add03b33ef8f38375787c8f2aac985476f64ae2",
+    "sha256": "d6efeb7f76a06012b276d4b5db87aeaf5cddaf36958c8b07fc584ae57e610188",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatBotSettingsView.kt",
     "notes": [
-      "Adds the new 'Use remote source' Picker inside the snapshot web remote control branch, right before the URL row.",
-      "Imports SettingsChatBotCommandSnapshotWebRemoteControlMode from com.moblin.android.various.settings; options come from the enum's entries so the picker shows the enum's display text.",
+      "Added a Section at the top of ChatBotSettingsView's Form with the TradingCardView trading card, matching the Swift change.",
+      "The Swift drawChatBotCard(context:time:) closure became a private top-level Kotlin function (DrawScope, Double) taking the TradingCardView draw lambda's parameters.",
+      "The pulsing red dot is drawn with DrawScope.drawOval using the same 65.52/39.68/8.16 point values, colored Color(0xFF3B30) with tradingCardPulseOpacity as alpha.",
+      "Added imports for Offset, Size, Color, DrawScope, TradingCardView and tradingCardPulseOpacity.",
       "Everything else in the file is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 63172,
-    "tokens_out": 8369,
-    "seconds": 26.8,
-    "ported_at": "2026-10-14T22:43:54+00:00"
+    "tokens_in": 64252,
+    "tokens_out": 9813,
+    "seconds": 33.5,
+    "ported_at": "2026-11-11T00:17:07+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift": {
     "status": "ok",
@@ -17267,27 +17270,23 @@
   },
   "Moblin/View/Settings/GoPro/GoProSettingsView.swift": {
     "status": "ok",
-    "sha256": "9e26b39ad96f18108c596d3bcabfee1ef512d6bd0abffa53ab949c10ad08823e",
+    "sha256": "0ab3700aea3563e166226609c7938673444e4e85b9e647047a65c5f0ee90f900",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/gopro/GoProSettingsView.kt",
     "notes": [
-      "GeometryReader/GeometryProxy became BoxWithConstraints; qrCodeHeight now takes a Dp width and returns Dp (Swift returned Double from a GeometryProxy).",
-      "Form/List/ForEach became Columns with Kotlin loops so the section composables can emit several children; only the outermost container scrolls to avoid nested verticalScroll crashes.",
-      "contextMenuDeleteButton became a long-press Modifier.pointerInput; SwiftUI .onMove drag reordering has no Compose counterpart and is not emitted.",
-      "NavigationLink destinations are surfaced as onNavigate route strings; the WiFiSsidEditView / TextEditView / TextEditNavigationView destination screens and their submit callbacks are wired by the caller.",
-      "navigationTitle has no Scaffold/TopAppBar in this file, so titles are left to the caller.",
-      "@ObservedObject/@EnvironmentObject settings and model types are treated as plain observable classes with mutable properties (read and written directly).",
-      "Assumed cross-file call shapes: NameEditView(name, existingNames, onChange), makeOffsets(list, id): List<Int>?, QrCodeImageView(image: Bitmap, height: Dp), rtmpServerStreamUrl(address, port, streamKey), IpType.ipv4/ipv6 from com.moblin.android.various.model.",
-      "UIImage became android.graphics.Bitmap and IndexSet became List<Int> (deleted in descending order)."
+      "Only the GoPro image row changed: it now uses IntegrationImageView(imageName = \"GoPro\", height = 180.0) directly, without the HCenter wrapper.",
+      "The now-unused HCenter import was dropped.",
+      "Everything else in the file is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9448,
-    "tokens_out": 26060,
-    "seconds": 92.0,
-    "ported_at": "2026-09-22T14:17:04+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 64797,
+    "tokens_out": 5202,
+    "seconds": 17.5,
+    "ported_at": "2026-11-11T00:16:51+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift": {
     "status": "ok",
@@ -18546,28 +18545,22 @@
   },
   "Moblin/View/Utils/TradingCardView.swift": {
     "status": "ok",
-    "sha256": "74cc64ea5f2808eee8a1d98732954f416b6456c50f6ee11953cce0fed2c6be80",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
-    "mode": "full",
+    "sha256": "2f89ef7c958d511c07b8defc52ce1344d3789d8754101964193db2f96f3bf93c",
+    "moblin_commit": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/TradingCardView.kt",
     "notes": [
-      "SwiftUI GraphicsContext/Path/TimelineView/Canvas are translated to Compose Canvas with DrawScope, androidx.compose.ui.graphics.Path and a withFrameNanos loop throttled to 1/30 s.",
-      "The draw closure is typed ((DrawScope, Double) -> Unit)? so card files that supply the artwork use a DrawScope receiver and an absolute time in seconds since 2001-01-01 UTC, as timeIntervalSinceReferenceDate did.",
-      "strokeTradingCardDash keeps its parameter order (context first) but the context is a DrawScope; it uses Stroke + PathEffect.dashPathEffect, whose phase equals Swift's dashPhase.",
-      "@Environment(\\.accessibilityReduceMotion) is read from Settings.Global.ANIMATOR_DURATION_SCALE (0 means reduced motion); it is read once per composition rather than observed.",
-      ".resizable() images become AssetImage with ContentScale.FillBounds, which stretches to the frame like a resizable SwiftUI Image with no scaledToFit.",
-      "The card is centred at a maximum width of 500.dp with the 260:150 aspect ratio, and the background covers the full width, matching frame(maxWidth: 500) then frame(maxWidth: .infinity) then background(background).",
-      ".listRowInsets(EdgeInsets()) has no Compose counterpart and is dropped; Section/Form rows have no insets to remove here.",
-      ".accessibilityHidden(true) becomes Modifier.clearAndSetSemantics { }."
+      "Added a hasFront Boolean parameter (default true) after background, matching the new Swift stored property.",
+      "The front card AssetImage is now emitted only when hasFront is true, so the CardBack stays visible without an overlay."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 37912,
-    "tokens_out": 11802,
-    "seconds": 70.6,
-    "ported_at": "2026-11-10T02:28:03+00:00"
+    "tokens_in": 39489,
+    "tokens_out": 1370,
+    "seconds": 5.8,
+    "ported_at": "2026-11-11T00:16:32+00:00"
   },
   "MoblinTests/Moblin/Various/MoblinSettingsUrlSuite.swift": {
     "status": "ok",

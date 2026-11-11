@@ -25,7 +25,6 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
-import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 
 @Composable
@@ -65,9 +64,7 @@ fun DjiDevicesSettingsView(
 
     Form(title = "DJI devices") {
         Section {
-            HCenter {
-                IntegrationImageView(imageName = "DjiOa4")
-            }
+            IntegrationImageView(imageName = "DjiOa4", height = 180.0)
         }
         Section(
             footerContent = {

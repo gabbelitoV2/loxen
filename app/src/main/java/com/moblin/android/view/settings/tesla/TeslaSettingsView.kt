@@ -1,18 +1,14 @@
 package com.moblin.android.view.settings.tesla
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import com.moblin.android.LocalModel
 import com.moblin.android.integrations.tesla.TeslaVehicleScanner
 import com.moblin.android.integrations.tesla.TeslaVehicleState
 import com.moblin.android.integrations.tesla.teslaGeneratePrivateKey
 import com.moblin.android.localized
-import com.moblin.android.platform.swiftui.AssetImage
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.NavigationLink
@@ -31,6 +27,7 @@ import com.moblin.android.various.model.teslaFlashLights
 import com.moblin.android.various.model.teslaHonk
 import com.moblin.android.various.model.teslaOpenTrunk
 import com.moblin.android.various.settings.SettingsTesla
+import com.moblin.android.view.settings.catprinters.IntegrationImageView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
@@ -119,13 +116,7 @@ fun TeslaSettingsView(
 
     Form(title = "Tesla") {
         Section {
-            HCenter {
-                AssetImage(
-                    name = "Tesla",
-                    modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.Fit,
-                )
-            }
+            IntegrationImageView(imageName = "Tesla")
         }
         Section {
             Toggle(
