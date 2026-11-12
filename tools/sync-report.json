@@ -1,9 +1,58 @@
 {
-  "upstream": "0292c5e7efcc2e9519f7f0927ab7b89596094758",
+  "upstream": "33acad8eb54894bacb3b7cf647e14214f3095625",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "MoblinTests/Moblin/RemoteControl/RemoteControlStreamConfigValidationSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlStreamConfigValidationSuite.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "125: Assignment type mismatch: actual type is 'Int', but 'Double' was expected.",
+        "143: Assignment type mismatch: actual type is 'Int', but 'Float' was expected.",
+        "144: Assignment type mismatch: actual type is 'Int', but 'Float' was expected.",
+        "238: Assignment type mismatch: actual type is 'Double', but 'Int' was expected.",
+        "345: Assignment type mismatch: actual type is 'Double', but 'Int' was expected.",
+        "356: Assignment type mismatch: actual type is 'Int', but 'Float' was expected."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Various/Settings/SettingsSecretsSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/various/settings/SettingsSecretsSuite.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "172: No parameter with name 'from' found.",
+        "172: No value passed for parameter 'old'.",
+        "182: Unresolved reference 'copy'.",
+        "183: No parameter with name 'from' found.",
+        "183: No value passed for parameter 'old'.",
+        "213: No parameter with name 'from' found.",
+        "213: No value passed for parameter 'old'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Various/Utils/UtilsSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt",
+      "reason": "compile",
+      "ported_from": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+      "errors": [
+        "27: Cannot infer type for this parameter. Specify it explicitly.",
+        "27: Unresolved reference 'deepCopy'.",
+        "28: Function invocation 'name()' expected.",
+        "28: Variable expected.",
+        "29: Unresolved reference 'srt'.",
+        "30: Unresolved reference 'id'.",
+        "32: Function invocation 'name()' expected.",
+        "32: Unresolved reference 'srt'."
+      ],
+      "hooks": []
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

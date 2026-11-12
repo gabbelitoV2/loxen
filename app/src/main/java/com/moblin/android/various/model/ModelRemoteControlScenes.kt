@@ -27,6 +27,7 @@ import com.moblin.android.various.network.makeMdnsHostname
 import com.moblin.android.various.utils.isPhone
 import com.moblin.android.various.utils.makeUniqueName
 import java.util.UUID
+import com.moblin.android.common.various.deepCopy
 
 fun emptyRemoteControlEditorOptions(): RemoteControlEditorOptions =
     RemoteControlEditorOptions(
@@ -49,8 +50,15 @@ fun Model.remoteControlGetScenes(): List<SettingsScene> {
     return database.scenes
 }
 
-fun Model.remoteControlGetWidgets(): List<SettingsWidget> {
-    return database.widgets
+fun Model.remoteControlGetWidgets(secrets: Boolean): List<SettingsWidget> {
+    if (secrets) {
+        return database.widgets
+    }
+    return database.widgets.mapNotNull {
+        val widget: SettingsWidget? = it.deepCopy()
+        widget?.removeSecrets()
+        widget
+    }
 }
 
 fun Model.remoteControlCreateScene(scene: SettingsScene): Boolean {
@@ -97,7 +105,10 @@ fun Model.remoteControlDeleteScene(id: UUID): Boolean {
     return true
 }
 
-fun Model.remoteControlCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean {
+fun Model.remoteControlCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>, secrets: Boolean): Boolean {
+    if (!secrets) {
+        widget.keepSecrets(from = SettingsWidget(name = ""))
+    }
     if (database.widgets.any { it.id == widget.id }) {
         return false
     }
@@ -116,8 +127,11 @@ fun Model.remoteControlCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>
     return true
 }
 
-fun Model.remoteControlUpdateWidget(widget: SettingsWidget): Boolean {
+fun Model.remoteControlUpdateWidget(widget: SettingsWidget, secrets: Boolean): Boolean {
     val oldWidget = database.findWidget(widget.id) ?: return false
+    if (!secrets) {
+        widget.keepSecrets(from = oldWidget)
+    }
     if (!isValidRemoteControlName(widget, database.widgets, database.widgets)) {
         return false
     }

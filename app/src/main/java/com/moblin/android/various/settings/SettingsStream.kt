@@ -14,7 +14,9 @@ import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.platform.swiftui.PublishedList
 import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+import com.moblin.android.streamingplatforms.kick.loadKickAccessTokenFromKeychain
 import com.moblin.android.streamingplatforms.kick.storeKickAccessTokenInKeychain
+import com.moblin.android.streamingplatforms.twitch.loadTwitchAccessTokenFromKeychain
 import com.moblin.android.streamingplatforms.twitch.storeTwitchAccessTokenInKeychain
 import com.moblin.android.streamingplatforms.youtube.YouTubeApiLiveBroadcaseVisibility
 import com.moblin.android.streamingplatforms.youtube.loadYouTubeAuthStateFromKeychain
@@ -1804,6 +1806,7 @@ class SettingsStream(
     var autoGoLive: Boolean by Published(autoGoLive)
 
     companion object {
+        val baseName: String = localized("My stream")
         val defaultRealtimeIrlBaseUrl: String = "https://rtirl.com/api"
         val defaultResolution: SettingsStreamResolution = SettingsStreamResolution.r1920x1080
         val defaultFps: Int = 30
@@ -1874,10 +1877,6 @@ class SettingsStream(
             stream.kickChatroomChannelId = container.decode<String?>("kickChatroomChannelId", null)
             stream.kickSlug = container.decode<String?>("kickSlug", null)
             stream.kickAccessToken = container.decode("kickAccessToken", "")
-            if (stream.kickAccessToken.isNotEmpty()) {
-                storeKickAccessTokenInKeychain(stream.id, stream.kickAccessToken)
-                stream.kickAccessToken = ""
-            }
             stream.kickLoggedIn = container.decode("kickLoggedIn", false)
             stream.kickWantsToBeLoggedIn = container.decode("kickWantsToBeLoggedIn", stream.kickLoggedIn)
             stream.kickNotLoggedInCount = container.decode("kickNotLoggedInCount", 0)
@@ -1892,17 +1891,8 @@ class SettingsStream(
                 SettingsKickAlerts.serializer(),
                 SettingsKickAlerts(),
             )
-            val encoded = loadYouTubeAuthStateFromKeychain(stream.id)
-            if (encoded != null) {
-                stream.youTubeAuthState = stream.decodeYouTubeAuthState(
-                    runCatching { Base64.getDecoder().decode(encoded) }.getOrNull()
-                )
-            }
             stream.youTubeVideoIds = container.decode("youTubeVideoId", "")
-            stream.youTubeWantsToBeLoggedIn = container.decode(
-                "youTubeWantsToBeLoggedIn",
-                stream.youTubeAuthState != null,
-            )
+            stream.youTubeWantsToBeLoggedIn = container.decode("youTubeWantsToBeLoggedIn", false)
             stream.youTubeNotLoggedInCount = container.decode("youTubeNotLoggedInCount", 0)
             stream.youTubeHandle = container.decode("youTubeHandle", "")
             stream.youTubeScheduleStreamTitle = container.decode("youTubeScheduleStreamTitle", "")
@@ -2026,10 +2016,6 @@ class SettingsStream(
         encode("kickSendMessagesTo", kickSendMessagesTo)
         encode("kickChatAlerts", kickChatAlerts)
         encode("kickToastAlerts", kickToastAlerts)
-        val encoded = encodeYouTubeAuthState()
-        if (encoded != null) {
-            storeYouTubeAuthStateInKeychain(id, Base64.getEncoder().encodeToString(encoded))
-        }
         encode("youTubeVideoId", youTubeVideoIds)
         encode("youTubeWantsToBeLoggedIn", youTubeWantsToBeLoggedIn)
         encode("youTubeNotLoggedInCount", youTubeNotLoggedInCount)
@@ -2316,8 +2302,81 @@ class SettingsStream(
         }
     }
 
+    fun removeAccessTokens() {
+        twitchAccessToken = ""
+        kickAccessToken = ""
+    }
+
+    fun removeSecrets() {
+        url = secretsRemoved(url)
+        obsWebSocketUrl = ""
+        obsWebSocketPassword = ""
+        realtimeIrlBaseUrl = ""
+        realtimeIrlPushKey = ""
+        discordSnapshotWebhook = ""
+        discordChatBotSnapshotWebhook = ""
+        goLiveNotificationDiscordWebhookUrl = ""
+        whip.headers = mutableListOf()
+        previewStream.url = secretsRemoved(previewStream.url)
+        for (destination in multiStreaming.destinations) {
+            destination.url = secretsRemoved(destination.url)
+        }
+        removeAccessTokens()
+    }
+
+    fun keepSecrets(old: SettingsStream) {
+        url = old.url
+        obsWebSocketUrl = old.obsWebSocketUrl
+        obsWebSocketPassword = old.obsWebSocketPassword
+        realtimeIrlBaseUrl = old.realtimeIrlBaseUrl
+        realtimeIrlPushKey = old.realtimeIrlPushKey
+        discordSnapshotWebhook = old.discordSnapshotWebhook
+        discordChatBotSnapshotWebhook = old.discordChatBotSnapshotWebhook
+        goLiveNotificationDiscordWebhookUrl = old.goLiveNotificationDiscordWebhookUrl
+        whip.headers = old.whip.headers.toMutableList()
+        previewStream.url = old.previewStream.url
+        val oldDestinations = old.multiStreaming.destinations
+        val samePositions = oldDestinations.size == multiStreaming.destinations.size
+        for ((index, destination) in multiStreaming.destinations.withIndex()) {
+            val oldDestination = if (samePositions) {
+                oldDestinations[index]
+            } else {
+                oldDestinations.firstOrNull { it.name == destination.name }
+            }
+            destination.url = oldDestination?.url ?: defaultRtmpStreamUrl
+        }
+        twitchAccessToken = old.twitchAccessToken
+        kickAccessToken = old.kickAccessToken
+    }
+
+    private fun secretsRemoved(url: String): String {
+        val index = url.indexOf("://")
+        if (index < 0) {
+            return ""
+        }
+        return url.substring(0, index + "://".length)
+    }
+
     fun isYouTubeAuthorized(): Boolean {
         return youTubeAuthState?.isAuthorized == true
+    }
+
+    fun loadFromKeychain() {
+        twitchAccessToken = loadTwitchAccessTokenFromKeychain(id) ?: ""
+        kickAccessToken = loadKickAccessTokenFromKeychain(id) ?: ""
+        val encoded = loadYouTubeAuthStateFromKeychain(id)
+        if (encoded != null) {
+            youTubeAuthState = decodeYouTubeAuthState(
+                runCatching { Base64.getDecoder().decode(encoded) }.getOrNull()
+            )
+        }
+    }
+
+    fun storeToKeychain() {
+        val encoded = encodeYouTubeAuthState()
+        if (encoded != null) {
+            storeYouTubeAuthStateInKeychain(id, Base64.getEncoder().encodeToString(encoded))
+        }
     }
 
     private fun encodeYouTubeAuthState(): ByteArray? {

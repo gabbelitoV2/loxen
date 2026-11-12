@@ -3262,25 +3262,26 @@
   },
   "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift": {
     "status": "ok",
-    "sha256": "3b6ea943d228f708076a0871209d5823cdb7821dde6d4f5c1bc8062cb980f5a1",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "32c8d741ce78193affc3bd420a43ed41b5bf5332b88027b7bb6eb44500203618",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt",
     "notes": [
-      "Added parameterized activeZoomPresets as a single @Test loop over camera/name cases.",
-      "Added applyChanges tests for RemoteControlState translating Swift mutating diff semantics.",
-      "Added tally request encoding/decoding tests and Tally show/hide assertions via MutableStateFlow.value.",
-      "Added scene widget wire tests using kotlinx.serialization encode/decode helpers.",
-      "Imports RgbColor, Tally, SettingsWidgetScene and UUID."
+      "Added the top-level streamId constant, the decode helper (RemoteControlRequest.fromJsonElement), and the three new tests at the position the Swift diff inserts them, right before encode().",
+      "decode() takes a parameter named json like Swift; it reaches the test class's Json instance explicitly as this.json to avoid the shadowing.",
+      "#expect(throws:) became assertFailsWith<Exception> over a loop of the argument strings, as required instead of a Parameterized runner.",
+      "The settings test builds RemoteControlSettings with empty lists and a RemoteControlSettingsSrt, encodes it with kotlinx.serialization and asserts the encoded JSON contains the uppercase currentStreamId, matching Swift's JSONEncoder output.",
+      "uuidString comparisons use UUID.toString().uppercase() so the assertions compare against the same uppercase id the Swift test uses.",
+      "RemoteControlRequest.GetStream/UpdateStream/CreateStream/DeleteStream/GetWidgets and their stream field names are assumed from the port's sealed-subclass naming; verify against RemoteControl.kt when compiling."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62255,
-    "tokens_out": 16747,
-    "seconds": 68.8,
-    "ported_at": "2026-11-07T23:29:47+00:00"
+    "tokens_in": 63797,
+    "tokens_out": 13508,
+    "seconds": 53.8,
+    "ported_at": "2026-11-12T01:43:32+00:00"
   },
   "Moblin/Integrations/Emotes/Bttv.swift": {
     "status": "ok",
@@ -5871,44 +5872,47 @@
   },
   "Moblin/RemoteControl/RemoteControlStreamer.swift": {
     "status": "ok",
-    "sha256": "3e94a51a3e2f473fa3ce8ca6850cdc2f4b7e2e6a006f193d8eae47cf0f118ec1",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "2ecd9ae05e08c568607288cb5d80e30d5863d0317ca061cc859e98faaf1d06a0",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt",
     "notes": [
-      "Added remoteControlStreamerShowTally and remoteControlStreamerHideTally to the delegate interface, placed after remoteControlStreamerSetLive, matching the Swift order.",
-      "stateChanged now takes RemoteControlState instead of RemoteControlAssistantStreamerState.",
-      "Added ShowTally and HideTally branches to handleRequest after SetLive, before SetPreviewStream.",
-      "Imported RgbColor from com.moblin.android.common.various for the tally colors."
+      "Added the four stream delegate methods and inserted them between deleteScene and createWidget, matching the Swift ordering.",
+      "GetWidgets, CreateWidget and UpdateWidget now take a secrets flag; the request data class properties are read as data.secrets.",
+      "New handleRequest branches GetStream/CreateStream/UpdateStream/DeleteStream use RemoteControlRequest.GetStream(id, secrets), CreateStream(stream, secrets), UpdateStream(stream, secrets), DeleteStream(id) and RemoteControlResponse.GetStream(stream), following the naming of the existing scene/widget cases.",
+      "getStream sends an ok response with the stream when present, otherwise a result response with false, as in Swift.",
+      "Added the SettingsStream import in alphabetical position among the settings imports.",
+      "All other lines, including the platform WebSocketClient usage, MainTimer keep-alive and mainScope dispatch, stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 63382,
-    "tokens_out": 7396,
-    "seconds": 27.2,
-    "ported_at": "2026-11-07T23:32:12+00:00"
+    "tokens_in": 64746,
+    "tokens_out": 8690,
+    "seconds": 29.1,
+    "ported_at": "2026-11-12T01:43:58+00:00"
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
-    "sha256": "63cd34ddbe1bf2d698e39711898a60a2a79afc350b631e4444b79c0a46886616",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "73cee8d720e9b4ba528135a79407876839c49f58576e46ec7832a663985f81f1",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
     "notes": [
-      "Only the type of the state delegate callback and handleStateEvent parameter changed from RemoteControlAssistantStreamerState to RemoteControlState.",
-      "RemoteControlState lives in the same package com.moblin.android.remotecontrol, so no import is added.",
-      "Everything else in the Kotlin file stays byte-identical, including the hand-written java.net WebSocket server (RemoteControlWebSocket) and the OkHttp Response construction in whipPerform."
+      "Only the three request payloads changed: getWidgets, createWidget and updateWidget now pass secrets = true.",
+      "The matching constructor parameters live in RemoteControl.kt (RemoteControlRequest.GetWidgets/CreateWidget/UpdateWidget); this file only passes them through.",
+      "Everything else, including the hand-written WebSocket server, MainTimer loops and Twitch delegates, is unchanged.",
+      "Log calls use the Log shim with the file-level assistantLogTag, as before."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 68650,
-    "tokens_out": 10080,
-    "seconds": 30.3,
-    "ported_at": "2026-11-07T23:30:22+00:00"
+    "tokens_in": 68854,
+    "tokens_out": 10286,
+    "seconds": 31.5,
+    "ported_at": "2026-11-12T01:43:28+00:00"
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
@@ -11111,16 +11115,16 @@
   },
   "Common/Various/CommonUtils.swift": {
     "status": "ok",
-    "sha256": "fa9b23adfcb9d96a9bd789a3bd686763d6421ae37086c8f652cc7baa298e8e6d",
-    "moblin_commit": "013f290d6d1de69bfc765cce10845750f571f324",
+    "sha256": "faef6775d9327cd60e9f06e9fb30ac7435b00fe8184f72ce8f9f684741f6f619",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/common/various/CommonUtils.kt",
     "notes": [
-      "Only the KeyedDecodingContainer.decode extension changed; the rest of the file is byte-identical to the previous Kotlin port.",
-      "Swift's @autoclosure defaultValue is kept as an eager defaultValue: T parameter because these JsonObject.decode extensions already have many Kotlin call sites and the hand-written platform codable layer uses the eager shape too.",
-      "The isValid overload now mirrors the new guard: a failed decode or an invalid value both return the default without decoding twice.",
-      "JsonObject is used as the stand-in for KeyedDecodingContainer; Json.decodeFromJsonElement is the try? decode."
+      "Added Swift's Decodable+Encodable deepCopy() as an inline reified extension using serializers from the kotlinx.serialization plugin and codableJson, returning null on any encode/decode failure like try? in Swift.",
+      "Two imports were appended to the existing import block for the new code only: com.moblin.android.platform.codable.codableJson and kotlinx.serialization.serializer.",
+      "Everything else in the file is byte-identical to the previous translation; the new extension sits between formatFourDecimals and clamped, matching the Swift position.",
+      "Callers keep the Swift shape x.deepCopy(); the reified type parameter supplies the serializer, so a type without @Serializable yields null instead of throwing."
     ],
     "unsupported": [],
     "apple_only": [
@@ -11128,10 +11132,10 @@
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62160,
-    "tokens_out": 11481,
+    "tokens_in": 62245,
+    "tokens_out": 11562,
     "seconds": 39.3,
-    "ported_at": "2026-11-04T00:42:45+00:00"
+    "ported_at": "2026-11-12T01:43:17+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Recorder.swift": {
     "status": "ok",
@@ -11751,24 +11755,27 @@
   },
   "Moblin/Various/Settings/SettingsStream.swift": {
     "status": "ok",
-    "sha256": "c99938e7f5245adf993ffaa9b4da7df5f5295a04ee68a9ec67f5546f38b03a29",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "sha256": "d62eef7fb42e4bffd3e5ee7bef742b261fbe01f52d95bc7f66af7273eacbc48c",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsStream.kt",
     "notes": [
-      "Added SettingsStreamSrt.isValidLatency as a companion function (0..65535), Int32 mapped to Int like the existing latency property.",
-      "Added SettingsStream.isValidFps, isValidBitrate, isValidMaxKeyFrameInterval and isValidAudioBitrate to the companion object right after defaultFps, matching the Swift static ordering.",
-      "UInt32/Int32 parameters become Int, since these are range checks and not wire-format code.",
-      "No other line of the file changed."
+      "SettingsStream gained a static baseName; added as `baseName` in the companion object next to defaultRealtimeIrlBaseUrl.",
+      "Keychain read/write moved out of encode()/init(from:) into new loadFromKeychain()/storeToKeychain(); the JSON round trip no longer touches the keychain.",
+      "youTubeWantsToBeLoggedIn now defaults to false on decode instead of depending on a restored auth state.",
+      "Added removeAccessTokens(), removeSecrets(), keepSecrets(old) and the private secretsRemoved(url) helper, translated one statement per Swift statement.",
+      "whip.headers is a MutableList; keepSecrets copies the old list (`toMutableList()`) to keep Swift's value-copy semantics.",
+      "SettingsHttpHeader gained Equatable in Swift; the existing Kotlin data class already provides equals/hashCode, so no code change.",
+      "Added imports for loadTwitchAccessTokenFromKeychain and loadKickAccessTokenFromKeychain used by loadFromKeychain()."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 89206,
-    "tokens_out": 23594,
-    "seconds": 83.1,
-    "ported_at": "2026-11-10T02:28:33+00:00"
+    "tokens_in": 91017,
+    "tokens_out": 25040,
+    "seconds": 74.1,
+    "ported_at": "2026-11-12T01:43:52+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Audio/StreamAudioSettingsView.swift": {
     "status": "ok",
@@ -15502,27 +15509,26 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "121d1029e10d5bd22a2899fac49a8ffcae20213e1fff5c92fe7350f06e9d71e9",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "b30700a995d9ce1894096c3c29d2a9c3fa062ad9d80fab4acc35d64636ed8ca0",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
     "notes": [
-      "Renamed RemoteControlAssistantStreamerState to RemoteControlState, dropped zoomPresets, added zoomCamera, and translated the mutating applyChanges(from:) into applyChanges(state) that copies the incoming state and returns the diff or null.",
-      "Added ShowTally and HideTally request cases plus their fromJsonElement branches in the same position as the Swift cases.",
-      "Introduced the private noSceneId UUID constant and used it as the nil sentinel for RemoteControlRemoteSceneSettingsWidgetTypeScene.sceneId.",
-      "Added RemoteControlSettingsZoomPresets with active(camera) and the matching optional zoomPresets field on RemoteControlSettings.",
-      "Added the x field to RemoteControlZoomPreset and the new RemoteControlZoomCameraPosition enum and RemoteControlZoomCamera data class.",
-      "Equatable conformance on RemoteControlSettingsGimbalPreset, RemoteControlStateAutoSceneSwitcher, RemoteControlMacro and RemoteControlState needs no Kotlin change because they are data classes.",
-      "applyChanges copies via state.copy() so the returned changes do not alias the incoming state, matching Swift struct value semantics."
+      "GetWidgets switched from object to data class carrying `secrets`, and CreateWidget/UpdateWidget gained a `secrets` field.",
+      "Added four new stream requests (GetStream, CreateStream, UpdateStream, DeleteStream) plus the GetStream response case with matching JSON encode/decode.",
+      "RemoteControlSettings gained `currentStreamId: UUID?` serialized with UUIDSerializer, placed right after `streams` as in Swift.",
+      "New import for com.moblin.android.various.settings.SettingsStream is required by the new request/response cases.",
+      "Everything else kept byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 97472,
-    "tokens_out": 30228,
-    "seconds": 105.7,
-    "ported_at": "2026-11-07T23:32:26+00:00"
+    "tokens_in": 195368,
+    "tokens_out": 56666,
+    "seconds": 166.4,
+    "ported_at": "2026-11-12T01:46:05+00:00",
+    "warning": "changed 86 Kotlin lines for 12 changed Swift lines"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -15592,26 +15598,25 @@
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
-    "sha256": "64acb2ad6323abf8285e4cd6630ba0a1813da793cf9008554bd6d8151c135060",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "eb949caf6b6a7c861832e4c2ce57a351619a5164720ffe2bd658ba4ed886ee27",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt",
     "notes": [
-      "Added RemoteControlPreview (a plain class holding a MutableStateFlow<Bitmap?>) and replaced RemoteControl.preview's MutableStateFlow<Bitmap?> with `val preview = RemoteControlPreview()`; views must now read `remoteControl.preview.image.collectAsState()`.",
-      "Added previewQueue as a single-thread CoroutineScope (the Swift serial DispatchQueue) at file top.",
-      "remoteControlAssistantPreview now decodes the JPEG off the main thread in previewQueue and publishes the Bitmap on the main thread through mainScope.launch.",
-      "UIImage.preparingForDisplay() has no Android counterpart and is dropped: a BitmapFactory-decoded Bitmap is already display-ready.",
-      "Zoom status now goes through zoom.level: `zoom.level.statusText()` and `zoom.level.x.value`, following the Swift zoom.x -> zoom.level.x change.",
-      "mainScope, remoteControl, isWatchRemoteControl and sendPreviewToWatch resolve in the same package as before; no new Moblin imports other than coroutine/executor ones."
+      "Added currentStreamId to RemoteControlSettings construction from the first enabled stream.",
+      "remoteControlStreamerGetWidgets, CreateWidget and UpdateWidget now take a secrets flag and forward it.",
+      "Added the four new stream CRUD delegates: GetStream, CreateStream, UpdateStream, DeleteStream.",
+      "The hand-written RemoteControlStreamerDelegateAdapter had to be updated to the new interface signatures, otherwise it would not compile.",
+      "Imported SettingsStream for the new delegate signatures."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 100127,
-    "tokens_out": 22456,
-    "seconds": 73.0,
-    "ported_at": "2026-11-08T23:45:22+00:00"
+    "tokens_in": 100599,
+    "tokens_out": 22008,
+    "seconds": 66.1,
+    "ported_at": "2026-11-12T01:45:00+00:00"
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
@@ -15746,25 +15751,25 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "efcec6d0678baee9a8c540179264c7d3f276ada55074a907aa280a3843db92a2",
-    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+    "sha256": "2a91c7779caaf19d6e84a20f0663c2af6153ab9f678ff01b0204f32057493a9b",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Added SettingsColorSpace.appleLog2 with @SerialName(\"Apple Log 2\") and an isAppleLog() helper.",
-      "Added SettingsMoblinCloud.url backed by Published, defaulting to the imported moblinCloudApiUrl constant, with matching encode/decode entry inserted after alertsWidgetId.",
-      "Added Database.autoRotateToPortrait as a Published Boolean defaulting to false, encoded/decoded right after portrait.",
-      "New import com.moblin.android.various.model.moblinCloudApiUrl added since the Swift default references the shared Moblin Cloud URL constant.",
-      "Everything else (zip import/export, sensitive token handling, quick button migration) is unchanged."
+      "store() now pushes every stream's tokens to the keychain before the JSON is written, mirroring the new Swift loop.",
+      "addSensitiveData() now delegates to stream.loadFromKeychain() instead of calling the Twitch/Kick keychain helpers directly; the old imports are left in place so untouched lines stay byte-identical.",
+      "Both new calls target SettingsStream helpers, which live in the SettingsStream translation and keep their Swift names storeToKeychain()/loadFromKeychain().",
+      "The upperCaseMicIds(realDatabase) Android hook in tryLoadAndMigrate is kept unchanged.",
+      "No other Kotlin line, import or declaration order was modified."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 116997,
-    "tokens_out": 28830,
-    "seconds": 83.0,
-    "ported_at": "2026-11-05T00:35:49+00:00"
+    "tokens_in": 116308,
+    "tokens_out": 28599,
+    "seconds": 83.7,
+    "ported_at": "2026-11-12T01:44:47+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -15921,24 +15926,23 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "16c293401860b8e1cd8f4200df0e1214ee6fcdd293bbb6c1345f5c8f737774e2",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "b8021325bfc8d2189e8390f4d2a9aa2abf89b8d075d7c5e69e74c323aacdfe6a",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "SettingsWidgetScene.sceneId became a nullable @Published property; it is now a `var sceneId: UUID? by Published(sceneId)` with a constructor parameter defaulting to null.",
-      "Encoding keeps `encode(\"sceneId\", sceneId)` so a nil value is written as JSON null, matching Swift's `encode(_:forKey:)` on an Optional.",
-      "Decoding uses `container.decode<UUID?>(\"sceneId\", null)` like the other nullable UUID fields in this file instead of the previous non-null synthesized decode.",
+      "Added SettingsWidget.removeSecrets() and SettingsWidget.keepSecrets(from:) directly after migrateFromOlderVersions(), matching the Swift diff position.",
+      "Both use plain var properties (alerts.ai, alerts.ttsMonster) so assignments follow the existing Kotlin pattern for SettingsOpenAi / SettingsTtsMonster fields.",
       "Everything else in the file is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 140839,
-    "tokens_out": 44741,
-    "seconds": 141.0,
-    "ported_at": "2026-11-07T23:37:33+00:00"
+    "tokens_in": 141035,
+    "tokens_out": 43679,
+    "seconds": 127.1,
+    "ported_at": "2026-11-12T01:46:03+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",
@@ -18014,26 +18018,24 @@
   },
   "Moblin/Various/Model/ModelMoblinCloud.swift": {
     "status": "ok",
-    "sha256": "34e8496c3b7914b9c83383eb92241f3c4c706fc8945f62ef271cc7b24779784e",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "0c653cd6a86a602a098db62fa5b01adb49b384e7c3ce2de0ccbb4318ea450c46",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMoblinCloud.kt",
     "notes": [
-      "stateChanged now takes RemoteControlState; the RemoteControlAssistantStreamerState import was replaced by RemoteControlState, matching RemoteControlStreamer.stateChanged.",
-      "remoteControlStreamerDisconnected now hides the tally after resetting status and preview, before updating the Moblin Cloud status.",
-      "remoteControlStreamerShowTally and remoteControlStreamerHideTally were added between remoteControlStreamerSetLive and remoteControlStreamerSetPreviewStream, forwarding to Model.tally.",
-      "DeviceCheck App Attest (attestedKey, withAttestedKey) stays TODO since Android has no counterpart; MoblinCloud handles the null result as before."
+      "Only the RemoteControlStreamerDelegate widget/stream methods changed: getWidgets/createWidget/updateWidget gained a secrets flag and four new stream CRUD methods were added.",
+      "The new overrides call Model.remoteControlGetStream/CreateStream/UpdateStream/DeleteStream and the secrets-aware widget methods; those extensions live in the Model remote-control files and are called with the same parameter names as the Swift labels.",
+      "Everything else in the file is unchanged byte-for-byte, including the DeviceCheck TODO()s and the OkHttp request helpers.",
+      "SettingsStream was already imported from com.moblin.android.various.settings, so no new imports were needed."
     ],
-    "unsupported": [
-      "no Android counterpart for DeviceCheck"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 76913,
-    "tokens_out": 8549,
-    "seconds": 29.9,
-    "ported_at": "2026-11-07T23:33:51+00:00"
+    "tokens_in": 77551,
+    "tokens_out": 8968,
+    "seconds": 29.0,
+    "ported_at": "2026-11-12T01:44:02+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsMoblinCloudSettingsView.swift": {
     "status": "ok",
@@ -18366,50 +18368,45 @@
   },
   "Moblin/Various/Model/ModelRemoteControlScenes.swift": {
     "status": "ok",
-    "sha256": "f43c5dd2cd278c43c2a4f5e8d4b9d396e82f17b924a3a9ff07ae167643a5b8ab",
-    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+    "sha256": "a0cebea66c0115ad2195f262e928d37f65b88e360a7557ce1bfc70f8a7c14f9f",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControlScenes.kt",
     "notes": [
-      "remoteControlCreateWidget now takes sceneIds and delegates creation to widgetWizardCreate instead of appending to database.widgets directly, translated with the new isValidRemoteControlWidgetScenes guard.",
-      "remoteControlUpdateWidget drops the returned update value and only keeps the guard on remoteControlApplyWidgetUpdate.",
-      "remoteControlSetScoreboardPlayers now calls scoreboardPlayersChanged() instead of sceneUpdated() plus sendScoreboardPlayersToWatch().",
-      "Added import com.moblin.android.remotecontrol.isValidRemoteControlWidgetScenes; widgetWizardCreate lives in the same package so it needs no import.",
-      "All other declarations are untouched, keeping existing Android-specific behaviour such as IPMonitor and MutableStateFlow reads."
+      "remoteControlGetWidgets now takes a `secrets` flag; without secrets each widget is returned as a deep copy with its secrets removed, so Model callers must pass the flag.",
+      "remoteControlCreateWidget and remoteControlUpdateWidget gain a `secrets` parameter; when false the incoming widget inherits the secrets of an empty widget (create) or of the stored widget (update) before validation.",
+      "remoteControlUpdateWidget was restructured: the missing-old-widget check is its own early return so the keepSecrets step can run before name validation.",
+      "Uses SettingsWidget.deepCopy(), SettingsWidget.removeSecrets() and SettingsWidget.keepSecrets(from = ...) from com.moblin.android.various.settings; they must exist with those names in that file.",
+      "No platform or Apple-framework calls changed in this diff; the existing Android-specific calls (IPMonitor, RemoteControlWebRemote port UShort, updatingCameraId) are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 52730,
-    "tokens_out": 2900,
-    "seconds": 10.5,
-    "ported_at": "2026-11-05T00:35:04+00:00"
+    "tokens_in": 52955,
+    "tokens_out": 3453,
+    "seconds": 14.1,
+    "ported_at": "2026-11-12T01:44:12+00:00"
   },
   "Moblin/Various/Model/ModelRemoteControlSettingsUpdate.swift": {
     "status": "ok",
-    "sha256": "ea64ad7e2ded1aa20f1ddb8f67ee6d3a523ff1c2fb427df64a61281982fa662a",
-    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+    "sha256": "1c3173a30e79f319d576a056543a9e9e5b5416ed7b3538a25c3513b4a4980ea1",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControlSettingsUpdate.kt",
     "notes": [
-      "RemoteControlWidgetUpdate data class and remoteControlWidgetUpdated are removed; all updateXWidget helpers now take creating: Boolean and return Unit.",
-      "remoteControlApplyWidgetUpdate now returns Boolean; remoteControlMakeWidget checks that boolean.",
-      "Every effect/scene mutation now reports through Model callbacks (widgetEnabledChanged, textWidgetBackgroundColorChanged, sceneSetCamera, ...) that live in other Model files.",
-      "The two separate ChangeTrackers in updateTextWidget (style/layout) are preserved, and delayChanged is still applied before the creating guard.",
-      "applyEffectsUpdate now returns Unit and applies effects inline; the former completion lambdas are gone.",
-      "remoteControlApplySceneUpdate is split into applySceneEnabledUpdate / applySceneVideoSourceUpdate / applySceneQuickSwitchGroupUpdate / applySceneMicUpdate / applySceneBackgroundColorUpdate / applySceneWidgetsUpdate.",
-      "scoreboard.sportChanged(), golf.numberOfHolesChanged(), pomodoroTimer.focusDurationChanged()/breakDurationChanged() replace the inline resets of the Swift port.",
-      "Unused imports PomodoroPhase and SettingsWidgetScoreboardSport were dropped because their only usages were deleted."
+      "Swift diff only removes `private` from `ChangeTracker`, so the Kotlin declaration becomes a public `class ChangeTracker`.",
+      "Everything else in the file is unchanged and kept byte-identical.",
+      "The file-private helper was only used inside this file, so widening its visibility changes nothing at the call sites."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 80507,
-    "tokens_out": 12955,
-    "seconds": 43.6,
-    "ported_at": "2026-11-05T00:35:46+00:00"
+    "tokens_in": 70167,
+    "tokens_out": 9573,
+    "seconds": 29.3,
+    "ported_at": "2026-11-12T01:44:32+00:00"
   },
   "MoblinTests/Moblin/RemoteControl/RemoteControlSceneConfigValidationSuite.swift": {
     "status": "ok",
@@ -18586,5 +18583,78 @@
     "tokens_out": 3033,
     "seconds": 12.8,
     "ported_at": "2026-11-10T02:46:15+00:00"
+  },
+  "MoblinTests/Moblin/Various/Settings/SettingsStreamSuite.swift": {
+    "status": "ok",
+    "sha256": "7cf392791e18d76d19ee506c335287e9ab4cdffa5a51e4bb10f32a4056137ce5",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/settings/SettingsStreamSuite.kt",
+    "notes": [
+      "The suite becomes a JUnit 4 class with kotlin.test assertions; decodeStream uses codableJson with SettingsStream.serializer() instead of JSONDecoder.",
+      "Swift defer blocks become try/finally so the keychain entries are always removed.",
+      "UUID() is UUID.randomUUID() and the JSON id is written with the Swift-style uppercase uuidString extension from com.moblin.android.platform.core.",
+      "Keychain helpers require an Android Context, so the class runs under RobolectricTestRunner.",
+      "Conjunctive #expect(a == b && c == d) checks are split into one assertEquals per property.",
+      "Assertion arguments are swapped to kotlin.test order (expected first).",
+      "No async or main-actor code is involved, so no runMainTest wrapper is used."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 35288,
+    "tokens_out": 3518,
+    "seconds": 16.8,
+    "ported_at": "2026-11-12T01:42:55+00:00"
+  },
+  "Moblin/RemoteControl/RemoteControlStreamConfigValidation.swift": {
+    "status": "ok",
+    "sha256": "670c2e3f518f1aea88d4d811d6a5431d09f4436d75bd906a1711df8864235563",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamConfigValidation.kt",
+    "notes": [
+      "Swift structs RemoteControlStreamState and StreamLocks became Kotlin data classes; StreamLocks stays file-private like the Swift private struct.",
+      "isValidChange keeps its Swift shape: generic helper with a default disabled=false and a default isValid lambda returning true.",
+      "SettingsStream/SettingsStreamSrt companion validators (isValidBitrate, isValidAudioBitrate, isValidMaxKeyFrameInterval, isValidLatency) are called exactly as declared.",
+      "List equality (headers, repeated WebSocket/HTTP checks) uses Kotlin == on List<List<String>>, which is structural like Swift Array ==.",
+      "Swift's `(low ... high).contains(x)` became `x in low..high` for Int fields, and `x.toDouble() in low..high` for layout.x/y/size and stinger transitionPoint whose numeric types are Float/Double in the port.",
+      "`newDestinations.enumerated().allSatisfy` became `newDestinations.withIndex().all { (index, newDestination) -> ... }` with the previous destination looked up by index and defaulted with `?:`.",
+      "`count(where:)` became `count { }`, `first(where:)` became `firstOrNull { }`, and `max(a, 1)` became `maxOf(a, 1)`.",
+      "Enum cases (.srt, .rist, .h265hevc) use the Kotlin entries SettingsStreamProtocol.srt/rist and SettingsStreamCodec.h265hevc; ranges on settings used as closed ranges."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 40910,
+    "tokens_out": 10423,
+    "seconds": 44.1,
+    "ported_at": "2026-11-12T01:43:22+00:00"
+  },
+  "Moblin/Various/Model/ModelRemoteControlStreams.swift": {
+    "status": "ok",
+    "sha256": "541e162384a7d5eb517eb9680667da8b69867888a2e5e0838b9b594709df0eb9",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControlStreams.kt",
+    "notes": [
+      "StreamUpdateEffects stays a private class with mutable fields because Swift threads it through many helpers as an inout parameter; a data class of vals cannot express that.",
+      "ChangeTracker is used as in the rest of the port: `x = tracker.apply(x, new)` for single values and `tracker.applyItems(list, newItems)` for in-place list replacement, mirroring Swift's `apply(&x, new)` / `applyItems(&list, new)`.",
+      "objectWillChange.send() is kept at the top of applyStreamUpdateEffects, since Model is the observable object of the port.",
+      "replay.layout is a SettingsWidgetLayout data class, so the Swift in-place writes become successive copy() calls followed by updatingXString/updatingYString/updatingSizeString.",
+      "Multi-streaming destinations are reused by index and the list is only replaced when the count differs, matching the Swift behaviour.",
+      "Kick channel lookup uses the callback form getKickChannelInfo(channelName, onComplete) and re-checks the channel name before storing ids, as in Swift.",
+      "All other calls are Model members declared by the other Model extension files (reloadStream, setStreamBitrate, updatePictureInPicture, ...) and are kept with their Swift names."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 50385,
+    "tokens_out": 18167,
+    "seconds": 74.9,
+    "ported_at": "2026-11-12T01:43:53+00:00"
   }
 }

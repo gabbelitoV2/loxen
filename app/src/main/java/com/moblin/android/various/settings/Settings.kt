@@ -2940,6 +2940,9 @@ class Settings {
     }
 
     fun store() {
+        for (stream in realDatabase.streams) {
+            stream.storeToKeychain()
+        }
         try {
             val database = extractSensitiveData(realDatabase)
             storage.set(realDatabase.toJsonString())
@@ -3034,14 +3037,7 @@ class Settings {
 
     private fun addSensitiveData(database: Database) {
         for (stream in database.streams) {
-            val twitchAccessToken = loadTwitchAccessTokenFromKeychain(stream.id)
-            if (twitchAccessToken != null) {
-                stream.twitchAccessToken = twitchAccessToken
-            }
-            val kickAccessToken = loadKickAccessTokenFromKeychain(stream.id)
-            if (kickAccessToken != null) {
-                stream.kickAccessToken = kickAccessToken
-            }
+            stream.loadFromKeychain()
         }
     }
 

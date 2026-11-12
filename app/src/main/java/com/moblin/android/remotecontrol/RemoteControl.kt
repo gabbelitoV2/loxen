@@ -25,6 +25,7 @@ import com.moblin.android.various.settings.SettingsReaction
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import com.moblin.android.various.settings.SettingsSceneWidget
+import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetBrowser
 import com.moblin.android.various.settings.SettingsWidgetBrowserMode
@@ -523,9 +524,9 @@ sealed class RemoteControlRequest {
         }
     }
 
-    data object GetWidgets : RemoteControlRequest() {
+    data class GetWidgets(val secrets: Boolean) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
-            putJsonObject("getWidgets") {}
+            putJsonObject("getWidgets") { put("secrets", secrets) }
         }
     }
 
@@ -551,19 +552,21 @@ sealed class RemoteControlRequest {
         }
     }
 
-    data class CreateWidget(val widget: SettingsWidget, val sceneIds: List<UUID>) : RemoteControlRequest() {
+    data class CreateWidget(val widget: SettingsWidget, val sceneIds: List<UUID>, val secrets: Boolean) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("createWidget") {
                 put("widget", remoteControlJson.encodeToJsonElement(widget))
                 put("sceneIds", remoteControlJson.encodeToJsonElement(RemoteControlUuidListSerializer, sceneIds))
+                put("secrets", secrets)
             }
         }
     }
 
-    data class UpdateWidget(val widget: SettingsWidget) : RemoteControlRequest() {
+    data class UpdateWidget(val widget: SettingsWidget, val secrets: Boolean) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("updateWidget") {
                 put("widget", remoteControlJson.encodeToJsonElement(widget))
+                put("secrets", secrets)
             }
         }
     }
@@ -571,6 +574,39 @@ sealed class RemoteControlRequest {
     data class DeleteWidget(val id: UUID) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("deleteWidget") { put("id", id.toString()) }
+        }
+    }
+
+    data class GetStream(val id: UUID, val secrets: Boolean) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getStream") {
+                put("id", id.toString())
+                put("secrets", secrets)
+            }
+        }
+    }
+
+    data class CreateStream(val stream: SettingsStream, val secrets: Boolean) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("createStream") {
+                put("stream", remoteControlJson.encodeToJsonElement(stream))
+                put("secrets", secrets)
+            }
+        }
+    }
+
+    data class UpdateStream(val stream: SettingsStream, val secrets: Boolean) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("updateStream") {
+                put("stream", remoteControlJson.encodeToJsonElement(stream))
+                put("secrets", secrets)
+            }
+        }
+    }
+
+    data class DeleteStream(val id: UUID) : RemoteControlRequest() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("deleteStream") { put("id", id.toString()) }
         }
     }
 
@@ -791,7 +827,9 @@ sealed class RemoteControlRequest {
                     requestId = params.getValue("requestId").jsonPrimitive.content,
                 )
                 "getScenes" -> GetScenes
-                "getWidgets" -> GetWidgets
+                "getWidgets" -> GetWidgets(
+                    secrets = params.getValue("secrets").jsonPrimitive.boolean,
+                )
                 "createScene" -> CreateScene(
                     scene = remoteControlJson.decodeFromJsonElement(params.getValue("scene")),
                 )
@@ -807,11 +845,28 @@ sealed class RemoteControlRequest {
                         RemoteControlUuidListSerializer,
                         params.getValue("sceneIds"),
                     ),
+                    secrets = params.getValue("secrets").jsonPrimitive.boolean,
                 )
                 "updateWidget" -> UpdateWidget(
                     widget = remoteControlJson.decodeFromJsonElement(params.getValue("widget")),
+                    secrets = params.getValue("secrets").jsonPrimitive.boolean,
                 )
                 "deleteWidget" -> DeleteWidget(
+                    id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
+                )
+                "getStream" -> GetStream(
+                    id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
+                    secrets = params.getValue("secrets").jsonPrimitive.boolean,
+                )
+                "createStream" -> CreateStream(
+                    stream = remoteControlJson.decodeFromJsonElement(params.getValue("stream")),
+                    secrets = params.getValue("secrets").jsonPrimitive.boolean,
+                )
+                "updateStream" -> UpdateStream(
+                    stream = remoteControlJson.decodeFromJsonElement(params.getValue("stream")),
+                    secrets = params.getValue("secrets").jsonPrimitive.boolean,
+                )
+                "deleteStream" -> DeleteStream(
                     id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
                 )
                 "getAlertsMediaGallery" -> GetAlertsMediaGallery
@@ -990,6 +1045,12 @@ sealed class RemoteControlResponse {
         }
     }
 
+    data class GetStream(val stream: SettingsStream) : RemoteControlResponse() {
+        override fun toJsonElement(): JsonObject = buildJsonObject {
+            putJsonObject("getStream") { put("stream", remoteControlJson.encodeToJsonElement(stream)) }
+        }
+    }
+
     data class GetAlertsMediaGallery(val gallery: SettingsAlertsMediaGallery) : RemoteControlResponse() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("getAlertsMediaGallery") {
@@ -1076,6 +1137,9 @@ sealed class RemoteControlResponse {
                 )
                 "getWidgets" -> GetWidgets(
                     widgets = remoteControlJson.decodeFromJsonElement(params.getValue("widgets")),
+                )
+                "getStream" -> GetStream(
+                    stream = remoteControlJson.decodeFromJsonElement(params.getValue("stream")),
                 )
                 "getAlertsMediaGallery" -> GetAlertsMediaGallery(
                     gallery = remoteControlJson.decodeFromJsonElement(params.getValue("gallery")),
@@ -2456,6 +2520,8 @@ data class RemoteControlSettingsMoblinCloud(
 @Serializable
 data class RemoteControlSettings(
     var streams: List<RemoteControlSettingsStream>,
+    @Serializable(with = UUIDSerializer::class)
+    var currentStreamId: UUID? = null,
     var scenes: List<RemoteControlSettingsScene>,
     var autoSceneSwitchers: List<RemoteControlSettingsAutoSceneSwitcher>? = null,
     var bitratePresets: List<RemoteControlSettingsBitratePreset>,

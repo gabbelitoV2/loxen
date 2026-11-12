@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-11T00:16:14+00:00",
+  "generated": "2026-11-12T01:42:27+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -7990,29 +7990,6 @@
       "wave": 11
     },
     {
-      "path": "MoblinTests/Moblin/Various/Utils/UtilsSuite.swift",
-      "lines": 141,
-      "sha256": "529cf68492420a7e52893470f87d903d07f3b093fc3f4249c17261ddb6a411c3",
-      "imports": [
-        "Foundation",
-        "Testing"
-      ],
-      "tier": "test",
-      "declared_types": [
-        "UtilsSuite"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.various.utils",
-      "kotlin_path": "app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/Various/Utils/Utils.swift"
-      ],
-      "wave": 11
-    },
-    {
       "path": "Moblin/Various/Model/ModelMacStatusItem.swift",
       "lines": 73,
       "sha256": "6caea42173d8d5bcdb7a8748b346adfaf0d2862e3f4b348f176f2dceec75d877",
@@ -10878,6 +10855,54 @@
       "wave": 13
     },
     {
+      "path": "MoblinTests/Moblin/Various/Settings/SettingsSecretsSuite.swift",
+      "lines": 268,
+      "sha256": "3d2e4547cc6e57d0ca99b76d1767a3cd6f75cd8be69645871d0a45e4318b1ca5",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "SettingsSecretsSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.settings",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/settings/SettingsSecretsSuite.kt",
+      "deps": [
+        "Moblin/Various/Settings/SettingsScene.swift",
+        "Moblin/Various/Settings/SettingsStream.swift"
+      ],
+      "wave": 13
+    },
+    {
+      "path": "MoblinTests/Moblin/Various/Settings/SettingsStreamSuite.swift",
+      "lines": 55,
+      "sha256": "7cf392791e18d76d19ee506c335287e9ab4cdffa5a51e4bb10f32a4056137ce5",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "SettingsStreamSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.settings",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/settings/SettingsStreamSuite.kt",
+      "deps": [
+        "Moblin/StreamingPlatforms/Kick/KickAuth.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeAuth.swift",
+        "Moblin/Various/Settings/SettingsStream.swift"
+      ],
+      "wave": 13
+    },
+    {
       "path": "MoblinTests/Moblin/Various/Storages/ReplaysStorageSuite.swift",
       "lines": 179,
       "sha256": "eba2a6e5e527e7f6d6174d37a458dcabd296de62e5b8e1168edfbd636851554e",
@@ -10898,6 +10923,30 @@
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Storages/ReplaysStorage.swift",
         "MoblinTests/TestUtils.swift"
+      ],
+      "wave": 13
+    },
+    {
+      "path": "MoblinTests/Moblin/Various/Utils/UtilsSuite.swift",
+      "lines": 153,
+      "sha256": "9bf48fbe2db17f98672f2f47a1ac7d67e81c537aa922e48dcc8f49216567c0be",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "UtilsSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.utils",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Utils/Utils.swift"
       ],
       "wave": 13
     },
@@ -11001,8 +11050,8 @@
     },
     {
       "path": "Common/Various/CommonUtils.swift",
-      "lines": 894,
-      "sha256": "fa9b23adfcb9d96a9bd789a3bd686763d6421ae37086c8f652cc7baa298e8e6d",
+      "lines": 903,
+      "sha256": "faef6775d9327cd60e9f06e9fb30ac7435b00fe8184f72ce8f9f684741f6f619",
       "imports": [
         "AVFoundation",
         "AVKit",
@@ -12615,8 +12664,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsStream.swift",
-      "lines": 1937,
-      "sha256": "c99938e7f5245adf993ffaa9b4da7df5f5295a04ee68a9ec67f5546f38b03a29",
+      "lines": 1992,
+      "sha256": "d62eef7fb42e4bffd3e5ee7bef742b261fbe01f52d95bc7f66af7273eacbc48c",
       "imports": [
         "AVFoundation",
         "AppAuthCore"
@@ -13269,8 +13318,8 @@
     },
     {
       "path": "MoblinTests/Moblin/RemoteControl/RemoteControlSuite.swift",
-      "lines": 531,
-      "sha256": "3b6ea943d228f708076a0871209d5823cdb7821dde6d4f5c1bc8062cb980f5a1",
+      "lines": 595,
+      "sha256": "32c8d741ce78193affc3bd420a43ed41b5bf5332b88027b7bb6eb44500203618",
       "imports": [
         "Foundation",
         "Testing",
@@ -14793,6 +14842,37 @@
         "Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/Various/Utils/CameraUtils.swift"
+      ],
+      "wave": 25
+    },
+    {
+      "path": "Moblin/RemoteControl/RemoteControlStreamConfigValidation.swift",
+      "lines": 286,
+      "sha256": "670c2e3f518f1aea88d4d811d6a5431d09f4436d75bd906a1711df8864235563",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "RemoteControlStreamState",
+        "StreamLocks"
+      ],
+      "private_types": [
+        "StreamLocks"
+      ],
+      "declared_functions": [
+        "isValidRemoteControlStreamUpdate"
+      ],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamConfigValidation.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Common/Various/Validate.swift",
+        "Moblin/RemoteControl/RemoteControlSceneConfigValidation.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift"
       ],
       "wave": 25
     },
@@ -16326,6 +16406,38 @@
       "wave": 26
     },
     {
+      "path": "Moblin/Various/Model/ModelRemoteControlStreams.swift",
+      "lines": 469,
+      "sha256": "541e162384a7d5eb517eb9680667da8b69867888a2e5e0838b9b594709df0eb9",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "StreamUpdateEffects"
+      ],
+      "private_types": [
+        "StreamUpdateEffects"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelRemoteControlStreams.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/RemoteControl/RemoteControlStreamConfigValidation.swift",
+        "Moblin/StreamingPlatforms/Kick/KickApi.swift",
+        "Moblin/StreamingPlatforms/Kick/KickAuth.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeAuth.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelRemoteControlSettingsUpdate.swift",
+        "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Utils/Utils.swift"
+      ],
+      "wave": 26
+    },
+    {
       "path": "Moblin/VideoEffects/DrawOnStreamEffect.swift",
       "lines": 113,
       "sha256": "bbeaa1d7abf3abec9452cba7509bd1100030c989ab27cd1c7b6195a73055023b",
@@ -16925,6 +17037,36 @@
       "wave": 26
     },
     {
+      "path": "MoblinTests/Moblin/RemoteControl/RemoteControlStreamConfigValidationSuite.swift",
+      "lines": 361,
+      "sha256": "e71139c052d3e86745986accc1501c914b1d657401622c910fb4f6b880a58aa1",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "RemoteControlStreamConfigValidationSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.remotecontrol",
+      "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlStreamConfigValidationSuite.kt",
+      "deps": [
+        "Moblin/Moblink/MoblinkRelay.swift",
+        "Moblin/RemoteControl/RemoteControlRelay.swift",
+        "Moblin/RemoteControl/RemoteControlStreamConfigValidation.swift",
+        "Moblin/StreamingPlatforms/OpenStreamingPlatform/OpenStreamingPlatformChat.swift",
+        "Moblin/StreamingPlatforms/Platform.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Storages/RecordingsStorage.swift"
+      ],
+      "wave": 26
+    },
+    {
       "path": "Moblin/Various/Model/ModelGoProDevice.swift",
       "lines": 158,
       "sha256": "f0b0e695cd6389d0f3c312a6a87a19d4307372c7a2961900cc7b6218040afc3e",
@@ -17255,7 +17397,7 @@
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
       "lines": 923,
-      "sha256": "63cd34ddbe1bf2d698e39711898a60a2a79afc350b631e4444b79c0a46886616",
+      "sha256": "73cee8d720e9b4ba528135a79407876839c49f58576e46ec7832a663985f81f1",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -20760,8 +20902,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControl.swift",
-      "lines": 1525,
-      "sha256": "121d1029e10d5bd22a2899fac49a8ffcae20213e1fff5c92fe7350f06e9d71e9",
+      "lines": 1531,
+      "sha256": "b30700a995d9ce1894096c3c29d2a9c3fa062ad9d80fab4acc35d64636ed8ca0",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -20907,8 +21049,8 @@
     },
     {
       "path": "Moblin/Various/Settings/Settings.swift",
-      "lines": 2522,
-      "sha256": "efcec6d0678baee9a8c540179264c7d3f276ada55074a907aa280a3843db92a2",
+      "lines": 2520,
+      "sha256": "2a91c7779caaf19d6e84a20f0663c2af6153ab9f678ff01b0204f32057493a9b",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -20982,8 +21124,6 @@
         "Moblin/Media/HaishinKit/Media/Processor.swift",
         "Moblin/Media/WiFiAware/WiFiAwareReceiver.swift",
         "Moblin/Media/WiFiAware/WiFiAwareSender.swift",
-        "Moblin/StreamingPlatforms/Kick/KickAuth.swift",
-        "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
         "Moblin/Various/Model/ModelCamera.swift",
         "Moblin/Various/Model/ModelControlBar.swift",
         "Moblin/Various/Model/ModelFaceBackgroundImage.swift",
@@ -21077,8 +21217,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlStreamer.swift",
-      "lines": 589,
-      "sha256": "3e94a51a3e2f473fa3ce8ca6850cdc2f4b7e2e6a006f193d8eae47cf0f118ec1",
+      "lines": 610,
+      "sha256": "2ecd9ae05e08c568607288cb5d80e30d5863d0317ca061cc859e98faaf1d06a0",
       "imports": [
         "Foundation",
         "Network"
@@ -21385,8 +21525,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMoblinCloud.swift",
-      "lines": 828,
-      "sha256": "34e8496c3b7914b9c83383eb92241f3c4c706fc8945f62ef271cc7b24779784e",
+      "lines": 844,
+      "sha256": "0c653cd6a86a602a098db62fa5b01adb49b384e7c3ce2de0ccbb4318ea450c46",
       "imports": [
         "CryptoKit",
         "DeviceCheck",
@@ -21435,8 +21575,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControl.swift",
-      "lines": 1757,
-      "sha256": "64acb2ad6323abf8285e4cd6630ba0a1813da793cf9008554bd6d8151c135060",
+      "lines": 1774,
+      "sha256": "eb949caf6b6a7c861832e4c2ce57a351619a5164720ffe2bd658ba4ed886ee27",
       "imports": [
         "AVFoundation",
         "CoreLocation",
@@ -21558,8 +21698,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsScene.swift",
-      "lines": 4371,
-      "sha256": "16c293401860b8e1cd8f4200df0e1214ee6fcdd293bbb6c1345f5c8f737774e2",
+      "lines": 4383,
+      "sha256": "b8021325bfc8d2189e8390f4d2a9aa2abf89b8d075d7c5e69e74c323aacdfe6a",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -22328,8 +22468,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelRemoteControlScenes.swift",
-      "lines": 203,
-      "sha256": "f43c5dd2cd278c43c2a4f5e8d4b9d396e82f17b924a3a9ff07ae167643a5b8ab",
+      "lines": 218,
+      "sha256": "a0cebea66c0115ad2195f262e928d37f65b88e360a7557ce1bfc70f8a7c14f9f",
       "imports": [
         "AVFoundation",
         "Foundation",
@@ -22357,7 +22497,7 @@
     {
       "path": "Moblin/Various/Model/ModelRemoteControlSettingsUpdate.swift",
       "lines": 802,
-      "sha256": "ea64ad7e2ded1aa20f1ddb8f67ee6d3a523ff1c2fb427df64a61281982fa662a",
+      "sha256": "1c3173a30e79f319d576a056543a9e9e5b5416ed7b3538a25c3513b4a4980ea1",
       "imports": [
         "Foundation"
       ],
@@ -22365,9 +22505,7 @@
       "declared_types": [
         "ChangeTracker"
       ],
-      "private_types": [
-        "ChangeTracker"
-      ],
+      "private_types": [],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.various.model",

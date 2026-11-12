@@ -284,7 +284,7 @@ class RemoteControlAssistant(
 
     fun getWidgets(onSuccess: (List<SettingsWidget>) -> Unit) {
         performRequest(
-            data = RemoteControlRequest.GetWidgets,
+            data = RemoteControlRequest.GetWidgets(secrets = true),
             onSuccess = { response ->
                 when (response) {
                     is RemoteControlResponse.GetWidgets -> onSuccess(response.widgets)
@@ -336,7 +336,7 @@ class RemoteControlAssistant(
         onError: (String) -> Unit
     ) {
         performRequestNoResponseData(
-            data = RemoteControlRequest.CreateWidget(widget = widget, sceneIds = sceneIds),
+            data = RemoteControlRequest.CreateWidget(widget = widget, sceneIds = sceneIds, secrets = true),
             onSuccess = onSuccess,
             onError = onError
         )
@@ -348,7 +348,7 @@ class RemoteControlAssistant(
         onError: (String) -> Unit
     ) {
         performRequestNoResponseData(
-            data = RemoteControlRequest.UpdateWidget(widget = widget),
+            data = RemoteControlRequest.UpdateWidget(widget = widget, secrets = true),
             onSuccess = onSuccess,
             onError = onError
         )

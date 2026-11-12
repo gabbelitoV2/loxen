@@ -31,6 +31,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import com.moblin.android.AppDelegate
+import com.moblin.android.platform.codable.codableJson
+import kotlinx.serialization.serializer
 
 val iconWidth: Float = 32.0f
 val controlBarButtonSize: Float = 40.0f
@@ -306,6 +308,15 @@ fun <T : Number> formatThreeDecimals(value: T): String {
 
 fun <T : Number> formatFourDecimals(value: T): String {
     return String.format(Locale.US, "%.04f", value.toDouble())
+}
+
+inline fun <reified T> T.deepCopy(): T? {
+    return runCatching {
+        codableJson.decodeFromString(
+            serializer<T>(),
+            codableJson.encodeToString(serializer<T>(), this),
+        )
+    }.getOrNull()
 }
 
 fun <T : Comparable<T>> T.clamped(to: ClosedRange<T>): T {

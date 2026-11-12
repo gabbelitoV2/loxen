@@ -3217,6 +3217,18 @@ class SettingsWidget(
         }
     }
 
+    fun removeSecrets() {
+        alerts.ai.baseUrl = ""
+        alerts.ai.apiKey = ""
+        alerts.ttsMonster.apiToken = ""
+    }
+
+    fun keepSecrets(from: SettingsWidget) {
+        alerts.ai.baseUrl = from.alerts.ai.baseUrl
+        alerts.ai.apiKey = from.alerts.ai.apiKey
+        alerts.ttsMonster.apiToken = from.alerts.ttsMonster.apiToken
+    }
+
     fun getEffects(model: Model): List<VideoEffect> =
         effects.filter { it.enabled }.map { it.getEffect(model) }
 

@@ -24,12 +24,73 @@ import com.moblin.android.common.various.RgbColor
 import com.moblin.android.various.model.Tally
 import com.moblin.android.various.settings.SettingsWidgetScene
 import java.util.UUID
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+private val streamId = "3F2B8C1E-5A4D-4E7F-9B6A-1C2D3E4F5A6B"
 
 @RunWith(RobolectricTestRunner::class)
 class RemoteControlSuite {
     private val json = Json {
         encodeDefaults = true
         explicitNulls = false
+    }
+
+    private fun decode(json: String): RemoteControlRequest =
+        RemoteControlRequest.fromJsonElement(this.json.parseToJsonElement(json))
+
+    @Test
+    fun moblinCloudStreamRequestsDecode() {
+        val getStream = decode(
+            """{"getStream":{"id":"$streamId","secrets":false}}"""
+        ) as? RemoteControlRequest.GetStream ?: fail("Not getStream")
+        assertEquals(streamId, getStream.id.toString().uppercase())
+        assertFalse(getStream.secrets)
+        val updateStream = decode(
+            """{"updateStream":{"stream":{"id":"$streamId","name":"Kick"},"secrets":true}}"""
+        ) as? RemoteControlRequest.UpdateStream ?: fail("Not updateStream")
+        assertEquals(streamId, updateStream.stream.id.toString().uppercase())
+        assertEquals("Kick", updateStream.stream.name)
+        assertTrue(updateStream.secrets)
+        val createStream = decode(
+            """{"createStream":{"stream":{"id":"$streamId"},"secrets":false}}"""
+        ) as? RemoteControlRequest.CreateStream ?: fail("Not createStream")
+        assertFalse(createStream.secrets)
+        val deleteStream = decode("""{"deleteStream":{"id":"$streamId"}}""")
+        assertTrue(deleteStream is RemoteControlRequest.DeleteStream)
+        val getWidgets = decode("""{"getWidgets":{"secrets":false}}""")
+            as? RemoteControlRequest.GetWidgets ?: fail("Not getWidgets")
+        assertFalse(getWidgets.secrets)
+    }
+
+    @Test
+    fun requestsWithoutTheSecretsFlagAreRefused() {
+        val cases = listOf(
+            """{"getStream":{"id":"3F2B8C1E-5A4D-4E7F-9B6A-1C2D3E4F5A6B"}}""",
+            """{"updateStream":{"stream":{"id":"3F2B8C1E-5A4D-4E7F-9B6A-1C2D3E4F5A6B"}}}""",
+            """{"getWidgets":{}}"""
+        )
+        for (value in cases) {
+            assertFailsWith<Exception> {
+                decode(value)
+            }
+        }
+    }
+
+    @Test
+    fun settingsNameTheCurrentStream() {
+        val settings = RemoteControlSettings(
+            streams = emptyList(),
+            currentStreamId = UUID.fromString(streamId),
+            scenes = emptyList(),
+            autoSceneSwitchers = null,
+            bitratePresets = emptyList(),
+            mics = emptyList(),
+            srt = RemoteControlSettingsSrt(connectionPrioritiesEnabled = false, connectionPriorities = emptyList())
+        )
+        val encoded = json.encodeToString(settings)
+        assertTrue(encoded.contains(""""currentStreamId":"$streamId""""))
     }
 
     private fun encode(request: RemoteControlRequest): String =

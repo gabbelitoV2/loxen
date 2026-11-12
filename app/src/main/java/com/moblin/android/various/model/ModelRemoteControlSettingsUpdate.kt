@@ -22,7 +22,7 @@ import com.moblin.android.videoeffects.text.TextFormatPart
 import com.moblin.android.videoeffects.text.loadTextFormat
 import java.util.UUID
 
-private class ChangeTracker {
+class ChangeTracker {
     var changed = false
         private set
 

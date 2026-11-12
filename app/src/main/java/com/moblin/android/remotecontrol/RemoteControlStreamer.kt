@@ -11,6 +11,7 @@ import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsScene
+import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.storages.SimpleStorageContext
@@ -87,12 +88,16 @@ interface RemoteControlStreamerDelegate {
     fun remoteControlStreamerSaveGimbalPreset()
     fun remoteControlStreamerImportSettings(settings: ByteArray, onCompleted: (Boolean) -> Unit)
     fun remoteControlStreamerGetScenes(): List<SettingsScene>
-    fun remoteControlStreamerGetWidgets(): List<SettingsWidget>
+    fun remoteControlStreamerGetWidgets(secrets: Boolean): List<SettingsWidget>
     fun remoteControlStreamerCreateScene(scene: SettingsScene): Boolean
     fun remoteControlStreamerUpdateScene(scene: SettingsScene): Boolean
     fun remoteControlStreamerDeleteScene(id: UUID): Boolean
-    fun remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean
-    fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean
+    fun remoteControlStreamerGetStream(id: UUID, secrets: Boolean): SettingsStream?
+    fun remoteControlStreamerCreateStream(stream: SettingsStream, secrets: Boolean): Boolean
+    fun remoteControlStreamerUpdateStream(stream: SettingsStream, secrets: Boolean): Boolean
+    fun remoteControlStreamerDeleteStream(id: UUID): Boolean
+    fun remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>, secrets: Boolean): Boolean
+    fun remoteControlStreamerUpdateWidget(widget: SettingsWidget, secrets: Boolean): Boolean
     fun remoteControlStreamerDeleteWidget(id: UUID): Boolean
     fun remoteControlStreamerGetAlertsMediaGallery(): SettingsAlertsMediaGallery
     fun remoteControlStreamerGetVideoSources(): List<RemoteControlVideoSource>
@@ -655,7 +660,7 @@ class RemoteControlStreamer(
                 )
             }
             is RemoteControlRequest.GetWidgets -> {
-                val widgets = delegate.remoteControlStreamerGetWidgets()
+                val widgets = delegate.remoteControlStreamerGetWidgets(data.secrets)
                 send(
                     RemoteControlMessageToAssistant.Response(
                         id,
@@ -676,14 +681,46 @@ class RemoteControlStreamer(
             is RemoteControlRequest.CreateWidget -> {
                 sendResultResponse(
                     id,
-                    delegate.remoteControlStreamerCreateWidget(data.widget, data.sceneIds),
+                    delegate.remoteControlStreamerCreateWidget(data.widget, data.sceneIds, data.secrets),
                 )
             }
             is RemoteControlRequest.UpdateWidget -> {
-                sendResultResponse(id, delegate.remoteControlStreamerUpdateWidget(data.widget))
+                sendResultResponse(
+                    id,
+                    delegate.remoteControlStreamerUpdateWidget(data.widget, data.secrets),
+                )
             }
             is RemoteControlRequest.DeleteWidget -> {
                 sendResultResponse(id, delegate.remoteControlStreamerDeleteWidget(data.id))
+            }
+            is RemoteControlRequest.GetStream -> {
+                val stream = delegate.remoteControlStreamerGetStream(data.id, data.secrets)
+                if (stream != null) {
+                    send(
+                        RemoteControlMessageToAssistant.Response(
+                            id,
+                            remoteControlResult("ok"),
+                            RemoteControlResponse.GetStream(stream),
+                        ),
+                    )
+                } else {
+                    sendResultResponse(id, false)
+                }
+            }
+            is RemoteControlRequest.CreateStream -> {
+                sendResultResponse(
+                    id,
+                    delegate.remoteControlStreamerCreateStream(data.stream, data.secrets),
+                )
+            }
+            is RemoteControlRequest.UpdateStream -> {
+                sendResultResponse(
+                    id,
+                    delegate.remoteControlStreamerUpdateStream(data.stream, data.secrets),
+                )
+            }
+            is RemoteControlRequest.DeleteStream -> {
+                sendResultResponse(id, delegate.remoteControlStreamerDeleteStream(data.id))
             }
             is RemoteControlRequest.GetAlertsMediaGallery -> {
                 val gallery = delegate.remoteControlStreamerGetAlertsMediaGallery()

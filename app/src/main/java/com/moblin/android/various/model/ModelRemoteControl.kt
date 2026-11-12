@@ -75,6 +75,7 @@ import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsScene
+import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetScoreboard
 import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
@@ -829,6 +830,7 @@ fun Model.remoteControlGetSettings(): RemoteControlSettings {
     )
     return RemoteControlSettings(
         streams = streams,
+        currentStreamId = database.streams.firstOrNull { it.enabled }?.id,
         scenes = scenes,
         autoSceneSwitchers = autoSceneSwitchers,
         bitratePresets = bitratePresets,
@@ -1410,8 +1412,8 @@ fun Model.remoteControlStreamerGetScenes(): List<SettingsScene> {
     return remoteControlGetScenes()
 }
 
-fun Model.remoteControlStreamerGetWidgets(): List<SettingsWidget> {
-    return remoteControlGetWidgets()
+fun Model.remoteControlStreamerGetWidgets(secrets: Boolean): List<SettingsWidget> {
+    return remoteControlGetWidgets(secrets = secrets)
 }
 
 fun Model.remoteControlStreamerCreateScene(scene: SettingsScene): Boolean {
@@ -1426,12 +1428,28 @@ fun Model.remoteControlStreamerDeleteScene(id: UUID): Boolean {
     return remoteControlDeleteScene(id = id)
 }
 
-fun Model.remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean {
-    return remoteControlCreateWidget(widget = widget, sceneIds = sceneIds)
+fun Model.remoteControlStreamerGetStream(id: UUID, secrets: Boolean): SettingsStream? {
+    return remoteControlGetStream(id = id, secrets = secrets)
 }
 
-fun Model.remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {
-    return remoteControlUpdateWidget(widget = widget)
+fun Model.remoteControlStreamerCreateStream(stream: SettingsStream, secrets: Boolean): Boolean {
+    return remoteControlCreateStream(stream = stream, secrets = secrets)
+}
+
+fun Model.remoteControlStreamerUpdateStream(stream: SettingsStream, secrets: Boolean): Boolean {
+    return remoteControlUpdateStream(stream = stream, secrets = secrets)
+}
+
+fun Model.remoteControlStreamerDeleteStream(id: UUID): Boolean {
+    return remoteControlDeleteStream(id = id)
+}
+
+fun Model.remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>, secrets: Boolean): Boolean {
+    return remoteControlCreateWidget(widget = widget, sceneIds = sceneIds, secrets = secrets)
+}
+
+fun Model.remoteControlStreamerUpdateWidget(widget: SettingsWidget, secrets: Boolean): Boolean {
+    return remoteControlUpdateWidget(widget = widget, secrets = secrets)
 }
 
 fun Model.remoteControlStreamerDeleteWidget(id: UUID): Boolean {
@@ -2046,8 +2064,8 @@ private class RemoteControlStreamerDelegateAdapter(
         return model.remoteControlStreamerGetScenes()
     }
 
-    override fun remoteControlStreamerGetWidgets(): List<SettingsWidget> {
-        return model.remoteControlStreamerGetWidgets()
+    override fun remoteControlStreamerGetWidgets(secrets: Boolean): List<SettingsWidget> {
+        return model.remoteControlStreamerGetWidgets(secrets = secrets)
     }
 
     override fun remoteControlStreamerCreateScene(scene: SettingsScene): Boolean {
@@ -2062,12 +2080,28 @@ private class RemoteControlStreamerDelegateAdapter(
         return model.remoteControlStreamerDeleteScene(id = id)
     }
 
-    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>): Boolean {
-        return model.remoteControlStreamerCreateWidget(widget = widget, sceneIds = sceneIds)
+    override fun remoteControlStreamerGetStream(id: UUID, secrets: Boolean): SettingsStream? {
+        return model.remoteControlStreamerGetStream(id = id, secrets = secrets)
     }
 
-    override fun remoteControlStreamerUpdateWidget(widget: SettingsWidget): Boolean {
-        return model.remoteControlStreamerUpdateWidget(widget = widget)
+    override fun remoteControlStreamerCreateStream(stream: SettingsStream, secrets: Boolean): Boolean {
+        return model.remoteControlStreamerCreateStream(stream = stream, secrets = secrets)
+    }
+
+    override fun remoteControlStreamerUpdateStream(stream: SettingsStream, secrets: Boolean): Boolean {
+        return model.remoteControlStreamerUpdateStream(stream = stream, secrets = secrets)
+    }
+
+    override fun remoteControlStreamerDeleteStream(id: UUID): Boolean {
+        return model.remoteControlStreamerDeleteStream(id = id)
+    }
+
+    override fun remoteControlStreamerCreateWidget(widget: SettingsWidget, sceneIds: List<UUID>, secrets: Boolean): Boolean {
+        return model.remoteControlStreamerCreateWidget(widget = widget, sceneIds = sceneIds, secrets = secrets)
+    }
+
+    override fun remoteControlStreamerUpdateWidget(widget: SettingsWidget, secrets: Boolean): Boolean {
+        return model.remoteControlStreamerUpdateWidget(widget = widget, secrets = secrets)
     }
 
     override fun remoteControlStreamerDeleteWidget(id: UUID): Boolean {
