@@ -341,9 +341,21 @@ LIST_DECLARATION_RE = re.compile(
 )
 
 
-def api35_list_calls(text):
+DECLARATION_RE = re.compile(r"\b(?:val|var)\s+(\w+)")
+SHARED_LIST_RE = re.compile(r"^(?: {4})?(?!\s)(?![^\n]*\bprivate\b)[^\n]*?" + LIST_DECLARATION_RE.pattern, re.M)
+
+
+def shared_list_names(sources):
+    names = set()
+    for text in sources.values():
+        names.update(SHARED_LIST_RE.findall(text))
+    return names
+
+
+def api35_list_calls(text, shared=()):
     count = 0
-    for name in sorted(set(LIST_DECLARATION_RE.findall(text))):
+    names = set(LIST_DECLARATION_RE.findall(text)) | (set(shared) - set(DECLARATION_RE.findall(text)))
+    for name in sorted(names):
         receiver = rf"(?<![\w.])((?:this(?:@\w+)?\.)?{re.escape(name)})"
         text, first = re.subn(receiver + r"\.removeFirst\(\)", r"\1.removeAt(0)", text)
         text, last = re.subn(receiver + r"\.removeLast\(\)", r"\1.removeAt(\1.lastIndex)", text)
@@ -364,7 +376,7 @@ def robolectric_runner(text):
     return text, n
 
 
-def process_file(text, renamed_names, sources=None, fresh=False, before=None, generated=True):
+def process_file(text, renamed_names, sources=None, fresh=False, before=None, generated=True, lists=()):
     counts = {}
     package = re.search(r"^package (\S+)$", text, re.M)
     package_name = package.group(1) if package else ""
@@ -399,8 +411,8 @@ def process_file(text, renamed_names, sources=None, fresh=False, before=None, ge
     if generated:
         text, runners = robolectric_runner(text)
         counts["runners"] = runners
-        text, lists = api35_list_calls(text)
-        counts["lists"] = lists
+        text, rewritten = api35_list_calls(text, lists)
+        counts["lists"] = rewritten
     return text, counts
 
 
@@ -1068,12 +1080,13 @@ def run(dry_run, only=None, hooks=True, verbose=False, before=None):
         selected = [path for path in files if path.resolve() in wanted]
     selected_set = set(selected)
     contents = {path: (sources[path], sources[path]) for path in files}
+    lists = shared_list_names(sources)
     for path in selected:
         original = sources[path]
         resolved = path.resolve()
         text, counts = process_file(
             original, renamed, sources, fresh=only is not None, before=before.get(resolved),
-            generated=generated is None or resolved in generated,
+            generated=generated is None or resolved in generated, lists=lists,
         )
         contents[path] = (original, text)
         for key, value in counts.items():
@@ -1113,6 +1126,7 @@ def run(dry_run, only=None, hooks=True, verbose=False, before=None):
     print(f"context TODOs resolved: {totals.get('contexts', 0)}  delegate adapters generated: {totals.get('adapters', 0)}")
     print(f"typed TODOs defaulted: {totals.get('typed', 0)}  statement TODOs turned into no-ops: {totals.get('statements', 0)}")
     print(f"host hooks: {totals.get('hooks', 0)}  modifier chains reordered: {totals.get('modifiers', 0)}")
+    print(f"Android 15 list calls rewritten: {totals.get('lists', 0)}")
     if summary["hooks"] is not None:
         results, problems, warnings = summary["hooks"]
         summary["hook_counts"] = report_hooks(results, problems, warnings, verbose)

@@ -63,6 +63,13 @@ Per kind of item:
   `python tools/check_hand_ported.py --update`.
 - Effects checks: add the missing shim member. Add an entry to `tools/effects_known_gaps.json` only for a real gap and
   with the reason.
+- Android 15 list calls: the class named in the item calls a `java.util.List` method that only exists from Android 15
+  (`removeFirst`, `removeLast`, `getFirst`, `getLast`, `addFirst`, `addLast`, `reversed`) and crashes on older
+  Android, so the nightly build fails and nothing is uploaded to Google Play. `api35_list_calls` in
+  `tools/postprocess.py` rewrites `removeFirst()` and `removeLast()` on lists it sees declared; teach it the case it
+  missed and run `python tools/postprocess.py`, or keep the Kotlin call that exists on every Android (`removeAt(0)`,
+  `removeAt(list.lastIndex)`, `first()`, `last()`, `add(0, element)`, `add(element)`, `asReversed()`) with a hook.
+  Check with `./gradlew :app:assembleDebug -q` and then `python tools/check_api35.py`.
 - Tesla protobufs: teach `tools/pbswift.py` the new construct, run `python tools/pbswift.py`, then
   `python tools/pbswift.py --check`.
 - The sync stopped: reproduce it with `python tools/sync.py --ref <upstream commit of the report>` (without
@@ -93,7 +100,7 @@ Everything below must pass, because the workflow runs the same checks and pushes
 
 - `python tools/check_hooks.py` reports 0 missing and nothing not applied.
 - `python tools/pbswift.py --check`
-- `./gradlew :app:assembleDebug -q`
+- `./gradlew :app:assembleDebug -q`, and after it `python tools/check_api35.py` reports 0 API 35 list calls.
 - `./gradlew :app:testDebugUnitTest --continue -q` with no failures except the known ones in
   `tools/known_test_failures.json` (four in RecorderSuite and MpegTsReaderSuite.ffmpegAudioOnlyPeriodicBeep).
 

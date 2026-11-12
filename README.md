@@ -214,9 +214,16 @@ The sync never stops halfway. When the app or its unit tests still do not compil
 re-translated file lost one of its hooks, it puts back the previous version of each Kotlin file this sync changed that
 has errors, together with its entry in `tools/port-state.json` so that the next sync retries it, and builds again until
 the app builds. Everything that needs attention (files held back with their errors, missing hooks, a failing
-`tools/pbswift.py`, findings of the hand-port and effects checks) goes into `tools/sync-report.json`, which is
-committed with the rest. A sync never pushes an app that does not build: when it still fails with every change held
-back, only the report is committed. Before pushing on top of a `main` that moved in the meantime, it builds again.
+`tools/pbswift.py`, findings of the hand-port and effects checks, calls to `java.util.List` methods that only exist
+from Android 15) goes into `tools/sync-report.json`, which is committed with the rest. A sync never pushes an app
+that does not build: when it still fails with every change held back, only the report is committed. Before pushing
+on top of a `main` that moved in the meantime, it builds again.
+
+Compiled against Java 21, `removeFirst()` and `removeLast()` on a `MutableList` become calls to `java.util.List`
+methods that only exist from Android 15 and crash on older Android. `tools/postprocess.py` rewrites them to
+`removeAt(...)` on lists declared in the same file and on non-private properties and top-level lists of other files
+(`Model` extensions use the lists of `Model.kt`). `tools/check_api35.py` finds what is left in the compiled classes:
+the sync reports it, and the nightly workflow fails on it, so such a build never reaches Google Play.
 
 `python tools/sync.py --dry-run` shows the new upstream commits and the files that would be ported.
 
@@ -366,6 +373,9 @@ hand, not by a push) and by hand from the Actions tab. It always builds `main`:
    has Swedish (sv-SE). Without the key, or when DeepSeek fails, they list the commit subjects in English only, and
    Google Play shows the English notes in every language. The notes stay with the release when it is promoted to
    closed testing.
+
+While the nightly `Sync and build` fails, nothing is uploaded, and Play Console has no new app bundle to roll out or
+promote ("This release does not add or remove any app bundles"). Fix `main` and run this workflow by hand.
 
 Without `PLAY_SERVICE_ACCOUNT_JSON`, or while the app does not exist in Play Console, nightly runs stop after step 2 and
 runs started by hand only attach the signed bundle and APK. A service account that has no access to the app fails the run.

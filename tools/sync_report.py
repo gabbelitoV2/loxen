@@ -15,7 +15,8 @@ LABEL = "needs-repair"
 BOT = "github-actions[bot]"
 MARKER = "<!-- moblin-android-needs-repair -->"
 PBSWIFT_PREFIX = "app/src/main/java/com/moblin/android/integrations/tesla/protobuf/"
-SECTIONS = ("sync_error", "build", "pbswift", "held_back", "port_failures", "hooks", "hand_ported", "effects")
+SECTIONS = ("sync_error", "build", "pbswift", "held_back", "port_failures", "hooks", "hand_ported", "effects",
+            "api35")
 MAX_ATTEMPTS_PER_DAY = 2
 ATTEMPT_WINDOW_HOURS = 24
 NIGHT_START_HOUR = 20
@@ -42,6 +43,7 @@ def new_report(upstream=None):
         "hooks": [],
         "hand_ported": [],
         "effects": [],
+        "api35": [],
     }
 
 
@@ -78,7 +80,7 @@ def failure_key(report):
     parts = [key for key in ("sync_error", "build", "pbswift") if report.get(key)]
     parts += [f"held_back:{item.get('swift')}" for item in report.get("held_back") or []]
     parts += [f"port_failures:{item.get('swift')}" for item in report.get("port_failures") or []]
-    for key in ("hooks", "hand_ported", "effects"):
+    for key in ("hooks", "hand_ported", "effects", "api35"):
         parts += [f"{key}:{line.split(': ')[0]}" for line in report.get(key) or []]
     return hashlib.sha256("\n".join(sorted(set(parts))).encode("utf-8")).hexdigest()[:12]
 
@@ -154,12 +156,13 @@ def hook_findings():
 
 
 def collect(upstream, inventory, state, reverted=None, previous=None, pbswift=None, build=None, hand_ported=(),
-            effects=(), hooks=None, sync_error=None):
+            effects=(), hooks=None, sync_error=None, api35=()):
     report = new_report(upstream)
     report["held_back"], report["port_failures"] = stale_files(inventory, state, reverted, previous)
     report["hooks"] = list(hook_findings() if hooks is None else hooks)
     report["hand_ported"] = list(hand_ported)
     report["effects"] = list(effects)
+    report["api35"] = list(api35)
     report["build"] = list(build or [])
     report["sync_error"] = sync_error
     protobuf_reverts = sorted(rel for rel in (reverted or {}) if rel.startswith(PBSWIFT_PREFIX))
@@ -205,7 +208,8 @@ def to_markdown(report, limit=MAX_BODY):
         lines += [f"- `{item['swift']}` -> `{item['kotlin']}`: {item['error']}" for item in failures]
         parts.append("\n".join(lines))
     for key, title in (("hooks", "Hooks"), ("hand_ported", "Swift files ported by hand changed upstream"),
-                       ("effects", "Effects checks")):
+                       ("effects", "Effects checks"),
+                       ("api35", "Android 15 list calls that crash on older Android")):
         if report.get(key):
             parts.append(f"### {title} ({len(report[key])})\n\n" + code_block(report[key][:60]))
     text = "\n\n".join(parts) if parts else "Nothing to report."

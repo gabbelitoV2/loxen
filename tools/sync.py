@@ -10,6 +10,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
+import check_api35
 import degrade
 import sync_report
 
@@ -161,6 +162,23 @@ def warn_hand_ported():
     return findings
 
 
+def api35_findings(classes=None):
+    classes = classes or check_api35.CLASSES
+    if not classes.exists():
+        print(f"check_api35.py: {classes} not found, so nothing is checked")
+        return []
+    findings = [f"{method} in {owner}" for owner, method in check_api35.scan(classes)]
+    if not findings:
+        print("check_api35.py: no findings")
+        return []
+    print("warning: calls to java.util.List methods that only exist from Android 15 and crash on older Android "
+          "(the sync goes on, but the nightly build fails and nothing is uploaded to Google Play until they are "
+          "gone):")
+    for line in findings:
+        print("  " + line)
+    return findings
+
+
 def regenerate_protobufs(check=False):
     command = [sys.executable, HERE / "pbswift.py", "--moblin", UPSTREAM]
     if check:
@@ -226,10 +244,11 @@ def port_and_build(args, state, inventory, target, previous):
         print("  " + line)
     effects = warn_effect_checks()
     hand_ported = warn_hand_ported()
+    api35 = api35_findings() if build_ok and not args.no_build else list(previous.get("api35") or [])
     report = sync_report.collect(
         target, inventory, state, reverted=reverted, previous=previous,
         pbswift=None if protobufs_ok else protobufs_output, build=build, hand_ported=hand_ported,
-        effects=effects, hooks=hooks,
+        effects=effects, hooks=hooks, api35=api35,
     )
     return report, build_ok
 

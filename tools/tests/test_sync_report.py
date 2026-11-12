@@ -163,6 +163,26 @@ class CountSuite(unittest.TestCase):
         self.assertNotEqual(sync_report.failure_key(report), sync_report.failure_key(again))
         self.assertEqual(len(sync_report.failure_key(sync_report.new_report())), 12)
 
+    def test_android_15_list_calls_are_items(self):
+        report = sync_report.collect("abc", {"files": []}, {}, hooks=[], api35=[
+            "java.util.List.removeFirst in com.moblin.android.various.model.ModelRemoteControlKt",
+        ])
+        self.assertFalse(sync_report.is_empty(report))
+        self.assertEqual(sync_report.items_line(report), "1 items (api35)")
+        self.assertNotEqual(sync_report.failure_key(report), sync_report.failure_key(sync_report.new_report()))
+        text = sync_report.to_markdown(report)
+        self.assertIn("### Android 15 list calls that crash on older Android (1)", text)
+        self.assertIn("java.util.List.removeFirst in com.moblin.android.various.model.ModelRemoteControlKt", text)
+
+    def test_a_report_saved_before_the_android_15_check_loads(self):
+        directory = Path(tempfile.mkdtemp())
+        try:
+            path = directory / "report.json"
+            path.write_text('{"upstream": "abc", "effects": []}', encoding="utf-8")
+            self.assertEqual(sync_report.load(path)["api35"], [])
+        finally:
+            shutil.rmtree(directory, ignore_errors=True)
+
 
 class CommandSuite(unittest.TestCase):
     def test_sync_failed_without_github_prints_the_report(self):

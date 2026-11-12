@@ -1290,7 +1290,7 @@ fun Model.isRemoteControlRequestAlreadyHandled(requestId: String?): Boolean {
     }
     remoteControlHandledRequestIds.add(requestId)
     if (remoteControlHandledRequestIds.size > 1000) {
-        remoteControlHandledRequestIds.removeFirst()
+        remoteControlHandledRequestIds.removeAt(0)
     }
     return false
 }

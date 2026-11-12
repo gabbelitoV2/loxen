@@ -474,6 +474,7 @@ def verify(base, base_report):
         pbswift=None if protobufs["ok"] else protobufs_output,
         build=[] if build["ok"] else build["detail"].splitlines()[-40:],
         hand_ported=sync.warn_hand_ported(), effects=sync.warn_effect_checks(),
+        api35=sync.api35_findings() if build["ok"] else list(base_report.get("api35") or []),
     )
     return gates, report, meaningful
 
