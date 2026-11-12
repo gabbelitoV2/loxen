@@ -86,7 +86,7 @@ fun makeRtmpStreamKey(url: String): String {
 fun cleanUrl(value: String): String {
     val stripped = value.replace(" ", "")
     val uri = runCatching { URI(stripped) }.getOrNull() ?: return stripped
-    val scheme = uri.scheme ?: return stripped
+    val scheme = uri.scheme?.takeIf { uri.host != null } ?: return uri.scheme?.let { it.lowercase() + stripped.substring(it.length) } ?: stripped
     return runCatching {
         URI(
             scheme.lowercase(),

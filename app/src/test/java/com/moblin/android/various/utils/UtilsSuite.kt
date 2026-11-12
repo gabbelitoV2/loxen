@@ -2,22 +2,37 @@ package com.moblin.android.various.utils
 
 import com.moblin.android.common.various.Measurement
 import com.moblin.android.common.various.UnitSpeed
+import com.moblin.android.common.various.deepCopy
 import com.moblin.android.common.various.formatPace
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.common.various.formatWindAndGustSpeed
 import com.moblin.android.common.various.formatWindSpeed
 import com.moblin.android.common.various.getInt64Be
+import com.moblin.android.various.settings.SettingsStream
 import java.nio.ByteBuffer
 import java.util.Locale
 import java.util.UUID
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class UtilsSuite {
+    @Test
+    fun deepCopySharesNothingWithTheOriginal() {
+        val stream = SettingsStream(name = "Main")
+        stream.srt.latency = 2000
+        val copy = requireNotNull(stream.deepCopy())
+        copy.name = "Copy"
+        copy.srt.latency = 500
+        assertEquals(stream.id, copy.id)
+        assertTrue(stream.name == "Main" && stream.srt.latency == 2000)
+        assertTrue(copy.name == "Copy" && copy.srt.latency == 500)
+    }
+
     @Test
     fun fullDuration() {
         assumeTrue(Locale.getDefault().toString() == "en_SE")

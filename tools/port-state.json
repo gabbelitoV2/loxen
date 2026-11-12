@@ -2917,26 +2917,25 @@
   },
   "MoblinTests/Moblin/Various/Utils/UtilsSuite.swift": {
     "status": "ok",
-    "sha256": "529cf68492420a7e52893470f87d903d07f3b093fc3f4249c17261ddb6a411c3",
-    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "sha256": "9bf48fbe2db17f98672f2f47a1ac7d67e81c537aa922e48dcc8f49216567c0be",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt",
     "notes": [
-      "Added the two new tests as @Test methods at the end of UtilsSuite, matching the Swift declaration order.",
-      "sortedBySearchPrefix lives in the same package com.moblin.android.various.utils, so no new import is needed.",
-      "The closure { $0 } becomes the trailing lambda { it }.",
-      "List literals keep their Swift element order, including the case-sensitive ordering asserted in the first test.",
-      "No locale/time-zone dependency, so no assumeTrue guard is added.",
-      "All pre-existing lines were kept byte-identical."
+      "Added the deepCopy test as the first @Test in UtilsSuite, mirroring its position in the Swift suite.",
+      "SettingsStream lives in com.moblin.android.various.settings and deepCopy in com.moblin.android.common.various; both are imported.",
+      "try #require(...) became requireNotNull(...) since the Kotlin deepCopy returns a nullable type.",
+      "Compound #expect(a && b) became two assertTrue calls; #expect(copy.id == stream.id) became assertEquals(stream.id, copy.id).",
+      "Everything else in the file is unchanged, including the local private UUID.add, removeAllWhitespaces and truncate helpers and the Robolectric runner."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 40629,
-    "tokens_out": 4309,
-    "seconds": 15.6,
-    "ported_at": "2026-09-25T13:02:56+00:00"
+    "tokens_in": 46984,
+    "tokens_out": 3642,
+    "seconds": 15.0,
+    "ported_at": "2026-11-12T02:05:43+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsTimecodeGeneratorSuite.swift": {
     "status": "ok",
@@ -18656,5 +18655,54 @@
     "tokens_out": 18167,
     "seconds": 74.9,
     "ported_at": "2026-11-12T01:43:53+00:00"
+  },
+  "MoblinTests/Moblin/RemoteControl/RemoteControlStreamConfigValidationSuite.swift": {
+    "status": "ok",
+    "sha256": "e71139c052d3e86745986accc1501c914b1d657401622c910fb4f6b880a58aa1",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/remotecontrol/RemoteControlStreamConfigValidationSuite.kt",
+    "notes": [
+      "Test suite ported to a JUnit 4 class with kotlin.test assertions; Swift argument-parameterized @Test methods became one @Test per case list that builds a fresh Fixture inside the loop.",
+      "The Swift JSONEncoder/JSONDecoder round trip in modified() is SettingsStream.decode(stream.encode()) so every case still edits a detached copy.",
+      "Fixtures and StreamCase stay nested in the suite class, mirroring the Swift nested types; idle/live/recording remain file-private top-level vals next to the file-private modified() and destination() helpers.",
+      "SettingsHttpHeader is a settings struct in the Kotlin port, so Swift's headers[0].value write becomes headers[0] = headers[0].copy(value = ...).",
+      "SettingsWidgetLayout and SettingsStreamReplayStinger are settings structs, so replay.layout.x/size and inStinger/outStinger.transitionPoint writes become copy() assignments with Double literals.",
+      "SettingsStreamMultiStreamingDestination is created with a secondary construction plus property writes because the Swift helper mutates a let-bound destination, which only works for a class.",
+      "multiStreaming.destinations, whip.headers and srt.connectionPriorities.priorities are MutableLists, so append/remove(at:)/removeFirst/removeLast map to add/removeAt.",
+      "Swift .init(name:) shorthands map to the named Kotlin constructors of SettingsStreamSrtConnectionPriority and SettingsHttpHeader."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 51253,
+    "tokens_out": 22248,
+    "seconds": 110.6,
+    "ported_at": "2026-11-12T02:01:53+00:00"
+  },
+  "MoblinTests/Moblin/Various/Settings/SettingsSecretsSuite.swift": {
+    "status": "ok",
+    "sha256": "3d2e4547cc6e57d0ca99b76d1767a3cd6f75cd8be69645871d0a45e4318b1ca5",
+    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/settings/SettingsSecretsSuite.kt",
+    "notes": [
+      "Swift Testing suite translated to a JUnit 4 class with kotlin.test assertions.",
+      "@Test(arguments:) cases are translated into single @Test methods that loop over the cases and create test objects inside the loop.",
+      "The Swift generic deepCopy helper is translated as type-specific encode/decode round trips for SettingsStream and SettingsWidget.",
+      "The Swift JSONEncoder-based encoded helper is translated to encode().toString() for the two settings types.",
+      "StreamCase and WidgetCase are nested Kotlin data classes using Kotlin function types for value extraction.",
+      "No iOS-only APIs remain; unsupported is empty.",
+      "Test literals are preserved exactly, including destination ordering and URL secrets."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 36859,
+    "tokens_out": 14429,
+    "seconds": 66.9,
+    "ported_at": "2026-11-12T02:06:35+00:00"
   }
 }

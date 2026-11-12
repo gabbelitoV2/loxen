@@ -1,0 +1,23 @@
+{
+  "task": "URLHOST",
+  "hooks": [
+    {
+      "id": "HURLHOST.1",
+      "file": "common/various/Validate.kt",
+      "scope": "fun isValidUrl",
+      "op": "replace",
+      "old": "    if (url.host == null) {",
+      "new": "    if (url.host == null && url.authority == null) {",
+      "note": "java.net.URI returns a null host for hosts with an underscore, such as my_public_ip, which Swift URL accepts."
+    },
+    {
+      "id": "HURLHOST.2",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun cleanUrl",
+      "op": "replace",
+      "old": "    val scheme = uri.scheme ?: return stripped",
+      "new": "    val scheme = uri.scheme?.takeIf { uri.host != null } ?: return uri.scheme?.let { it.lowercase() + stripped.substring(it.length) } ?: stripped",
+      "note": "Rebuilding a java.net.URI drops the authority when the host has an underscore, such as my_public_ip, which URLComponents keeps."
+    }
+  ]
+}

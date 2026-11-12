@@ -97,7 +97,7 @@ fun isValidUrl(
     rtmpStreamKeyRequired: Boolean = true,
 ): String? {
     val url = runCatching { URI(value) }.getOrNull() ?: return localized("Malformed URL")
-    if (url.host == null) {
+    if (url.host == null && url.authority == null) {
         return localized("Host missing")
     }
     if (url.port != -1) {
