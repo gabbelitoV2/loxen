@@ -130,6 +130,14 @@ fun Model.reloadChats() {
     reloadOpenStreamingPlatformChat()
 }
 
+fun Model.reloadEmotes() {
+    twitchChat?.reloadEmotes()
+    kickPusher?.reloadEmotes()
+    for (youTubeLiveChat in youTubeLiveChats.values) {
+        youTubeLiveChat.reloadEmotes()
+    }
+}
+
 fun Model.updateChatMoreThanOneChatConfigured() {
     val moreThanOneStreamingPlatform = isMoreThanOneChatConfigured()
     chat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform

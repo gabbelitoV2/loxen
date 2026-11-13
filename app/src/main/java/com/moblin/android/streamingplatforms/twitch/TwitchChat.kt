@@ -571,6 +571,10 @@ class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDel
         return emotes.isReady()
     }
 
+    fun reloadEmotes() {
+        emotes.reload()
+    }
+
     fun getBadgeUrl(badgeId: String): String? {
         return badges.getUrl(badgeId)
     }

@@ -19,11 +19,13 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.settings.streams.stream.chat.StreamEmotesSettingsView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.StreamingPlatformsShortcutView
+import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.various.model.chatBotCustomCommandsTextChanged
 import com.moblin.android.various.model.reloadChatMessages
 import com.moblin.android.various.model.reloadChats
+import com.moblin.android.various.model.reloadEmotes
 
 private fun submitMaximumAge(chat: SettingsChat, value: String) {
     val maximumAge = value.toIntOrNull()
@@ -145,6 +147,21 @@ fun ChatSettingsView(
                     title = localized("Background chat"),
                     isOn = binding({ chat.background }) { chat.background = it },
                 )
+            }
+        }
+        if (chat.enabled) {
+            Section(
+                footerContent = {
+                    Text(
+                        localized(
+                            "Fetch BTTV, FFZ and 7TV emotes again, for example after the channel added new ones."
+                        )
+                    )
+                },
+            ) {
+                TextButtonView(localized("Reload emotes")) {
+                    model.reloadEmotes()
+                }
             }
         }
         if (stream !== fallbackStream) {

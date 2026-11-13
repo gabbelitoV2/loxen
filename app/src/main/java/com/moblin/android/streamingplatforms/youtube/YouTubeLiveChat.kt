@@ -307,6 +307,10 @@ class YouTubeLiveChat(delegate: YouTubeLiveChatDelegate, videoId: String, settin
         return emotes.isReady()
     }
 
+    fun reloadEmotes() {
+        emotes.reload()
+    }
+
     private fun handleError(title: String, subTitle: String) {
         delegate.youTubeLiveChatMakeErrorToast(title = title, subTitle = subTitle)
     }

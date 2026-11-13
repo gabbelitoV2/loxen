@@ -28,6 +28,12 @@ class Emotes {
     private var task: Job? = null
     private var ready: Boolean = false
     private val scope = CoroutineScope(Dispatchers.Main)
+    private var started: Boolean = false
+    private var platform: EmotesPlatform = EmotesPlatform.twitch
+    private var channelId: String = ""
+    private var onError: ((String, String) -> Unit)? = null
+    private var onOk: ((String) -> Unit)? = null
+    private var settings: SettingsStreamChat = SettingsStreamChat()
 
     fun isReady(): Boolean {
         return ready
@@ -40,7 +46,16 @@ class Emotes {
         onOk: (String) -> Unit,
         settings: SettingsStreamChat,
     ) {
-        val chatSettings = settings.clone()
+        started = true
+        this.platform = platform
+        this.channelId = channelId
+        this.onError = onError
+        this.onOk = onOk
+        this.settings = settings.clone()
+        startInternal()
+    }
+
+    private fun startInternal() {
         ready = false
         emotes.clear()
         task = scope.launch {
@@ -50,29 +65,29 @@ class Emotes {
                 val (bttvEmotes, bttvError) = fetchBttvEmotes(
                     platform = platform,
                     channelId = channelId,
-                    enabled = chatSettings.bttvEmotes,
+                    enabled = settings.bttvEmotes,
                 )
-                addEmotes(bttvEmotes)
                 val (ffzEmotes, ffzError) = fetchFfzEmotes(
                     platform = platform,
                     channelId = channelId,
-                    enabled = chatSettings.ffzEmotes,
+                    enabled = settings.ffzEmotes,
                 )
-                addEmotes(ffzEmotes)
                 val (seventvEmotes, seventvError) = fetchSeventvEmotes(
                     platform = platform,
                     channelId = channelId,
-                    enabled = chatSettings.seventvEmotes,
+                    enabled = settings.seventvEmotes,
                 )
-                addEmotes(seventvEmotes)
                 if (!isActive) {
                     return@launch
                 }
+                addEmotes(bttvEmotes)
+                addEmotes(ffzEmotes)
+                addEmotes(seventvEmotes)
                 val error = bttvError ?: ffzError ?: seventvError
                 if (error != null) {
                     Log.i(TAG, "emotes: $error")
                     if (firstRetry) {
-                        onError(error, localized("Retrying later"))
+                        onError?.invoke(error, localized("Retrying later"))
                     }
                     firstRetry = false
                     ready = false
@@ -86,7 +101,7 @@ class Emotes {
                 } else {
                     ready = true
                     if (!firstRetry) {
-                        onOk("Emotes fetched")
+                        onOk?.invoke("Emotes fetched")
                     }
                 }
             }
@@ -99,9 +114,24 @@ class Emotes {
     }
 
     fun stop() {
+        started = false
+        onError = null
+        onOk = null
+        stopInternal()
+    }
+
+    private fun stopInternal() {
         ready = false
         task?.cancel()
         task = null
+    }
+
+    fun reload() {
+        if (!started) {
+            return
+        }
+        stopInternal()
+        startInternal()
     }
 
     fun createSegments(text: String, id: AtomicInteger): List<ChatPostSegment> {

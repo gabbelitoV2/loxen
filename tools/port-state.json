@@ -4395,24 +4395,23 @@
   },
   "Moblin/StreamingPlatforms/Kick/KickPusher.swift": {
     "status": "ok",
-    "sha256": "0b55ec864642c3b5e1293374f875fc5c3e3f60d81c69588629cddde08ce32e71",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "84bfdc7fe10b3d510a9c22ea824c357f9ffe2c5cc04d65933a6c79f424e81cae",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/kick/KickPusher.kt",
     "notes": [
-      "The Swift diff only merged nested `if let` chains into single comma-separated conditions in decodeEvent and makeHighlight; the Kotlin translation already used the equivalent flat null checks, so no Kotlin line changes.",
-      "decodeEvent keeps its hand-written kotlinx.serialization implementation instead of Foundation JSONSerialization.",
-      "makeHighlight keeps the existing early-`if (message.type == \"reply\")` guard with local val extraction, which is semantically identical to the new Swift form.",
-      "Every other declaration, import and comment-free body is returned byte-identical to the previous Kotlin file."
+      "Only the reloadEmotes() member was added, placed right after hasEmotes() to match the Swift declaration order.",
+      "reloadEmotes() forwards to Emotes.reload(), the same call the Swift now makes; the Emotes port must expose reload().",
+      "All other lines of KickPusher.kt are unchanged, including the hand-written Context parameter, Log calls and WebSocketClient construction."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50632,
-    "tokens_out": 4891,
-    "seconds": 16.3,
-    "ported_at": "2026-10-22T22:50:41+00:00"
+    "tokens_in": 51552,
+    "tokens_out": 4486,
+    "seconds": 14.0,
+    "ported_at": "2026-11-13T00:44:04+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift": {
     "status": "ok",
@@ -4553,26 +4552,22 @@
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift": {
     "status": "ok",
-    "sha256": "9a4789d74d7ffc860be8c16aed35dbb65ff91c971246ff8925f0fc2693fe1376",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "39c9837b4290f067389d143c35a88aad72ea15c262f6759c38a3e5d8c698884c",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt",
     "notes": [
-      "Emoji now carries shortcuts and a name() function; both are translated: shortcuts is List<String>? and name() trims ':' from the first shortcut.",
-      "The two emoji segment appends now use ChatPostEmote(moving, still, name) instead of ChatPostUrl, matching the new Swift call; the ChatPostUrl import was replaced with ChatPostEmote.",
-      "Everything else in the file is byte-identical to the previous Kotlin revision, including the OkHttp fetch/upload helpers and the coroutine loop.",
-      "Swift's trimmingCharacters(in: CharacterSet(charactersIn: \":\")) maps to Kotlin String.trim(':'), which trims the same leading/trailing ':' characters.",
-      "URL(string:) string-to-URL conversion drops away because emoji thumbnails are already String paths in Kotlin.",
-      "run.emoji?.name() is evaluated only when the emoji URL is non-null, as in Swift."
+      "Added reloadEmotes() after hasEmotes() calling emotes.reload(), mirroring the new Swift method.",
+      "Everything else in the file is unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51762,
-    "tokens_out": 8253,
-    "seconds": 26.7,
-    "ported_at": "2026-10-09T00:28:03+00:00"
+    "tokens_in": 52759,
+    "tokens_out": 5611,
+    "seconds": 19.4,
+    "ported_at": "2026-11-13T00:44:09+00:00"
   },
   "Moblin/Various/Settings/SettingsDeepLinkCreator.swift": {
     "status": "ok",
@@ -9120,27 +9115,28 @@
   },
   "Moblin/Various/Model/ModelControlBar.swift": {
     "status": "ok",
-    "sha256": "07874aecfd492a3633720483a6d835f914a9936f2fb4c4a55a3929ad229480e8",
+    "sha256": "22bef4be34243189d2742dc0a11a76eaf6832540e069cc1e9e445edc2f04dd92",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelControlBar.kt",
     "notes": [
-      "Despite the ui tier, this file declares no SwiftUI views; it is a Model extension with control bar background image helpers, so no @Composable functions are produced.",
-      "UIImage is mapped to android.graphics.Bitmap and UIGraphicsImageRenderer drawing is replaced with android.graphics.Canvas plus android.graphics.Matrix.",
-      "URL.documentsDirectory has no equivalent without a Context: a top-level lateinit appContext must be assigned the application context at app startup, and controlBarBackgroundImagePath is derived from appContext.filesDir.",
-      "FileManager.removeItem is File.delete and Swift's try? becomes runCatching, matching the silent failure behaviour.",
-      "The crop factors (backgroundImageCropX/Y/Width/Height) and backgroundImageOpacity are treated as Float, since CGFloat maps to Float.",
-      "image.jpegData(compressionQuality: 0.9) becomes Bitmap.compress(Bitmap.CompressFormat.JPEG, 90, ...).",
-      "BitmapFactory returns null on undecodable data, mirroring the optional returned by UIImage(data:).",
-      "Crop + scale rendering keeps the same order as Swift: scale by min(1, 1024 / max(width, height)) and translate by -x*scale, -y*scale."
+      "Adds the top-level quickButtonNameMatchesFilter using Kotlin split on Char.isWhitespace with empty parts dropped, matching Swift split(whereSeparator:).",
+      "The new Model filter helpers read and write QuickButtonsFilter, QuickButtons and QuickButtonsPages through MutableStateFlow .value, matching the existing controlBar.backgroundImage flow usage in this file.",
+      "database.quickButtonsGeneral.enableScroll is declared as MutableStateFlow, so the Swift truth check becomes .value.",
+      "SettingsQuickButton.page is a MutableStateFlow<Int>, so pages are assigned from showButton.page.value.",
+      "quickButtons.scrollToButtonId is set to null through its flow value, and takeQuickButtonToScrollTo returns UUID?.",
+      "quickButtons.pairs is treated as a flow of pages of QuickButtonPair lists, preserving Swift's contents-based contains check.",
+      "updateFilteredQuickButtonPairs() is called without an import because it is a Model extension in the same package.",
+      "Imports for SettingsQuickButton and java.util.UUID were added; all other lines kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4681,
-    "tokens_out": 9273,
-    "seconds": 37.0,
-    "ported_at": "2026-09-22T13:26:24+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 51803,
+    "tokens_out": 4481,
+    "seconds": 19.2,
+    "ported_at": "2026-11-13T00:44:09+00:00"
   },
   "Moblin/Various/Model/ModelRistServer.swift": {
     "status": "ok",
@@ -11002,24 +10998,27 @@
   },
   "Moblin/Integrations/Emotes/Emotes.swift": {
     "status": "ok",
-    "sha256": "e39e72a58cf11bbfb3f2e96300e80485d8ad8e205d6cc55e39cd9d857f6cf16f",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "ff66a365e7450e5506a63fbfa6a976f9d8b8e160ef96b785be66a41c04c99918",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/integrations/emotes/Emotes.kt",
     "notes": [
-      "Only one Swift line changed: the emote segment now uses ChatPostEmote(moving:still:name:) instead of ChatPostUrl(moving:still:).",
-      "The Kotlin line now builds ChatPostEmote with name = word; the loop's word is already a String, so no String(word) conversion is needed.",
-      "ChatPostEmote comes from com.moblin.android.various, so the file imports it in place of the no longer referenced ChatPostUrl.",
-      "Everything else in the file, including formatting, imports and declaration order, is byte-identical to the current Kotlin file."
+      "Added the new stored state (started, platform, channelId, onError, onOk, settings) as class properties so the retry loop reads them like Swift's self.",
+      "start() now only stores its arguments and delegates to the new private startInternal(); the coroutine body moved there unchanged.",
+      "onError/onOk are nullable function properties invoked with ?.invoke inside the loop.",
+      "addEmotes calls for bttv, ffz and seventv moved below the isActive (Task.isCancelled) check, matching the new Swift order.",
+      "stop() clears started and the callbacks before calling the new stopInternal(); reload() restarts the loop only when started.",
+      "The Android-added CoroutineScope(Dispatchers.Main) property is kept and used by startInternal instead of Swift's Task { @MainActor in }.",
+      "createSegments, isReady and addEmotes are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41070,
-    "tokens_out": 10501,
-    "seconds": 42.9,
-    "ported_at": "2026-10-09T00:27:07+00:00"
+    "tokens_in": 42305,
+    "tokens_out": 2139,
+    "seconds": 9.5,
+    "ported_at": "2026-11-13T00:43:59+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift": {
     "status": "ok",
@@ -11943,24 +11942,23 @@
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",
-    "sha256": "b7416952c346bd0ebf4b3d335464fe84ec69c316b4f2b307cf34919dd1f96df2",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "63bbf48fb89cbfc273637773f7edc8fdeeaf57110ea30ef8746998f105bd2dec",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchChat.kt",
     "notes": [
-      "The Swift diff only merges two guard clauses in tagNameAndValue; behaviour is unchanged.",
-      "The Kotlin version folds the size check and the empty-value check into one early return, mirroring the merged guard.",
-      "Every other line of the file is kept byte-identical, including the hand-written Android WebSocketClient, MainTimer and AppDelegate.context calls.",
-      "No API or signature changes, so callers of tagNameAndValue and TwitchChatMessage need no updates."
+      "Added reloadEmotes() to TwitchChat, translated as emotes.reload(), placed between hasEmotes() and getBadgeUrl() as in the Swift source.",
+      "Emotes.reload() is not listed in the current Emotes declarations, so the hand-written com.moblin.android.integrations.emotes.Emotes class must expose a reload() member for this file to compile.",
+      "No other lines were touched: formatting, imports and declaration order are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 58671,
-    "tokens_out": 8118,
-    "seconds": 24.6,
-    "ported_at": "2026-10-22T22:50:50+00:00"
+    "tokens_in": 58747,
+    "tokens_out": 6839,
+    "seconds": 21.0,
+    "ported_at": "2026-11-13T00:44:11+00:00"
   },
   "Moblin/MoblinApp.swift": {
     "status": "ok",
@@ -12029,23 +12027,23 @@
   },
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
-    "sha256": "18ab47bf4822dc82ab0289df78fbfa6a1bd4dfc0d08bac59c01d8c5cd65e9876",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "0877a0aae444b1834516ccb4d3774c63c003556e151f5c2c100c92c5ddb5e782",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
     "notes": [
-      "Only the removeOldChatMessages loop changed: the oldest post is now the first element of chat.posts instead of the last.",
-      "chat.posts.value.lastOrNull() became firstOrNull() and dropLast(1) became drop(1), matching Swift's first/removeFirst.",
-      "Everything else in the file is unchanged from the previous translation."
+      "Adds Model.reloadEmotes() right after Model.reloadChats(), matching the Swift position.",
+      "twitchChat, kickPusher and youTubeLiveChats are read as Model members in com.moblin.android.various.model, as in the rest of the file (no new imports needed).",
+      "No other Kotlin line changed: formatting, imports and declaration order are byte-identical to the current file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 65764,
-    "tokens_out": 4949,
-    "seconds": 16.2,
-    "ported_at": "2026-11-08T23:12:50+00:00"
+    "tokens_in": 65909,
+    "tokens_out": 5321,
+    "seconds": 16.7,
+    "ported_at": "2026-11-13T00:44:07+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -14557,28 +14555,29 @@
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
-    "sha256": "b98b7f01d474c8dcb1df4250a5cad6133db57772c07a85eec59b324959bce5c1",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "7411190ada119f8d0b0ba1581e2d7f5bf922d58f14abcfe7e5a478bd08378e17",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt",
     "notes": [
-      "QuickButtonImage no longer draws the circle background/clip; the caller QuickButtonsInnerView now paints it behind the button view, matching the new Swift structure.",
-      "The removed Swift backgroundColor()/timeLeft() background is reflected by deleting the buttonColor/backgroundColor locals that only existed to feed those backgrounds.",
-      "InstantReplayView's time-left text is now a bare sized Box (background comes from the outer wrapper); the button parameter stays for the non-playing QuickButtonImage branch.",
-      "selectedRing() is translated as a composable lambda declared just before the Column, mirroring its position before the Swift var body.",
-      "The outer ZStack now branches on unknown / selected / other: unknown draws no circle, the other two draw the button background and only the selected one adds the yellow ring.",
-      "The trailing .rotationEffect(.degrees(180)) on QuickButtonsInnerView's VStack was removed, so the root Column keeps only its horizontal alignment.",
-      "QuickButtonsInnerView keeps its Compose-friendly default model = LocalModel.current even though Swift changed to a plain let model: Model.",
-      "The now-unused androidx.compose.ui.draw.clip import was dropped; background, border, CircleShape and rotate imports are still in use."
+      "SwiftUI `.contentShape(Circle())` has no direct Compose counterpart; it is translated as `Modifier.clip(CircleShape)` on the tappable Box in QuickButtonImage and on the InstantReplayView time-left Box, which only approximates the circular hit area.",
+      "Every quick-button action now calls `stopFilteringUnlessPresentingDialog()`; the two local helpers `isPresentingDialog()` and `stopFilteringUnlessPresentingDialog()` were added right after `selectedRing`, as in the Swift source.",
+      "`.onChange(of: isPresentingDialog())` is written as a `LaunchedEffect` that only fires the `stopFilteringQuickButtons` call on a true-to-false transition, matching SwiftUI's onChange (which does not fire on first appearance).",
+      "`.id(button.id)` is applied as `remember(button.id)` on the dialog-tracking state and as a key of the LaunchedEffect, so per-button state resets when the button changes.",
+      "InstantReplayView gained the `onTapped: () -> Unit` parameter; the call site passes a lambda instead of Swift's function reference.",
+      "The new `ScrollToQuickButtonModifier`/`View.scrollToQuickButton` pair keeps the `takeQuickButtonToScrollTo` logic but the actual `ScrollViewProxy.scrollTo` has no Kotlin counterpart, so it stays a TODO inside `Modifier.scrollToQuickButton`.",
+      "`quickButtons.scrollToButtonId` is read as a StateFlow via `collectAsState()`, assuming `MutableStateFlow<UUID?>` as in the other QuickButtons settings."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "SwiftUI ScrollViewProxy.scrollTo(_:anchor:) — no Android counterpart, kept as TODO inside Modifier.scrollToQuickButton"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62287,
-    "tokens_out": 13042,
-    "seconds": 52.1,
-    "ported_at": "2026-11-08T23:43:30+00:00"
+    "tokens_in": 66646,
+    "tokens_out": 16848,
+    "seconds": 63.1,
+    "ported_at": "2026-11-13T00:44:53+00:00"
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
@@ -15551,28 +15550,28 @@
   },
   "Moblin/View/ControlBar/ControlBarLandscapeView.swift": {
     "status": "ok",
-    "sha256": "3bf0968791a896e69e5848a22e644109bae26d4e5cd93230b8efbeba13744a7e",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "5e1ae2fc928bcc185af14c8d8c189c522c5c3651bd3e75a00c1f048b5778dde3",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarLandscapeView.kt",
     "notes": [
-      "The page/activePage scroll state now lives in QuickButtonsPages: PageIndicatorView, PagesView and ControlBarLandscapeView take a `pages: QuickButtonsPages` parameter instead of reading it from QuickButtons.",
-      "QuickButtonsPages is used as `var page: Int` plus `MutableStateFlow<Int?>` for `activePage`, matching how QuickButtons exposed them before and how ControlBarUtils reads `model.quickButtonsPages.page`.",
-      "The local page-index list in PagesView was renamed `pageIndices` so it no longer shadows the new `pages` parameter.",
-      "EndAnchoredScrollView has no scrollDisabled parameter, so when `enableScroll` is false PageView renders the same content without the scroll container.",
-      "QuickButtonsView now iterates `getQuickButtonPairs(...).reversed()` and puts `pair.first` before `pair.second`, which is the top row on screen after the reversal.",
-      "The two-column row is top aligned (Alignment.Top) as in the new Swift source.",
-      "SettingsButtonImage() from ControlBarUtils replaces the hand-drawn gearshape/circle button in IconAndSettingsView.",
-      "The removed 180 degree rotation of the page scroll is gone; the quick buttons column is now start aligned."
+      "QuickButtonsView now takes the page's pairs list directly instead of a page index; the getQuickButtonPairs lookup was removed.",
+      "PageView was renamed to the public ControlBarLandscapePageView and receives pairs, the viewport height and the new overscroll/scroll-to-button/filter helpers.",
+      "MainPageView collects quickButtons.pairs and passes element 0 to the first page.",
+      "PagesView passes quickButtons.pairs[page - 1] to each extra page and applies controlBarDoubleTapArea to every page.",
+      "ControlBarLandscapeView drops the ControlBarBackgroundView box and applies controlBarFilter to the column instead.",
+      "controlBarDoubleTapArea, filterQuickButtonsOnOverscroll, scrollToQuickButton and controlBarFilter are same-package Modifier extensions; scrollToQuickButton drops the ScrollViewProxy because Compose has no equivalent.",
+      "The Swift onGeometryChange is translated with onSizeChanged converting the measured height to dp.",
+      "ScrollViewReader is not ported; the existing enableScroll branching of EndAnchoredScrollView is kept."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51206,
-    "tokens_out": 13018,
-    "seconds": 59.0,
-    "ported_at": "2026-11-08T23:43:41+00:00"
+    "tokens_in": 51226,
+    "tokens_out": 11560,
+    "seconds": 45.2,
+    "ported_at": "2026-11-13T00:44:42+00:00"
   },
   "Moblin/Various/Settings/SettingsMacros.swift": {
     "status": "ok",
@@ -15684,28 +15683,28 @@
   },
   "Moblin/View/ControlBar/ControlBarPortraitView.swift": {
     "status": "ok",
-    "sha256": "dedec0936aa5210a69b831aa42b74c95e692218e6071c4388f6bbf67e36ad712",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "2bf80d7109080d7beaec5626355a7128bb7b1c5d9426478726538009ffbd9890",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarPortraitView.kt",
     "notes": [
-      "QuickButtonsView now iterates model.getQuickButtonPairs(page + 1).reversed() and puts the pair's first button before the second (two-column column is trailing-aligned, single-row branch draws first then second).",
-      "PageView uses EndAnchoredScrollView(axis = Axis.horizontal) instead of a rotated horizontalScroll; the 180 degree rotation and its imports are gone.",
-      "EndAnchoredScrollView has no enabled parameter, so .scrollDisabled(!enableScroll) is kept by composing the plain content when scrolling is disabled.",
-      "The settings button in IconAndSettingsView now calls the shared SettingsButtonImage() composable instead of drawing gearshape with a stroked circle.",
-      "PagesView takes a new pages: QuickButtonsPages parameter and reads/writes pages.activePage instead of quickButtons.activePage.",
-      "The local page-id list in PagesView was renamed pageIds so it no longer shadows the new pages parameter.",
-      "ControlBarPortraitView passes pages = model.quickButtonsPages to PagesView.",
-      "Imports for border, CircleShape, SystemImage, Color, sp, rotate and horizontalScroll were dropped with the lines that used them."
+      "QuickButtonsView now receives the resolved pairs list instead of a page index; the model.getQuickButtonPairs lookup is gone.",
+      "PageView is renamed to the public ControlBarPortraitPageView and takes pairs, matching the Swift rename; call sites in MainPageView and PagesView pass quickButtons.pairs[index].",
+      "The Swift frame(minWidth:maxHeight:alignment:.topTrailing) is emulated by measuring the container with onSizeChanged and applying widthIn(min) to a TopEnd aligned Box, since Compose has no ScrollViewReader/geometry-change modifier.",
+      "The three new control-bar modifiers controlBarDoubleTapArea, filterQuickButtonsOnOverscroll and controlBarFilter are called as Modifier extensions of the same package, exactly as the Swift applies them; none of their logic is duplicated here.",
+      "ControlBarBackgroundView is removed from ControlBarPortraitView because the Swift dropped the .background block and applies controlBarFilter(model:) to the whole control bar instead.",
+      "scrollToQuickButton needs a SwiftUI ScrollViewReader proxy that has no Compose counterpart, so it is not applied; page scrolling stays driven by quickButtonsPages.activePage as before.",
+      "The iOS < 17 branch of PagesView stays untranslated: the existing single scroll page list covers both paths and already carries the new double tap area.",
+      "MainPageView now observes quickButtons like the Swift @ObservedObject, so it collects quickButtons.pairs itself."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 48953,
-    "tokens_out": 10723,
-    "seconds": 48.5,
-    "ported_at": "2026-11-08T23:44:19+00:00"
+    "tokens_in": 49291,
+    "tokens_out": 14606,
+    "seconds": 62.6,
+    "ported_at": "2026-11-13T00:45:03+00:00"
   },
   "Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift": {
     "status": "ok",
@@ -16012,23 +16011,26 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "014ec31bfc4b8ec5c656d7bc0c1d62d9a9abaee9c531732919aa64f63680ad45",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "sha256": "faf718a6f875ea6d5888a5f4f9c6db68eabe4720febd6836f8241ccb4480f2e0",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Added a BannerMessage class holding a MutableStateFlow<String> text, placed between Banners and HypeTrain as in Swift.",
-      "HypeTrain, TwitchPoll and TwitchPrediction now own a BannerMessage instance for message instead of a MutableStateFlow<String>; views read hypeTrain.message.text etc.",
-      "No other line was touched; all Android-specific code and platform hooks stay byte-identical."
+      "QuickButtons gains a scrollToButtonId StateFlow, and a new QuickButtonsFilter class holds the filter text and filtered pairs.",
+      "Model.updateQuickButtonPairs now delegates pair building to the new private makeQuickButtonPairs and enabledQuickButtons helpers, then calls updateFilteredQuickButtonPairs.",
+      "QuickButtons.pairs stays a MutableStateFlow<List<List<QuickButtonPair>>>; each page is replaced by copying the outer list like the existing Android code did.",
+      "quickButtonsFilter.filter is read via .value inside updateFilteredQuickButtonPairs.",
+      "quickButtonNameMatchesFilter is called positionally with (name, filter) since its Kotlin parameter names are not declared in the glossary.",
+      "No Swift API removed in this diff, so no other Kotlin lines change."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 148228,
-    "tokens_out": 34895,
-    "seconds": 122.6,
-    "ported_at": "2026-11-10T02:30:36+00:00"
+    "tokens_in": 149050,
+    "tokens_out": 36543,
+    "seconds": 100.5,
+    "ported_at": "2026-11-13T00:45:52+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16053,22 +16055,25 @@
   },
   "Moblin/View/Settings/Chat/ChatSettingsView.swift": {
     "status": "ok",
-    "sha256": "fb04941c0e8a2db82fcd542480e6ccadfb4178277b54eac13810097bcc941049",
-    "moblin_commit": "773f24e11de0fafa2466bd8d59d554cbe0119a44",
+    "sha256": "d3b3df35b161d3ab18e4b6b63b603208b4f0dd237b7c24a1296596d745d4968b",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatSettingsView.kt",
     "notes": [
-      "The only change is adding elevenLabs = chat.elevenLabs to the ChatTextToSpeechSettingsView destination, matching the new Swift call.",
-      "Everything else in the Kotlin file stays byte-identical, including the hand-written Android onNavigate plumbing."
+      "Added the new Reload emotes Section between the background-chat section and the fallbackStream shortcut section.",
+      "TextButtonView is imported from com.moblin.android.view.utils.",
+      "model.reloadEmotes() is translated as the Model extension reloadEmotes from com.moblin.android.various.model.",
+      "Section uses footerContent with a Text composable to match the Swift footer closure.",
+      "No other lines changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 49594,
-    "tokens_out": 1487,
-    "seconds": 5.7,
-    "ported_at": "2026-10-23T22:42:19+00:00"
+    "tokens_in": 49782,
+    "tokens_out": 2099,
+    "seconds": 8.6,
+    "ported_at": "2026-11-13T00:44:20+00:00"
   },
   "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
     "status": "ok",
@@ -18704,5 +18709,52 @@
     "tokens_out": 14429,
     "seconds": 66.9,
     "ported_at": "2026-11-12T02:06:35+00:00"
+  },
+  "MoblinTests/Moblin/Various/Model/ModelControlBarSuite.swift": {
+    "status": "ok",
+    "sha256": "5a015e6623d51f7a706e23635a7176fff00bfb43356b37190dc13368e199b0db",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/model/ModelControlBarSuite.kt",
+    "notes": [
+      "Swift Testing suite becomes a JUnit 4 class with two @Test methods, each looping over the FilterCase arguments.",
+      "FilterCase is a data class keeping the name/filter parameters and the computed testDescription used as the assertion message.",
+      "quickButtonNameMatchesFilter lives in the same package com.moblin.android.various.model, so no import is needed for it.",
+      "Assertions use kotlin.test.assertTrue/assertFalse with the Swift string interpolation copied character for character."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 29708,
+    "tokens_out": 1233,
+    "seconds": 6.2,
+    "ported_at": "2026-11-13T00:43:56+00:00"
+  },
+  "Moblin/View/ControlBar/QuickButtonsFilterView.swift": {
+    "status": "ok",
+    "sha256": "071f04eb9e02dcf9218a407877e0c361c73058087bec2f1174ae5e7bb6b5acc3",
+    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsFilterView.kt",
+    "notes": [
+      "QuickButtonsFilter's published properties (filter, pairs, filtering) are treated as MutableStateFlow and read with collectAsState()/.value, as for model ObservableObjects.",
+      "SwiftUI View extensions controlBarDoubleTapArea/controlBarFilter become composable wrappers taking a content lambda; the background layer and the double-tap catcher sit behind the content, the filter overlay in front, like background/overlay.",
+      "The double tap uses pointerInput + detectTapGestures(onDoubleTap) on a transparent matchParentSize layer behind the content, so buttons inside the content still receive their own clicks.",
+      "@FocusState is a FocusRequester; focus is requested once on appear and quickButtonsFilterFocusLost() is only called after the field actually had focus, so it does not fire on first composition.",
+      "FilterTextFieldView draws an iOS rounded-border field with BasicTextField, an explicit 17.sp style and a localized placeholder; no Material text field defaults are used.",
+      "The orientation branch reads Orientation.isPortrait from the passed Orientation, exactly like the Swift property.",
+      "controlBarWidth flows (bigButtons, twoColumns) are collected so the page view size recomposes when the quick button layout setting changes."
+    ],
+    "unsupported": [
+      "SwiftUI onScrollPhaseChange / onScrollGeometryChange (FilterOnOverscrollModifier, iOS 18) - no Android counterpart, filterQuickButtonsOnOverscroll translates the pre-iOS-18 passthrough branch"
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 42562,
+    "tokens_out": 10612,
+    "seconds": 47.3,
+    "ported_at": "2026-11-13T00:44:51+00:00"
   }
 }

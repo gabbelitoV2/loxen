@@ -462,6 +462,14 @@ class GoProState {
 class QuickButtons {
     val pairs = MutableStateFlow<List<List<QuickButtonPair>>>(List(controlBarPages) { emptyList() })
     val selectedButtonType = MutableStateFlow<SettingsQuickButtonType?>(null)
+    val scrollToButtonId = MutableStateFlow<UUID?>(null)
+}
+
+class QuickButtonsFilter {
+    val filtering = MutableStateFlow(false)
+    val filter = MutableStateFlow("")
+    val pairs = MutableStateFlow<List<QuickButtonPair>>(emptyList())
+    var presentingDialog = false
 }
 
 class QuickButtonsPages {
@@ -576,6 +584,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private var isDevicePortrait = false
     val snapshot = Snapshot()
     val quickButtons = QuickButtons()
+    val quickButtonsFilter = QuickButtonsFilter()
     val quickButtonsPages = QuickButtonsPages()
     val mic = Mic()
     val goPro = GoProState()
@@ -1134,32 +1143,39 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         makeErrorToast(title = localized("Invalid port ${port.trim()}"))
     }
 
+    private fun makeQuickButtonPairs(buttons: List<SettingsQuickButton>): List<QuickButtonPair> {
+        val pairs = mutableListOf<QuickButtonPair>()
+        var index = 0
+        while (index < buttons.size) {
+            if (buttons.size - index > 1) {
+                pairs.add(
+                    QuickButtonPair(
+                        id = UUID.randomUUID(),
+                        first = buttons[index + 1],
+                        second = buttons[index],
+                    ),
+                )
+            } else {
+                pairs.add(QuickButtonPair(id = UUID.randomUUID(), first = buttons[index]))
+            }
+            index += 2
+        }
+        return pairs
+    }
+
+    private fun enabledQuickButtons(page: Int): List<SettingsQuickButton> =
+        database.quickButtons.filter { button ->
+            button.enabled.value && button.page.value == page &&
+                isQuickButtonAllowed(button.type)
+        }
+
     fun updateQuickButtonPairs() {
         for (page in 0 until controlBarPages) {
-            val buttons = database.quickButtons.filter { button ->
-                button.enabled.value && button.page.value == page + 1 &&
-                    isQuickButtonAllowed(button.type)
-            }
-            val pairs = mutableListOf<QuickButtonPair>()
-            var index = 0
-            while (index < buttons.size) {
-                if (buttons.size - index > 1) {
-                    pairs.add(
-                        QuickButtonPair(
-                            id = UUID.randomUUID(),
-                            first = buttons[index + 1],
-                            second = buttons[index],
-                        ),
-                    )
-                } else {
-                    pairs.add(QuickButtonPair(id = UUID.randomUUID(), first = buttons[index]))
-                }
-                index += 2
-            }
             val newPairs = quickButtons.pairs.value.toMutableList()
-            newPairs[page] = pairs
+            newPairs[page] = makeQuickButtonPairs(buttons = enabledQuickButtons(page = page + 1))
             quickButtons.pairs.value = newPairs
         }
+        updateFilteredQuickButtonPairs()
     }
 
     fun getQuickButtonPairs(page: Int): List<QuickButtonPair> {
@@ -1167,6 +1183,15 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             return emptyList()
         }
         return quickButtons.pairs.value[page - 1]
+    }
+
+    fun updateFilteredQuickButtonPairs() {
+        val buttons = (1..controlBarPages).flatMap { page ->
+            enabledQuickButtons(page = page).filter { button ->
+                quickButtonNameMatchesFilter(button.name, quickButtonsFilter.filter.value)
+            }
+        }
+        quickButtonsFilter.pairs.value = makeQuickButtonPairs(buttons = buttons)
     }
 
     fun setAllowHapticsAndSystemSoundsDuringRecording() {

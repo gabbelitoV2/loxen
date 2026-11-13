@@ -365,6 +365,10 @@ class KickPusher(
         return emotes.isReady()
     }
 
+    fun reloadEmotes() {
+        emotes.reload()
+    }
+
     private fun fetchSubscriberBadges() {
         getKickChannelInfo(channelName) { channelInfo ->
             val subscriberBadges = channelInfo?.subscriber_badges

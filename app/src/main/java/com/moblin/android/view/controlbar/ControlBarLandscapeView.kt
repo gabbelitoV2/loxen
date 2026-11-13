@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -61,6 +63,7 @@ import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.QuickButtonPair
 import com.moblin.android.various.model.QuickButtons
 import com.moblin.android.various.model.QuickButtonsPages
 import com.moblin.android.various.model.ShowingPanel
@@ -95,10 +98,9 @@ private fun QuickButtonsView(
     model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
-    page: Int,
+    pairs: List<QuickButtonPair>,
     width: Double,
 ) {
-    val pairs by quickButtons.pairs.collectAsState()
     val bigButtons by quickButtonsSettings.bigButtons.collectAsState()
     val twoColumns by quickButtonsSettings.twoColumns.collectAsState()
     val orientation = model.orientation
@@ -119,13 +121,11 @@ private fun QuickButtonsView(
         }
     }
 
-    val pagePairs = remember(pairs, page) { model.getQuickButtonPairs(page = page + 1) }
-
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        pagePairs.reversed().forEach { pair ->
+        pairs.reversed().forEach { pair ->
             key(pair.id) {
                 if (twoColumns) {
                     Row(
@@ -286,31 +286,40 @@ private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store)
 }
 
 @Composable
-private fun PageView(
+fun ControlBarLandscapePageView(
     model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
-    page: Int,
+    pairs: List<QuickButtonPair>,
     width: Double,
     modifier: Modifier = Modifier,
 ) {
     val enableScroll by quickButtonsSettings.enableScroll.collectAsState()
+    val density = LocalDensity.current
+    var scrollViewHeight by remember { mutableStateOf(0.dp) }
 
     val content: @Composable () -> Unit = {
         Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.CenterStart,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = scrollViewHeight),
+            contentAlignment = Alignment.BottomStart,
         ) {
             QuickButtonsView(
                 model = model,
                 quickButtons = quickButtons,
                 quickButtonsSettings = quickButtonsSettings,
-                page = page,
+                pairs = pairs,
                 width = width,
             )
         }
     }
-    Box(modifier = modifier.fillMaxWidth()) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .onSizeChanged { size -> scrollViewHeight = with(density) { size.height.toDp() } }
+            .scrollToQuickButton(model = model, quickButtons = quickButtons, pairs = pairs, proxy = null),
+    ) {
         if (enableScroll) {
             EndAnchoredScrollView(axis = Axis.vertical) {
                 content()
@@ -332,6 +341,7 @@ private fun MainPageView(
 ) {
     val bigButtons by quickButtonsSettings.bigButtons.collectAsState()
     val twoColumns by quickButtonsSettings.twoColumns.collectAsState()
+    val pairs by quickButtons.pairs.collectAsState()
 
     fun buttonsWidth(): Double {
         return if (bigButtons && twoColumns) {
@@ -353,11 +363,11 @@ private fun MainPageView(
         ) {
             IconAndSettingsView(model = model, store = store)
         }
-        PageView(
+        ControlBarLandscapePageView(
             model = model,
             quickButtons = quickButtons,
             quickButtonsSettings = quickButtonsSettings,
-            page = 0,
+            pairs = pairs[0],
             width = width,
             modifier = Modifier.weight(1f),
         )
@@ -536,11 +546,11 @@ private fun PagesView(
                                     modifier = Modifier.fillMaxHeight(),
                                 )
                             } else {
-                                PageView(
+                                ControlBarLandscapePageView(
                                     model = model,
                                     quickButtons = quickButtons,
                                     quickButtonsSettings = quickButtonsSettings,
-                                    page = page - 1,
+                                    pairs = pairs[page - 1],
                                     width = width,
                                     modifier = Modifier.fillMaxHeight(),
                                 )
@@ -573,41 +583,35 @@ fun ControlBarLandscapeView(model: Model = LocalModel.current, quickButtons: Set
     val twoColumns by quickButtons.twoColumns.collectAsState()
     val width = remember(bigButtons, twoColumns) { controlBarWidth(quickButtons = quickButtons) }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxHeight()
-            .width(width.dp),
+            .width(width.dp)
+            .padding(vertical = 0.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        ControlBarBackgroundView(controlBar = model.controlBar)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 0.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(0.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (!isPhone()) {
-                    Spacer(Modifier.weight(1f))
-                }
-                StatusView(
-                    model = model,
-                    status = model.statusOther,
-                    modifier = Modifier.width(controlBarWidthDefault.dp),
-                )
+            if (!isPhone()) {
                 Spacer(Modifier.weight(1f))
             }
-            PagesView(
+            StatusView(
                 model = model,
-                quickButtons = model.quickButtons,
-                pages = model.quickButtonsPages,
-                quickButtonsSettings = quickButtons,
-                width = width,
-                modifier = Modifier.weight(1f),
+                status = model.statusOther,
+                modifier = Modifier.width(controlBarWidthDefault.dp),
             )
+            Spacer(Modifier.weight(1f))
         }
+        PagesView(
+            model = model,
+            quickButtons = model.quickButtons,
+            pages = model.quickButtonsPages,
+            quickButtonsSettings = quickButtons,
+            width = width,
+            modifier = Modifier.weight(1f),
+        )
     }
 }

@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -51,6 +53,7 @@ import com.moblin.android.common.view.ThermalStateView
 import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.QuickButtonPair
 import com.moblin.android.various.model.QuickButtons
 import com.moblin.android.various.model.QuickButtonsPages
 import com.moblin.android.various.model.ShowingPanel
@@ -93,10 +96,9 @@ private fun QuickButtonsView(
     model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
-    page: Int,
+    pairs: List<QuickButtonPair>,
     height: Double,
 ) {
-    val pairs by quickButtons.pairs.collectAsState()
     val bigButtons by quickButtonsSettings.bigButtons.collectAsState()
     val twoColumns by quickButtonsSettings.twoColumns.collectAsState()
 
@@ -108,13 +110,11 @@ private fun QuickButtonsView(
         }
     }
 
-    val pagePairs = remember(pairs, page) { model.getQuickButtonPairs(page = page + 1).reversed() }
-
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        pagePairs.forEach { pair ->
+        pairs.reversed().forEach { pair ->
             key(pair.id) {
                 if (twoColumns) {
                     Column(
@@ -188,31 +188,38 @@ private fun QuickButtonsView(
 }
 
 @Composable
-private fun PageView(
+fun ControlBarPortraitPageView(
     model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
-    page: Int,
+    pairs: List<QuickButtonPair>,
     height: Double,
     modifier: Modifier = Modifier,
 ) {
     val enableScroll by quickButtonsSettings.enableScroll.collectAsState()
+    val density = LocalDensity.current
+    var scrollViewWidth by remember { mutableStateOf(0f) }
 
     val content: @Composable () -> Unit = {
         Box(
-            modifier = Modifier.fillMaxHeight(),
-            contentAlignment = Alignment.TopCenter,
+            modifier = Modifier
+                .fillMaxHeight()
+                .widthIn(min = scrollViewWidth.dp),
+            contentAlignment = Alignment.TopEnd,
         ) {
             QuickButtonsView(
                 model = model,
                 quickButtons = quickButtons,
                 quickButtonsSettings = quickButtonsSettings,
-                page = page,
+                pairs = pairs,
                 height = height,
             )
         }
     }
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .onSizeChanged { scrollViewWidth = with(density) { it.width.toDp().value } },
+    ) {
         if (enableScroll) {
             EndAnchoredScrollView(axis = Axis.horizontal) {
                 content()
@@ -289,6 +296,7 @@ private fun MainPageView(
     modifier: Modifier = Modifier,
 ) {
     val thermalState by status.thermalState.collectAsState()
+    val pairs by quickButtons.pairs.collectAsState()
     var presentingThermalState by remember { mutableStateOf(false) }
 
     Row(
@@ -296,11 +304,11 @@ private fun MainPageView(
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        PageView(
+        ControlBarPortraitPageView(
             model = model,
             quickButtons = quickButtons,
             quickButtonsSettings = quickButtonsSettings,
-            page = 0,
+            pairs = pairs.getOrNull(0) ?: emptyList(),
             height = height,
             modifier = Modifier
                 .weight(1f)
@@ -423,11 +431,11 @@ private fun PagesView(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         } else {
-                            PageView(
+                            ControlBarPortraitPageView(
                                 model = model,
                                 quickButtons = quickButtons,
                                 quickButtonsSettings = quickButtonsSettings,
-                                page = page - 1,
+                                pairs = pairs.getOrNull(page - 1) ?: emptyList(),
                                 height = height,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -447,19 +455,14 @@ fun ControlBarPortraitView(model: Model = LocalModel.current, quickButtons: Sett
     val twoColumns by quickButtons.twoColumns.collectAsState()
     val height = remember(bigButtons, twoColumns) { controlBarWidth(quickButtons = quickButtons) }
 
-    Box(
+    PagesView(
+        model = model,
+        quickButtons = model.quickButtons,
+        pages = model.quickButtonsPages,
+        quickButtonsSettings = model.database.quickButtonsGeneral,
+        height = height,
         modifier = Modifier
             .fillMaxWidth()
             .height(height.dp),
-    ) {
-        ControlBarBackgroundView(controlBar = model.controlBar)
-        PagesView(
-            model = model,
-            quickButtons = model.quickButtons,
-            pages = model.quickButtonsPages,
-            quickButtonsSettings = model.database.quickButtonsGeneral,
-            height = height,
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
+    )
 }

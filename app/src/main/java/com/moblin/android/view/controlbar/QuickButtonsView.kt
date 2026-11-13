@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -41,6 +43,7 @@ import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
+import com.moblin.android.various.model.QuickButtonPair
 import com.moblin.android.various.model.QuickButtons
 import com.moblin.android.various.model.ReplayProvider
 import com.moblin.android.various.model.ShowingPanel
@@ -68,6 +71,9 @@ import com.moblin.android.various.settings.SettingsQuickButton
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.view.utils.stroke
+import com.moblin.android.various.model.quickButtonsFilterPresentingDialog
+import com.moblin.android.various.model.stopFilteringQuickButtons
+import com.moblin.android.various.model.takeQuickButtonToScrollTo
 
 val controlBarPages = 5
 
@@ -143,12 +149,14 @@ private fun QuickButtonImage(
     }
 
     Box(
-        modifier = Modifier.combinedClickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            onClick = { onTapGesture() },
-            onLongClick = { model.showQuickButtonSettings(type = button.type) },
-        ),
+        modifier = Modifier
+            .clip(CircleShape)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = { onTapGesture() },
+                onLongClick = { model.showQuickButtonSettings(type = button.type) },
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Box(
@@ -179,6 +187,7 @@ private fun InstantReplayView(
     replay: ReplayProvider,
     button: SettingsQuickButton,
     size: Float,
+    onTapped: () -> Unit,
 ) {
     val isPlaying by replay.isPlaying.collectAsState()
     val timeLeft by replay.timeLeft.collectAsState()
@@ -186,6 +195,7 @@ private fun InstantReplayView(
         Box(
             modifier = Modifier
                 .size(size.dp)
+                .clip(CircleShape)
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -221,6 +231,7 @@ private fun InstantReplayView(
             } else {
                 model.makeReplayIsNotEnabledToast()
             }
+            onTapped()
         }
     }
 }
@@ -571,6 +582,21 @@ fun QuickButtonsInnerView(
         )
     }
 
+    fun isPresentingDialog(): Boolean {
+        return presentingRecordConfirm ||
+            presentingPreviewStreamConfirm ||
+            presentingStartWorkoutTypePicker ||
+            presentingStopWorkoutConfirm
+    }
+
+    fun stopFilteringUnlessPresentingDialog() {
+        if (isPresentingDialog()) {
+            model.quickButtonsFilterPresentingDialog()
+        } else {
+            model.stopFilteringQuickButtons(showButton = button)
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -583,41 +609,49 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.torch -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             torchAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.mute -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             muteAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.bitrate -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             bitrateAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.mic -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             micAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.chat -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             chatAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.interactiveChat -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             interactiveChatAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.blackScreen -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             stealthModeAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.lockScreen -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             lockScreenAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.record -> {
@@ -627,6 +661,7 @@ fun QuickButtonsInnerView(
                             } else {
                                 recordAction()
                             }
+                            stopFilteringUnlessPresentingDialog()
                         }
                         ConfirmationDialog(
                             title = "",
@@ -641,47 +676,56 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.image -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             imageAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.movie -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             movieAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.fourThree -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             fourThreeAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.crt -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             crtAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.grayScale -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             grayScaleAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.sepia -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             sepiaAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.triple -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             tripleAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.twin -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             twinAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.cameraMan -> {
                         Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 cameraManAction()
+                                stopFilteringUnlessPresentingDialog()
                             }
                             Box(
                                 modifier = Modifier.size(size.dp),
@@ -701,77 +745,92 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.pixellate -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             pixellateAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.stream -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             streamAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.grid -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             gridAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.cameraLevel -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             levelAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.obs -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             obsAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.remote -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             remoteAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.draw -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             drawAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.localOverlays -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             localOverlaysAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.browser -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             browserAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.cameraPreview -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             cameraPreviewAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.poll -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             pollAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.snapshot -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             snapshotAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.widgets -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             widgetsAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.luts -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             lutsAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.workout -> {
                         if (isOn) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 presentingStopWorkoutConfirm = true
+                                stopFilteringUnlessPresentingDialog()
                             }
                             ConfirmationDialog(
                                 title = "",
@@ -785,6 +844,7 @@ fun QuickButtonsInnerView(
                         } else {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 presentingStartWorkoutTypePicker = true
+                                stopFilteringUnlessPresentingDialog()
                             }
                             ConfirmationDialog(
                                 title = "",
@@ -806,32 +866,38 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.moderation -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             model.presentingModeration.value = true
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.predefinedMessages -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             model.presentingPredefinedMessages.value = true
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.skipCurrentTts -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             skipCurrentTtsAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.streamMarker -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             streamMarkerAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.reloadBrowserWidgets -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             reloadBrowserWidgetsAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.djiDevices -> {
                         Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 djiDevicesAction()
+                                stopFilteringUnlessPresentingDialog()
                             }
                             ButtonTextOverlayView(text = localized("DJI"))
                         }
@@ -839,12 +905,14 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.portrait -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             portraitAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.goPro -> {
                         Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 goProAction()
+                                stopFilteringUnlessPresentingDialog()
                             }
                             ButtonTextOverlayView(text = localized("GoPro"))
                         }
@@ -852,54 +920,70 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.replay -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             replayAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.instantReplay -> {
-                        InstantReplayView(model = model, replay = model.replay, button = button, size = size)
+                        InstantReplayView(
+                            model = model,
+                            replay = model.replay,
+                            button = button,
+                            size = size,
+                            onTapped = { stopFilteringUnlessPresentingDialog() },
+                        )
                     }
                     SettingsQuickButtonType.connectionPriorities -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             connectionPrioritiesAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.whirlpool -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             whirlpoolAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.pinch -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             pinchAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.autoSceneSwitcher -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             autoSceneSwitcherAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.pauseTts -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             pauseTtsAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.live -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             liveAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.navigation -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             navigationAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.blurFaces -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             blurFacesAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.blurText -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             blurTextAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.moblinInMouth -> {
@@ -912,6 +996,7 @@ fun QuickButtonsInnerView(
                                 hideImage = true,
                             ) {
                                 moblinInMouthAction()
+                                stopFilteringUnlessPresentingDialog()
                             }
                             AssetImage(
                                 name = "MoblinInMouth",
@@ -924,17 +1009,20 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.privacy -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             privacyAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.glasses -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             glassesAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.sparkle -> {
                         Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 sparkleAction()
+                                stopFilteringUnlessPresentingDialog()
                             }
                             Box(
                                 modifier = Modifier.size(size.dp),
@@ -954,31 +1042,37 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.beauty -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             beautyAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.videoPreview -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             videoPreviewAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.interactiveBrowserWidgets -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             interactiveBrowserWidgetsAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.macros -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             macrosAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.gimbalTracking -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             gimbalTrackingAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.previewStream -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             presentingPreviewStreamConfirm = true
+                            stopFilteringUnlessPresentingDialog()
                         }
                         ConfirmationDialog(
                             title = "",
@@ -993,11 +1087,13 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.photoShoot -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             photoShootAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                     SettingsQuickButtonType.sceneEditor -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             sceneEditorAction()
+                            stopFilteringUnlessPresentingDialog()
                         }
                     }
                 }
@@ -1038,7 +1134,38 @@ fun QuickButtonsInnerView(
                     .width(nameWidth.dp),
             )
         }
+        var wasPresentingDialog by remember(button.id) { mutableStateOf(false) }
+        LaunchedEffect(button.id, isPresentingDialog()) {
+            val presenting = isPresentingDialog()
+            if (wasPresentingDialog && !presenting) {
+                model.stopFilteringQuickButtons(showButton = button)
+            }
+            wasPresentingDialog = presenting
+        }
     }
+}
+
+@Composable
+fun Modifier.scrollToQuickButton(
+    model: Model = LocalModel.current,
+    quickButtons: QuickButtons,
+    pairs: List<QuickButtonPair>,
+    proxy: Any?,
+): Modifier {
+    val scrollToButtonId by quickButtons.scrollToButtonId.collectAsState()
+
+    fun scroll() {
+        val buttonId = model.takeQuickButtonToScrollTo(pairs = pairs) ?: return
+        TODO("no Android counterpart for SwiftUI ScrollViewProxy")
+    }
+
+    LaunchedEffect(Unit) {
+        scroll()
+    }
+    LaunchedEffect(scrollToButtonId) {
+        scroll()
+    }
+    return this
 }
 
 @Composable
