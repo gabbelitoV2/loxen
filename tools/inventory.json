@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-14T00:30:51+00:00",
+  "generated": "2026-11-14T23:26:33+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -8142,8 +8142,8 @@
     },
     {
       "path": "Common/View/ThermalStateView.swift",
-      "lines": 12,
-      "sha256": "377fd016cb8f11edfb11d1a10aa4bccc65a839508732965e5ef9337c7334ab2c",
+      "lines": 13,
+      "sha256": "349c67f06f2d7339e3d8d8112ee2b3b62c287a8544c4f7cf1029889fc7024f3b",
       "imports": [
         "SwiftUI"
       ],
@@ -12688,8 +12688,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsStream.swift",
-      "lines": 1992,
-      "sha256": "d62eef7fb42e4bffd3e5ee7bef742b261fbe01f52d95bc7f66af7273eacbc48c",
+      "lines": 1982,
+      "sha256": "c0723bde17bc69a70549b9d36df50650376aa740f3a1e19796356391bad68e19",
       "imports": [
         "AVFoundation",
         "AppAuthCore"
@@ -12925,8 +12925,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/ControlBarUtils.swift",
-      "lines": 29,
-      "sha256": "722a5f95f13db523c5b85092a799fc9b095bd10e83f04669935c698b8e627a8c",
+      "lines": 30,
+      "sha256": "211f40d9d41421430168bc6b9ca916c7905fa7cbd154e86175cb567bee972fa0",
       "imports": [
         "SwiftUI"
       ],
@@ -14531,8 +14531,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChat.swift",
-      "lines": 527,
-      "sha256": "0877a0aae444b1834516ccb4d3774c63c003556e151f5c2c100c92c5ddb5e782",
+      "lines": 514,
+      "sha256": "86df86d8c135800f26e9a23422bd4fee319247b57ad40a88b93ccc5aefc2198c",
       "imports": [
         "Collections",
         "Foundation",
@@ -14550,6 +14550,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin/Integrations/OpenAi/OpenAi.swift",
         "Moblin/StreamingPlatforms/Platform.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/CacheAsyncImage.swift",
@@ -16516,8 +16517,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift",
-      "lines": 716,
-      "sha256": "a9dc710f1b8f6f92c4ba465a421938f088dedbddede90903939c0884b71c4f0d",
+      "lines": 641,
+      "sha256": "2f586a2a6ff2b20625e86ccce03cc44c23e82a729900f5174f13b975f9892cea",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -16536,9 +16537,6 @@
         "TagButtonView",
         "PredefinedMessageView",
         "PredefinedMessagesView",
-        "SendMessagesToView",
-        "PlatformIconView",
-        "SendMessagesToSelectorView",
         "MenuItemView",
         "ControlMenuButtonView",
         "ControlAlertsButtonView",
@@ -16558,9 +16556,6 @@
         "ChatAlertsView",
         "TagButtonView",
         "PredefinedMessageView",
-        "SendMessagesToView",
-        "PlatformIconView",
-        "SendMessagesToSelectorView",
         "MenuItemView",
         "ControlMenuButtonView",
         "ControlAlertsButtonView",
@@ -16574,13 +16569,11 @@
       "deps": [
         "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
         "Moblin/Obs/ObsWebSocket.swift",
-        "Moblin/StreamingPlatforms/Platform.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/ChatPost.swift",
         "Moblin/Various/Model/Chat/ChatProvider.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
-        "Moblin/Various/Settings/SettingsStream.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
         "Moblin/View/Stream/StreamOverlayView.swift",
         "Moblin/View/Utils/BannersView.swift",

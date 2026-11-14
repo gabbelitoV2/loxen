@@ -1,6 +1,5 @@
 package com.moblin.android.view.controlbar.quickbutton.chat
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -38,7 +36,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.ImeAction
@@ -48,7 +45,6 @@ import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
-import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
@@ -56,13 +52,11 @@ import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.NavigationTitle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
-import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.platform.swiftui.move
 import com.moblin.android.platform.swiftui.remove
-import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatHighlightKind
 import com.moblin.android.various.ChatPost
@@ -74,7 +68,6 @@ import com.moblin.android.various.model.QuickButtonChat
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatPredefinedMessage
 import com.moblin.android.various.settings.SettingsChatPredefinedMessagesFilter
-import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.stream.ChatInfo
 import com.moblin.android.view.utils.BannersView
 import com.moblin.android.view.utils.BorderlessButtonView
@@ -94,7 +87,7 @@ import com.moblin.android.various.model.endOfQuickButtonChatAlertsReachedWhenPau
 import com.moblin.android.various.model.endOfQuickButtonChatReachedWhenPaused
 import com.moblin.android.various.model.pauseQuickButtonChat
 import com.moblin.android.various.model.pauseQuickButtonChatAlerts
-import com.moblin.android.various.model.sendChatMessageShowLogin
+import com.moblin.android.various.model.sendChatMessageShowToast
 
 private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle =
     ChatLineStyle(
@@ -521,7 +514,7 @@ private fun PredefinedMessageView(
         Spacer(modifier = Modifier.weight(1f))
         BorderlessButtonView(text = "Send") {
             if (predefinedMessage.text.isNotEmpty()) {
-                model.sendChatMessageShowLogin(predefinedMessage.text)
+                model.sendChatMessageShowToast(predefinedMessage.text)
                 onShowingPredefinedMessagesChange(false)
             }
         }
@@ -656,95 +649,6 @@ fun PredefinedMessagesView(
 }
 
 @Composable
-private fun SendMessagesToView(
-    platform: Platform,
-    enabled: Boolean,
-    onEnabledChange: (Boolean) -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        val bitmap = Bundle.image(platform.imageName())?.asImageBitmap()
-        if (bitmap != null) {
-            Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(24.dp))
-        }
-        Text(
-            text = platform.displayName(),
-            modifier = Modifier.padding(start = 6.dp),
-            color = formPalette().label,
-        )
-        Toggle(isOn = enabled, onChange = { onEnabledChange(it) }) {}
-    }
-}
-
-@Composable
-private fun PlatformIconView(image: String) {
-    val bitmap = Bundle.image(image)?.asImageBitmap()
-    if (bitmap != null) {
-        Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(25.dp))
-    }
-}
-
-private fun platformIconResource(image: String): Int = 0
-
-@Composable
-private fun SendMessagesToSelectorView(
-    stream: SettingsStream,
-    presentingSelector: Boolean,
-    onPresentingSelectorChange: (Boolean) -> Unit,
-) {
-    var twitchSendMessagesTo by binding({ stream.twitchSendMessagesTo }) { stream.twitchSendMessagesTo = it }
-    var kickSendMessagesTo by binding({ stream.kickSendMessagesTo }) { stream.kickSendMessagesTo = it }
-
-    fun isTwitchOnly(): Boolean = twitchSendMessagesTo && !kickSendMessagesTo
-
-    fun isKickOnly(): Boolean = kickSendMessagesTo && !twitchSendMessagesTo
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    Box(
-        modifier = Modifier
-            .size(30.dp)
-            .graphicsLayer { alpha = if (pressed) 0.2f else 1f }
-            .clickable(interactionSource = interactionSource, indication = null) {
-                onPresentingSelectorChange(true)
-            },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (isTwitchOnly()) {
-            PlatformIconView(image = "TwitchLogo")
-        } else if (isKickOnly()) {
-            PlatformIconView(image = "KickLogo")
-        } else {
-            SystemImage("globe", 28.sp, Modifier, formPalette().accent)
-        }
-    }
-    Sheet(isPresented = presentingSelector, onDismissRequest = { onPresentingSelectorChange(false) }) {
-        Column(
-            modifier = Modifier.padding(5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(localized("Send messages to"), modifier = Modifier.padding(11.dp))
-            Box(modifier = Modifier.padding(11.dp)) {
-                SendMessagesToView(
-                    platform = Platform.twitch,
-                    enabled = twitchSendMessagesTo,
-                    onEnabledChange = { twitchSendMessagesTo = it },
-                )
-            }
-            Box(modifier = Modifier.padding(11.dp)) {
-                SendMessagesToView(
-                    platform = Platform.kick,
-                    enabled = kickSendMessagesTo,
-                    onEnabledChange = { kickSendMessagesTo = it },
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun MenuItemView(
     image: String,
     text: String,
@@ -832,7 +736,6 @@ private fun ControlView(
     message: String,
     onMessageChange: (String) -> Unit,
 ) {
-    var presentingSelector by remember { mutableStateOf(false) }
     var presentingMenu by remember { mutableStateOf(false) }
     Row(verticalAlignment = Alignment.CenterVertically) {
         BasicTextField(
@@ -848,7 +751,7 @@ private fun ControlView(
             keyboardActions = KeyboardActions(
                 onSend = {
                     if (message.isNotEmpty()) {
-                        model.sendChatMessageShowLogin(message)
+                        model.sendChatMessageShowToast(message)
                     }
                     onMessageChange("")
                 },
@@ -859,11 +762,6 @@ private fun ControlView(
                 }
                 innerTextField()
             },
-        )
-        SendMessagesToSelectorView(
-            stream = model.stream.value,
-            presentingSelector = presentingSelector,
-            onPresentingSelectorChange = { presentingSelector = it },
         )
         ControlAlertsButtonView(quickButtonChat = model.quickButtonChatState)
         ControlMenuButtonView(

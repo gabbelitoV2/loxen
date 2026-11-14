@@ -38,7 +38,6 @@ import com.moblin.android.various.ChatPost
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.ChatPostState
 import com.moblin.android.various.model.chat.ChatProvider
-import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatFilter
 import java.net.URI
@@ -214,31 +213,23 @@ fun Model.resetChat() {
 }
 
 fun Model.sendChatMessage(message: String) {
-    if (stream.value.twitchSendMessagesTo && stream.value.twitchLoggedIn) {
+    if (stream.value.twitchLoggedIn) {
         sendTwitchChatMessage(message = message) { }
     }
-    if (stream.value.kickSendMessagesTo && stream.value.kickLoggedIn) {
+    if (stream.value.kickLoggedIn) {
         sendKickChatMessage(message = message)
     }
 }
 
-fun Model.sendChatMessageShowLogin(message: String) {
-    if (stream.value.twitchSendMessagesTo) {
-        sendTwitchChatMessage(message = message) { response ->
-            if (response is NetworkResponse.AuthError) {
-                twitchLogin(stream = stream.value) {
-                    showTwitchAuth.value = true
-                }
-            }
-        }
+fun Model.sendChatMessageShowToast(message: String) {
+    if (!stream.value.twitchLoggedIn && !stream.value.kickLoggedIn) {
+        makeErrorToast(
+            title = localized("Message not sent"),
+            subTitle = localized("Login to Twitch or Kick to send chat messages"),
+        )
+        return
     }
-    if (stream.value.kickSendMessagesTo) {
-        if (stream.value.kickLoggedIn) {
-            sendKickChatMessage(message = message)
-        } else {
-            makeNotLoggedInToToast(platform = Platform.kick)
-        }
-    }
+    sendChatMessage(message = message)
 }
 
 private fun Model.evaluateFilters(user: String?, segments: List<ChatPostSegment>): SettingsChatFilter? {

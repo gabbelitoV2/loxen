@@ -2385,24 +2385,24 @@
   },
   "Moblin/View/ControlBar/ControlBarUtils.swift": {
     "status": "ok",
-    "sha256": "722a5f95f13db523c5b85092a799fc9b095bd10e83f04669935c698b8e627a8c",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "211f40d9d41421430168bc6b9ca916c7905fa7cbd154e86175cb567bee972fa0",
+    "moblin_commit": "3c125cece77d2f47cea5f500ead02859f92d5537",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/ControlBarUtils.kt",
     "notes": [
-      "Renamed model.quickButtons to model.quickButtonsPages in controlBarScrollTargetBehavior; quickButtons.pairs is still used for the page count, as in the Swift.",
-      "Added the SettingsButtonImage composable: the gearshape symbol sits in a controlBarButtonSize box with an overlaid secondary-colour circle stroke, white tint.",
-      "The Circle().stroke(.secondary) overlay is drawn with Modifier.border on CircleShape because the image frame is square, so the border matches the iOS circle exactly.",
-      "SystemImage from com.moblin.android.platform replaces Image(systemName:); the secondary stroke colour comes from formPalette().secondaryLabel."
+      "Swift adds .contentShape(Circle()) on SettingsButtonImage; Compose has no equivalent that narrows hit testing to a circle, so the Kotlin view is unchanged.",
+      "The circular hit area is irrelevant here because SettingsButtonImage contains no tap handling of its own; the enclosing Button supplies the press area.",
+      "The existing Kotlin already draws the same appearance: a 40dp box with a 1dp secondary-label circle border and a white gearshape icon.",
+      "controlBarScrollTargetBehavior and its page clamping are untouched by this diff and stay byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 42617,
-    "tokens_out": 2147,
-    "seconds": 11.5,
-    "ported_at": "2026-11-08T23:41:45+00:00"
+    "tokens_in": 42646,
+    "tokens_out": 1365,
+    "seconds": 7.4,
+    "ported_at": "2026-11-14T23:26:51+00:00"
   },
   "Moblin/Various/Model/ModelSpeechToText.swift": {
     "status": "ok",
@@ -8702,24 +8702,23 @@
   },
   "Common/View/ThermalStateView.swift": {
     "status": "ok",
-    "sha256": "377fd016cb8f11edfb11d1a10aa4bccc65a839508732965e5ef9337c7334ab2c",
-    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
-    "mode": "full",
+    "sha256": "349c67f06f2d7339e3d8d8112ee2b3b62c287a8544c4f7cf1029889fc7024f3b",
+    "moblin_commit": "3c125cece77d2f47cea5f500ead02859f92d5537",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt",
     "notes": [
-      "ThermalStateView is a SwiftUI struct: it becomes a @Composable function with the same name, an extra trailing Modifier parameter and thermalState kept first.",
-      "Image(systemName: \"flame\") with .font(.system(size: 11)) and .foregroundStyle(...) is the platform SystemImage composable with fontSize = 11.sp and tint = thermalState.color().",
-      "ProcessInfo.ThermalState comes from com.moblin.android.platform.core and keeps its Swift case names (nominal, fair, serious, critical).",
-      "thermalState.color() is the existing Kotlin extension fun ProcessInfo.ThermalState.color(): Color; it is imported from the same com.moblin.android.common.view package as this view."
+      "The only Swift change is `.contentShape(Rectangle().inset(by: -12))`, which only enlarges the hit-test area of the icon. The icon here has no tap gesture attached, so it produces no observable effect; Compose has no hit-shape modifier equivalent, so the Kotlin body stays a single SystemImage call.",
+      "Modifier order kept as before: the incoming modifier is passed straight to SystemImage, no extra wrapping layout is introduced.",
+      "Colour still comes from the ProcessInfo.ThermalState.color() extension in com.moblin.android.common.various."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 34510,
-    "tokens_out": 2939,
-    "seconds": 13.9,
-    "ported_at": "2026-09-25T10:18:37+00:00"
+    "tokens_in": 35165,
+    "tokens_out": 1732,
+    "seconds": 10.5,
+    "ported_at": "2026-11-14T23:26:54+00:00"
   },
   "Common/Various/AudioLevel.swift": {
     "status": "ok",
@@ -11753,27 +11752,24 @@
   },
   "Moblin/Various/Settings/SettingsStream.swift": {
     "status": "ok",
-    "sha256": "d62eef7fb42e4bffd3e5ee7bef742b261fbe01f52d95bc7f66af7273eacbc48c",
-    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "sha256": "c0723bde17bc69a70549b9d36df50650376aa740f3a1e19796356391bad68e19",
+    "moblin_commit": "3c125cece77d2f47cea5f500ead02859f92d5537",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsStream.kt",
     "notes": [
-      "SettingsStream gained a static baseName; added as `baseName` in the companion object next to defaultRealtimeIrlBaseUrl.",
-      "Keychain read/write moved out of encode()/init(from:) into new loadFromKeychain()/storeToKeychain(); the JSON round trip no longer touches the keychain.",
-      "youTubeWantsToBeLoggedIn now defaults to false on decode instead of depending on a restored auth state.",
-      "Added removeAccessTokens(), removeSecrets(), keepSecrets(old) and the private secretsRemoved(url) helper, translated one statement per Swift statement.",
-      "whip.headers is a MutableList; keepSecrets copies the old list (`toMutableList()`) to keep Swift's value-copy semantics.",
-      "SettingsHttpHeader gained Equatable in Swift; the existing Kotlin data class already provides equals/hashCode, so no code change.",
-      "Added imports for loadTwitchAccessTokenFromKeychain and loadKickAccessTokenFromKeychain used by loadFromKeychain()."
+      "Removed the twitchSendMessagesTo and kickSendMessagesTo published flags from SettingsStream, along with their encode, decode and clone lines, matching the Swift diff.",
+      "Both flags were only persisted settings, so no other member or serialization path changes.",
+      "Existing JSON that still contains the removed keys is silently ignored on decode, exactly like Swift's decodable container.",
+      "All other declarations, formatting and imports are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 91017,
-    "tokens_out": 25040,
-    "seconds": 74.1,
-    "ported_at": "2026-11-12T01:43:52+00:00"
+    "tokens_in": 91059,
+    "tokens_out": 23126,
+    "seconds": 58.3,
+    "ported_at": "2026-11-14T23:27:42+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Audio/StreamAudioSettingsView.swift": {
     "status": "ok",
@@ -12027,23 +12023,25 @@
   },
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
-    "sha256": "0877a0aae444b1834516ccb4d3774c63c003556e151f5c2c100c92c5ddb5e782",
-    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
+    "sha256": "86df86d8c135800f26e9a23422bd4fee319247b57ad40a88b93ccc5aefc2198c",
+    "moblin_commit": "3c125cece77d2f47cea5f500ead02859f92d5537",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
     "notes": [
-      "Adds Model.reloadEmotes() right after Model.reloadChats(), matching the Swift position.",
-      "twitchChat, kickPusher and youTubeLiveChats are read as Model members in com.moblin.android.various.model, as in the rest of the file (no new imports needed).",
-      "No other Kotlin line changed: formatting, imports and declaration order are byte-identical to the current file."
+      "sendChatMessage now sends whenever a platform is logged in; the twitchSendMessagesTo / kickSendMessagesTo checks were removed as in the Swift diff.",
+      "sendChatMessageShowLogin was replaced by sendChatMessageShowToast, which reports a single error toast when neither Twitch nor Kick is logged in and otherwise delegates to sendChatMessage.",
+      "The now-unused NetworkResponse import was dropped together with the removed auth-error handling.",
+      "The alert title and sub-title go through localized(), matching String(localized:).",
+      "Stream settings are read from the stream MutableStateFlow as stream.value, as required by the Model extensions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 65909,
-    "tokens_out": 5321,
-    "seconds": 16.7,
-    "ported_at": "2026-11-13T00:44:07+00:00"
+    "tokens_in": 67022,
+    "tokens_out": 5391,
+    "seconds": 16.6,
+    "ported_at": "2026-11-14T23:27:00+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -13422,26 +13420,25 @@
   },
   "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift": {
     "status": "ok",
-    "sha256": "a9dc710f1b8f6f92c4ba465a421938f088dedbddede90903939c0884b71c4f0d",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "2f586a2a6ff2b20625e86ccce03cc44c23e82a729900f5174f13b975f9892cea",
+    "moblin_commit": "3c125cece77d2f47cea5f500ead02859f92d5537",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/QuickButtonChatView.kt",
     "notes": [
-      "PostView and AlertsPostView lose their rotation/scaleX parameters and the graphicsLayer blocks that applied them; the highlight bar drawBehind and leading padding stay.",
-      "MessagesView and AlertsMessagesView now delegate scrolling to com.moblin.android.view.utils.ChatScrollView, passing newMessagesAtTop, mirrored, onLatestAppear and onLatestDisappear instead of building a LazyColumn with LaunchedEffect/DisposableEffect.",
-      "The old getRotation(), getScaleX(), isMirrored() calls and the manual posts/collectAsState list are gone because ChatScrollView owns paging and the mirror transform.",
-      "onLatestAppear/onLatestDisappear are passed as lambdas calling the imported Model extension functions so they are read at call time.",
-      "Unused imports for BoxWithConstraints, LazyColumn, lazy items and DisposableEffect were removed; ChatScrollView was added to the view.utils imports.",
-      "Everything else in the file (predefined messages, selectors, control bars, QuickButtonChatView) is unchanged."
+      "Incremental update only: the two model.sendChatMessageShowLogin calls became model.sendChatMessageShowToast (Swift diff), and the import was renamed accordingly.",
+      "SendMessagesToView, PlatformIconView, platformIconResource and SendMessagesToSelectorView were deleted together with their Swift counterparts, plus the SendMessagesToSelectorView call in ControlView and its now unused presentingSelector state.",
+      "Imports that only served the deleted views (Image, asImageBitmap, Bundle, Platform, Toggle, size, SettingsStream) were removed with them.",
+      "The hand-written `if (predefinedMessage.text.isNotEmpty())` guard around the Send button is kept: it reproduces the Swift .disabled(...) on BorderlessButtonView.",
+      "Everything else, including the hand-written drawBehind highlight bar, the AlertsPostView kind check and the LocalUriHandler link confirmation, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 68450,
-    "tokens_out": 11024,
-    "seconds": 39.6,
-    "ported_at": "2026-11-08T23:13:24+00:00"
+    "tokens_in": 65048,
+    "tokens_out": 9071,
+    "seconds": 27.9,
+    "ported_at": "2026-11-14T23:27:12+00:00"
   },
   "Moblin/View/Utils/ChatActionButtonsView.swift": {
     "status": "ok",

@@ -1676,7 +1676,6 @@ class SettingsStream(
     var twitchRewards: MutableList<SettingsStreamTwitchReward> = mutableListOf(),
     twitchRaidsSent: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
     twitchRaidsReceived: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
-    twitchSendMessagesTo: Boolean = true,
     kickChannelName: String = "",
     kickChannelId: String? = null,
     kickChatroomChannelId: String? = null,
@@ -1685,7 +1684,6 @@ class SettingsStream(
     kickLoggedIn: Boolean = false,
     var kickWantsToBeLoggedIn: Boolean = false,
     var kickNotLoggedInCount: Int = 0,
-    kickSendMessagesTo: Boolean = true,
     var kickChatAlerts: SettingsKickAlerts = SettingsKickAlerts(),
     var kickToastAlerts: SettingsKickAlerts = SettingsKickAlerts(),
     youTubeAuthState: com.moblin.android.platform.appauth.OIDAuthState? = null,
@@ -1759,13 +1757,11 @@ class SettingsStream(
     var twitchChannelName: String by Published(twitchChannelName)
     var twitchRaidsSent: MutableList<SettingsStreamTwitchRaidChannel> by PublishedList(twitchRaidsSent)
     var twitchRaidsReceived: MutableList<SettingsStreamTwitchRaidChannel> by PublishedList(twitchRaidsReceived)
-    var twitchSendMessagesTo: Boolean by Published(twitchSendMessagesTo)
     var kickChannelName: String by Published(kickChannelName)
     var kickChannelId: String? by Published(kickChannelId)
     var kickChatroomChannelId: String? by Published(kickChatroomChannelId)
     var kickSlug: String? by Published(kickSlug)
     var kickLoggedIn: Boolean by Published(kickLoggedIn)
-    var kickSendMessagesTo: Boolean by Published(kickSendMessagesTo)
     var youTubeAuthState: com.moblin.android.platform.appauth.OIDAuthState? by Published(youTubeAuthState)
     var youTubeVideoIds: String by Published(youTubeVideoIds)
     var youTubeHandle: String by Published(youTubeHandle)
@@ -1855,7 +1851,6 @@ class SettingsStream(
                 ListSerializer(SettingsStreamTwitchRaidChannel.serializer()),
                 emptyList(),
             ).toMutableList()
-            stream.twitchSendMessagesTo = container.decode("twitchSendMessagesTo", true)
             stream.twitchChatAlerts = container.decode(
                 "twitchChatAlerts",
                 SettingsTwitchAlerts.serializer(),
@@ -1880,7 +1875,6 @@ class SettingsStream(
             stream.kickLoggedIn = container.decode("kickLoggedIn", false)
             stream.kickWantsToBeLoggedIn = container.decode("kickWantsToBeLoggedIn", stream.kickLoggedIn)
             stream.kickNotLoggedInCount = container.decode("kickNotLoggedInCount", 0)
-            stream.kickSendMessagesTo = container.decode("kickSendMessagesTo", true)
             stream.kickChatAlerts = container.decode(
                 "kickChatAlerts",
                 SettingsKickAlerts.serializer(),
@@ -2002,7 +1996,6 @@ class SettingsStream(
         encode("twitchRewards", twitchRewards)
         encode("twitchRaidsSent", twitchRaidsSent)
         encode("twitchRaidsReceived", twitchRaidsReceived)
-        encode("twitchSendMessagesTo", twitchSendMessagesTo)
         encode("twitchChatAlerts", twitchChatAlerts)
         encode("twitchToastAlerts", twitchToastAlerts)
         encode("kickChannelName", kickChannelName)
@@ -2013,7 +2006,6 @@ class SettingsStream(
         encode("kickLoggedIn", kickLoggedIn)
         encode("kickWantsToBeLoggedIn", kickWantsToBeLoggedIn)
         encode("kickNotLoggedInCount", kickNotLoggedInCount)
-        encode("kickSendMessagesTo", kickSendMessagesTo)
         encode("kickChatAlerts", kickChatAlerts)
         encode("kickToastAlerts", kickToastAlerts)
         encode("youTubeVideoId", youTubeVideoIds)
@@ -2102,7 +2094,6 @@ class SettingsStream(
         new.twitchRewards = twitchRewards.map { it }.toMutableList()
         new.twitchRaidsSent = twitchRaidsSent.map { it.clone() }.toMutableList()
         new.twitchRaidsReceived = twitchRaidsReceived.map { it.clone() }.toMutableList()
-        new.twitchSendMessagesTo = twitchSendMessagesTo
         new.twitchChatAlerts = twitchChatAlerts.clone()
         new.twitchToastAlerts = twitchToastAlerts.clone()
         new.twitchAccessToken = twitchAccessToken
@@ -2123,7 +2114,6 @@ class SettingsStream(
         if (kickLoggedIn) {
             storeKickAccessTokenInKeychain(new.id, kickAccessToken)
         }
-        new.kickSendMessagesTo = kickSendMessagesTo
         new.kickChatAlerts = kickChatAlerts.clone()
         new.kickToastAlerts = kickToastAlerts.clone()
         new.youTubeAuthState = youTubeAuthState
