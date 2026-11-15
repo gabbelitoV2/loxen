@@ -138,7 +138,8 @@ enum class ShowingPanel {
     quickButtonSettings,
     streamingButtonSettings,
     live,
-    macros;
+    macros,
+    soundBoard;
 
     fun buttonsBackgroundColor(): Color = if (this == chat) Color.Black else com.moblin.android.platform.uikit.UIColor.secondarySystemBackground
 }
@@ -542,6 +543,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val showModerationAuth = MutableStateFlow(false)
     val presentingModeration = MutableStateFlow(false)
     val presentingPredefinedMessages = MutableStateFlow(false)
+    var soundBoardPlayer: AudioPlayer? = null
     val presentingSceneEditor = MutableStateFlow(false)
     val presentingSettingsImportConfirmation = MutableStateFlow(false)
     var pendingSettingsImportAction: (() -> Unit)? = null
@@ -996,6 +998,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         SettingsQuickButtonType.autoSceneSwitcher,
         SettingsQuickButtonType.live,
         SettingsQuickButtonType.macros,
+        SettingsQuickButtonType.soundBoard,
     ).contains(type)
 
     fun toggleShowingPanel(type: SettingsQuickButtonType?, panel: ShowingPanel) {

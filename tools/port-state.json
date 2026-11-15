@@ -4459,28 +4459,23 @@
   },
   "Moblin/Various/MoblinSettingsUrl.swift": {
     "status": "ok",
-    "sha256": "af15c6dfd66523d2cc438ae11851b45e32e8d0b1733856ab242ea123776b0355",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "sha256": "dacb8f61ee666bf73bdfc3b5399b9457721e6cf22e42f86011e866864faa72c7",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/MoblinSettingsUrl.kt",
     "notes": [
-      "Validation moved out of MoblinSettingsUrl.fromString into per-class decoders, so MoblinSettingsSrt, MoblinSettingsUrlStreamVideo, MoblinSettingsUrlStreamAudio, MoblinSettingsUrlStreamObs, MoblinSettingsUrlStream, MoblinSettingsButton, MoblinSettingsRemoteControlServerRelay, MoblinSettingsRemoteControlAssistant, MoblinSettingsRemoteControlStreamer, MoblinSettingsRemoteControl and MoblinSettingsMoblinCloud now use the JsonObject container pattern with a custom JsonObjectSerializer.",
-      "MoblinSettingsUrl, MoblinQuickButtons, MoblinSettingsWebBrowser, MoblinSettingsUrlStreamTwitch and MoblinSettingsUrlStreamKick keep the plugin @Serializable annotation because Swift gives them a synthesized Codable.",
-      "The private LocalizedError struct becomes a private MoblinSettingsUrlError Exception, and the KeyedDecodingContainer.decodeEnumIfPresent generic helper becomes a private JsonObject.decodeEnumIfPresent top-level function.",
-      "Swift UInt32/Int32 are Kotlin UInt/Int; MoblinSettingsRemoteControlAssistant.port stays UShort and is widened to Int for SettingsRemoteControlAssistant.isValidPort.",
-      "Class-level validators (SettingsStreamSrt.isValidLatency, SettingsStream.isValidFps/isValidBitrate/isValidMaxKeyFrameInterval/isValidAudioBitrate, SettingsQuickButton.isValidPage, SettingsRemoteControlServerRelay.isValidBridgeId, SettingsRemoteControlAssistant.isValidPort) are called by their Swift names and labels.",
-      "The container shim returns the supplied default when a required key is absent instead of throwing keyNotFound as Swift does; only malformed or out-of-range values raise MoblinSettingsUrlError.",
-      "MoblinSettingsUrl.toString keeps its sorted-keys/without-escaping-slashes behaviour through moblinSettingsUrlJson and sortJsonElement, untouched by this diff.",
-      "SettingsStreamCodec.fromRawValue returns a default instead of null, so the 'Unsupported video codec' branch is unreachable for that enum, matching the existing Kotlin port of the enum."
+      "Adds the new `implementation` property to `MoblinSettingsSrt` and decodes it via the existing `decodeEnumIfPresent` helper with the same error message as Swift.",
+      "Encoding uses the reified `encodeIfPresent`, matching how the neighbouring `dnsLookupStrategy` enum is written.",
+      "Import for `SettingsStreamSrtImplementation` inserted alphabetically after `SettingsStreamSrt`; every other line is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53531,
-    "tokens_out": 26168,
-    "seconds": 134.9,
-    "ported_at": "2026-11-10T02:29:54+00:00"
+    "tokens_in": 53994,
+    "tokens_out": 5512,
+    "seconds": 18.0,
+    "ported_at": "2026-11-15T23:33:43+00:00"
   },
   "Moblin/Media/HaishinKit/Whip/WhipStream.swift": {
     "status": "ok",
@@ -11893,24 +11888,22 @@
   },
   "Moblin/Various/Model/ModelSettingsUrl.swift": {
     "status": "ok",
-    "sha256": "118b5707aff657ca97316b356e4a1ab3c6d65d6a2683ddf1a7e7b42e74ff79cc",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "sha256": "e20e4d383e350027a08c100606c84441d0a51cde4e7c12144c52192d90f2b891",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSettingsUrl.kt",
     "notes": [
-      "Applied the diff: URL/WebSocket/relay/streamer/Moblin Cloud URL values are no longer trimmed, and the fps/bitrate/maxKeyFrameInterval/audioBitrate validation guards were dropped so any value is imported.",
-      "The audio branch now reads the optional chain stream.audio?.bitrate first, then assigns.",
-      "Two user-facing error strings in handleSettingsUrlWithConfirmation are now wrapped in localized().",
-      "Imports of fpss and isValidAudioBitrate are kept byte-identical though the guards that used them are gone."
+      "Added handling of the newly imported SRT implementation field alongside latency, adaptive bitrate and DNS lookup strategy.",
+      "All other Kotlin code, imports and declaration order are unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 55438,
-    "tokens_out": 3281,
-    "seconds": 14.6,
-    "ported_at": "2026-11-10T02:27:23+00:00"
+    "tokens_in": 55003,
+    "tokens_out": 3128,
+    "seconds": 11.7,
+    "ported_at": "2026-11-15T23:33:36+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
@@ -14552,29 +14545,23 @@
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
-    "sha256": "7411190ada119f8d0b0ba1581e2d7f5bf922d58f14abcfe7e5a478bd08378e17",
-    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
+    "sha256": "e12afea09cb6dad73ec30a85bf6b035bb74449496f247f7fbe2855087c9dc3dd",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt",
     "notes": [
-      "SwiftUI `.contentShape(Circle())` has no direct Compose counterpart; it is translated as `Modifier.clip(CircleShape)` on the tappable Box in QuickButtonImage and on the InstantReplayView time-left Box, which only approximates the circular hit area.",
-      "Every quick-button action now calls `stopFilteringUnlessPresentingDialog()`; the two local helpers `isPresentingDialog()` and `stopFilteringUnlessPresentingDialog()` were added right after `selectedRing`, as in the Swift source.",
-      "`.onChange(of: isPresentingDialog())` is written as a `LaunchedEffect` that only fires the `stopFilteringQuickButtons` call on a true-to-false transition, matching SwiftUI's onChange (which does not fire on first appearance).",
-      "`.id(button.id)` is applied as `remember(button.id)` on the dialog-tracking state and as a key of the LaunchedEffect, so per-button state resets when the button changes.",
-      "InstantReplayView gained the `onTapped: () -> Unit` parameter; the call site passes a lambda instead of Swift's function reference.",
-      "The new `ScrollToQuickButtonModifier`/`View.scrollToQuickButton` pair keeps the `takeQuickButtonToScrollTo` logic but the actual `ScrollViewProxy.scrollTo` has no Kotlin counterpart, so it stays a TODO inside `Modifier.scrollToQuickButton`.",
-      "`quickButtons.scrollToButtonId` is read as a StateFlow via `collectAsState()`, assuming `MutableStateFlow<UUID?>` as in the other QuickButtons settings."
+      "Adds soundBoardAction() and the SettingsQuickButtonType.soundBoard branch, positioned exactly where the Swift diff puts them (after macrosAction/macros, before gimbalTrackingAction/skipCurrentTts).",
+      "The new branch references SettingsQuickButtonType.soundBoard and ShowingPanel.soundBoard; those two enum entries must be added in SettingsQuickButtons.kt and Model.kt (the diff of this file assumes them, but the current Kotlin declarations in this request do not list them yet).",
+      "No other Kotlin line changed: hand-written helpers (MinimumScaleText, SystemImage/AssetImage wrappers, selected-ring Box, LaunchedEffect dialog tracking) are kept byte-identical."
     ],
-    "unsupported": [
-      "SwiftUI ScrollViewProxy.scrollTo(_:anchor:) — no Android counterpart, kept as TODO inside Modifier.scrollToQuickButton"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66646,
-    "tokens_out": 16848,
-    "seconds": 63.1,
-    "ported_at": "2026-11-13T00:44:53+00:00"
+    "tokens_in": 63853,
+    "tokens_out": 9348,
+    "seconds": 28.7,
+    "ported_at": "2026-11-15T23:33:54+00:00"
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
@@ -15335,24 +15322,23 @@
   },
   "Moblin/Various/Settings/SettingsQuickButtons.swift": {
     "status": "ok",
-    "sha256": "339df73e6f299a1d05d664acf0a99f0791a858f484fb842be52366d47c77fddb",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "sha256": "3759f7e57ecac154ab075b1cc21e4923cc1926ab8cce8bfaae3a83bcc11fff71",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsQuickButtons.kt",
     "notes": [
-      "Added SettingsQuickButton.isValidPage(page) to the companion object, matching the new Swift static func.",
-      "Imported controlBarPages from com.moblin.android.view.controlbar for the page range check.",
-      "The Swift 1 ... controlBarPages closed range is written page in 1..controlBarPages.",
-      "Everything else in the file is unchanged."
+      "Added the soundBoard enum entry with rawValue \"Sound board\" after sceneEditor and a matching toString branch.",
+      "The enum's last entry moves to soundBoard, so the trailing semicolon moved with it.",
+      "Everything else in the Kotlin file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 52267,
-    "tokens_out": 3244,
-    "seconds": 13.8,
-    "ported_at": "2026-11-10T02:28:18+00:00"
+    "tokens_in": 52473,
+    "tokens_out": 3060,
+    "seconds": 10.3,
+    "ported_at": "2026-11-15T23:33:35+00:00"
   },
   "Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift": {
     "status": "ok",
@@ -15746,25 +15732,23 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "2a91c7779caaf19d6e84a20f0663c2af6153ab9f678ff01b0204f32057493a9b",
-    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "sha256": "a454616b08c7290a5cb0d43c917ad60a9c96db9ade9a77e55854f36d3e1d740f",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "store() now pushes every stream's tokens to the keychain before the JSON is written, mirroring the new Swift loop.",
-      "addSensitiveData() now delegates to stream.loadFromKeychain() instead of calling the Twitch/Kick keychain helpers directly; the old imports are left in place so untouched lines stay byte-identical.",
-      "Both new calls target SettingsStream helpers, which live in the SettingsStream translation and keep their Swift names storeToKeychain()/loadFromKeychain().",
-      "The upperCaseMicIds(realDatabase) Android hook in tryLoadAndMigrate is kept unchanged.",
-      "No other Kotlin line, import or declaration order was modified."
+      "Adds the missing soundBoard quick button to addMissingQuickButtonsPageThree after the photoShoot button, matching the Swift diff.",
+      "SettingsQuickButtonType.soundBoard must already exist in SettingsQuickButtons.kt; the file only references it here.",
+      "No other lines changed; all Android-specific hooks (upperCaseMicIds, Cameras.backCameraSwitchOverZoomFactors, zip import/export, ioScope/mainScope) kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 116308,
-    "tokens_out": 28599,
-    "seconds": 83.7,
-    "ported_at": "2026-11-12T01:44:47+00:00"
+    "tokens_in": 116230,
+    "tokens_out": 27984,
+    "seconds": 75.1,
+    "ported_at": "2026-11-15T23:34:53+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -16008,26 +15992,25 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "faf718a6f875ea6d5888a5f4f9c6db68eabe4720febd6836f8241ccb4480f2e0",
-    "moblin_commit": "ba625a7df18250057619eb31b88b7c0cdc5f9d13",
+    "sha256": "c4732c27f7bc6170d803c9711205c45a30c242aa98b1871e700841bcf8ae8d52",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "QuickButtons gains a scrollToButtonId StateFlow, and a new QuickButtonsFilter class holds the filter text and filtered pairs.",
-      "Model.updateQuickButtonPairs now delegates pair building to the new private makeQuickButtonPairs and enabledQuickButtons helpers, then calls updateFilteredQuickButtonPairs.",
-      "QuickButtons.pairs stays a MutableStateFlow<List<List<QuickButtonPair>>>; each page is replaced by copying the outer list like the existing Android code did.",
-      "quickButtonsFilter.filter is read via .value inside updateFilteredQuickButtonPairs.",
-      "quickButtonNameMatchesFilter is called positionally with (name, filter) since its Kotlin parameter names are not declared in the glossary.",
-      "No Swift API removed in this diff, so no other Kotlin lines change."
+      "Added the new ShowingPanel.soundBoard entry after macros.",
+      "Added Model.soundBoardPlayer as a plain nullable AudioPlayer, matching the Swift stored property (not @Published).",
+      "ShowingPanel.soundBoard added to isShowingPanelQuickButton's list using SettingsQuickButtonType.soundBoard.",
+      "The backgroundRunLevel condition change (`if a || b, c` -> comma form) is only Swift syntax; the Kotlin `(isLive.value || isRecording.value) && stream.value.backgroundStreaming` is unchanged.",
+      "Everything else in the file is untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 149050,
-    "tokens_out": 36543,
-    "seconds": 100.5,
-    "ported_at": "2026-11-13T00:45:52+00:00"
+    "tokens_in": 148737,
+    "tokens_out": 36014,
+    "seconds": 99.9,
+    "ported_at": "2026-11-15T23:35:22+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16096,23 +16079,24 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift": {
     "status": "ok",
-    "sha256": "9cb063af40f1d341c226e3db808ee7506a348e5b84930b72e4a97f8e63a3c001",
-    "moblin_commit": "013f290d6d1de69bfc765cce10845750f571f324",
+    "sha256": "4048de31e8fc74810423169b1fb34458d7712bc0ac8804b2126f7cbb448b0cc3",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsSoundSettingsView.kt",
     "notes": [
-      "Only the sound list source changed: the picker now reads gallery.allSounds() instead of concatenating bundledSounds and customSounds.",
-      "Everything else in the file (imports, loadSound, sheet, delete handling, disposal of player) is unchanged.",
-      "SettingsAlertsMediaGallery.allSounds() returns the same ordered list bundled-then-custom, so the Picker options and labels stay identical."
+      "loadSound now delegates URL resolution to model.makeAlertSoundUrl(soundId), matching the Swift change; the helper is assumed to return java.io.File? like alertMediaStorage.makePath.",
+      "The now unused com.moblin.android.platform.Bundle import was dropped together with the removed bundled-sound lookup.",
+      "AudioPlayer(contentsOf = ...) still receives the file path, so the player keeps reading from a real file on disk.",
+      "All other composables, the top-level player var and the disposal of the player are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47510,
-    "tokens_out": 1922,
-    "seconds": 7.8,
-    "ported_at": "2026-11-04T00:53:54+00:00"
+    "tokens_in": 47632,
+    "tokens_out": 2502,
+    "seconds": 11.0,
+    "ported_at": "2026-11-15T23:33:48+00:00"
   },
   "Moblin/View/Settings/Display/DisplaySettingsView.swift": {
     "status": "ok",
@@ -17595,24 +17579,23 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "1f23e1fc7a87e46d2295e29cd61f30a60dcb38a0f6cc2f33a01609f21dee38da",
-    "moblin_commit": "3a68b5f97fb93e37a5987eff8faeedd8048c82cd",
+    "sha256": "822c83c03a5d0ab14776a9a6522243b323491ac3cc01bc3cca55aa833af059fd",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "The Swift change removes `.environmentObject(model)` and adds `orientation: model.orientation` to the SceneEditorView call inside the scene-editor full screen cover.",
-      "The `.environmentObject(model)` removal needs no Kotlin change: MainView already passes `model` to SceneEditorView explicitly.",
-      "The added `orientation` argument is not forwarded because the current Kotlin `SceneEditorView` declaration in com.moblin.android.view.controlbar.sceneeditor takes only model, database, sceneSelector, streamOverlay and sceneEditor; add an `orientation: Orientation` parameter there and pass `orientation = model.orientation` here once it exists.",
-      "Everything else in the file is untouched, so all existing hand-written Android behaviour (inset handling, opacityAndHitTesting, magnificationGesture, browser WebView borrowing) is preserved byte-identically."
+      "Added the new ShowingPanel.soundBoard branch to MenuView, rendering QuickButtonSoundBoardView with model.database.alertsMediaGallery.",
+      "Added the QuickButtonSoundBoardView import in alphabetical position among the quick-button imports.",
+      "No other Kotlin line was touched; the iOS 26 glass-effect paths, navigationBarTitleDisplayMode and the EmptyView case keep their existing Android translations."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 77839,
-    "tokens_out": 12933,
-    "seconds": 44.1,
-    "ported_at": "2026-11-08T23:47:10+00:00"
+    "tokens_in": 78071,
+    "tokens_out": 11767,
+    "seconds": 34.1,
+    "ported_at": "2026-11-15T23:34:13+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",
@@ -18562,28 +18545,23 @@
   },
   "MoblinTests/Moblin/Various/MoblinSettingsUrlSuite.swift": {
     "status": "ok",
-    "sha256": "2de1c2b97ef01178c4ff3d4f24253580d8ab02307b2b534b5417c4bfcc5e130b",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
-    "mode": "full",
+    "sha256": "b350026c55c2f90330e1aeaf55b31d77ea535e21ccbe9db4454924e3e552779d",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/MoblinSettingsUrlSuite.kt",
     "notes": [
-      "Translates the Swift Testing suite to a JUnit 4 class with kotlin.test assertions.",
-      "InvalidCase/ValidCase/CleanUrlCase become nested classes with a testDescription override for readable output.",
-      "@Test(arguments:) becomes a single @Test looping over the argument list.",
-      "#expect(throws:) -> assertFailsWith; #expect(error?.localizedDescription == message) -> assertEquals.",
-      "String(localized:) -> localized(); interpolated messages use Kotlin string templates.",
-      "Raw string JSON literals are copied byte for byte, using Kotlin raw strings with \\n kept literal where Swift used an escaped newline.",
-      "MoblinSettingsUrl.fromString(query:) is called as fromString(query = ...) per the glossary port.",
-      "kotlin.test assertEquals compares nullable strings; the error message is read from localizedDescription."
+      "Added the new 'unsupported srt implementation' invalid case after the DNS lookup strategy case.",
+      "Added the 'official srt implementation' and 'moblin srt implementation' valid cases after the biggest audio bitrate case.",
+      "Everything else in the Kotlin file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 41110,
-    "tokens_out": 3033,
-    "seconds": 12.8,
-    "ported_at": "2026-11-10T02:46:15+00:00"
+    "tokens_in": 44719,
+    "tokens_out": 3017,
+    "seconds": 9.6,
+    "ported_at": "2026-11-15T23:33:34+00:00"
   },
   "MoblinTests/Moblin/Various/Settings/SettingsStreamSuite.swift": {
     "status": "ok",
@@ -18753,5 +18731,52 @@
     "tokens_out": 10612,
     "seconds": 47.3,
     "ported_at": "2026-11-13T00:44:51+00:00"
+  },
+  "Moblin/Various/Model/ModelSoundBoard.swift": {
+    "status": "ok",
+    "sha256": "243060ba8185177af66b80f32c0236cc81bb80d5c33359c7ac5cac1900fbf468",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSoundBoard.kt",
+    "notes": [
+      "Swift URL? becomes String?, since the URL is only stored and passed to Bundle.url and AudioPlayer(contentsOf:).",
+      "Bundle.main.url(forResource:withExtension:) is replaced by the platform shim Bundle.url(name, ext).",
+      "try? AudioPlayer(contentsOf:) is translated as runCatching { ... }.getOrNull().",
+      "Both members are Model extensions, so they are emitted as top-level extension functions in the same package as Model, with no import for Model itself.",
+      "alertMediaStorage.makePath(id:) is called as declared with the named argument id.",
+      "first(where:) becomes firstOrNull { it.id == soundId }."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 35353,
+    "tokens_out": 1700,
+    "seconds": 9.0,
+    "ported_at": "2026-11-15T23:33:34+00:00"
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonSoundBoardView.swift": {
+    "status": "ok",
+    "sha256": "ac258697b0b81df78373adee29af98f8db4ff946c2b88ecdbeb9fb09e1d2e50c",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonSoundBoardView.kt",
+    "notes": [
+      "QuickButtonSoundBoardView uses LazyVerticalGrid(GridCells.Fixed(3)) for LazyVGrid with three flexible columns, with 8.dp spacing and 16.dp content padding like .padding().",
+      "The ScrollView + .navigationTitle pair becomes a scrolling LazyVerticalGrid plus NavigationTitle(\"Sound board\"), which sets the title on the enclosing NavigationEntry; the destination is rendered inside a NavigationStack supplied by the caller.",
+      "SoundView keeps the Swift name and is a private @Composable in this file.",
+      "SwiftUI's .buttonStyle(.bordered) has no shim, so the bordered look (rounded 8.dp cell background, separator border, 44.dp minimum height, accent label) is drawn with a clickable Box and the iOS 0.2 pressed alpha, with indication = null so no Material ripple appears.",
+      "SettingsAlertsMediaGallery and SettingsAlertsMediaGalleryItem are published settings classes, so gallery.allSounds() and sound.name/sound.id are read directly, never through collectAsState.",
+      "The name is user data, so Text(sound.name) is not wrapped in localized(); only the fixed title literal is localized by the shim.",
+      "Grid items are keyed by sound.id.toString() so the lazy grid key stays saveable in the Android instance state."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 39527,
+    "tokens_out": 7111,
+    "seconds": 34.5,
+    "ported_at": "2026-11-15T23:33:59+00:00"
   }
 }

@@ -1,9 +1,18 @@
 {
-  "upstream": "3c125cece77d2f47cea5f500ead02859f92d5537",
+  "upstream": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "Moblin/Various/Settings/SettingsStream.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/SettingsStream.kt",
+      "reason": "dependency",
+      "ported_from": "3c125cece77d2f47cea5f500ead02859f92d5537",
+      "errors": [],
+      "hooks": []
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

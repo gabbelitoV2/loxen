@@ -2734,6 +2734,12 @@ private fun addMissingQuickButtonsPageThree(database: Database) {
         page = page,
     )
     updateQuickButton(database, button)
+    button = SettingsQuickButton(
+        type = SettingsQuickButtonType.soundBoard,
+        imageOn = "speaker.wave.2.bubble",
+        page = page,
+    )
+    updateQuickButton(database, button)
 }
 
 private fun addMissingQuickButtons(database: Database) {

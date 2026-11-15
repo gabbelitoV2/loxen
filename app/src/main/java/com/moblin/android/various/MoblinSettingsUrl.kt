@@ -19,6 +19,7 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamCodec
 import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.various.settings.SettingsStreamSrt
+import com.moblin.android.various.settings.SettingsStreamSrtImplementation
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
@@ -48,11 +49,13 @@ class MoblinSettingsSrt {
     var latency: Int? = null
     var adaptiveBitrateEnabled: Boolean? = null
     var dnsLookupStrategy: SettingsDnsLookupStrategy? = null
+    var implementation: SettingsStreamSrtImplementation? = null
 
     fun encode(): JsonObject = encodeContainer {
         encodeIfPresent("latency", latency)
         encodeIfPresent("adaptiveBitrateEnabled", adaptiveBitrateEnabled)
         encodeIfPresent("dnsLookupStrategy", dnsLookupStrategy)
+        encodeIfPresent("implementation", implementation)
     }
 
     companion object {
@@ -69,6 +72,10 @@ class MoblinSettingsSrt {
                 "dnsLookupStrategy",
                 localized("Unsupported SRT DNS lookup strategy"),
             ) { SettingsDnsLookupStrategy.fromRawValue(it) }
+            srt.implementation = container.decodeEnumIfPresent(
+                "implementation",
+                localized("Unsupported SRT implementation"),
+            ) { SettingsStreamSrtImplementation.fromRawValue(it) }
             return srt
         }
     }

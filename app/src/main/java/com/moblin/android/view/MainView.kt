@@ -147,6 +147,7 @@ import com.moblin.android.view.controlbar.quickbutton.QuickButtonMacrosView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonMicView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonObsView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonSceneWidgetsView
+import com.moblin.android.view.controlbar.quickbutton.QuickButtonSoundBoardView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonStreamSwitcherView
 import com.moblin.android.view.controlbar.quickbutton.chat.PredefinedMessagesView
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatModerationView
@@ -383,6 +384,10 @@ private fun MenuView(model: Model = LocalModel.current) {
             stream = stream
         )
         ShowingPanel.macros -> QuickButtonMacrosView(model = model, macros = model.database.macros)
+        ShowingPanel.soundBoard -> QuickButtonSoundBoardView(
+            model = model,
+            gallery = model.database.alertsMediaGallery
+        )
         ShowingPanel.none -> {}
     }
 }

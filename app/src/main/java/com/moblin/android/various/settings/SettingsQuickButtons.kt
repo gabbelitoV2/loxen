@@ -84,7 +84,8 @@ enum class SettingsQuickButtonType(val rawValue: String) {
     gimbalTracking("Gimbal tracking"),
     previewStream("Preview stream"),
     photoShoot("Photo shoot"),
-    sceneEditor("Scene editor");
+    sceneEditor("Scene editor"),
+    soundBoard("Sound board");
 
     override fun toString(): String {
         return when (this) {
@@ -153,6 +154,7 @@ enum class SettingsQuickButtonType(val rawValue: String) {
             previewStream -> localized("Preview stream")
             photoShoot -> localized("Photo shoot")
             sceneEditor -> localized("Scene editor")
+            soundBoard -> localized("Sound board")
         }
     }
 

@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
-import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
@@ -32,17 +31,12 @@ import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.io.File
 import java.util.UUID
+import com.moblin.android.various.model.makeAlertSoundUrl
 
 private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
-    val bundledSound = model.database.alertsMediaGallery.bundledSounds.firstOrNull { it.id == soundId }
-    val url = if (bundledSound != null) {
-        Bundle.url("Alerts.bundle/${bundledSound.name}", "mp3")?.let { File(it) }
-    } else {
-        model.alertMediaStorage.makePath(soundId)
-    }
-    val path = url ?: return null
+    val url = model.makeAlertSoundUrl(soundId) ?: return null
     return runCatching {
-        AudioPlayer(contentsOf = path.path)
+        AudioPlayer(contentsOf = url)
     }.getOrNull()
 }
 

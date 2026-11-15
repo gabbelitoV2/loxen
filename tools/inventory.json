@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-14T23:26:33+00:00",
+  "generated": "2026-11-15T23:33:10+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4844,6 +4844,26 @@
       "wave": 5
     },
     {
+      "path": "Moblin/Various/Model/ModelSoundBoard.swift",
+      "lines": 22,
+      "sha256": "243060ba8185177af66b80f32c0236cc81bb80d5c33359c7ac5cac1900fbf468",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSoundBoard.kt",
+      "deps": [
+        "Moblin/Various/KeepSpeakerAlive.swift",
+        "Moblin/Various/Model/Model.swift"
+      ],
+      "wave": 5
+    },
+    {
       "path": "Moblin/Various/Model/ModelStealthMode.swift",
       "lines": 32,
       "sha256": "d35a998f7b86b5df6bea8dff0f8cc89f47c16e42696847406d037602925c0fca",
@@ -9650,6 +9670,31 @@
       "wave": 13
     },
     {
+      "path": "Moblin/View/ControlBar/QuickButton/QuickButtonSoundBoardView.swift",
+      "lines": 37,
+      "sha256": "ac258697b0b81df78373adee29af98f8db4ff946c2b88ecdbeb9fb09e1d2e50c",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "SoundView",
+        "QuickButtonSoundBoardView"
+      ],
+      "private_types": [
+        "SoundView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.controlbar.quickbutton",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonSoundBoardView.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Settings/Settings.swift"
+      ],
+      "wave": 13
+    },
+    {
       "path": "Moblin/View/ControlBar/QuickButton/QuickButtonStreamSwitcherView.swift",
       "lines": 40,
       "sha256": "e25541492ddbfa8dd461f5ab8660ac151f3680fb9e092688be5d44ae53e8059d",
@@ -10831,8 +10876,8 @@
     },
     {
       "path": "MoblinTests/Moblin/Various/MoblinSettingsUrlSuite.swift",
-      "lines": 213,
-      "sha256": "2de1c2b97ef01178c4ff3d4f24253580d8ab02307b2b534b5417c4bfcc5e130b",
+      "lines": 220,
+      "sha256": "b350026c55c2f90330e1aeaf55b31d77ea535e21ccbe9db4454924e3e552779d",
       "imports": [
         "Foundation",
         "Testing"
@@ -12688,8 +12733,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsStream.swift",
-      "lines": 1982,
-      "sha256": "c0723bde17bc69a70549b9d36df50650376aa740f3a1e19796356391bad68e19",
+      "lines": 1957,
+      "sha256": "05b397d94a2938ae9b30cac91552cb64dfb44e3f629cebbae8b39dacfb09771f",
       "imports": [
         "AVFoundation",
         "AppAuthCore"
@@ -15007,8 +15052,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSettingsUrl.swift",
-      "lines": 260,
-      "sha256": "118b5707aff657ca97316b356e4a1ab3c6d65d6a2683ddf1a7e7b42e74ff79cc",
+      "lines": 263,
+      "sha256": "e20e4d383e350027a08c100606c84441d0a51cde4e7c12144c52192d90f2b891",
       "imports": [
         "SwiftUI"
       ],
@@ -17451,8 +17496,8 @@
     },
     {
       "path": "Moblin/Various/MoblinSettingsUrl.swift",
-      "lines": 308,
-      "sha256": "af15c6dfd66523d2cc438ae11851b45e32e8d0b1733856ab242ea123776b0355",
+      "lines": 314,
+      "sha256": "dacb8f61ee666bf73bdfc3b5399b9457721e6cf22e42f86011e866864faa72c7",
       "imports": [
         "Foundation"
       ],
@@ -20229,8 +20274,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButtonsView.swift",
-      "lines": 1169,
-      "sha256": "7411190ada119f8d0b0ba1581e2d7f5bf922d58f14abcfe7e5a478bd08378e17",
+      "lines": 1182,
+      "sha256": "e12afea09cb6dad73ec30a85bf6b035bb74449496f247f7fbe2855087c9dc3dd",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -20687,8 +20732,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsQuickButtons.swift",
-      "lines": 367,
-      "sha256": "339df73e6f299a1d05d664acf0a99f0791a858f484fb842be52366d47c77fddb",
+      "lines": 370,
+      "sha256": "3759f7e57ecac154ab075b1cc21e4923cc1926ab8cce8bfaae3a83bcc11fff71",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -21066,8 +21111,8 @@
     },
     {
       "path": "Moblin/Various/Settings/Settings.swift",
-      "lines": 2520,
-      "sha256": "2a91c7779caaf19d6e84a20f0663c2af6153ab9f678ff01b0204f32057493a9b",
+      "lines": 2524,
+      "sha256": "a454616b08c7290a5cb0d43c917ad60a9c96db9ade9a77e55854f36d3e1d740f",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -22269,8 +22314,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3556,
-      "sha256": "faf718a6f875ea6d5888a5f4f9c6db68eabe4720febd6836f8241ccb4480f2e0",
+      "lines": 3559,
+      "sha256": "c4732c27f7bc6170d803c9711205c45a30c242aa98b1871e700841bcf8ae8d52",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -23373,8 +23418,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift",
-      "lines": 172,
-      "sha256": "9cb063af40f1d341c226e3db808ee7506a348e5b84930b72e4a97f8e63a3c001",
+      "lines": 165,
+      "sha256": "4048de31e8fc74810423169b1fb34458d7712bc0ac8804b2126f7cbb448b0cc3",
       "imports": [
         "AVFAudio",
         "SwiftUI",
@@ -25370,8 +25415,8 @@
     },
     {
       "path": "Moblin/View/MainView.swift",
-      "lines": 769,
-      "sha256": "1f23e1fc7a87e46d2295e29cd61f30a60dcb38a0f6cc2f33a01609f21dee38da",
+      "lines": 774,
+      "sha256": "822c83c03a5d0ab14776a9a6522243b323491ac3cc01bc3cca55aa833af059fd",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -25445,6 +25490,7 @@
         "Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift",
         "Moblin/View/ControlBar/QuickButton/QuickButtonObsView.swift",
         "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift",
+        "Moblin/View/ControlBar/QuickButton/QuickButtonSoundBoardView.swift",
         "Moblin/View/ControlBar/QuickButton/QuickButtonStreamSwitcherView.swift",
         "Moblin/View/ControlBar/QuickButton/SceneEditor/SceneEditorView.swift",
         "Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift",

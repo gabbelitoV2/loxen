@@ -558,6 +558,10 @@ fun QuickButtonsInnerView(
         model.toggleShowingPanel(type = SettingsQuickButtonType.macros, panel = ShowingPanel.macros)
     }
 
+    fun soundBoardAction() {
+        model.toggleShowingPanel(type = SettingsQuickButtonType.soundBoard, panel = ShowingPanel.soundBoard)
+    }
+
     fun gimbalTrackingAction() {
         model.toggleGimbalTracking()
     }
@@ -872,6 +876,12 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.predefinedMessages -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             model.presentingPredefinedMessages.value = true
+                            stopFilteringUnlessPresentingDialog()
+                        }
+                    }
+                    SettingsQuickButtonType.soundBoard -> {
+                        QuickButtonImage(model, quickButtonsSettings, button, size) {
+                            soundBoardAction()
                             stopFilteringUnlessPresentingDialog()
                         }
                     }

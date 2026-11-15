@@ -100,6 +100,10 @@ private fun Model.handleSettingsUrlsDefaultStreams(
             if (dnsLookupStrategy != null) {
                 targetStream.srt.dnsLookupStrategy = dnsLookupStrategy
             }
+            val implementation = srt.implementation
+            if (implementation != null) {
+                targetStream.srt.implementation = implementation
+            }
         }
         val obs = stream.obs
         if (obs != null) {

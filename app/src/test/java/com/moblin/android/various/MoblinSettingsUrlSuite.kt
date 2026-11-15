@@ -127,6 +127,11 @@ class MoblinSettingsUrlSuite {
                 localized("Unsupported SRT DNS lookup strategy"),
             ),
             InvalidCase(
+                "unsupported srt implementation",
+                """{"streams":[{"name":"a","url":"srt://host:5000","srt":{"implementation":"Other"}}]}""",
+                localized("Unsupported SRT implementation"),
+            ),
+            InvalidCase(
                 "quick button page 6",
                 """{"quickButtons":{"buttons":[{"type":"Torch","page":6}]}}""",
                 localized("Quick button page out of range"),
@@ -175,6 +180,14 @@ class MoblinSettingsUrlSuite {
             ValidCase(
                 "biggest audio bitrate",
                 """{"streams":[{"name":"a","url":"srt://host:5000","audio":{"bitrate":320000}}]}""",
+            ),
+            ValidCase(
+                "official srt implementation",
+                """{"streams":[{"name":"a","url":"srt://host:5000","srt":{"implementation":"Official"}}]}""",
+            ),
+            ValidCase(
+                "moblin srt implementation",
+                """{"streams":[{"name":"a","url":"srt://host:5000","srt":{"implementation":"Moblin"}}]}""",
             ),
             ValidCase(
                 "empty remote control streamer url",
