@@ -63,8 +63,6 @@ private fun <T> keysOf(serializer: KSerializer<T>, value: T): List<String> =
 
 private fun migratedStream(): SettingsStream {
     val stream = SettingsStream(name = "Main")
-    stream.srt.bigPacketsMigrated = true
-    stream.srt.implemenationMigrated = true
     return stream
 }
 

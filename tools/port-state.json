@@ -11747,24 +11747,24 @@
   },
   "Moblin/Various/Settings/SettingsStream.swift": {
     "status": "ok",
-    "sha256": "c0723bde17bc69a70549b9d36df50650376aa740f3a1e19796356391bad68e19",
-    "moblin_commit": "3c125cece77d2f47cea5f500ead02859f92d5537",
+    "sha256": "05b397d94a2938ae9b30cac91552cb64dfb44e3f629cebbae8b39dacfb09771f",
+    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsStream.kt",
     "notes": [
-      "Removed the twitchSendMessagesTo and kickSendMessagesTo published flags from SettingsStream, along with their encode, decode and clone lines, matching the Swift diff.",
-      "Both flags were only persisted settings, so no other member or serialization path changes.",
-      "Existing JSON that still contains the removed keys is silently ignored on decode, exactly like Swift's decodable container.",
-      "All other declarations, formatting and imports are untouched."
+      "Removed the deprecated SRT migration state (mpegtsPacketsPerPacketRemove, bigPacketsMigrated, implemenationMigrated) from SettingsStreamSrt: constructor, encode, decode and clone.",
+      "Kept mpegtsPacketsPerPacket() unchanged; it now derives the packet count only from bigPackets (7 when true, 6 when false).",
+      "Existing JSON keys mpegtsPacketsPerPacket, bigPacketsMigrated and implemenationMigrated are no longer written or read, matching the Swift change.",
+      "All other declarations, including the hand-written Android layout handling in SettingsStreamReplay and the URI/mobcamPort adaptations, are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 91059,
-    "tokens_out": 23126,
-    "seconds": 58.3,
-    "ported_at": "2026-11-14T23:27:42+00:00"
+    "tokens_in": 90290,
+    "tokens_out": 23644,
+    "seconds": 56.4,
+    "ported_at": "2026-11-15T23:52:45+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Audio/StreamAudioSettingsView.swift": {
     "status": "ok",

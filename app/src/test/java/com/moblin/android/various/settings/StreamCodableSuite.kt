@@ -70,8 +70,6 @@ private fun <T> fieldOf(serializer: KSerializer<T>, value: T, key: String): Stri
 
 private fun migratedSrt(): SettingsStreamSrt {
     val srt = SettingsStreamSrt()
-    srt.bigPacketsMigrated = true
-    srt.implemenationMigrated = true
     return srt
 }
 
@@ -489,7 +487,6 @@ class StreamCodableSuite {
               "adaptiveEncoderResolutionThreashold": 0.5,
               "srt": {
                 "latency": 500,
-                "mpegtsPacketsPerPacket": 6,
                 "adaptiveBitrate": {"algorithm": {"fastIrl": {}}, "fastIrlSettings": {"packetsInFlight": 300}},
                 "connectionPriorities": {
                   "enabled": true,
@@ -497,7 +494,9 @@ class StreamCodableSuite {
                     {"id": "$sampleId", "name": "WiFi", "priority": 3, "enabled": false, "relayId": "$sampleRelayId"}
                   ]
                 },
-                "dnsLookupStrategy": "IPv6"
+                "dnsLookupStrategy": "IPv6",
+                "implementation": "Official",
+                "bigPackets": false
               },
               "rtmp": {"adaptiveBitrateEnabled": false},
               "rist": {"adaptiveBitrateEnabled": false},
@@ -529,7 +528,7 @@ class StreamCodableSuite {
         assertEquals("one", stream.twitchRaidsSent[0].channelName)
         assertEquals(Instant.ofEpochSecond(978_307_200L + 1000L, 500_000_000L), stream.twitchRaidsSent[0].timestamp)
         assertEquals("k1", stream.kickChannelId)
-        assertEquals("", stream.kickAccessToken)
+        assertEquals("secret", stream.kickAccessToken)
         assertEquals(7, stream.kickChatAlerts.minimumKicks)
         assertEquals(listOf("a", "b"), stream.getYouTubeVideoIds())
         assertEquals(YouTubeApiLiveBroadcaseVisibility.private, stream.youTubeScheduleStreamVisibility)
@@ -545,7 +544,6 @@ class StreamCodableSuite {
         assertEquals(0.5, stream.adaptiveEncoderResolutionThreashold)
         assertEquals(500, stream.srt.latency)
         assertFalse(stream.srt.bigPackets)
-        assertTrue(stream.srt.bigPacketsMigrated)
         assertEquals(SettingsStreamSrtImplementation.official, stream.srt.implementation)
         assertEquals(SettingsStreamSrtAdaptiveBitrateAlgorithm.fastIrl, stream.srt.adaptiveBitrate.algorithm)
         assertEquals(300, stream.srt.adaptiveBitrate.fastIrlSettings.packetsInFlight)
@@ -590,7 +588,7 @@ class StreamCodableSuite {
         assertEquals("true", encoded["autoFps"].toString())
         assertEquals("\"CBR\"", encoded["bitrateRateControl"].toString())
         assertEquals("\"H.264/AVC\"", encoded["codec"].toString())
-        assertEquals("\"\"", encoded["kickAccessToken"].toString())
+        assertEquals("\"secret\"", encoded["kickAccessToken"].toString())
         assertEquals("null", encoded["twitchShowFollows"].toString())
         assertEquals("\"AQID\"", encoded["recording"]!!.jsonObject["recordingPath"].toString())
         assertEquals("1000.5", encoded["twitchRaidsSent"].toString().substringAfter("\"timestamp\":").substringBefore("}"))
@@ -601,28 +599,17 @@ class StreamCodableSuite {
     }
 
     @Test
-    fun srtMigrationsLikeSwift() {
-        val unmigrated = decodeJson(
+    fun srtLegacyMigrationKeysAreIgnored() {
+        val legacy = decodeJson(
             SettingsStreamSrt.serializer(),
-            "{\"latency\":800,\"mpegtsPacketsPerPacket\":7,\"bigPackets\":false,\"implementation\":\"Moblin\"}",
+            "{\"latency\":800,\"mpegtsPacketsPerPacket\":6,\"bigPackets\":false,\"implementation\":\"Moblin\"," +
+                "\"bigPacketsMigrated\":false,\"implemenationMigrated\":false}",
         )
-        assertTrue(unmigrated.bigPackets)
-        assertTrue(unmigrated.bigPacketsMigrated)
-        assertEquals(SettingsStreamSrtImplementation.official, unmigrated.implementation)
-        assertTrue(unmigrated.implemenationMigrated)
-        val migrated = decodeJson(
-            SettingsStreamSrt.serializer(),
-            "{\"latency\":800,\"mpegtsPacketsPerPacket\":7,\"bigPackets\":false,\"implementation\":\"Moblin\"," +
-                "\"bigPacketsMigrated\":true,\"implemenationMigrated\":true}",
-        )
-        assertFalse(migrated.bigPackets)
-        assertEquals(SettingsStreamSrtImplementation.moblin, migrated.implementation)
-        val fresh = SettingsStreamSrt()
-        assertFalse(fresh.bigPacketsMigrated)
-        assertFalse(fresh.implemenationMigrated)
-        val reloaded = decodeJson(SettingsStreamSrt.serializer(), encodeJson(SettingsStreamSrt.serializer(), fresh))
+        assertFalse(legacy.bigPackets)
+        assertEquals(SettingsStreamSrtImplementation.moblin, legacy.implementation)
+        val reloaded = decodeJson(SettingsStreamSrt.serializer(), encodeJson(SettingsStreamSrt.serializer(), legacy))
         assertEquals(
-            withoutIds(encodeJson(SettingsStreamSrt.serializer(), migratedSrt())),
+            withoutIds(encodeJson(SettingsStreamSrt.serializer(), legacy)),
             withoutIds(encodeJson(SettingsStreamSrt.serializer(), reloaded)),
         )
     }
@@ -922,8 +909,7 @@ class StreamCodableSuite {
             SettingsStreamSrt.serializer(),
             SettingsStreamSrt(),
             "latency maximumBandwidthFollowInput overheadBandwidth adaptiveBitrateEnabled adaptiveBitrate " +
-                "connectionPriorities mpegtsPacketsPerPacket dnsLookupStrategy implementation bigPackets " +
-                "bigPacketsMigrated implemenationMigrated",
+                "connectionPriorities dnsLookupStrategy implementation bigPackets",
         )
         assertKeys(SettingsStreamRtmp.serializer(), SettingsStreamRtmp(), "adaptiveBitrateEnabled")
         assertKeys(SettingsStreamRist.serializer(), SettingsStreamRist(), "adaptiveBitrateEnabled bonding")
@@ -973,9 +959,9 @@ class StreamCodableSuite {
             """
             name id enabled url twitchChannelName twitchChannelId twitchShowFollows twitchAccessToken
             twitchLoggedIn twitchWantsToBeLoggedIn twitchNotLoggedInCount twitchRewards twitchRaidsSent
-            twitchRaidsReceived twitchSendMessagesTo twitchChatAlerts twitchToastAlerts kickChannelName
+            twitchRaidsReceived twitchChatAlerts twitchToastAlerts kickChannelName
             kickChannelId kickChatroomChannelId kickSlug kickAccessToken kickLoggedIn kickWantsToBeLoggedIn
-            kickNotLoggedInCount kickSendMessagesTo kickChatAlerts kickToastAlerts youTubeVideoId
+            kickNotLoggedInCount kickChatAlerts kickToastAlerts youTubeVideoId
             youTubeWantsToBeLoggedIn youTubeNotLoggedInCount youTubeHandle youTubeScheduleStreamTitle
             youTubeScheduleStreamVisibility youTubeScheduleStreamAutoStop afreecaTvChannelName afreecaTvStreamId
             openStreamingPlatformUrl openStreamingPlatformChannelId obsWebSocketEnabled obsWebSocketUrl
@@ -1292,7 +1278,6 @@ class StreamCodableSuite {
               "twitchRewards": [{"id": "$sampleId2", "rewardId": "r1", "title": "Hydrate", "alert": $alert}],
               "twitchRaidsSent": [{"channelId": "1", "channelName": "one", "timestamp": 1000.5}],
               "twitchRaidsReceived": [{"channelId": "2", "channelName": "two", "timestamp": 2000}],
-              "twitchSendMessagesTo": false,
               "twitchChatAlerts": $twitchAlerts,
               "twitchToastAlerts": $twitchAlerts,
               "kickChannelName": "kc",
@@ -1303,7 +1288,6 @@ class StreamCodableSuite {
               "kickLoggedIn": true,
               "kickWantsToBeLoggedIn": false,
               "kickNotLoggedInCount": 3,
-              "kickSendMessagesTo": false,
               "kickChatAlerts": $kickAlerts,
               "kickToastAlerts": $kickAlerts,
               "youTubeVideoId": "a,b",
@@ -1369,12 +1353,9 @@ class StreamCodableSuite {
                     {"id": "$sampleId2", "name": "Cellular", "priority": 1, "enabled": true, "relayId": null}
                   ]
                 },
-                "mpegtsPacketsPerPacket": 6,
                 "dnsLookupStrategy": "IPv4 and IPv6",
                 "implementation": "Official",
-                "bigPackets": false,
-                "bigPacketsMigrated": true,
-                "implemenationMigrated": true
+                "bigPackets": false
               },
               "rtmp": {"adaptiveBitrateEnabled": false},
               "rist": {"adaptiveBitrateEnabled": false, "bonding": false},

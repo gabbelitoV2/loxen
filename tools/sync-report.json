@@ -3,16 +3,7 @@
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [
-    {
-      "swift": "Moblin/Various/Settings/SettingsStream.swift",
-      "kotlin": "app/src/main/java/com/moblin/android/various/settings/SettingsStream.kt",
-      "reason": "dependency",
-      "ported_from": "3c125cece77d2f47cea5f500ead02859f92d5537",
-      "errors": [],
-      "hooks": []
-    }
-  ],
+  "held_back": [],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

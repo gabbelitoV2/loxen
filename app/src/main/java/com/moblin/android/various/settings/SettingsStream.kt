@@ -668,12 +668,9 @@ class SettingsStreamSrt(
     var adaptiveBitrate: SettingsStreamSrtAdaptiveBitrate = SettingsStreamSrtAdaptiveBitrate(),
     var connectionPriorities: SettingsStreamSrtConnectionPriorities =
         SettingsStreamSrtConnectionPriorities(),
-    var mpegtsPacketsPerPacketRemove: Int = 7,
     dnsLookupStrategy: SettingsDnsLookupStrategy = SettingsDnsLookupStrategy.system,
     implementation: SettingsStreamSrtImplementation = SettingsStreamSrtImplementation.moblin,
     bigPackets: Boolean = true,
-    var bigPacketsMigrated: Boolean = false,
-    var implemenationMigrated: Boolean = false,
 ) {
     var latency: Int by Published(latency)
     var maximumBandwidthFollowInput: Boolean by Published(maximumBandwidthFollowInput)
@@ -689,12 +686,9 @@ class SettingsStreamSrt(
         encode("adaptiveBitrateEnabled", adaptiveBitrateEnabled)
         encode("adaptiveBitrate", adaptiveBitrate)
         encode("connectionPriorities", connectionPriorities)
-        encode("mpegtsPacketsPerPacket", mpegtsPacketsPerPacketRemove)
         encode("dnsLookupStrategy", dnsLookupStrategy)
         encode("implementation", implementation)
         encode("bigPackets", bigPackets)
-        encode("bigPacketsMigrated", bigPacketsMigrated)
-        encode("implemenationMigrated", implemenationMigrated)
     }
 
     fun mpegtsPacketsPerPacket(): Int {
@@ -713,12 +707,9 @@ class SettingsStreamSrt(
         new.adaptiveBitrateEnabled = adaptiveBitrateEnabled
         new.adaptiveBitrate = adaptiveBitrate.clone()
         new.connectionPriorities = connectionPriorities.clone()
-        new.mpegtsPacketsPerPacketRemove = mpegtsPacketsPerPacketRemove
         new.dnsLookupStrategy = dnsLookupStrategy
         new.implementation = implementation
         new.bigPackets = bigPackets
-        new.bigPacketsMigrated = bigPacketsMigrated
-        new.implemenationMigrated = implemenationMigrated
         return new
     }
 
@@ -743,22 +734,9 @@ class SettingsStreamSrt(
                 SettingsStreamSrtConnectionPriorities.serializer(),
                 SettingsStreamSrtConnectionPriorities(),
             )
-            srt.mpegtsPacketsPerPacketRemove = container.decode("mpegtsPacketsPerPacket", 7)
             srt.dnsLookupStrategy = container.decode("dnsLookupStrategy", SettingsDnsLookupStrategy.system)
             srt.implementation = container.decode("implementation", SettingsStreamSrtImplementation.moblin)
             srt.bigPackets = container.decode("bigPackets", true)
-            srt.bigPacketsMigrated = container.decode("bigPacketsMigrated", false)
-            if (!srt.bigPacketsMigrated) {
-                srt.bigPackets = srt.mpegtsPacketsPerPacketRemove == 7
-                srt.bigPacketsMigrated = true
-            }
-            srt.implemenationMigrated = container.decode("implemenationMigrated", false)
-            if (!srt.implemenationMigrated) {
-                if (srt.latency < 1000) {
-                    srt.implementation = SettingsStreamSrtImplementation.official
-                }
-                srt.implemenationMigrated = true
-            }
             return srt
         }
     }
