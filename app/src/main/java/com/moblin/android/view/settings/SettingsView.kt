@@ -44,6 +44,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
@@ -202,276 +203,300 @@ fun SettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val isLive by model.isLive.collectAsState()
-    val showAllSettings = binding({ database.showAllSettings }) { database.showAllSettings = it }
+    val searchText = remember { mutableStateOf("") }
+    var searchItems by remember { mutableStateOf(emptyList<SettingsSearchItem>()) }
+    LaunchedEffect(searchText.value.isEmpty()) {
+        searchItems = if (searchText.value.isEmpty()) {
+            emptyList()
+        } else {
+            settingsSearchItems(model = model, database = database)
+        }
+    }
     NavigationStack {
         Form(title = "Settings") {
-            if (isLive) {
-                InfoBannerView(text = "Settings that would stop the stream are disabled when live.")
-            }
             Section {
-                NavigationLink(destination = {
-                    StreamsSettingsView(
-                        model = model,
-                        createStreamWizard = model.createStreamWizard,
-                        database = database,
-                    )
-                }) {
-                    Label("Streams", systemImage = "dot.radiowaves.left.and.right")
-                }
-                NavigationLink(destination = {
-                    ScenesSettingsView(model = model, database = database)
-                }) {
-                    Label("Scenes", systemImage = "photo.on.rectangle")
-                }
-                NavigationLink(destination = {
-                    val stream by model.stream.collectAsState()
-                    ChatSettingsView(model = model, database = database, chat = database.chat, stream = stream)
-                }) {
-                    Label("Chat", systemImage = "message")
-                }
-                NavigationLink(destination = {
-                    DisplaySettingsView(model = model, database = database)
-                }) {
-                    Label("Display", systemImage = "rectangle.inset.topright.fill")
-                }
-                NavigationLink(destination = {
-                    val stream by model.stream.collectAsState()
-                    CameraSettingsView(model = model, database = database, stream = stream, color = database.color)
-                }) {
-                    Label("Camera", systemImage = "camera")
-                }
-                if (showAllSettings.value) {
-                    NavigationLink(destination = {
-                        val stream by model.stream.collectAsState()
-                        AudioSettingsView(
-                            model = model,
-                            database = database,
-                            stream = stream,
-                            mic = model.mic,
-                            debug = database.debug,
-                            audio = database.audio,
-                        )
-                    }) {
-                        Label("Audio", systemImage = "waveform")
-                    }
-                    NavigationLink(destination = {
-                        MacrosSettingsView(model = model, database = database, macros = database.macros)
-                    }) {
-                        Label("Macros", systemImage = "increase.indent")
-                    }
-                }
-                NavigationLink(destination = {
-                    val stream by model.stream.collectAsState()
-                    LocationSettingsView(
-                        model = model,
-                        database = database,
-                        location = database.location,
-                        locationManager = model.locationManager,
-                        stream = stream,
-                    )
-                }) {
-                    Label("Location", systemImage = "location")
-                }
+                SettingsSearchFieldView(text = searchText)
             }
-            Section {
-                NavigationLink(destination = {
-                    StoreSettingsView(model = model, store = model.store)
-                }) {
-                    Label(com.moblin.android.platform.loxen.Loxen.appName, systemImage = "pawprint")
-                }
-            }
-            Section {
-                if (showAllSettings.value) {
-                    NavigationLink(destination = {
-                        IngestsSettingsView(model = model, database = database)
-                    }) {
-                        Label("Ingests", systemImage = "server.rack")
-                    }
-                    NavigationLink(destination = {
-                        TalkbackSettingsView(model = model, mics = database.mics, talkback = database.talkback)
-                    }) {
-                        Label("Talkback", systemImage = "speaker.wave.2.bubble.left")
-                    }
-                }
-                NavigationLink(destination = {
-                    MoblinkSettingsView(model = model, status = model.statusOther, streamer = database.moblink.streamer)
-                }) {
-                    Label("Moblink", systemImage = "app.connected.to.app.below.fill")
-                }
-                if (showAllSettings.value) {
-                    NavigationLink(destination = {
-                        MediaPlayersSettingsView(model = model, mediaPlayers = database.mediaPlayers)
-                    }) {
-                        Label("Media players", systemImage = "play.rectangle.on.rectangle")
-                    }
-                    NavigationLink(destination = {
-                        AppleMusicSettingsView(model = model, musicPlaylist = model.musicPlaylist)
-                    }) {
-                        Label("Apple Music", systemImage = "music.note")
-                    }
-                }
-            }
-            if (showAllSettings.value) {
-                Section {
-                    NavigationLink(destination = {
-                        GimbalSettingsView(model = model, gimbal = database.gimbal)
-                    }) {
-                        Label("Gimbal", systemImage = "iphone.dock.motorized.viewfinder")
-                    }
-                    NavigationLink(destination = {
-                        SelfieStickSettingsView(model = model, selfieStick = database.selfieStick)
-                    }) {
-                        Label("Selfie stick", systemImage = "line.diagonal")
-                    }
-                    NavigationLink(destination = {
-                        GameControllersSettingsView(model = model, database = database)
-                    }) {
-                        Label("Game controllers", systemImage = "gamecontroller")
-                    }
-                    NavigationLink(destination = {
-                        KeyboardSettingsView(model = model, keyboard = database.keyboard)
-                    }) {
-                        Label("Keyboard", systemImage = "keyboard")
-                    }
-                    if (isPad() && !com.moblin.android.platform.loxen.Loxen.hidesStreamDecks) {
-                        NavigationLink(destination = {
-                            StreamDecksSettingsView(
-                                model = model,
-                                streamDeck = model.streamDeck,
-                                streamDecks = database.streamDecks,
-                            )
-                        }) {
-                            Label("Stream decks", systemImage = "square.grid.3x3.square")
-                        }
-                    }
-                    NavigationLink(destination = {
-                        val stream by model.stream.collectAsState()
-                        RemoteControlSettingsView(
-                            model = model,
-                            database = database,
-                            stream = stream,
-                            onStreamChange = { model.stream.value = it },
-                        )
-                    }) {
-                        Label("Remote control", systemImage = "appletvremote.gen1")
-                    }
-                    if (!isMac()) {
-                        NavigationLink(destination = {
-                            MoblinCloudSettingsView(
-                                model = model,
-                                database = database,
-                                moblinCloud = database.moblinCloud,
-                            )
-                        }) {
-                            Label("Moblin Cloud", systemImage = "cloud")
-                        }
-                    }
-                }
-                Section {
-                    NavigationLink(destination = {
-                        DjiDevicesSettingsView(model = model, djiDevices = database.djiDevices)
-                    }) {
-                        Label("DJI devices", systemImage = "appletvremote.gen1")
-                    }
-                    NavigationLink(destination = {
-                        GoProSettingsView(model = model)
-                    }) {
-                        Label("GoPro", systemImage = "appletvremote.gen1")
-                    }
-                    NavigationLink(destination = {
-                        CatPrintersSettingsView(model = model, catPrinters = database.catPrinters)
-                    }) {
-                        Label("Cat printers", systemImage = "pawprint")
-                    }
-                    NavigationLink(destination = {
-                        TeslaSettingsView(model = model, tesla = model.tesla)
-                    }) {
-                        Label("Tesla", systemImage = "car.side")
-                    }
-                    NavigationLink(destination = {
-                        WorkoutDevicesSettingsView(model = model, workoutDevices = database.workoutDevices)
-                    }) {
-                        Label("Workout devices", systemImage = "figure.walk.motion")
-                    }
-                    NavigationLink(destination = {
-                        BlackSharkCoolerDevicesSettingsView(
-                            model = model,
-                            blackSharkCoolerDevices = database.blackSharkCoolerDevices,
-                        )
-                    }) {
-                        Label("Black Shark coolers", systemImage = "fan")
-                    }
-                }
-            }
-            Section {
-                NavigationLink(destination = {
-                    RecordingsSettingsView(model = model)
-                }) {
-                    Label("Recordings", systemImage = "photo.on.rectangle.angled")
-                }
-                if (showAllSettings.value) {
-                    NavigationLink(destination = {
-                        StreamingHistorySettingsView(model = model)
-                    }) {
-                        Label("Streaming history", systemImage = "text.book.closed")
-                    }
-                }
-            }
-            if (showAllSettings.value && isPhone()) {
-                Section {
-                    NavigationLink(destination = {
-                        AppleWatchSettingsDestination(model = model, database = database)
-                    }) {
-                        Label("Apple Watch", systemImage = "applewatch")
-                    }
-                }
-            }
-            Section {
-                NavigationLink(destination = {
-                    HelpAndSupportSettingsView()
-                }) {
-                    Label("Help and support", systemImage = "questionmark.circle")
-                }
-                if (showAllSettings.value) {
-                    NavigationLink(destination = {
-                        AboutSettingsView()
-                    }) {
-                        Label("About", systemImage = "info.circle")
-                    }
-                    NavigationLink(destination = {
-                        DebugSettingsView(model = model, debug = database.debug)
-                    }) {
-                        Label("Debug", systemImage = "ladybug")
-                    }
-                }
-            }
-            if (showAllSettings.value) {
-                Section {
-                    NavigationLink(destination = {
-                        ImportExportSettingsView(model = model)
-                    }) {
-                        Label("Import and export settings", systemImage = "gearshape")
-                    }
-                    NavigationLink(destination = {
-                        DeepLinkCreatorSettingsView(deepLinkCreator = database.deepLinkCreator)
-                    }) {
-                        Label("Deep link creator", systemImage = "link.badge.plus")
-                    }
-                }
-            }
-            Section {
-                if (showAllSettings.value && !isMac()) {
-                    AppModeView(model = model, database = database)
-                }
-                Toggle("Show all settings", isOn = showAllSettings)
-            }
-            Section {
-                SettingsSaveView(model = model)
-            }
-            Section {
-                SettingsResetView(model = model)
+            if (searchText.value.isNotEmpty()) {
+                SettingsSearchResultsView(items = searchItems, text = searchText.value)
+            } else {
+                SettingsContentView(database = database)
             }
         }
+    }
+}
+
+@Composable
+private fun SettingsContentView(
+    model: Model = LocalModel.current,
+    database: Database,
+) {
+    val isLive by model.isLive.collectAsState()
+    val showAllSettings = binding({ database.showAllSettings }) { database.showAllSettings = it }
+    if (isLive) {
+        InfoBannerView(text = "Settings that would stop the stream are disabled when live.")
+    }
+    Section {
+        NavigationLink(destination = {
+            StreamsSettingsView(
+                model = model,
+                createStreamWizard = model.createStreamWizard,
+                database = database,
+            )
+        }) {
+            Label("Streams", systemImage = "dot.radiowaves.left.and.right")
+        }
+        NavigationLink(destination = {
+            ScenesSettingsView(model = model, database = database)
+        }) {
+            Label("Scenes", systemImage = "photo.on.rectangle")
+        }
+        NavigationLink(destination = {
+            val stream by model.stream.collectAsState()
+            ChatSettingsView(model = model, database = database, chat = database.chat, stream = stream)
+        }) {
+            Label("Chat", systemImage = "message")
+        }
+        NavigationLink(destination = {
+            DisplaySettingsView(model = model, database = database)
+        }) {
+            Label("Display", systemImage = "rectangle.inset.topright.fill")
+        }
+        NavigationLink(destination = {
+            val stream by model.stream.collectAsState()
+            CameraSettingsView(model = model, database = database, stream = stream, color = database.color)
+        }) {
+            Label("Camera", systemImage = "camera")
+        }
+        if (showAllSettings.value) {
+            NavigationLink(destination = {
+                val stream by model.stream.collectAsState()
+                AudioSettingsView(
+                    model = model,
+                    database = database,
+                    stream = stream,
+                    mic = model.mic,
+                    debug = database.debug,
+                    audio = database.audio,
+                )
+            }) {
+                Label("Audio", systemImage = "waveform")
+            }
+            NavigationLink(destination = {
+                MacrosSettingsView(model = model, database = database, macros = database.macros)
+            }) {
+                Label("Macros", systemImage = "increase.indent")
+            }
+        }
+        NavigationLink(destination = {
+            val stream by model.stream.collectAsState()
+            LocationSettingsView(
+                model = model,
+                database = database,
+                location = database.location,
+                locationManager = model.locationManager,
+                stream = stream,
+            )
+        }) {
+            Label("Location", systemImage = "location")
+        }
+    }
+    Section {
+        NavigationLink(destination = {
+            StoreSettingsView(model = model, store = model.store)
+        }) {
+            Label(com.moblin.android.platform.loxen.Loxen.appName, systemImage = "pawprint")
+        }
+    }
+    Section {
+        if (showAllSettings.value) {
+            NavigationLink(destination = {
+                IngestsSettingsView(model = model, database = database)
+            }) {
+                Label("Ingests", systemImage = "server.rack")
+            }
+            NavigationLink(destination = {
+                TalkbackSettingsView(model = model, mics = database.mics, talkback = database.talkback)
+            }) {
+                Label("Talkback", systemImage = "speaker.wave.2.bubble.left")
+            }
+        }
+        NavigationLink(destination = {
+            MoblinkSettingsView(model = model, status = model.statusOther, streamer = database.moblink.streamer)
+        }) {
+            Label("Moblink", systemImage = "app.connected.to.app.below.fill")
+        }
+        if (showAllSettings.value) {
+            NavigationLink(destination = {
+                MediaPlayersSettingsView(model = model, mediaPlayers = database.mediaPlayers)
+            }) {
+                Label("Media players", systemImage = "play.rectangle.on.rectangle")
+            }
+            NavigationLink(destination = {
+                AppleMusicSettingsView(model = model, musicPlaylist = model.musicPlaylist)
+            }) {
+                Label("Apple Music", systemImage = "music.note")
+            }
+        }
+    }
+    if (showAllSettings.value) {
+        Section {
+            NavigationLink(destination = {
+                GimbalSettingsView(model = model, gimbal = database.gimbal)
+            }) {
+                Label("Gimbal", systemImage = "iphone.dock.motorized.viewfinder")
+            }
+            NavigationLink(destination = {
+                SelfieStickSettingsView(model = model, selfieStick = database.selfieStick)
+            }) {
+                Label("Selfie stick", systemImage = "line.diagonal")
+            }
+            NavigationLink(destination = {
+                GameControllersSettingsView(model = model, database = database)
+            }) {
+                Label("Game controllers", systemImage = "gamecontroller")
+            }
+            NavigationLink(destination = {
+                KeyboardSettingsView(model = model, keyboard = database.keyboard)
+            }) {
+                Label("Keyboard", systemImage = "keyboard")
+            }
+            if (isPad() && !com.moblin.android.platform.loxen.Loxen.hidesStreamDecks) {
+                NavigationLink(destination = {
+                    StreamDecksSettingsView(
+                        model = model,
+                        streamDeck = model.streamDeck,
+                        streamDecks = database.streamDecks,
+                    )
+                }) {
+                    Label("Stream decks", systemImage = "square.grid.3x3.square")
+                }
+            }
+            NavigationLink(destination = {
+                val stream by model.stream.collectAsState()
+                RemoteControlSettingsView(
+                    model = model,
+                    database = database,
+                    stream = stream,
+                    onStreamChange = { model.stream.value = it },
+                )
+            }) {
+                Label("Remote control", systemImage = "appletvremote.gen1")
+            }
+            if (!isMac()) {
+                NavigationLink(destination = {
+                    MoblinCloudSettingsView(
+                        model = model,
+                        database = database,
+                        moblinCloud = database.moblinCloud,
+                    )
+                }) {
+                    Label("Moblin Cloud", systemImage = "cloud")
+                }
+            }
+        }
+        Section {
+            NavigationLink(destination = {
+                DjiDevicesSettingsView(model = model, djiDevices = database.djiDevices)
+            }) {
+                Label("DJI devices", systemImage = "appletvremote.gen1")
+            }
+            NavigationLink(destination = {
+                GoProSettingsView(model = model)
+            }) {
+                Label("GoPro", systemImage = "appletvremote.gen1")
+            }
+            NavigationLink(destination = {
+                CatPrintersSettingsView(model = model, catPrinters = database.catPrinters)
+            }) {
+                Label("Cat printers", systemImage = "pawprint")
+            }
+            NavigationLink(destination = {
+                TeslaSettingsView(model = model, tesla = model.tesla)
+            }) {
+                Label("Tesla", systemImage = "car.side")
+            }
+            NavigationLink(destination = {
+                WorkoutDevicesSettingsView(model = model, workoutDevices = database.workoutDevices)
+            }) {
+                Label("Workout devices", systemImage = "figure.walk.motion")
+            }
+            NavigationLink(destination = {
+                BlackSharkCoolerDevicesSettingsView(
+                    model = model,
+                    blackSharkCoolerDevices = database.blackSharkCoolerDevices,
+                )
+            }) {
+                Label("Black Shark coolers", systemImage = "fan")
+            }
+        }
+    }
+    Section {
+        NavigationLink(destination = {
+            RecordingsSettingsView(model = model)
+        }) {
+            Label("Recordings", systemImage = "photo.on.rectangle.angled")
+        }
+        if (showAllSettings.value) {
+            NavigationLink(destination = {
+                StreamingHistorySettingsView(model = model)
+            }) {
+                Label("Streaming history", systemImage = "text.book.closed")
+            }
+        }
+    }
+    if (showAllSettings.value && isPhone()) {
+        Section {
+            NavigationLink(destination = {
+                AppleWatchSettingsDestination(model = model, database = database)
+            }) {
+                Label("Apple Watch", systemImage = "applewatch")
+            }
+        }
+    }
+    Section {
+        NavigationLink(destination = {
+            HelpAndSupportSettingsView()
+        }) {
+            Label("Help and support", systemImage = "questionmark.circle")
+        }
+        if (showAllSettings.value) {
+            NavigationLink(destination = {
+                AboutSettingsView()
+            }) {
+                Label("About", systemImage = "info.circle")
+            }
+            NavigationLink(destination = {
+                DebugSettingsView(model = model, debug = database.debug)
+            }) {
+                Label("Debug", systemImage = "ladybug")
+            }
+        }
+    }
+    if (showAllSettings.value) {
+        Section {
+            NavigationLink(destination = {
+                ImportExportSettingsView(model = model)
+            }) {
+                Label("Import and export settings", systemImage = "gearshape")
+            }
+            NavigationLink(destination = {
+                DeepLinkCreatorSettingsView(deepLinkCreator = database.deepLinkCreator)
+            }) {
+                Label("Deep link creator", systemImage = "link.badge.plus")
+            }
+        }
+    }
+    Section {
+        if (showAllSettings.value && !isMac()) {
+            AppModeView(model = model, database = database)
+        }
+        Toggle("Show all settings", isOn = showAllSettings)
+    }
+    Section {
+        SettingsSaveView(model = model)
+    }
+    Section {
+        SettingsResetView(model = model)
     }
 }

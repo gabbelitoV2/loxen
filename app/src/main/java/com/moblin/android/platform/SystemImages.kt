@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Cable
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Chat
@@ -268,6 +270,8 @@ private val symbols: Map<String, ImageVector> = controllerSymbols + mapOf(
     "checkmark" to Icons.Filled.Check,
     "xmark" to Icons.Filled.Close,
     "xmark.circle.fill" to Icons.Filled.Cancel,
+    "chevron.up.circle.fill" to Icons.Filled.ExpandLess,
+    "chevron.down.circle.fill" to Icons.Filled.ExpandMore,
     "play" to Icons.Filled.PlayArrow,
     "play.fill" to Icons.Filled.PlayArrow,
     "pause" to Icons.Filled.Pause,

@@ -129,6 +129,12 @@ class WKWebView(frame: CGRect, configuration: WKWebViewConfiguration) {
             runOnWebKitMain { applyAppearance() }
         }
 
+    var isHidden: Boolean = false
+        set(value) {
+            field = value
+            runOnWebKitMain { applyAppearance() }
+        }
+
     val scrollView: UIScrollViewFlags = UIScrollViewFlags {
         runOnWebKitMain { applyAppearance() }
     }
@@ -416,6 +422,7 @@ class WKWebView(frame: CGRect, configuration: WKWebViewConfiguration) {
     private fun applyAppearance(view: WebView) {
         val fallback = if (isOpaque) Color.WHITE else Color.TRANSPARENT
         view.setBackgroundColor(backgroundColor ?: scrollView.backgroundColor ?: fallback)
+        view.visibility = if (isHidden) android.view.View.INVISIBLE else android.view.View.VISIBLE
         view.isVerticalScrollBarEnabled = scrollView.showsVerticalScrollIndicator
         view.isHorizontalScrollBarEnabled = scrollView.showsHorizontalScrollIndicator
     }

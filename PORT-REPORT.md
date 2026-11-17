@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-11-17T02:53:36+00:00
+Generated 2026-11-17T03:16:44+00:00
 
 ## Summary
 
@@ -10,7 +10,7 @@ Generated 2026-11-17T02:53:36+00:00
 | platform | 57 | 0 | 0 | 0 | 0 |
 | test | 81 | 0 | 0 | 0 | 0 |
 | media | 162 | 0 | 0 | 0 | 0 |
-| ui | 374 | 0 | 1 | 0 | 0 |
+| ui | 375 | 0 | 0 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -715,7 +715,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/WidgetsSettingsView.kt | deepseek-flash | 6.6 |
 | Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/selfiestick/SelfieStickSettingsView.kt | deepseek-flash | 6.7 |
 | Moblin/View/Settings/SettingsSearchView.swift | app/src/main/java/com/moblin/android/view/settings/SettingsSearchView.kt | deepseek-flash | 102.0 |
-| Moblin/View/Settings/SettingsView.swift | app/src/main/java/com/moblin/android/view/settings/SettingsView.kt | deepseek-flash | 16.1 |
+| Moblin/View/Settings/SettingsView.swift | app/src/main/java/com/moblin/android/view/settings/SettingsView.kt | deepseek-flash | 24.8 |
 | Moblin/View/Settings/Store/StoreSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/store/StoreSettingsView.kt | deepseek-flash | 8.9 |
 | Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streamdeck/StreamDeckLayoutSettingsView.kt | deepseek-flash | 15.5 |
 | Moblin/View/Settings/StreamingHistory/StreamingHistorySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streaminghistory/StreamingHistorySettingsView.kt | deepseek-flash | 43.9 |

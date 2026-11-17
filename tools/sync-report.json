@@ -3,27 +3,10 @@
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [
-    {
-      "swift": "Moblin/View/Settings/SettingsView.swift",
-      "kotlin": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
-      "reason": "hook",
-      "ported_from": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
-      "errors": [],
-      "hooks": [
-        "HLOXEN.2 (LOXEN.json) view/settings/SettingsView.kt [fun SettingsView]: neither the old nor the new line was found",
-        "HLOXEN.32 (LOXEN.json) view/settings/SettingsView.kt [fun SettingsView]: neither the old nor the new line was found"
-      ]
-    }
-  ],
+  "held_back": [],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],
-  "effects": [
-    "check_effects_api.py: members: 1 findings",
-    "check_effects_api.py:   WKWebView.isHidden: no member or extension with this name (Moblin/VideoEffects/Browser/BrowserEffect.swift)",
-    "check_effects_api.py: known gaps: 21 findings are listed in effects_known_gaps.json",
-    "check_effects_api.py: check_effects_api: 1 open findings, 21 known gaps"
-  ],
+  "effects": [],
   "api35": []
 }

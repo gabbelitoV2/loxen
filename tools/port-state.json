@@ -17178,22 +17178,26 @@
   },
   "Moblin/View/Settings/SettingsView.swift": {
     "status": "ok",
-    "sha256": "edc1ed5626a2b44b0bba38eb08feb0a71ddc154468537ec2d7baabf248c46e56",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "059bdd8581b6e59534f6b5ee63bd47065539626591230f53a3d5751ef78201fb",
+    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
     "notes": [
-      "Removed the LaunchedEffect(Unit) { model.hideWidgetOutlines() } block that mirrored the deleted .onAppear, plus the now-unused LaunchedEffect and hideWidgetOutlines imports.",
-      "Everything else in the file is unchanged."
+      "SettingsView now owns searchText/searchItems state and delegates its whole form body to a private SettingsContentView composable, mirroring the new Swift split.",
+      "The Swift .onChange(of: searchText.isEmpty) plus .onAppear become one LaunchedEffect keyed on searchText.value.isEmpty, which also runs on first composition like onAppear.",
+      "SettingsSearchFieldView takes a MutableState<String>, so searchText stays a MutableState created with remember instead of a delegated var.",
+      "All Android-only deviations of the previous port were kept verbatim: Loxen.appName for the Store label, Loxen.hidesStreamDecks, GoProSettingsView(model = model), TeslaSettingsView(model = ...) and AppleWatchSettingsDestination.",
+      "SettingsContentView keeps every NavigationLink with its real destination and collects model.stream inside the destination lambdas as before.",
+      "SettingsSearchItem, settingsSearchItems, SettingsSearchFieldView and SettingsSearchResultsView live in the same package, so no new imports were needed besides LaunchedEffect."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59768,
-    "tokens_out": 4812,
-    "seconds": 16.1,
-    "ported_at": "2026-11-07T23:38:41+00:00"
+    "tokens_in": 65420,
+    "tokens_out": 6564,
+    "seconds": 24.8,
+    "ported_at": "2026-11-17T02:59:57+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardSettingsView.swift": {
     "status": "ok",

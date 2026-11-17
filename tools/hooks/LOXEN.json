@@ -13,10 +13,10 @@
     {
       "id": "HLOXEN.2",
       "file": "view/settings/SettingsView.kt",
-      "scope": "fun SettingsView",
+      "scope": "fun SettingsContentView",
       "op": "replace",
-      "old": "                    Label(\"Store (support us) ❤️\", systemImage = \"cart\")",
-      "new": "                    Label(com.moblin.android.platform.loxen.Loxen.appName, systemImage = \"pawprint\")",
+      "old": "            Label(\"Store (support us) ❤️\", systemImage = \"cart\")",
+      "new": "            Label(com.moblin.android.platform.loxen.Loxen.appName, systemImage = \"pawprint\")",
       "note": "The Store row leads to the Loxen page (see HLOXEN.1), so it is named after the app."
     },
     {
@@ -291,10 +291,10 @@
     {
       "id": "HLOXEN.32",
       "file": "view/settings/SettingsView.kt",
-      "scope": "fun SettingsView",
+      "scope": "fun SettingsContentView",
       "op": "replace",
-      "old": "                    if (isPad()) {",
-      "new": "                    if (isPad() && !com.moblin.android.platform.loxen.Loxen.hidesStreamDecks) {",
+      "old": "            if (isPad()) {",
+      "new": "            if (isPad() && !com.moblin.android.platform.loxen.Loxen.hidesStreamDecks) {",
       "note": "Moblin shows Stream decks only where it can drive one: on an iPad, and not on an iPhone or a Mac. Android has no Stream Deck support (StreamDeckSession and the key views are not ported), so tablets hide the entry like an iPhone instead of offering layouts that do nothing or telling the user to install an iPad driver from the App Store."
     },
     {
@@ -449,6 +449,24 @@
       "old": "private class MoblinSettingsUrlError(message: String) : Exception(message)",
       "new": "private class MoblinSettingsUrlError(message: String) : com.moblin.android.platform.codable.DecodingError(message)",
       "note": "Swift decodeIfPresent rethrows the error of the nested decoder; the shim only swallows other failures."
+    },
+    {
+      "id": "HLOXEN.50",
+      "file": "view/settings/SettingsView.kt",
+      "scope": "fun SettingsView",
+      "op": "replace",
+      "old": "    LaunchedEffect(searchText.value.isEmpty) {",
+      "new": "    LaunchedEffect(searchText.value.isEmpty()) {",
+      "note": "String.isEmpty is a function in Kotlin, not a property."
+    },
+    {
+      "id": "HLOXEN.51",
+      "file": "view/settings/SettingsView.kt",
+      "scope": "fun SettingsView",
+      "op": "replace",
+      "old": "        searchItems = if (searchText.value.isEmpty) {",
+      "new": "        searchItems = if (searchText.value.isEmpty()) {",
+      "note": "See HLOXEN.50."
     }
   ]
 }
