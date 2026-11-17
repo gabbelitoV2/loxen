@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-15T23:51:15+00:00",
+  "generated": "2026-11-17T02:39:34+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -17926,8 +17926,8 @@
     },
     {
       "path": "Moblin/VideoEffects/Browser/BrowserEffect.swift",
-      "lines": 391,
-      "sha256": "7c7f8d97da8284a4ae9dae0d7dbf17a0b01a5bf90a3c67b0c576a32c76c5353f",
+      "lines": 404,
+      "sha256": "d79dcb90bc996ad0dc6ed9460dfe4c00a90ca44aca2492cbd6521347ab6ce3ae",
       "imports": [
         "Collections",
         "MetalPetal",
@@ -17938,6 +17938,7 @@
       "tier": "media",
       "declared_types": [
         "WidgetCrop",
+        "BrowserEffectMinimized",
         "BrowserEffect"
       ],
       "private_types": [],
@@ -20155,6 +20156,29 @@
         "Moblin/Various/Model/ModelCamera.swift",
         "MoblinTests/Moblin/Obs/ObsWebSocketServerMock.swift",
         "MoblinTests/TestUtils.swift"
+      ],
+      "wave": 29
+    },
+    {
+      "path": "MoblinTests/Moblin/View/Settings/SettingsSearchSuite.swift",
+      "lines": 48,
+      "sha256": "fb9e85b14323c7759cc4e9616e97ddfb6a585cccabcfa5de9eb449925fe9d163",
+      "imports": [
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "SettingsSearchSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings",
+      "kotlin_path": "app/src/test/java/com/moblin/android/view/settings/SettingsSearchSuite.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift",
+        "Moblin/View/Settings/SettingsSearchView.swift"
       ],
       "wave": 29
     },
@@ -24741,7 +24765,7 @@
     {
       "path": "Moblin/View/Settings/Camera/CameraSettingsView.swift",
       "lines": 336,
-      "sha256": "0d2e0a153fdc11fb0fcaa6eaf9788a5cc15bcf827037c60e06eeabb2d8cddf8a",
+      "sha256": "484bcf969e89fb8a6db99419b719f6d804be357500bceaef5770eeae3a8552d2",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -24760,7 +24784,6 @@
       "private_types": [
         "CameraSettingsCubeLutsView",
         "CameraSettingsPngLutsView",
-        "CameraSettingsAppleLogLutView",
         "CameraPreviewSettingsView",
         "PhotoShootSettingsView"
       ],
@@ -25168,79 +25191,121 @@
       "wave": 49
     },
     {
-      "path": "Moblin/View/Settings/SettingsView.swift",
-      "lines": 289,
-      "sha256": "edc1ed5626a2b44b0bba38eb08feb0a71ddc154468537ec2d7baabf248c46e56",
+      "path": "Moblin/View/Settings/SettingsSearchView.swift",
+      "lines": 685,
+      "sha256": "04f758f358a3aa5bb02bf2ec8d166f6b900452dd8403af9deb247bd4dbb70487",
       "imports": [
         "SwiftUI"
       ],
       "tier": "ui",
       "declared_types": [
-        "AppModeView",
-        "SettingsView"
+        "SettingsSearchItem",
+        "SettingsSearchItemsBuilder",
+        "SettingsSearchFieldView",
+        "SettingsSearchResultsView"
       ],
       "private_types": [
-        "AppModeView"
+        "SettingsSearchItemsBuilder"
       ],
-      "declared_functions": [],
-      "declared_globals": [
-        "settingsHalfWidth"
+      "declared_functions": [
+        "settingsSearchMatches",
+        "settingsSearchItems"
       ],
+      "declared_globals": [],
       "kotlin_package": "com.moblin.android.view.settings",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsSearchView.kt",
       "deps": [
+        "Moblin/Integrations/Emotes/Emotes.swift",
         "Moblin/Integrations/GoPro/GoPro.swift",
         "Moblin/Media/HaishinKit/Media/Processor.swift",
+        "Moblin/Moblink/MoblinkRelay.swift",
+        "Moblin/StreamingPlatforms/Kick/KickPusher.swift",
+        "Moblin/StreamingPlatforms/Platform.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Gimbal.swift",
+        "Moblin/Various/Haptics.swift",
         "Moblin/Various/Managers/Location.swift",
         "Moblin/Various/Media.swift",
         "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelAudio.swift",
         "Moblin/Various/Model/ModelCamera.swift",
         "Moblin/Various/Model/ModelMoblink.swift",
         "Moblin/Various/Model/ModelTesla.swift",
         "Moblin/Various/Model/ModelWorkout.swift",
+        "Moblin/Various/Model/ModelYouTube.swift",
+        "Moblin/Various/Model/ModelZoom.swift",
         "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Storages/RecordingsStorage.swift",
         "Moblin/Various/Utils/UiUtils.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
+        "Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift",
         "Moblin/View/Settings/About/AboutSettingsView.swift",
+        "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
         "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
         "Moblin/View/Settings/Audio/AudioSettingsView.swift",
+        "Moblin/View/Settings/Audio/MicsDelaySettingsView.swift",
+        "Moblin/View/Settings/Audio/MicsGainSettingsView.swift",
+        "Moblin/View/Settings/BitratePresets/BitratePresetsSettingsView.swift",
         "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift",
         "Moblin/View/Settings/Camera/CameraSettingsView.swift",
+        "Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift",
         "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift",
+        "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
         "Moblin/View/Settings/Chat/ChatSettingsView.swift",
+        "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift",
         "Moblin/View/Settings/Debug/DebugSettingsView.swift",
         "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorSettingsView.swift",
         "Moblin/View/Settings/Display/DisplaySettingsView.swift",
+        "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift",
+        "Moblin/View/Settings/Display/NetworkInterfaceNames/LocalOverlaysNetworkInterfaceNamesSettingsView.swift",
+        "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift",
+        "Moblin/View/Settings/Display/StreamButton/StreamButtonsSettingsView.swift",
         "Moblin/View/Settings/DjiDevices/DjiDevicesSettingsView.swift",
         "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift",
         "Moblin/View/Settings/Gimbal/GimbalSettingsView.swift",
         "Moblin/View/Settings/GoPro/GoProSettingsView.swift",
         "Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift",
+        "Moblin/View/Settings/HttpProxy/HttpProxySettingsView.swift",
         "Moblin/View/Settings/ImportExport/ImportExportSettingsView.swift",
         "Moblin/View/Settings/Ingests/IngestsSettingsView.swift",
         "Moblin/View/Settings/Keyboard/KeyboardSettingsView.swift",
         "Moblin/View/Settings/Location/LocationSettingsView.swift",
         "Moblin/View/Settings/Macros/MacrosSettingsView.swift",
+        "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift",
         "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift",
         "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift",
         "Moblin/View/Settings/Moblink/MoblinkSettingsView.swift",
         "Moblin/View/Settings/Recordings/RecordingsSettingsView.swift",
         "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift",
-        "Moblin/View/Settings/SaveReset/SettingsResetView.swift",
-        "Moblin/View/Settings/SaveReset/SettingsSaveView.swift",
         "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
         "Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift",
         "Moblin/View/Settings/Store/StoreSettingsView.swift",
         "Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift",
         "Moblin/View/Settings/StreamingHistory/StreamingHistorySettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Audio/StreamAudioSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Chat/StreamEmotesSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/GoLiveNotification/GoLiveNotificationSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Kick/StreamKickSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Recording/StreamRecordingSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Replay/StreamReplaySettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Rist/StreamRistSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Rtmp/StreamRtmpSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Snapshot/StreamSnapshotSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Twitch/StreamTwitchSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Video/StreamVideoSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/Whip/StreamWhipSettingsView.swift",
+        "Moblin/View/Settings/Streams/Stream/YouTube/StreamYouTubeSettingsView.swift",
         "Moblin/View/Settings/Streams/StreamsSettingsView.swift",
         "Moblin/View/Settings/Talkback/TalkbackSettingsView.swift",
         "Moblin/View/Settings/Tesla/TeslaSettingsView.swift",
+        "Moblin/View/Settings/Watch/Chat/WatchChatSettingsView.swift",
+        "Moblin/View/Settings/Watch/Display/WatchDisplaySettingsView.swift",
         "Moblin/View/Settings/Watch/WatchSettingsView.swift",
         "Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift",
-        "Moblin/View/Utils/InfoBannerView.swift"
+        "Moblin/View/Utils/VoicesView.swift"
       ],
       "wave": 49
     },
@@ -25414,9 +25479,90 @@
       "wave": 50
     },
     {
+      "path": "Moblin/View/Settings/SettingsView.swift",
+      "lines": 317,
+      "sha256": "059bdd8581b6e59534f6b5ee63bd47065539626591230f53a3d5751ef78201fb",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "AppModeView",
+        "SettingsView",
+        "SettingsContentView"
+      ],
+      "private_types": [
+        "AppModeView",
+        "SettingsContentView"
+      ],
+      "declared_functions": [],
+      "declared_globals": [
+        "settingsHalfWidth"
+      ],
+      "kotlin_package": "com.moblin.android.view.settings",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
+      "deps": [
+        "Moblin/Integrations/GoPro/GoPro.swift",
+        "Moblin/Media/HaishinKit/Media/Processor.swift",
+        "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+        "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Gimbal.swift",
+        "Moblin/Various/Managers/Location.swift",
+        "Moblin/Various/Media.swift",
+        "Moblin/Various/Model/Model.swift",
+        "Moblin/Various/Model/ModelCamera.swift",
+        "Moblin/Various/Model/ModelMoblink.swift",
+        "Moblin/Various/Model/ModelTesla.swift",
+        "Moblin/Various/Model/ModelWorkout.swift",
+        "Moblin/Various/Settings/Settings.swift",
+        "Moblin/Various/Utils/UiUtils.swift",
+        "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
+        "Moblin/View/Settings/About/AboutSettingsView.swift",
+        "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift",
+        "Moblin/View/Settings/Audio/AudioSettingsView.swift",
+        "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift",
+        "Moblin/View/Settings/Camera/CameraSettingsView.swift",
+        "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift",
+        "Moblin/View/Settings/Chat/ChatSettingsView.swift",
+        "Moblin/View/Settings/Debug/DebugSettingsView.swift",
+        "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorSettingsView.swift",
+        "Moblin/View/Settings/Display/DisplaySettingsView.swift",
+        "Moblin/View/Settings/DjiDevices/DjiDevicesSettingsView.swift",
+        "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift",
+        "Moblin/View/Settings/Gimbal/GimbalSettingsView.swift",
+        "Moblin/View/Settings/GoPro/GoProSettingsView.swift",
+        "Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift",
+        "Moblin/View/Settings/ImportExport/ImportExportSettingsView.swift",
+        "Moblin/View/Settings/Ingests/IngestsSettingsView.swift",
+        "Moblin/View/Settings/Keyboard/KeyboardSettingsView.swift",
+        "Moblin/View/Settings/Location/LocationSettingsView.swift",
+        "Moblin/View/Settings/Macros/MacrosSettingsView.swift",
+        "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift",
+        "Moblin/View/Settings/MoblinCloud/MoblinCloudSettingsView.swift",
+        "Moblin/View/Settings/Moblink/MoblinkSettingsView.swift",
+        "Moblin/View/Settings/Recordings/RecordingsSettingsView.swift",
+        "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift",
+        "Moblin/View/Settings/SaveReset/SettingsResetView.swift",
+        "Moblin/View/Settings/SaveReset/SettingsSaveView.swift",
+        "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
+        "Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift",
+        "Moblin/View/Settings/SettingsSearchView.swift",
+        "Moblin/View/Settings/Store/StoreSettingsView.swift",
+        "Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift",
+        "Moblin/View/Settings/StreamingHistory/StreamingHistorySettingsView.swift",
+        "Moblin/View/Settings/Streams/StreamsSettingsView.swift",
+        "Moblin/View/Settings/Talkback/TalkbackSettingsView.swift",
+        "Moblin/View/Settings/Tesla/TeslaSettingsView.swift",
+        "Moblin/View/Settings/Watch/WatchSettingsView.swift",
+        "Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift",
+        "Moblin/View/Utils/InfoBannerView.swift"
+      ],
+      "wave": 50
+    },
+    {
       "path": "Moblin/View/MainView.swift",
-      "lines": 774,
-      "sha256": "822c83c03a5d0ab14776a9a6522243b323491ac3cc01bc3cca55aa833af059fd",
+      "lines": 796,
+      "sha256": "b0553d2998fdd019561f0c80386b86a50c83169a897bcdaad8e12051dde575bf",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -25439,6 +25585,7 @@
         "PhotoShootView",
         "WebBrowserAlertsView",
         "StreamOverlayTapGridView",
+        "BrowserWidgetMinimizeButtonView",
         "InteractiveBrowserView",
         "MainView"
       ],
@@ -25455,6 +25602,7 @@
         "PhotoShootView",
         "WebBrowserAlertsView",
         "StreamOverlayTapGridView",
+        "BrowserWidgetMinimizeButtonView",
         "InteractiveBrowserView"
       ],
       "declared_functions": [],

@@ -80,6 +80,10 @@ private fun addScript(
     )
 }
 
+class BrowserEffectMinimized {
+    val value = MutableStateFlow(false)
+}
+
 class BrowserEffect(
     url: java.net.URI,
     styleSheet: String,
@@ -112,6 +116,8 @@ class BrowserEffect(
     private var suspended = false
     private val snapshotConfiguration: WKSnapshotConfiguration
     private val userContentController: WKUserContentController
+    val localOnly: Boolean
+    val minimized = BrowserEffectMinimized()
 
     init {
         scale = screenScale().toDouble()
@@ -119,6 +125,7 @@ class BrowserEffect(
         baseFps = widget.baseFps.toDouble()
         fps = baseFps
         isLoaded = false
+        localOnly = widget.localOnly
         mode = if (widget.localOnly) {
             SettingsWidgetBrowserMode.audioOnly
         } else {
@@ -195,6 +202,11 @@ class BrowserEffect(
 
     fun stop() {
         stopTakeSnapshots()
+    }
+
+    fun toggleMinimized() {
+        minimized.value.value = !minimized.value.value
+        Unit
     }
 
     fun reload() {

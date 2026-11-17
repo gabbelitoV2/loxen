@@ -133,6 +133,7 @@ import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
 import com.moblin.android.videoeffects.browser.BrowserEffect
+import com.moblin.android.videoeffects.browser.BrowserEffectMinimized
 import com.moblin.android.videoeffects.layoutCenter
 import com.moblin.android.videoeffects.layoutScale
 import com.moblin.android.view.controlbar.ControlBarLandscapeView
@@ -663,6 +664,21 @@ private fun StreamOverlayTapGridView(model: Model = LocalModel.current, camera: 
 }
 
 @Composable
+private fun BrowserWidgetMinimizeButtonView(
+    browserEffect: BrowserEffect,
+    minimized: BrowserEffectMinimized,
+) {
+    val isMinimized by minimized.value.collectAsState()
+    PlainButton(onClick = { browserEffect.toggleMinimized() }) {
+        SystemImage(
+            name = if (isMinimized) "chevron.up.circle.fill" else "chevron.down.circle.fill",
+            fontSize = 30.sp,
+            tint = Color.White
+        )
+    }
+}
+
+@Composable
 private fun InteractiveBrowserView(
     browser: Browser,
     browserEffect: BrowserEffect,
@@ -694,6 +710,18 @@ private fun InteractiveBrowserView(
                 .scale(scale.toFloat()),
             allowsHitTesting = allowsHitTesting
         )
+        if (browserEffect.localOnly) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(4.dp)
+            ) {
+                BrowserWidgetMinimizeButtonView(
+                    browserEffect = browserEffect,
+                    minimized = browserEffect.minimized
+                )
+            }
+        }
     }
 }
 

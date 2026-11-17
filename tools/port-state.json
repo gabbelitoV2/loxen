@@ -12083,23 +12083,26 @@
   },
   "Moblin/VideoEffects/Browser/BrowserEffect.swift": {
     "status": "ok",
-    "sha256": "7c7f8d97da8284a4ae9dae0d7dbf17a0b01a5bf90a3c67b0c576a32c76c5353f",
-    "moblin_commit": "e4e8ebc096598f8a2427d445f5a63e691dd19e6a",
+    "sha256": "d79dcb90bc996ad0dc6ed9460dfe4c00a90ca44aca2492cbd6521347ab6ce3ae",
+    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt",
     "notes": [
-      "The iOS 26 scroll edge-effect block has no Android counterpart; the WKWebView shim's UIScrollViewFlags exposes no top/bottom/left/right edge effects, so those lines were dropped, matching how contentInsetAdjustmentBehavior was already dropped in this port.",
-      "Everything else is untouched: the Swift diff only added the iOS 26 availability block, so no other Kotlin line changed.",
-      "webView.scrollView.backgroundColor and showsVertical/HorizontalScrollIndicator still map onto the existing WKWebView/scrollView shim members."
+      "Added the BrowserEffectMinimized holder class as a MutableStateFlow-backed ObservableObject, matching Swift's @Published value.",
+      "BrowserEffect gains the localOnly val and the minimized holder, initialised in the init block like the other constructor properties.",
+      "toggleMinimized flips the flow value; hiding the WebView has no matching member in the Kotlin WKWebView shim, so that line is a TODO while the minimized state still toggles.",
+      "All other declarations, imports and bodies are unchanged from the previous translation."
     ],
-    "unsupported": [],
+    "unsupported": [
+      "WKWebView.isHidden (UIView.isHidden) has no shim in com.moblin.android.platform.webkit"
+    ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 67706,
-    "tokens_out": 3788,
-    "seconds": 13.8,
-    "ported_at": "2026-10-24T21:59:11+00:00"
+    "tokens_in": 68059,
+    "tokens_out": 4771,
+    "seconds": 18.3,
+    "ported_at": "2026-11-17T02:40:04+00:00"
   },
   "Moblin/VideoEffects/DrawOnStreamEffect.swift": {
     "status": "ok",
@@ -16717,24 +16720,23 @@
   },
   "Moblin/View/Settings/Camera/CameraSettingsView.swift": {
     "status": "ok",
-    "sha256": "0d2e0a153fdc11fb0fcaa6eaf9788a5cc15bcf827037c60e06eeabb2d8cddf8a",
-    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+    "sha256": "484bcf969e89fb8a6db99419b719f6d804be357500bceaef5770eeae3a8552d2",
+    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/camera/CameraSettingsView.kt",
     "notes": [
-      "Only the color-space support check changed: appleLog2 was added to colorSpaces() and the two Apple Log LUT gates now accept supportsAppleLog || supportsAppleLog2.",
-      "supportsAppleLog2 is read as a member of Model, like the existing supportsAppleLog, so no new import is added.",
-      "Everything else is byte-identical to the previous translation, including the Android picker, DocumentPicker and sheet hooks.",
-      "declared_types is empty because this file declares only top-level @Composable functions."
+      "The only Swift change makes CameraSettingsAppleLogLutView non-private so other files can navigate to it; the Kotlin composable loses its `private` modifier accordingly.",
+      "Nothing else in the Kotlin file changed; all existing Android-specific hooks (PhotosPicker launcher, DocumentPicker readInput, ContextMenuDeleteButton offsets, FormButton for the Add row) are kept byte-identical.",
+      "`onNavigate` parameters that the Swift view does not use are kept on the public composables as before."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54250,
-    "tokens_out": 3881,
-    "seconds": 13.8,
-    "ported_at": "2026-11-05T00:50:26+00:00"
+    "tokens_in": 54255,
+    "tokens_out": 3632,
+    "seconds": 12.5,
+    "ported_at": "2026-11-17T02:39:58+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRistSettingsView.swift": {
     "status": "ok",
@@ -17579,23 +17581,27 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "822c83c03a5d0ab14776a9a6522243b323491ac3cc01bc3cca55aa833af059fd",
-    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+    "sha256": "b0553d2998fdd019561f0c80386b86a50c83169a897bcdaad8e12051dde575bf",
+    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "Added the new ShowingPanel.soundBoard branch to MenuView, rendering QuickButtonSoundBoardView with model.database.alertsMediaGallery.",
-      "Added the QuickButtonSoundBoardView import in alphabetical position among the quick-button imports.",
-      "No other Kotlin line was touched; the iOS 26 glass-effect paths, navigationBarTitleDisplayMode and the EmptyView case keep their existing Android translations."
+      "Added a private composable BrowserWidgetMinimizeButtonView before InteractiveBrowserView, matching the new Swift struct.",
+      "InteractiveBrowserView now shows the minimize button at the bottom-trailing corner of the display-size Box when browserEffect.localOnly is true, with 4dp padding.",
+      "Assumes BrowserEffect exposes localOnly: Boolean, minimized: BrowserEffectMinimized and toggleMinimized(); BrowserEffectMinimized exposes value as a MutableStateFlow<Boolean> collected with collectAsState.",
+      "Swift's two-colour .foregroundStyle(.white, .black.opacity(0.6)) becomes a single white tint because SystemImage takes one tint.",
+      "Button reuses the existing PlainButton press-dim behaviour instead of SwiftUI Button styling.",
+      "Imported com.moblin.android.videoeffects.browser.BrowserEffectMinimized for the new parameter type.",
+      "No other lines were changed; the rest of the file is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 78071,
-    "tokens_out": 11767,
-    "seconds": 34.1,
-    "ported_at": "2026-11-15T23:34:13+00:00"
+    "tokens_in": 78514,
+    "tokens_out": 12742,
+    "seconds": 40.1,
+    "ported_at": "2026-11-17T02:40:26+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",
@@ -18778,5 +18784,52 @@
     "tokens_out": 7111,
     "seconds": 34.5,
     "ported_at": "2026-11-15T23:33:59+00:00"
+  },
+  "MoblinTests/Moblin/View/Settings/SettingsSearchSuite.swift": {
+    "status": "ok",
+    "sha256": "fb9e85b14323c7759cc4e9616e97ddfb6a585cccabcfa5de9eb449925fe9d163",
+    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/view/settings/SettingsSearchSuite.kt",
+    "notes": [
+      "Converted the Swift Testing parameterized cases into JUnit 4 tests that loop over MatchCase values.",
+      "Kept the two test names matches and doesNotMatch identical to the Swift source.",
+      "Uses kotlin.test.assertTrue and assertFalse for #expect checks.",
+      "The nested MatchCase helper remains nested inside SettingsSearchSuite.",
+      "No locale or time zone configuration is required for these pure matching tests."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 31320,
+    "tokens_out": 1626,
+    "seconds": 9.7,
+    "ported_at": "2026-11-17T02:39:54+00:00"
+  },
+  "Moblin/View/Settings/SettingsSearchView.swift": {
+    "status": "ok",
+    "sha256": "04f758f358a3aa5bb02bf2ec8d166f6b900452dd8403af9deb247bd4dbb70487",
+    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsSearchView.kt",
+    "notes": [
+      "SettingsSearchItem becomes a data class implementing Identifiable<String>; its AnyView destination is a @Composable () -> Unit lambda, and id is computed as path + title joined by '/'.",
+      "settingsSearchItems keeps every builder.add call in Swift order and passes the same arguments to the already ported settings views; views whose Kotlin declaration was not supplied are called with named arguments matching the Swift labels.",
+      "settingsSearchWords folds case with lowercase() and strips diacritics with java.text.Normalizer (NFD + \\p{M}), then splits on anything that is not a letter or a digit.",
+      "The #available(iOS 17.0, *) guard around KeyboardSettingsView is kept unconditionally and the macCatalyst #if block becomes the plain isPad() check, since Android has both.",
+      "model.supportsAppleLog / supportsAppleLog2 are read with .value because the port keeps those @Published flags as MutableStateFlow.",
+      "The Swift Binding for model.stream (used by LocationSettingsView and RemoteControlSettingsView) cannot be built outside composition, so the model's stream flow is passed instead.",
+      "The protocol switch uses SettingsStreamProtocol entries (srt, rtmp, rist, whip) with an else branch so the when stays exhaustive for mobcam.",
+      "SettingsSearchFieldView uses BasicTextField with explicit iOS text style, cursor and colours, and disables autocorrect and autocapitalization; no Material defaults are used."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 66577,
+    "tokens_out": 25565,
+    "seconds": 102.0,
+    "ported_at": "2026-11-17T02:41:28+00:00"
   }
 }

@@ -240,7 +240,7 @@ fun CameraSettingsLutsView(
 }
 
 @Composable
-private fun CameraSettingsAppleLogLutView(
+fun CameraSettingsAppleLogLutView(
     model: Model = LocalModel.current,
     color: SettingsColor,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
