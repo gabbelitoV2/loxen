@@ -1,10 +1,402 @@
 {
-  "upstream": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+  "upstream": "6c49d2615011a0410dffb79cd133bd46393b521c",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
-  "port_failures": [],
+  "held_back": [
+    {
+      "swift": "Moblin/Media/HaishinKit/Flv/Flv.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/flv/Flv.kt",
+      "reason": "dependency",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAbortMessge.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAbortMessge.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAcknowledgementMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAcknowledgementMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAggregateMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAggregateMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAudioMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAudioMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpCommandMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpCommandMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpDataMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpDataMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetChunkSizeMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetChunkSizeMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetPeerBandwidthMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetPeerBandwidthMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpUserControlMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpUserControlMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpVideoMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpVideoMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/Message/RtmpWindowAcknowledgementSizeMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpWindowAcknowledgementSizeMessage.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/RtmpChunk.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunk.kt",
+      "reason": "dependency",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/RtmpChunkReader.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunkReader.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": [
+        "H7.4 (T7.json) media/haishinkit/rtmp/RtmpChunkReader.kt [fun readChunk]: file not found"
+      ]
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpConnection.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": [
+        "H7.1 (T7.json) media/haishinkit/rtmp/RtmpConnection.kt [fun socketDataReceived]: file not found",
+        "H7.2 (T7.json) media/haishinkit/rtmp/RtmpConnection.kt [fun socketDataReceived]: file not found",
+        "H7.3 (T7.json) media/haishinkit/rtmp/RtmpConnection.kt [fun connect]: file not found",
+        "H7.11 (T7.json) media/haishinkit/rtmp/RtmpConnection.kt [val scope]: file not found",
+        "H7.12 (T7.json) media/haishinkit/rtmp/RtmpConnection.kt: file not found"
+      ]
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/RtmpHandshake.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpHandshake.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/RtmpMessage.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpMessage.kt",
+      "reason": "dependency",
+      "ported_from": null,
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/RtmpSocket.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpSocket.kt",
+      "reason": "compile",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [
+        "55: Unresolved reference 'RtmpStatusCode'.",
+        "106: Unresolved reference 'RtmpStatusCode'.",
+        "106: Unresolved reference 'RtmpStatusCode'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpStream.kt",
+      "reason": "hook",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": [
+        "H7.6 (T7.json) media/haishinkit/rtmp/RtmpStream.kt [fun calcVideoCompositionTime]: scope not found",
+        "H7.7 (T7.json) media/haishinkit/rtmp/RtmpStream.kt [fun videoEncoderOutputSampleBufferInternal]: neither the old nor the new line was found",
+        "H7.9 (T7.json) media/haishinkit/rtmp/RtmpStream.kt [fun onInternal]: scope not found"
+      ]
+    },
+    {
+      "swift": "Moblin/Various/Media.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/Media.kt",
+      "reason": "compile",
+      "ported_from": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+      "errors": [
+        "40: Unresolved reference 'RtmpDisconnectReason'.",
+        "88: Unresolved reference 'RtmpDisconnectReason'.",
+        "123: Class 'Media' is not abstract and does not implement abstract member:",
+        "1326: 'rtmpStreamDisconnected' overrides nothing.",
+        "1326: Unresolved reference 'RtmpDisconnectReason'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/Model.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/Model.kt",
+      "reason": "compile",
+      "ported_from": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+      "errors": [
+        "1234: Unresolved reference 'RtmpDisconnectReason'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelSettingsImportExport.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt",
+      "reason": "fallback",
+      "ported_from": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Various/Model/ModelStream.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
+      "reason": "compile",
+      "ported_from": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+      "errors": [
+        "23: Unresolved reference 'RtmpDisconnectReason'.",
+        "1178: Unresolved reference 'RtmpDisconnectReason'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/MainView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/MainView.kt",
+      "reason": "compile",
+      "ported_from": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+      "errors": [
+        "118: Unresolved reference 'PanelState'.",
+        "325: Unresolved reference 'PanelState'.",
+        "330: Property delegate must have a 'getValue(Nothing?, KProperty0<ERROR CLASS: Cannot infer argument for type parameter T>)' method. None of the following functions is applicable:",
+        "330: Cannot infer type for this parameter. Specify it explicitly.",
+        "330: Unresolved reference 'searching'.",
+        "330: Cannot infer type for this parameter. Specify it explicitly.",
+        "332: Unresolved reference 'not' for operator '!'.",
+        "346: Unresolved reference 'not' for operator '!'.",
+        "1187: Unresolved reference 'panelState'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/SettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
+      "reason": "compile",
+      "ported_from": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+      "errors": [
+        "200: Unresolved reference 'panelState'.",
+        "204: Unresolved reference 'panelState'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpChunkSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunkSuite.kt",
+      "reason": "dependency",
+      "ported_from": null,
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpHandshakeSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpHandshakeSuite.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "54: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "71: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "86: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "91: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "97: Argument type mismatch: actual type is 'String', but 'URI' was expected."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpMediaSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpMediaSuite.kt",
+      "reason": "fallback",
+      "ported_from": null,
+      "errors": [
+        "75: Unresolved reference 'RtmpTimestamps'.",
+        "76: Cannot infer type for this parameter. Specify it explicitly.",
+        "76: Not enough information to infer type argument for 'R'.",
+        "77: Not enough information to infer type argument for 'K'.",
+        "82: Cannot infer type for this parameter. Specify it explicitly.",
+        "82: Not enough information to infer type argument for 'T'.",
+        "82: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "90: Unresolved reference 'makeRtmpAudioSequenceHeader'.",
+        "90: Unresolved reference 'makeAacFormat'.",
+        "100: Unresolved reference 'makeRtmpAudioSequenceHeader'.",
+        "100: Unresolved reference 'makeOpusFormat'.",
+        "108: Unresolved reference 'makeRtmpAudioFrame'.",
+        "108: Unresolved reference 'makeAudioBuffer'.",
+        "108: Unresolved reference 'makeAacFormat'.",
+        "118: Unresolved reference 'makeRtmpAudioFrame'.",
+        "118: Unresolved reference 'makeAudioBuffer'.",
+        "118: Unresolved reference 'makeOpusFormat'.",
+        "124: Unresolved reference 'makeH264FormatDescription'.",
+        "129: Unresolved reference 'makeRtmpVideoSequenceHeader'.",
+        "135: Unresolved reference 'makeRtmpVideoSequenceHeader'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpMessageSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpMessageSuite.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "193: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
+        "212: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
+        "226: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "240: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
+        "255: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
+        "265: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "267: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "280: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "354: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpSocketSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpSocketSuite.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "3: Unresolved reference 'amf'.",
+        "14: Class 'SocketDelegateMock' is not abstract and does not implement abstract members:",
+        "18: 'socketDataReceived' overrides nothing. Potential signatures for overriding:",
+        "22: 'socketReadyStateChanged' overrides nothing.",
+        "28: 'socketUpdateStats' overrides nothing. Potential signatures for overriding:",
+        "30: 'socketPost' overrides nothing.",
+        "30: Unresolved reference 'AsObject'.",
+        "32: Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'MatchGroup?'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt",
+      "reason": "compile",
+      "ported_from": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+      "errors": [
+        "11: Unresolved reference 'message'.",
+        "12: Unresolved reference 'message'.",
+        "13: Unresolved reference 'message'.",
+        "14: Unresolved reference 'message'.",
+        "15: Unresolved reference 'message'.",
+        "16: Unresolved reference 'message'.",
+        "17: Unresolved reference 'message'.",
+        "18: Unresolved reference 'message'.",
+        "19: Unresolved reference 'message'.",
+        "20: Unresolved reference 'message'.",
+        "21: Unresolved reference 'message'.",
+        "587: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
+        "621: Unresolved reference 'ConnectionLost'.",
+        "649: Unresolved reference 'ConnectionLost'.",
+        "845: Unresolved reference 'StreamRejected'.",
+        "896: Unresolved reference 'ServerError'.",
+        "951: Unresolved reference 'StreamRejected'.",
+        "965: Unresolved reference 'ConnectFailed'.",
+        "1003: Unresolved reference 'DYNAMIC'.",
+        "1208: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpSuite.kt",
+      "reason": "compile",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [
+        "8: Unresolved reference 'message'.",
+        "9: Unresolved reference 'message'.",
+        "10: Unresolved reference 'message'.",
+        "11: Unresolved reference 'settings'.",
+        "108: Unresolved reference 'SettingsStreamColorRange'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpTestUtils.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpTestUtils.kt",
+      "reason": "dependency",
+      "ported_from": null,
+      "errors": [],
+      "hooks": []
+    }
+  ],
+  "port_failures": [
+    {
+      "swift": "Moblin/View/Settings/SettingsSearchView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/SettingsSearchView.kt",
+      "error": "peer closed connection without sending complete message body (incomplete chunked read)"
+    }
+  ],
   "hooks": [],
   "hand_ported": [],
   "effects": [],

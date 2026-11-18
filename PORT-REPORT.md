@@ -1,16 +1,16 @@
 # Port report
 
-Generated 2026-11-17T03:16:44+00:00
+Generated 2026-11-18T02:13:37+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
-| logic | 163 | 0 | 0 | 0 | 0 |
-| platform | 57 | 0 | 0 | 0 | 0 |
-| test | 81 | 0 | 0 | 0 | 0 |
-| media | 162 | 0 | 0 | 0 | 0 |
-| ui | 375 | 0 | 0 | 0 | 0 |
+| logic | 152 | 0 | 2 | 1 | 0 |
+| platform | 56 | 0 | 1 | 0 | 0 |
+| test | 79 | 0 | 2 | 6 | 0 |
+| media | 151 | 0 | 5 | 0 | 0 |
+| ui | 372 | 1 | 2 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -92,6 +92,10 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 
 - Moblin/Various/Model/ModelStore.swift
   - StoreKit: Product.products(for:), Transaction.updates, VerificationResult, AppStore.sync(), Product.purchase(), Transaction.currentEntitlements, Transaction.finish() (needs Google Play Billing and the icon products in the Play Console)
+
+## Errors
+
+- Moblin/View/Settings/SettingsSearchView.swift: peer closed connection without sending complete message body (incomplete chunked read)
 
 ## Ported files
 
@@ -714,7 +718,6 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wizard/WidgetWizardWheelOfLuckSettingsView.kt | deepseek-flash | 27.5 |
 | Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/WidgetsSettingsView.kt | deepseek-flash | 6.6 |
 | Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/selfiestick/SelfieStickSettingsView.kt | deepseek-flash | 6.7 |
-| Moblin/View/Settings/SettingsSearchView.swift | app/src/main/java/com/moblin/android/view/settings/SettingsSearchView.kt | deepseek-flash | 102.0 |
 | Moblin/View/Settings/SettingsView.swift | app/src/main/java/com/moblin/android/view/settings/SettingsView.kt | deepseek-flash | 24.8 |
 | Moblin/View/Settings/Store/StoreSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/store/StoreSettingsView.kt | deepseek-flash | 8.9 |
 | Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streamdeck/StreamDeckLayoutSettingsView.kt | deepseek-flash | 15.5 |

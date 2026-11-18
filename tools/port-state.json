@@ -889,28 +889,6 @@
       "no Android counterpart for CMTime preferredTimescale quantization"
     ]
   },
-  "Moblin/Media/HaishinKit/Rtmp/RtmpHandshake.swift": {
-    "status": "ok",
-    "sha256": "8bf2327e9386147c0931e083f9492be1f4d9316af31579f9cec13129324fc6d7",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpHandshake.kt",
-    "notes": [
-      "Swift static-only enum becomes a Kotlin object; sigSize and protocolVersion are exposed as const val with the same names.",
-      "protocolVersion stays a UByte because it is a wire-format byte written straight into the handshake packet; timestamp stays Double seconds as TimeInterval.",
-      "createC2Packet uses Instant.now().epochSecond for Date().timeIntervalSince1970, which matches the Swift Int64 truncation of the whole-second timestamp.",
-      "Data.subdata(in:) becomes ByteArray.copyOfRange(from, to) with the same half-open semantics (1 until 5, 9 until sigSize + 1).",
-      "UInt8.random(in: 0...UInt8.max) becomes Random.nextInt(0, 256).toUByte(); the 1528 filler bytes are generated with repeat().",
-      "ByteWriter methods are called with the same names as the Swift source (writeUInt8, writeInt32, writeUInt32, writeBytes) and its result buffer is read through the 'data' property, assumed to be ByteArray."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1775,
-    "tokens_out": 1727,
-    "seconds": 7.4,
-    "ported_at": "2026-09-22T12:38:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/Various/Utils/FileSystemUtils.swift": {
     "status": "ok",
     "sha256": "e2649dfb40acfa4c1858180b8eaeedb9e8a321678e5db1e6590219f67f5b050e",
@@ -1991,28 +1969,6 @@
     "seconds": 50.7,
     "ported_at": "2026-09-25T08:58:26+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAggregateMessage.swift": {
-    "status": "ok",
-    "sha256": "a3dab6bbb910be72ec2ed729daa61c37d253ad249bcf842af0c708c9a316a852",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAggregateMessage.kt",
-    "notes": [
-      "Swift `final class` subclass becomes a plain Kotlin `class` extending the open `RtmpMessage` class.",
-      "The superclass initializer is called through Kotlin constructor delegation, so `RtmpAggregateMessage` forwards `RtmpMessageType.aggregate` as the message type.",
-      "No other members exist in the Swift source, so the Kotlin class body is empty apart from the inheritance clause.",
-      "The enum entry is referenced as `RtmpMessageType.aggregate` to match the Swift case name; align the casing with the sibling RtmpMessageType declaration if that file used uppercase constants.",
-      "`RtmpMessage` is imported from the same package `com.moblin.android.media.haishinkit.rtmp.message`, so no extra import statement is required.",
-      "No state, no coroutines and no platform APIs are involved; behaviour is identical to the Swift original."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1560,
-    "tokens_out": 1374,
-    "seconds": 6.7,
-    "ported_at": "2026-09-22T12:41:34+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/Integrations/OpenAi/OpenAi.swift": {
     "status": "ok",
     "sha256": "0f16d0553f51538df6f21621525111c2367f31eba80cea79eafd1150346596e3",
@@ -2060,21 +2016,6 @@
     "ported_at": "2026-09-22T12:41:54+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAcknowledgementMessage.swift": {
-    "status": "ok",
-    "sha256": "e7ec0909366dd4052c3e15dd13a9c2e3ec1fa8542e5835353fd5372d82fe5291",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAcknowledgementMessage.kt",
-    "notes": [],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1663,
-    "tokens_out": 7332,
-    "seconds": 29.5,
-    "ported_at": "2026-09-22T12:41:56+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/Media/HaishinKit/Mpeg/Avc/AvcNalUnitSei.swift": {
     "status": "ok",
     "sha256": "290aff44d6a7683d8f4cdd2c8fa94d9c54331f37196984d39fdb3691bfb54ae0",
@@ -2097,99 +2038,6 @@
     "tokens_out": 16746,
     "seconds": 64.9,
     "ported_at": "2026-09-22T12:42:09+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpWindowAcknowledgementSizeMessage.swift": {
-    "status": "ok",
-    "sha256": "baeb7a09a50553fca035a2b0a4b850b6c7d52d34a1510b99dc2295515f42a35a",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpWindowAcknowledgementSizeMessage.kt",
-    "notes": [
-      "RtmpMessage is assumed to expose an overridable 'encoded' property of type ByteArray (modeled from the Swift 'encoded: Data'); it is accessed via super.encoded in both accessors.",
-      "RtmpMessageType.windowAck is assumed to be the Kotlin enum entry matching the Swift '.windowAck' case; both types live in the same package so no imports are needed.",
-      "Swift's UInt32 constructors/initializers become secondary constructors delegating to super(RtmpMessageType.windowAck), since the base class has no no-arg constructor.",
-      "size stays a UInt because this class is RTMP wire-format code; byte serialization helpers convert to/from big-endian bytes matching Swift's 'bigEndian.data' idiom.",
-      "The setter reads the first 4 bytes big-endian, matching Swift's 'UInt32(data:).bigEndian' net behaviour (zero-fill for short arrays)."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1699,
-    "tokens_out": 5677,
-    "seconds": 22.8,
-    "ported_at": "2026-09-22T12:42:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpDataMessage.swift": {
-    "status": "ok",
-    "sha256": "22e6d0f2b53c11c9253655cdd16d9b5e0368e63b0d44802ab5c345c0df16cb1e",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpDataMessage.kt",
-    "notes": [
-      "Swift's `@unchecked Sendable` has no Kotlin counterpart and was dropped.",
-      "`encoded` is fully overridden with a custom getter/setter that delegates to `super.encoded` for lazy caching; this assumes the base `RtmpMessage.encoded` is an open `var ByteArray`.",
-      "`Data` equality (`==`/`!=`) is translated to `ByteArray.contentEquals` and `Data.count` to `ByteArray.size`.",
-      "`Amf0Encoder.writeUInt8` is assumed to take a `UByte`; the Swift literal `0` becomes `0.toUByte()`.",
-      "Swift's `AsValue.string(handlerName)` is translated as the nested case `AsValue.String(handlerName)` of the AMF sealed type.",
-      "`logger.info(...)` is translated to `Log.i(\"RtmpDataMessage\", ...)` using a private companion TAG.",
-      "`arguments` is declared `MutableList<AsValue>` so `decoder.decode()` results can be appended in the setter.",
-      "The inherited `type` property is compared against `RtmpMessageType.amf3Data`, matching the Swift `.amf3Data` case."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2106,
-    "tokens_out": 11524,
-    "seconds": 47.3,
-    "ported_at": "2026-09-22T12:42:21+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpCommandMessage.swift": {
-    "status": "ok",
-    "sha256": "83002dc090730fc7e530f23cee7faf88411763bd1e5c955bf0feb1b89297514b",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpCommandMessage.kt",
-    "notes": [
-      "Enum entries keep the Swift case names verbatim; RtmpCommandName.fromRawValue(rawValue) returns null instead of the Swift optional, and the call site keeps the '?? .unknown' fallback.",
-      "The two Swift initializers became secondary constructors delegating to RtmpMessage(commandType); RtmpMessage is assumed to expose open 'encoded: ByteArray', 'length: Int', 'streamId: UInt32' and 'type'.",
-      "`encoded` overrides the base property and uses super.encoded for the cached value exactly like the Swift getter/setter pair (no backing field is generated).",
-      "Swift's do/catch became try/catch (e: Exception); Amf0Decoder/Amf0Encoder are assumed to expose decode(), decodeString(), decodeInt(), decodeObject(), bytesAvailable, position, encode(), writeUInt8() and data.",
-      "AMF values are built as AsValue.String / AsValue.Number / AsValue.Object / AsValue.Null; those sealed-class constructor names must match the AMF0.kt translation.",
-      "logger.info is mapped to Log.i with the class name as tag; Data.hexString() is not part of the glossary, so a private ByteArray.hexString() helper (lowercase hex) is provided at file level.",
-      "arguments is exposed as MutableList<AsValue> with a private setter so the in-place append/removeAll semantics of the Swift array are preserved.",
-      "The 'length == newValue.count' guard and the public setter write-through to super.encoded are kept unchanged."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2338,
-    "tokens_out": 13563,
-    "seconds": 53.2,
-    "ported_at": "2026-09-22T12:42:26+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetPeerBandwidthMessage.swift": {
-    "status": "ok",
-    "sha256": "3d1d7edb1335b66247e8cd5ce2cecb004df381829fd4bc449f5aca698ce94dcf",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetPeerBandwidthMessage.kt",
-    "notes": [
-      "RtmpSetPeerBandwidthMessage has no primary constructor: the two Swift inits become secondary constructors, both delegating to super(RtmpMessageType.BANDWIDTH) (assumed to be the existing RtmpMessageType entry for 0x06).",
-      "Swift's nested 'enum Limit: UInt8' becomes a nested Kotlin enum class with a UByte rawValue plus Limit.fromRawValue(...) replacing the failable raw-value initialiser; Swift cases hard/soft/dynamic/unknown are written HARD/SOFT/DYNAMIC/UNKNOWN per Kotlin enum conventions.",
-      "UInt32 fields stay unsigned (UInt) because they are wire-format values; size.bigEndian.data is produced with a big-endian java.nio.ByteBuffer and UInt32(data:).bigEndian is parsed with ByteBuffer.wrap(value, 0, 4).int.toUInt(), so both directions are big-endian on the wire.",
-      "Swift slicing newValue[0 ..< 4] is replaced by ByteBuffer.wrap(value, 0, 4) (offset overload) so no copy of the payload is made.",
-      "Data counting, appending and equality map to ByteArray.size, ByteBuffer.put, and contentEquals.",
-      "The overridden encoded getter/setter read and write the superclass storage via super.encoded, exactly like the Swift code uses super.encoded.",
-      "The payload is always 5 bytes: 4 bytes of size followed by the limit raw value byte, matching the RTMP Set Peer Bandwidth message layout.",
-      "No Apple-only frameworks are used, so nothing is stubbed out."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1814,
-    "tokens_out": 9868,
-    "seconds": 41.8,
-    "ported_at": "2026-09-22T12:42:33+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/Various/Model/ModelDisconnectProtection.swift": {
@@ -2285,28 +2133,6 @@
     "tokens_out": 14914,
     "seconds": 59.5,
     "ported_at": "2026-10-09T23:37:00+00:00"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpUserControlMessage.swift": {
-    "status": "ok",
-    "sha256": "ace141235e5757da30523131c09763a4587a1c6784258a82358c1ebe7f5f1c2a",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpUserControlMessage.kt",
-    "notes": [
-      "RtmpUserControlMessage subclasses RtmpMessage(RtmpMessageType.user) through a Kotlin primary constructor; the two Swift initializers map to the primary constructor plus one secondary constructor.",
-      "Swift's nested `Event: UInt8` becomes a nested `enum class Event(val rawValue: UByte)` with a companion `fromRawValue`, replacing `Event(rawValue:)`.",
-      "The overridden `encoded` property keeps the lazy getter/setter semantics: the getter returns the stored payload when non-empty, otherwise it builds it from `event` and `value` and stores it.",
-      "`Data` maps to `ByteArray`; `value.bigEndian.data` is produced by explicit big-endian shift/mask conversion, and the setter parses the tail big-endian.",
-      "Where Swift used the inherited `length`, this port reads `super.encoded.size` to avoid re-entering the overridden getter (which has side effects).",
-      "`Int32` maps to `Int`; `Int32(data:...).bigEndian` is reproduced by reading the trailing bytes big-endian, capped at the 4-byte value width."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1896,
-    "tokens_out": 16502,
-    "seconds": 63.6,
-    "ported_at": "2026-09-22T12:42:57+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/Integrations/Dji/DjiMessage.swift": {
     "status": "ok",
@@ -3003,30 +2829,6 @@
     "tokens_out": 2733,
     "seconds": 11.6,
     "ported_at": "2026-09-22T12:45:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/RtmpChunkReader.swift": {
-    "status": "ok",
-    "sha256": "fb18fb6c5a1714903304648e164b8d615bb0b60ad9044e26b1cca6773e3a2a50",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunkReader.kt",
-    "notes": [
-      "RtmpChunkType is assumed to be a Kotlin enum class with entries ZERO/ONE/TWO/THREE, a UByte rawValue and a companion fromRawValue; RtmpMessageType is assumed to use fromRawValue(UByte) as well.",
-      "ByteReader is expected to expose position: Int (var), bytesAvailable: Int, readUInt8(): UByte, readUInt16Le(): UShort, readUInt24(): UInt, readUInt32(): UInt, readUInt32Le(): UInt and a throwing readBytes(count: Int): ByteArray.",
-      "messageHeaderSize() is kept as a function call on RtmpChunkType, mirroring the Swift declaration.",
-      "RtmpChunkStream in Swift is a struct copied in and out of the dictionary; in Kotlin it is a data class held by reference, so mutations apply to the stored instance. The observable behaviour is identical because every re-entry re-reads the same bytes from the same offset.",
-      "Swift's UInt32 timestamps map to Kotlin UInt, chunk stream ids to UShort, in line with the wire-format rule.",
-      "Swift's &+ / &+= wrapping arithmetic is preserved implicitly: Kotlin unsigned operators are implemented over signed Int arithmetic and wrap on overflow.",
-      "data.subdata(in:) becomes ByteArray.copyOfRange(offset, size); try! becomes a plain call to a throwing ByteReader method.",
-      "The private file-level types RtmpBasicHeader and RtmpChunkStream stay private to this file, as in the Swift source."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2827,
-    "tokens_out": 13347,
-    "seconds": 51.6,
-    "ported_at": "2026-09-22T12:45:43+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/Integrations/Dji/DjiDevice/DjiDeviceMessage.swift": {
@@ -6956,49 +6758,6 @@
     "seconds": 7.7,
     "ported_at": "2026-10-22T22:49:17+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAudioMessage.swift": {
-    "status": "ok",
-    "sha256": "87641e8b993c8ef2643bfa5231f2c1b72aad2e4a71aca8deb47ac3f8fba13292",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAudioMessage.kt",
-    "notes": [
-      "AVFoundation import had no used symbols and was dropped; no Kotlin import is required.",
-      "UInt32 maps to UInt and Data maps to ByteArray.",
-      "The two Swift initializers become Kotlin secondary constructors, both delegating to super with RtmpMessageType.audio.",
-      "Swift 'final class' maps to a plain Kotlin 'class' (final by default).",
-      "streamId, timestamp and encoded are assigned, so they are assumed to be mutable properties inherited from RtmpMessage in the same package.",
-      "No Android APIs are involved, so the bodies are translated in full without TODO()."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1951,
-    "tokens_out": 1103,
-    "seconds": 5.2,
-    "ported_at": "2026-09-22T13:18:42+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpVideoMessage.swift": {
-    "status": "ok",
-    "sha256": "0a8fcaf2497b7a6e5b5fca0804c42723ef06fcf4276e0da5a422f4628b2d7a0f",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpVideoMessage.kt",
-    "notes": [
-      "RtmpMessage and RtmpMessageType are declared in the same package, so no import lines are needed.",
-      "Swift UInt32 fields stay as Kotlin UInt because this is RTMP wire-format code; RtmpMessage.streamId and RtmpMessage.timestamp must use UInt in the parent class for these assignments to compile.",
-      "payload: Data maps to encoded: ByteArray, matching the RtmpMessage property name used by the second initializer.",
-      "The two Swift designated initializers become two Kotlin secondary constructors delegating to the RtmpMessage(type) superclass constructor.",
-      "The AVFoundation import is unused in the Swift source and has no counterpart here."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1951,
-    "tokens_out": 930,
-    "seconds": 4.3,
-    "ported_at": "2026-09-22T13:18:46+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/Media/HaishinKit/Mpeg/MpegTsPacketizedElementaryStream.swift": {
     "status": "ok",
     "sha256": "e7810b2161aa87611523b4a08b438136bf7e879724f69647a40f879791c262d3",
@@ -7202,29 +6961,6 @@
     "seconds": 5.9,
     "ported_at": "2026-10-22T22:49:23+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAbortMessge.swift": {
-    "status": "ok",
-    "sha256": "2feb5ed6fe2fdf7e1f66d2addfa0832c511eda5aee9a4e57f4ff8392331789a4",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAbortMessge.kt",
-    "notes": [
-      "Class name typo \"RtmpAbortMessge\" (missing 'a' in Message) is preserved verbatim from Swift.",
-      "`Data` maps to `ByteArray`; array equality uses `contentEquals` because ByteArray has no `==`.",
-      "`chunkStreamId` stays an unsigned `UInt` since it is a 32-bit wire-format field.",
-      "The Swift `UInt32.bigEndian.data` and `UInt32(data:)` extension helpers are not in the glossary, so they are inlined as explicit big-endian read/write of the first 4 bytes.",
-      "`override var encoded` reads and writes `super.encoded`, i.e. the base class accessors, avoiding recursion.",
-      "Swift `init()` calling `super.init(type: .abort)` becomes a secondary constructor `constructor() : super(RtmpMessageType.abort)`.",
-      "No apple-only APIs are used here, so nothing is replaced with TODO()."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2014,
-    "tokens_out": 11770,
-    "seconds": 46.8,
-    "ported_at": "2026-09-22T13:19:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/Various/Model/ModelStealthMode.swift": {
     "status": "ok",
     "sha256": "d35a998f7b86b5df6bea8dff0f8cc89f47c16e42696847406d037602925c0fca",
@@ -7247,29 +6983,6 @@
     "tokens_out": 4248,
     "seconds": 18.4,
     "ported_at": "2026-09-22T13:19:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetChunkSizeMessage.swift": {
-    "status": "ok",
-    "sha256": "793280f47c155f1b7f65ac7020ad2a0a37a5232a19ba40b355eb2ad1b84b09ca",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetChunkSizeMessage.kt",
-    "notes": [
-      "Kotlin has no `super.property` access, so the overridden `encoded` uses a private `_encoded` backing field; the base class stores nothing else for this property, so it is equivalent.",
-      "`size` is kept as `UInt` because `UInt32` is wire-format data.",
-      "Added file-private helpers `uint32ToBigEndianBytes` and `readUInt32BigEndian` to replace the HaishinKit `UInt32.bigEndian.data` and `UInt32(data:)` conversions.",
-      "Assumes `RtmpMessage` exposes `open var encoded: ByteArray` and a constructor taking `RtmpMessageType`; the override follows Android's `: View { constructor() : super(...) }` delegation pattern.",
-      "The two Swift initializers become two secondary Kotlin constructors, since the base constructor requires an argument.",
-      "The `import AVFoundation` line is dropped: no AVFoundation API is actually used in this file.",
-      "Getter returns the existing bytes when non-empty, otherwise encodes `size`; setter early-returns on equal bytes and decodes `size` from the first four big-endian bytes."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2040,
-    "tokens_out": 9541,
-    "seconds": 38.7,
-    "ported_at": "2026-09-22T13:19:20+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/Media/HaishinKit/Mpeg/Hevc/MpegTsVideoConfigHevc.swift": {
@@ -8150,30 +7863,6 @@
     "tokens_out": 598,
     "seconds": 3.2,
     "ported_at": "2026-09-25T23:00:17+00:00"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpMessage.swift": {
-    "status": "ok",
-    "sha256": "ceca7aec26828ee854b644eb4eb7247abb05d8b88bb20c381dd6043ed582ed82",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpMessage.kt",
-    "notes": [
-      "The unused `import AVFoundation` is dropped; this file only uses Foundation `Data`, mapped to `ByteArray`.",
-      "`RtmpMessageType: UInt8` becomes `enum class RtmpMessageType(val rawValue: UByte)` with a `fromRawValue` companion factory, keeping the wire values byte-identical.",
-      "`Data()` becomes `ByteArray(0)`; `length` stays `Int`, while the 32-bit wire fields `streamId` and `timestamp` use `UInt` as required for wire-format code.",
-      "The Swift `class RtmpMessage` is translated as `open class` because RtmpSetChunkSizeMessage, RtmpAbortMessge and the other subclasses inherit from it.",
-      "`let type` plus `init(type:)` collapse into the primary constructor property `val type: RtmpMessageType`.",
-      "`static func create` becomes `create` on the `companion object`; the `switch` becomes an exhaustive `when` expression returning `RtmpMessage`.",
-      "The enum literals `.amf3Data`/`.amf0Data` and `.amf3Command`/`.amf0Command` are referenced as nested `RtmpDataMessage.DataType` and `RtmpCommandMessage.CommandType` cases; adjust if that port declared them as top-level enums.",
-      "The upstream typo `RtmpAbortMessge` is preserved exactly so the class name matches the sibling file."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2565,
-    "tokens_out": 4573,
-    "seconds": 16.8,
-    "ported_at": "2026-09-22T13:21:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/View/Utils/InlinePickerView.swift": {
     "status": "ok",
@@ -11172,30 +10861,6 @@
     "tokens_out": 4161,
     "seconds": 13.0,
     "ported_at": "2026-10-09T00:27:20+00:00"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift": {
-    "status": "ok",
-    "sha256": "f0badf8637758135eb2062abbb4b2f5335d0ab8832b03a6c0c70946b6bf7241d",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpConnection.kt",
-    "notes": [
-      "AsValue is assumed to expose nested String/Number/Boolean/Null/Object variants that carry a `value` property, and AsObject a String-keyed map of AsValue.",
-      "Foundation URL became java.net.URI; user/password are read through private extension properties and the tcUrl is rebuilt locally because absoluteWithoutAuthenticationString has no java.net equivalent.",
-      "socketDataReceived keeps its ByteArray return type and returns the received data unchanged, since the translated Swift body has no explicit return statement.",
-      "RtmpSetChunkSizeMessage and RtmpWindowAcknowledgementSizeMessage are called with UInt sizes; switch to Int if the port declares those message fields as Int.",
-      "The rtmps branch passes TlsOptions(); the port's TLS options type name must be confirmed against RtmpSocket.connect.",
-      "SimpleTimer is created with the CoroutineDispatcher and queue.async became scope.launch on a CoroutineScope(queue) property.",
-      "RtmpChunk.ChunkStreamId.control.rawValue, RtmpChunkType.zero, RtmpUserControlMessage.Event.ping/pong and RtmpMessageType.amf0Command are kept exactly as in the Swift source.",
-      "The weak stream reference is a plain nullable var in Kotlin, and bitrateStats.mutate { } plus info.onAck/onWritten/onTimeout are assumed to exist on RtmpStreamInfo as in Swift."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 6485,
-    "tokens_out": 32958,
-    "seconds": 120.0,
-    "ported_at": "2026-09-22T13:34:58+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift": {
     "status": "ok",
@@ -18812,28 +18477,346 @@
     "ported_at": "2026-11-17T02:39:54+00:00"
   },
   "Moblin/View/Settings/SettingsSearchView.swift": {
-    "status": "ok",
-    "sha256": "04f758f358a3aa5bb02bf2ec8d166f6b900452dd8403af9deb247bd4dbb70487",
-    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
-    "mode": "full",
+    "status": "error",
+    "error": "peer closed connection without sending complete message body (incomplete chunked read)",
+    "sha256": "fc610cab2ab9bde59bd467f6a1c46be977da3caf24aa7eec9bb3fd17eb1f4a3a",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsSearchView.kt",
+    "ported_at": "2026-11-18T01:56:29+00:00"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/RtmpChunkReader.swift": {
+    "status": "ok",
+    "sha256": "fb18fb6c5a1714903304648e164b8d615bb0b60ad9044e26b1cca6773e3a2a50",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunkReader.kt",
     "notes": [
-      "SettingsSearchItem becomes a data class implementing Identifiable<String>; its AnyView destination is a @Composable () -> Unit lambda, and id is computed as path + title joined by '/'.",
-      "settingsSearchItems keeps every builder.add call in Swift order and passes the same arguments to the already ported settings views; views whose Kotlin declaration was not supplied are called with named arguments matching the Swift labels.",
-      "settingsSearchWords folds case with lowercase() and strips diacritics with java.text.Normalizer (NFD + \\p{M}), then splits on anything that is not a letter or a digit.",
-      "The #available(iOS 17.0, *) guard around KeyboardSettingsView is kept unconditionally and the macCatalyst #if block becomes the plain isPad() check, since Android has both.",
-      "model.supportsAppleLog / supportsAppleLog2 are read with .value because the port keeps those @Published flags as MutableStateFlow.",
-      "The Swift Binding for model.stream (used by LocationSettingsView and RemoteControlSettingsView) cannot be built outside composition, so the model's stream flow is passed instead.",
-      "The protocol switch uses SettingsStreamProtocol entries (srt, rtmp, rist, whip) with an else branch so the when stays exhaustive for mobcam.",
-      "SettingsSearchFieldView uses BasicTextField with explicit iOS text style, cursor and colours, and disables autocorrect and autocapitalization; no Material defaults are used."
+      "RtmpChunkType is assumed to be a Kotlin enum class with entries ZERO/ONE/TWO/THREE, a UByte rawValue and a companion fromRawValue; RtmpMessageType is assumed to use fromRawValue(UByte) as well.",
+      "ByteReader is expected to expose position: Int (var), bytesAvailable: Int, readUInt8(): UByte, readUInt16Le(): UShort, readUInt24(): UInt, readUInt32(): UInt, readUInt32Le(): UInt and a throwing readBytes(count: Int): ByteArray.",
+      "messageHeaderSize() is kept as a function call on RtmpChunkType, mirroring the Swift declaration.",
+      "RtmpChunkStream in Swift is a struct copied in and out of the dictionary; in Kotlin it is a data class held by reference, so mutations apply to the stored instance. The observable behaviour is identical because every re-entry re-reads the same bytes from the same offset.",
+      "Swift's UInt32 timestamps map to Kotlin UInt, chunk stream ids to UShort, in line with the wire-format rule.",
+      "Swift's &+ / &+= wrapping arithmetic is preserved implicitly: Kotlin unsigned operators are implemented over signed Int arithmetic and wrap on overflow.",
+      "data.subdata(in:) becomes ByteArray.copyOfRange(offset, size); try! becomes a plain call to a throwing ByteReader method.",
+      "The private file-level types RtmpBasicHeader and RtmpChunkStream stay private to this file, as in the Swift source."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 66577,
-    "tokens_out": 25565,
-    "seconds": 102.0,
-    "ported_at": "2026-11-17T02:41:28+00:00"
+    "tokens_in": 2827,
+    "tokens_out": 13347,
+    "seconds": 51.6,
+    "ported_at": "2026-09-22T12:45:43+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift": {
+    "status": "ok",
+    "sha256": "f0badf8637758135eb2062abbb4b2f5335d0ab8832b03a6c0c70946b6bf7241d",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpConnection.kt",
+    "notes": [
+      "AsValue is assumed to expose nested String/Number/Boolean/Null/Object variants that carry a `value` property, and AsObject a String-keyed map of AsValue.",
+      "Foundation URL became java.net.URI; user/password are read through private extension properties and the tcUrl is rebuilt locally because absoluteWithoutAuthenticationString has no java.net equivalent.",
+      "socketDataReceived keeps its ByteArray return type and returns the received data unchanged, since the translated Swift body has no explicit return statement.",
+      "RtmpSetChunkSizeMessage and RtmpWindowAcknowledgementSizeMessage are called with UInt sizes; switch to Int if the port declares those message fields as Int.",
+      "The rtmps branch passes TlsOptions(); the port's TLS options type name must be confirmed against RtmpSocket.connect.",
+      "SimpleTimer is created with the CoroutineDispatcher and queue.async became scope.launch on a CoroutineScope(queue) property.",
+      "RtmpChunk.ChunkStreamId.control.rawValue, RtmpChunkType.zero, RtmpUserControlMessage.Event.ping/pong and RtmpMessageType.amf0Command are kept exactly as in the Swift source.",
+      "The weak stream reference is a plain nullable var in Kotlin, and bitrateStats.mutate { } plus info.onAck/onWritten/onTimeout are assumed to exist on RtmpStreamInfo as in Swift."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 6485,
+    "tokens_out": 32958,
+    "seconds": 120.0,
+    "ported_at": "2026-09-22T13:34:58+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/RtmpHandshake.swift": {
+    "status": "ok",
+    "sha256": "8bf2327e9386147c0931e083f9492be1f4d9316af31579f9cec13129324fc6d7",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpHandshake.kt",
+    "notes": [
+      "Swift static-only enum becomes a Kotlin object; sigSize and protocolVersion are exposed as const val with the same names.",
+      "protocolVersion stays a UByte because it is a wire-format byte written straight into the handshake packet; timestamp stays Double seconds as TimeInterval.",
+      "createC2Packet uses Instant.now().epochSecond for Date().timeIntervalSince1970, which matches the Swift Int64 truncation of the whole-second timestamp.",
+      "Data.subdata(in:) becomes ByteArray.copyOfRange(from, to) with the same half-open semantics (1 until 5, 9 until sigSize + 1).",
+      "UInt8.random(in: 0...UInt8.max) becomes Random.nextInt(0, 256).toUByte(); the 1528 filler bytes are generated with repeat().",
+      "ByteWriter methods are called with the same names as the Swift source (writeUInt8, writeInt32, writeUInt32, writeBytes) and its result buffer is read through the 'data' property, assumed to be ByteArray."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1775,
+    "tokens_out": 1727,
+    "seconds": 7.4,
+    "ported_at": "2026-09-22T12:38:38+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAbortMessge.swift": {
+    "status": "ok",
+    "sha256": "2feb5ed6fe2fdf7e1f66d2addfa0832c511eda5aee9a4e57f4ff8392331789a4",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAbortMessge.kt",
+    "notes": [
+      "Class name typo \"RtmpAbortMessge\" (missing 'a' in Message) is preserved verbatim from Swift.",
+      "`Data` maps to `ByteArray`; array equality uses `contentEquals` because ByteArray has no `==`.",
+      "`chunkStreamId` stays an unsigned `UInt` since it is a 32-bit wire-format field.",
+      "The Swift `UInt32.bigEndian.data` and `UInt32(data:)` extension helpers are not in the glossary, so they are inlined as explicit big-endian read/write of the first 4 bytes.",
+      "`override var encoded` reads and writes `super.encoded`, i.e. the base class accessors, avoiding recursion.",
+      "Swift `init()` calling `super.init(type: .abort)` becomes a secondary constructor `constructor() : super(RtmpMessageType.abort)`.",
+      "No apple-only APIs are used here, so nothing is replaced with TODO()."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 2014,
+    "tokens_out": 11770,
+    "seconds": 46.8,
+    "ported_at": "2026-09-22T13:19:15+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAcknowledgementMessage.swift": {
+    "status": "ok",
+    "sha256": "e7ec0909366dd4052c3e15dd13a9c2e3ec1fa8542e5835353fd5372d82fe5291",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAcknowledgementMessage.kt",
+    "notes": [],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1663,
+    "tokens_out": 7332,
+    "seconds": 29.5,
+    "ported_at": "2026-09-22T12:41:56+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAudioMessage.swift": {
+    "status": "ok",
+    "sha256": "87641e8b993c8ef2643bfa5231f2c1b72aad2e4a71aca8deb47ac3f8fba13292",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAudioMessage.kt",
+    "notes": [
+      "AVFoundation import had no used symbols and was dropped; no Kotlin import is required.",
+      "UInt32 maps to UInt and Data maps to ByteArray.",
+      "The two Swift initializers become Kotlin secondary constructors, both delegating to super with RtmpMessageType.audio.",
+      "Swift 'final class' maps to a plain Kotlin 'class' (final by default).",
+      "streamId, timestamp and encoded are assigned, so they are assumed to be mutable properties inherited from RtmpMessage in the same package.",
+      "No Android APIs are involved, so the bodies are translated in full without TODO()."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1951,
+    "tokens_out": 1103,
+    "seconds": 5.2,
+    "ported_at": "2026-09-22T13:18:42+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpCommandMessage.swift": {
+    "status": "ok",
+    "sha256": "83002dc090730fc7e530f23cee7faf88411763bd1e5c955bf0feb1b89297514b",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpCommandMessage.kt",
+    "notes": [
+      "Enum entries keep the Swift case names verbatim; RtmpCommandName.fromRawValue(rawValue) returns null instead of the Swift optional, and the call site keeps the '?? .unknown' fallback.",
+      "The two Swift initializers became secondary constructors delegating to RtmpMessage(commandType); RtmpMessage is assumed to expose open 'encoded: ByteArray', 'length: Int', 'streamId: UInt32' and 'type'.",
+      "`encoded` overrides the base property and uses super.encoded for the cached value exactly like the Swift getter/setter pair (no backing field is generated).",
+      "Swift's do/catch became try/catch (e: Exception); Amf0Decoder/Amf0Encoder are assumed to expose decode(), decodeString(), decodeInt(), decodeObject(), bytesAvailable, position, encode(), writeUInt8() and data.",
+      "AMF values are built as AsValue.String / AsValue.Number / AsValue.Object / AsValue.Null; those sealed-class constructor names must match the AMF0.kt translation.",
+      "logger.info is mapped to Log.i with the class name as tag; Data.hexString() is not part of the glossary, so a private ByteArray.hexString() helper (lowercase hex) is provided at file level.",
+      "arguments is exposed as MutableList<AsValue> with a private setter so the in-place append/removeAll semantics of the Swift array are preserved.",
+      "The 'length == newValue.count' guard and the public setter write-through to super.encoded are kept unchanged."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 2338,
+    "tokens_out": 13563,
+    "seconds": 53.2,
+    "ported_at": "2026-09-22T12:42:26+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpDataMessage.swift": {
+    "status": "ok",
+    "sha256": "22e6d0f2b53c11c9253655cdd16d9b5e0368e63b0d44802ab5c345c0df16cb1e",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpDataMessage.kt",
+    "notes": [
+      "Swift's `@unchecked Sendable` has no Kotlin counterpart and was dropped.",
+      "`encoded` is fully overridden with a custom getter/setter that delegates to `super.encoded` for lazy caching; this assumes the base `RtmpMessage.encoded` is an open `var ByteArray`.",
+      "`Data` equality (`==`/`!=`) is translated to `ByteArray.contentEquals` and `Data.count` to `ByteArray.size`.",
+      "`Amf0Encoder.writeUInt8` is assumed to take a `UByte`; the Swift literal `0` becomes `0.toUByte()`.",
+      "Swift's `AsValue.string(handlerName)` is translated as the nested case `AsValue.String(handlerName)` of the AMF sealed type.",
+      "`logger.info(...)` is translated to `Log.i(\"RtmpDataMessage\", ...)` using a private companion TAG.",
+      "`arguments` is declared `MutableList<AsValue>` so `decoder.decode()` results can be appended in the setter.",
+      "The inherited `type` property is compared against `RtmpMessageType.amf3Data`, matching the Swift `.amf3Data` case."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 2106,
+    "tokens_out": 11524,
+    "seconds": 47.3,
+    "ported_at": "2026-09-22T12:42:21+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpMessage.swift": {
+    "status": "ok",
+    "sha256": "ceca7aec26828ee854b644eb4eb7247abb05d8b88bb20c381dd6043ed582ed82",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpMessage.kt",
+    "notes": [
+      "The unused `import AVFoundation` is dropped; this file only uses Foundation `Data`, mapped to `ByteArray`.",
+      "`RtmpMessageType: UInt8` becomes `enum class RtmpMessageType(val rawValue: UByte)` with a `fromRawValue` companion factory, keeping the wire values byte-identical.",
+      "`Data()` becomes `ByteArray(0)`; `length` stays `Int`, while the 32-bit wire fields `streamId` and `timestamp` use `UInt` as required for wire-format code.",
+      "The Swift `class RtmpMessage` is translated as `open class` because RtmpSetChunkSizeMessage, RtmpAbortMessge and the other subclasses inherit from it.",
+      "`let type` plus `init(type:)` collapse into the primary constructor property `val type: RtmpMessageType`.",
+      "`static func create` becomes `create` on the `companion object`; the `switch` becomes an exhaustive `when` expression returning `RtmpMessage`.",
+      "The enum literals `.amf3Data`/`.amf0Data` and `.amf3Command`/`.amf0Command` are referenced as nested `RtmpDataMessage.DataType` and `RtmpCommandMessage.CommandType` cases; adjust if that port declared them as top-level enums.",
+      "The upstream typo `RtmpAbortMessge` is preserved exactly so the class name matches the sibling file."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 2565,
+    "tokens_out": 4573,
+    "seconds": 16.8,
+    "ported_at": "2026-09-22T13:21:02+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetChunkSizeMessage.swift": {
+    "status": "ok",
+    "sha256": "793280f47c155f1b7f65ac7020ad2a0a37a5232a19ba40b355eb2ad1b84b09ca",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetChunkSizeMessage.kt",
+    "notes": [
+      "Kotlin has no `super.property` access, so the overridden `encoded` uses a private `_encoded` backing field; the base class stores nothing else for this property, so it is equivalent.",
+      "`size` is kept as `UInt` because `UInt32` is wire-format data.",
+      "Added file-private helpers `uint32ToBigEndianBytes` and `readUInt32BigEndian` to replace the HaishinKit `UInt32.bigEndian.data` and `UInt32(data:)` conversions.",
+      "Assumes `RtmpMessage` exposes `open var encoded: ByteArray` and a constructor taking `RtmpMessageType`; the override follows Android's `: View { constructor() : super(...) }` delegation pattern.",
+      "The two Swift initializers become two secondary Kotlin constructors, since the base constructor requires an argument.",
+      "The `import AVFoundation` line is dropped: no AVFoundation API is actually used in this file.",
+      "Getter returns the existing bytes when non-empty, otherwise encodes `size`; setter early-returns on equal bytes and decodes `size` from the first four big-endian bytes."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 2040,
+    "tokens_out": 9541,
+    "seconds": 38.7,
+    "ported_at": "2026-09-22T13:19:20+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetPeerBandwidthMessage.swift": {
+    "status": "ok",
+    "sha256": "3d1d7edb1335b66247e8cd5ce2cecb004df381829fd4bc449f5aca698ce94dcf",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetPeerBandwidthMessage.kt",
+    "notes": [
+      "RtmpSetPeerBandwidthMessage has no primary constructor: the two Swift inits become secondary constructors, both delegating to super(RtmpMessageType.BANDWIDTH) (assumed to be the existing RtmpMessageType entry for 0x06).",
+      "Swift's nested 'enum Limit: UInt8' becomes a nested Kotlin enum class with a UByte rawValue plus Limit.fromRawValue(...) replacing the failable raw-value initialiser; Swift cases hard/soft/dynamic/unknown are written HARD/SOFT/DYNAMIC/UNKNOWN per Kotlin enum conventions.",
+      "UInt32 fields stay unsigned (UInt) because they are wire-format values; size.bigEndian.data is produced with a big-endian java.nio.ByteBuffer and UInt32(data:).bigEndian is parsed with ByteBuffer.wrap(value, 0, 4).int.toUInt(), so both directions are big-endian on the wire.",
+      "Swift slicing newValue[0 ..< 4] is replaced by ByteBuffer.wrap(value, 0, 4) (offset overload) so no copy of the payload is made.",
+      "Data counting, appending and equality map to ByteArray.size, ByteBuffer.put, and contentEquals.",
+      "The overridden encoded getter/setter read and write the superclass storage via super.encoded, exactly like the Swift code uses super.encoded.",
+      "The payload is always 5 bytes: 4 bytes of size followed by the limit raw value byte, matching the RTMP Set Peer Bandwidth message layout.",
+      "No Apple-only frameworks are used, so nothing is stubbed out."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1814,
+    "tokens_out": 9868,
+    "seconds": 41.8,
+    "ported_at": "2026-09-22T12:42:33+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpUserControlMessage.swift": {
+    "status": "ok",
+    "sha256": "ace141235e5757da30523131c09763a4587a1c6784258a82358c1ebe7f5f1c2a",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpUserControlMessage.kt",
+    "notes": [
+      "RtmpUserControlMessage subclasses RtmpMessage(RtmpMessageType.user) through a Kotlin primary constructor; the two Swift initializers map to the primary constructor plus one secondary constructor.",
+      "Swift's nested `Event: UInt8` becomes a nested `enum class Event(val rawValue: UByte)` with a companion `fromRawValue`, replacing `Event(rawValue:)`.",
+      "The overridden `encoded` property keeps the lazy getter/setter semantics: the getter returns the stored payload when non-empty, otherwise it builds it from `event` and `value` and stores it.",
+      "`Data` maps to `ByteArray`; `value.bigEndian.data` is produced by explicit big-endian shift/mask conversion, and the setter parses the tail big-endian.",
+      "Where Swift used the inherited `length`, this port reads `super.encoded.size` to avoid re-entering the overridden getter (which has side effects).",
+      "`Int32` maps to `Int`; `Int32(data:...).bigEndian` is reproduced by reading the trailing bytes big-endian, capped at the 4-byte value width."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1896,
+    "tokens_out": 16502,
+    "seconds": 63.6,
+    "ported_at": "2026-09-22T12:42:57+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpVideoMessage.swift": {
+    "status": "ok",
+    "sha256": "0a8fcaf2497b7a6e5b5fca0804c42723ef06fcf4276e0da5a422f4628b2d7a0f",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpVideoMessage.kt",
+    "notes": [
+      "RtmpMessage and RtmpMessageType are declared in the same package, so no import lines are needed.",
+      "Swift UInt32 fields stay as Kotlin UInt because this is RTMP wire-format code; RtmpMessage.streamId and RtmpMessage.timestamp must use UInt in the parent class for these assignments to compile.",
+      "payload: Data maps to encoded: ByteArray, matching the RtmpMessage property name used by the second initializer.",
+      "The two Swift designated initializers become two Kotlin secondary constructors delegating to the RtmpMessage(type) superclass constructor.",
+      "The AVFoundation import is unused in the Swift source and has no counterpart here."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1951,
+    "tokens_out": 930,
+    "seconds": 4.3,
+    "ported_at": "2026-09-22T13:18:46+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpWindowAcknowledgementSizeMessage.swift": {
+    "status": "ok",
+    "sha256": "baeb7a09a50553fca035a2b0a4b850b6c7d52d34a1510b99dc2295515f42a35a",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpWindowAcknowledgementSizeMessage.kt",
+    "notes": [
+      "RtmpMessage is assumed to expose an overridable 'encoded' property of type ByteArray (modeled from the Swift 'encoded: Data'); it is accessed via super.encoded in both accessors.",
+      "RtmpMessageType.windowAck is assumed to be the Kotlin enum entry matching the Swift '.windowAck' case; both types live in the same package so no imports are needed.",
+      "Swift's UInt32 constructors/initializers become secondary constructors delegating to super(RtmpMessageType.windowAck), since the base class has no no-arg constructor.",
+      "size stays a UInt because this class is RTMP wire-format code; byte serialization helpers convert to/from big-endian bytes matching Swift's 'bigEndian.data' idiom.",
+      "The setter reads the first 4 bytes big-endian, matching Swift's 'UInt32(data:).bigEndian' net behaviour (zero-fill for short arrays)."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1699,
+    "tokens_out": 5677,
+    "seconds": 22.8,
+    "ported_at": "2026-09-22T12:42:18+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAggregateMessage.swift": {
+    "status": "ok",
+    "sha256": "a3dab6bbb910be72ec2ed729daa61c37d253ad249bcf842af0c708c9a316a852",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAggregateMessage.kt",
+    "notes": [
+      "Swift `final class` subclass becomes a plain Kotlin `class` extending the open `RtmpMessage` class.",
+      "The superclass initializer is called through Kotlin constructor delegation, so `RtmpAggregateMessage` forwards `RtmpMessageType.aggregate` as the message type.",
+      "No other members exist in the Swift source, so the Kotlin class body is empty apart from the inheritance clause.",
+      "The enum entry is referenced as `RtmpMessageType.aggregate` to match the Swift case name; align the casing with the sibling RtmpMessageType declaration if that file used uppercase constants.",
+      "`RtmpMessage` is imported from the same package `com.moblin.android.media.haishinkit.rtmp.message`, so no extra import statement is required.",
+      "No state, no coroutines and no platform APIs are involved; behaviour is identical to the Swift original."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 1560,
+    "tokens_out": 1374,
+    "seconds": 6.7,
+    "ported_at": "2026-09-22T12:41:34+00:00",
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   }
 }
