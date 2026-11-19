@@ -25,13 +25,13 @@ import com.moblin.android.media.haishinkit.rtmp.RtmpChunkType
 import com.moblin.android.media.haishinkit.rtmp.amf.Amf0Decoder
 import com.moblin.android.media.haishinkit.rtmp.amf.AsObject
 import com.moblin.android.media.haishinkit.rtmp.amf.AsValue
-import com.moblin.android.media.haishinkit.rtmp.extendedVideoHeader
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandName
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpMessageType
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetChunkSizeMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetPeerBandwidthMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpWindowAcknowledgementSizeMessage
+import com.moblin.android.media.haishinkit.flv.extendedVideoHeader
+import com.moblin.android.media.haishinkit.rtmp.RtmpCommandMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpCommandName
+import com.moblin.android.media.haishinkit.rtmp.RtmpMessageType
+import com.moblin.android.media.haishinkit.rtmp.RtmpSetChunkSizeMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpSetPeerBandwidthMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpWindowAcknowledgementSizeMessage
 import com.moblin.android.platform.audio.audioChannelCount
 import com.moblin.android.platform.audio.audioSampleRate
 import com.moblin.android.platform.audio.makePcmFormat
@@ -192,7 +192,7 @@ class RtmpServerChunkStream(
                 chunkStreamId = RtmpChunk.ChunkStreamId.control.rawValue,
                 message = RtmpSetPeerBandwidthMessage(
                     2_500_000u,
-                    RtmpSetPeerBandwidthMessage.Limit.fromRawValue(2u),
+                    RtmpSetPeerBandwidthMessage.Limit.fromRawValue(2u)!!,
                 ),
             )
         )

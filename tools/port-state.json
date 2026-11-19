@@ -2087,27 +2087,26 @@
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpChunk.swift": {
     "status": "ok",
-    "sha256": "ed5257fc696881401de57e200f0930a50596dd30bd6e8865c385a14524ffb322",
+    "sha256": "ea5762cab873b62b93853f634449b6137f6fe6b44ff2cf68d04ae34626311254",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunk.kt",
     "notes": [
-      "RtmpChunkType becomes a Kotlin enum class with a UByte rawValue and a companion fromRawValue, keeping entry names zero/one/two/three.",
-      "The nested ChunkStreamId enum keeps UShort raw values and gets its own fromRawValue companion.",
-      "chunkStreamId comparisons are done via toInt() because Kotlin unsigned types do not compare against differently-typed literals.",
-      "Data is ByteArray; subdata(in:) becomes copyOfRange and count becomes size.",
-      "message.timestamp/streamId are treated as UInt, message.length as a mutable Int, matching the RtmpMessage port in the message package.",
-      "Little-endian (chunkStreamId - 64) and big-endian timestamp encodings are written byte-by-byte since Kotlin has no zero-cost byte-order wrapper.",
-      "ByteWriter is imported from com.moblin.android.media.haishinkit.util and used with writeBytes/writeUInt8/writeUInt24/writeUInt32/writeUInt32Le/data.",
-      "The stride(from:to:by:) split loop is reproduced with an equivalent while loop stepping by maximumSize."
+      "Moved the file-private `extendedTimestampMarker` (0xFFFFFF) from RtmpChunk's companion object to a package-level private val, matching the new top-level Swift constant.",
+      "Added the private data class RtmpBasicHeader, private data class RtmpChunkStream, a private ByteReader.canRead extension and the new RtmpChunkReader class at the end of the file.",
+      "Swift's `inout RtmpChunkStream` becomes a mutable class-like data class instance that is mutated in place and written back into the map, so reader state survives between chunks exactly as with the Swift struct copy.",
+      "All `try!` reads are plain ByteReader calls; the canRead guards keep the same behaviour as Swift's bounds checks.",
+      "UInt16 chunk stream id arithmetic uses Int and toUShort() to reproduce Swift's wrapping `&+`.",
+      "RtmpMessageType is mapped with `RtmpMessageType.fromRawValue(...)` as used elsewhere in the RTMP port, and messages are created with RtmpMessage.create(type)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2454,
-    "tokens_out": 11346,
-    "seconds": 42.2,
-    "ported_at": "2026-09-22T12:42:51+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45248,
+    "tokens_out": 6447,
+    "seconds": 22.8,
+    "ported_at": "2026-11-19T20:45:14+00:00"
   },
   "Moblin/Various/Model/ModelPhotoShoot.swift": {
     "status": "ok",
@@ -4051,27 +4050,28 @@
   },
   "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpSuite.swift": {
     "status": "ok",
-    "sha256": "b5bd2ad409fe1dc2659b4a6e436927af37bf6debdc790667086765be156eb202",
+    "sha256": "919b72880a4bae18b020a6d2851f844210404d5e36b05b755b37c1d3c3163190",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpSuite.kt",
     "notes": [
-      "JUnit 4 with kotlin.test assertions replaces Swift Testing; the suite class name and all test method names are kept identical, and there is no suite init so no @Before is emitted.",
-      "makeRtmpUri(url:) and makeRtmpStreamKey(url:) are top-level functions from com.moblin.android.common.various and are called positionally.",
-      "RtmpConnection(name:queue:) loses the DispatchQueue argument; the Kotlin port creates the connection with the name only (queue becomes a dispatcher inside the class).",
-      "callCompletions is treated as a MutableMap<Int, (List<AsValue>) -> Unit>; the captured local var arguments is reassigned inside the lambda, which Kotlin allows.",
-      "Data slicing uses ByteArray.copyOfRange(from, to); the expected buffer equality is checked with contentEquals because ByteArray has no structural equals in Kotlin.",
-      "commandType is passed as RtmpChunkType.amf0Command - the Swift RtmpMessageType enum is represented by RtmpChunkType in this port, confirm the entry name.",
-      "The AMF result payload is built with AsObject(mutableMapOf(\"code\" to AsValue.String(...))); confirm the AsObject/AsValue constructors in com.moblin.android.media.haishinkit.rtmp.amf.",
-      "makeConnectResultChunkData stays a private helper in the same file and returns a ByteArray produced by RtmpChunk.encode()."
+      "The tests that used the old RtmpConnection now build an RtmpStream through the new makeRtmpStream helpers, matching the Swift change.",
+      "makeRtmpStream builds a real Processor with the RtmpModelMock as both RtmpStreamDelegate and ProcessorDelegate, like Swift; the stream queue is Dispatchers.Unconfined as the hand-written previous test did, so socketDataReceived runs synchronously.",
+      "SettingsStreamColorRange.full is used for Processor colorRange (Swift .full); import assumed to be com.moblin.android.settings.stream.",
+      "RtmpDisconnectReason cases are referenced as the Kotlin sealed subtypes connectFailed and serverClosed, never by raw value.",
+      "Disconnected reasons are compared with assertEquals on List<RtmpDisconnectReason>, as Swift compares arrays of the enum.",
+      "makeCommandChunkData and makeStatusChunkData are private top-level helpers in the same file, like the Swift private functions.",
+      "ByteArray results are checked with isEmpty() and compared with contentEquals, never ==.",
+      "The two suite classes each run under RobolectricTestRunner because Processor construction needs an Android context."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4184,
-    "tokens_out": 10463,
-    "seconds": 42.1,
-    "ported_at": "2026-09-22T12:53:30+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43939,
+    "tokens_out": 9433,
+    "seconds": 38.3,
+    "ported_at": "2026-11-19T20:50:05+00:00"
   },
   "Moblin/VideoEffects/RemoveBackgroundEffect.swift": {
     "status": "ok",
@@ -4217,27 +4217,28 @@
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift": {
     "status": "ok",
-    "sha256": "8bfe3f7b0a20d5fc574bd5a1f930b8d31f92b8864e86fddce99c8b16c9c50a44",
+    "sha256": "5fcc24903e3eb2fafb0a80e971e7522dfc933e8445cf6fc6ddf6d717d6eb2098",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpStream.kt",
     "notes": [
-      "DispatchQueue is replaced by a CoroutineDispatcher constructor parameter plus an internal CoroutineScope; queue.async -> scope.launch and queue.asyncAfter -> scope.launch { delay(...) }.",
-      "AVFoundation types are mapped as follows: AVAudioFormat and CMFormatDescription -> android.media.MediaFormat, AVAudioCompressedBuffer -> ByteArray, CMTime -> Long microseconds, CMSampleBuffer -> MediaSample, so presentationTimeStamp.seconds becomes presentationTimeUs / 1_000_000.0.",
-      "MediaSample has no decode timestamp, so calcVideoCompositionTime returns 0 and the video sample path uses presentationTimeUs where the Swift code preferred decodeTimeStamp when it was valid.",
-      "Because AVAudioCompressedBuffer carries no AudioStreamBasicDescription, the audio codec is remembered in the new audioMime field set by audioEncoderOutputFormatInternal and checked with the literal \"audio/opus\".",
-      "The delegate overrides assume the port's AudioEncoderDelegate/VideoEncoderDelegate take (MediaFormat), (ByteArray, Long) and (VideoEncoder, MediaFormat)/(VideoEncoder, MediaSample, Long); adjust if the codec files chose other Android types.",
-      "RtmpConnection, RtmpChunk, RtmpChunkType, RtmpStreamInfo and RtmpStreamStats live in this same package, so they are used without imports; processorPipelineQueue is treated as a CoroutineScope.",
-      "SimpleTimer is built from the coroutine dispatcher and startSingleShot is called with a Double timeout in seconds (20.0), matching the Swift API.",
-      "info.bitrateStats.mutate { it.add(bytesTransferred = length) } is kept as-is, assuming RtmpStreamStats exposes the same mutate helper as the Swift version."
+      "RtmpConnection is gone: RtmpStream now owns the RtmpSocket, the RtmpChunkReader, the transaction ids and the call completions, and implements RtmpSocketDelegate in the class body.",
+      "RtmpDisconnectReason is a sealed class whose toString() replaces the Swift toString(): serverError carries (code, description), the other cases are data objects.",
+      "Swift RtmpTimestamps became a small mutable class (Track inner class) because Swift mutating structs have no Kotlin equivalent; callers keep the same audio()/video() calls.",
+      "AVAudioFormat/AVAudioCompressedBuffer map to android.media.MediaFormat and MediaSample, so makeRtmpAudioSequenceHeader takes a MediaFormat and makeRtmpAudioFrame takes the MediaSample plus the mime the hand-written Android code kept in audioMime.",
+      "Swift's URL.dictionaryFromQuery()/absoluteWithoutAuthenticationString helpers are not in the platform layer, so small file-private percent-decoding and authentication-stripping helpers were written for the San Jose auth command.",
+      "url.user / url.password are derived from java.net.URI.userInfo with file-private helpers, and the random challenge uses String.format(Locale.US, \"%08x\", Random.nextInt()).",
+      "extendedVideoHeader is no longer declared here: it is imported from com.moblin.android.media.haishinkit.flv as in the platform layer.",
+      "onTimeout(), closeInternal() and onInternal() were removed together with RtmpConnection; the connect timer now reports timeouts through handleStatus()."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8119,
-    "tokens_out": 47933,
-    "seconds": 175.2,
-    "ported_at": "2026-09-22T12:55:03+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 68254,
+    "tokens_out": 32678,
+    "seconds": 115.2,
+    "ported_at": "2026-11-19T20:49:27+00:00"
   },
   "Moblin/StreamingPlatforms/Soop/SoopChat.swift": {
     "status": "ok",
@@ -4387,23 +4388,28 @@
   },
   "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift": {
     "status": "ok",
-    "sha256": "f250f528e437a44e69234b9ed18ee2f1aeaaccab67b18008716ac440d7d51d70",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "6a502ea5ab33f41ce4ae47039d06090f7493e20633ee34bcf36e76127683f9fc",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt",
     "notes": [
-      "Incremental change: only the new ProcessorDelegate method streamPhotoTaken() was added to ModelMock, right after streamNoTorch(), matching the Swift position.",
-      "streamPhotoTaken is declared with `override`, so the app-side ProcessorDelegate interface is expected to declare it as well.",
-      "All other lines, imports and declaration order are byte-identical to the previous Kotlin file."
+      "Applied the Swift diff to the Kotlin suite: removed the private ModelMock, added maximumSize/closeClient to RtmpServerMock, switched to RtmpModelMock and to rtmpStream.socketDataReceived(rtmpStream.socket, data = ...).",
+      "Added ClientMessageReader, PublishingStream, makeStatus, sendCommand, connectAndPublish, expectUnpublish and the 12 new tests in the same order as the Swift file.",
+      "RtmpDisconnectReason is used as a sealed class with ConnectionLost, StreamRejected, ConnectFailed and ServerError(code, description); adjust names if the platform declaration differs.",
+      "The video encoder is obtained as stream.processor.video.encoder because Processor exposes no getVideoEncoder(); adjust if VideoUnit names it differently.",
+      "The two @Test(arguments:) cases became one @Test looping over both URLs, as required.",
+      "Unused imports left over from ModelMock (Size, MediaSample, ProcessorDelegate, RecorderDataSegment, UUID) were dropped; the message types keep the .rtmp.message package the existing file already imports.",
+      "Disconnect timing assertions use ContinuousClock.now and kotlin.time Duration.seconds.",
+      "Swift RtmpMessage.encoded comparisons use assertContentEquals because both sides are ByteArray."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 55381,
-    "tokens_out": 9529,
-    "seconds": 27.6,
-    "ported_at": "2026-10-09T00:00:38+00:00"
+    "tokens_in": 70572,
+    "tokens_out": 28483,
+    "seconds": 90.9,
+    "ported_at": "2026-11-19T20:50:43+00:00"
   },
   "Moblin/Various/Model/ModelGoProDevice.swift": {
     "status": "ok",
@@ -5388,27 +5394,19 @@
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpSocket.swift": {
     "status": "ok",
-    "sha256": "6ec287383860bb78dae6b9bdb735e97ff7900ee71c8134ffebace5762b69bd7a",
+    "sha256": "0dc5c05a5cf1c58363663575747765af39970e683493527146189e22b0c007b1",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpSocket.kt",
-    "notes": [
-      "NWConnection is replaced by java.net.Socket; connect, read and write run as coroutines on Dispatchers.IO and all blocking calls stay off the caller thread.",
-      "NWProtocolTLS.Options is mapped to javax.net.ssl.SSLContext? (null keeps plain TCP); an RTMPS caller passes an SSLContext whose socket factory creates the SSLSocket.",
-      "The DispatchQueue constructor argument became a CoroutineDispatcher named queue, still used for the delayed close and the too-much-buffered disconnect; short latency trickles stay on the caller side otherwise.",
-      "NWConnection.viabilityUpdateHandler has no Android counterpart, so viabilityDidChange is kept intact but must be driven by the caller (e.g. a ConnectivityManager.NetworkCallback).",
-      "NWConnection.State has no Android counterpart; it is modelled by the private sealed class RtmpSocketConnectionState (Ready/Failed/Cancelled) declared in this file and fed from connect().",
-      "weak var delegate cannot be expressed in Kotlin; delegate is a plain nullable property and the owner must clear it when the socket is released.",
-      "RtmpChunk.split, RtmpMessage.length, RtmpHandshake.sigSize, RtmpHandshake.createC0C1Packet/createC2Packet and RtmpConnectionCode.eventData() are assumed from the sibling files of the same package.",
-      "logger.info is replaced by android.util.Log.i with the tag \"RtmpSocket\"."
-    ],
+    "notes": [],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3547,
-    "tokens_out": 16172,
-    "seconds": 65.8,
-    "ported_at": "2026-09-22T13:03:45+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42221,
+    "tokens_out": 8104,
+    "seconds": 30.0,
+    "ported_at": "2026-11-19T20:46:41+00:00"
   },
   "Moblin/Various/Managers/Location.swift": {
     "status": "ok",
@@ -5925,25 +5923,23 @@
   },
   "Moblin/Media/HaishinKit/Flv/Flv.swift": {
     "status": "ok",
-    "sha256": "3278fb5e91ea7833b8c876e955f2843cfe75038b78ce8660a152c22ee55e60ae",
+    "sha256": "e767514dccc10a5dfa69fb8e7c402a3ed4d4c92a82e3e5f93962c26da39fb44d",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/flv/Flv.kt",
     "notes": [
-      "AVFoundation import was unused in the Swift source, so no Android media imports are needed.",
-      "All enums keep their Swift case names and raw values; raw values are typed UByte/UShort/UInt since FLV is a wire format.",
-      "Each enum gains a companion fromRawValue helper as required by the porting contract.",
-      "FlvVideoCodec.toString() is translated as an override of Kotlin's Any.toString().",
-      "FlvTagType.streamId and headerSize become computed properties (get()) with identical switch semantics.",
-      "No hardware-bound or Apple-only APIs appear in this file, so nothing is stubbed."
+      "Added the top-level constant extendedVideoHeader = 0x80u for the new Swift global.",
+      "The Swift AVFoundation import has no Kotlin counterpart here; the file only defines FLV enums and a constant.",
+      "All existing enums and their raw values are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2435,
-    "tokens_out": 2182,
-    "seconds": 7.2,
-    "ported_at": "2026-09-22T13:16:05+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 33211,
+    "tokens_out": 1564,
+    "seconds": 5.6,
+    "ported_at": "2026-11-19T20:44:51+00:00"
   },
   "Common/Various/CMBlockBuffer+Extension.swift": {
     "status": "ok",
@@ -8924,22 +8920,23 @@
   },
   "Moblin/Various/Model/ModelSettingsImportExport.swift": {
     "status": "ok",
-    "sha256": "f32c3e9ceca3792816951f76e4ca1e334abc96dfd3d8bbb70539851c1debf4e0",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "233ec76fba2bf28a43e042e9ee3d3574ea613458d196c92041e5f0626562a40b",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt",
     "notes": [
-      "Added the new setPhotosImageQuality() call in Model.importSucceeded, right after setExternalCameraVideoRange() as in the Swift diff.",
-      "Everything else in the Kotlin file is unchanged, including the hand-written Context-taking clipboard and data-import helpers."
+      "Only the two callback orderings changed: completion now runs before importDone in importSettingsFromFile and in importSettingsFromClipboard (text branch), matching the new Swift source.",
+      "The Android-specific clipboard URI branch, the IO scope, the cache-file data import helper and the Context parameters are kept unchanged.",
+      "All other declarations, imports and formatting are byte-identical to the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44339,
-    "tokens_out": 1093,
-    "seconds": 3.8,
-    "ported_at": "2026-10-08T23:59:56+00:00"
+    "tokens_in": 44758,
+    "tokens_out": 1337,
+    "seconds": 5.3,
+    "ported_at": "2026-11-19T20:51:19+00:00"
   },
   "Moblin/Various/Model/ModelSnapshot.swift": {
     "status": "ok",
@@ -14824,25 +14821,23 @@
   },
   "Moblin/View/Stream/Overlay/Right/SceneSelectorView.swift": {
     "status": "ok",
-    "sha256": "099df67333f7afdb7c087e2cbbea09d67e6126579eff77b4537850308af2de40",
-    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "sha256": "0009bfd6ca5b5572cc759923ce6062fe4d44471503ccd1b51df56408980f0b69",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/SceneSelectorView.kt",
     "notes": [
-      "The diff only removes the background, corner radius and border overlay from both scene selectors; the picker wrapper Box now carries only the width (plus bottom padding in the vertical variant)",
-      "foregroundStyle(.white) is still translated as CompositionLocalProvider(LocalContentColor provides Color.White)",
-      "Modifiers are still reversed relative to SwiftUI: the Swift .frame(.width) stays the outer size",
-      "pickerBackgroundColor/pickerBorderColor are no longer read by this file but remain declared in SegmentedPicker.kt",
-      "Imports of background, border, clip and RoundedCornerShape are kept as the diff did not touch them"
+      "Removed the bottom padding only from StreamOverlayRightSceneVSelectorView, matching the deleted Swift .padding(.bottom, 5).",
+      "The padding import stays because SceneItemView still uses Modifier.padding for the quick switch group label.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 48252,
-    "tokens_out": 2120,
-    "seconds": 8.6,
-    "ported_at": "2026-11-06T00:36:15+00:00"
+    "tokens_in": 48087,
+    "tokens_out": 1600,
+    "seconds": 5.0,
+    "ported_at": "2026-11-19T20:54:11+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Recording/StreamRecordingSettingsView.swift": {
     "status": "ok",
@@ -14907,23 +14902,23 @@
   },
   "Moblin/View/Stream/Overlay/Right/ZoomPresetSelctorView.swift": {
     "status": "ok",
-    "sha256": "3e509ee3ae9d9fe1919f09df2d78e06beab830c4183eb6a6e8876d5ad184d2f1",
-    "moblin_commit": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+    "sha256": "4bda0bb3847364dd2920cd6d47122fe9d24edd6f2ab0a2b7987c352e4125b6a7",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/right/ZoomPresetSelctorView.kt",
     "notes": [
-      "Removed the background, rounded-corner clip and border from ZoomPresetView and ZoomPresetVView, as in the Swift diff.",
-      "Unused imports (background, border, clip, RoundedCornerShape) are kept unchanged to keep untouched lines byte-identical.",
-      "The picker is now drawn on the iOS-default clear background; SegmentedHPicker/SegmentedVPicker still supply the selected segment colour."
+      "Removed the bottom 5.dp padding from ZoomPresetView and ZoomPresetVView (the Swift .padding(.bottom, 5) lines), keeping the surrounding Box wrappers and pickers untouched.",
+      "The foundation.layout.padding import became unused after the change and was dropped with it.",
+      "Everything else, including the segmented picker calls, colour handling and flow collection, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45843,
-    "tokens_out": 2077,
-    "seconds": 7.4,
-    "ported_at": "2026-11-06T00:36:14+00:00"
+    "tokens_in": 45858,
+    "tokens_out": 2030,
+    "seconds": 7.2,
+    "ported_at": "2026-11-19T20:54:19+00:00"
   },
   "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift": {
     "status": "ok",
@@ -15055,23 +15050,24 @@
   },
   "Moblin/Various/Media.swift": {
     "status": "ok",
-    "sha256": "ce5fc2af805a3fb51eb43353fbe0fbf39ee2e03d9d8167d64803b11d7108d4bc",
-    "moblin_commit": "5f7d6d88b697ac0fb5b371166e29a2844f98c429",
+    "sha256": "f3178a4c37881e621a8accafc3948bdd4b3d42d4ec05ebf291af7ca8a777436c",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/Media.kt",
     "notes": [
-      "Only makeLocalhostSrtUrl changed: the nested maxbw check is now a single combined condition, matching the new Swift if-let style guard.",
-      "The Kotlin body keeps Uri.parse based URL handling because Uri.parse never fails, so the merged Swift guard has no Kotlin equivalent line.",
-      "All other declarations, imports and formatting are unchanged from the previous translation."
+      "mediaOnRtmpDisconnected now carries the sealed RtmpDisconnectReason instead of a status-code string.",
+      "The RtmpStreamDelegate callback renamed from rtmpStreamStatus(code: String) to rtmpStreamDisconnected(reason: RtmpDisconnectReason); the refresh branch is gone because the callee already filters reasons.",
+      "Added the RtmpDisconnectReason import; the now-unused RtmpConnectionCode import is kept untouched.",
+      "Everything else, including the Android-specific platform calls and formatting, is byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 90200,
-    "tokens_out": 13913,
-    "seconds": 40.2,
-    "ported_at": "2026-10-22T22:52:32+00:00"
+    "tokens_in": 90447,
+    "tokens_out": 13846,
+    "seconds": 35.3,
+    "ported_at": "2026-11-19T20:51:50+00:00"
   },
   "Moblin/Various/Model/ModelMacros.swift": {
     "status": "ok",
@@ -15249,24 +15245,24 @@
   },
   "Moblin/Various/Model/ModelStream.swift": {
     "status": "ok",
-    "sha256": "4e8381cf9fb82956cc5a495de5953c5a5bbf2030fe17abe6673d84a8a5b2e626",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "1eee388cd2bc023b818bd547d9e8a48350881e14b5d68d0ada255fc766a9f448",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelStream.kt",
     "notes": [
-      "Two call sites in ModelStream.swift renamed RemoteControlAssistantStreamerState to RemoteControlState; the matching Kotlin calls in setIsLive and setBitrate now construct RemoteControlState.",
-      "An import for com.moblin.android.remotecontrol.RemoteControlState was added next to the existing RemoteControlAssistantStreamerState import, which is still needed by setIsPreviewStreaming.",
-      "setIsPreviewStreaming already used the .init shorthand in Swift, so its Kotlin call is untouched by this diff.",
-      "Everything else in the file, including hand-written Android fixes (SystemClock timestamps, OkHttp body extraction, no sampleBufferReceiver in setColorRange), is unchanged."
+      "onDisconnected gained an optional cause parameter that is prepended to the retry subtitle.",
+      "mediaOnRtmpDisconnected now takes the RtmpDisconnectReason shim type instead of a plain String message.",
+      "Added the import for com.moblin.android.media.haishinkit.rtmp.RtmpDisconnectReason.",
+      "RtmpDisconnectReason.toString() already renders 'code: description', so it is passed as the cause verbatim."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 89166,
-    "tokens_out": 12005,
-    "seconds": 43.3,
-    "ported_at": "2026-11-07T23:32:57+00:00"
+    "tokens_in": 89555,
+    "tokens_out": 11816,
+    "seconds": 30.6,
+    "ported_at": "2026-11-19T20:52:22+00:00"
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
@@ -15380,23 +15376,25 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "a454616b08c7290a5cb0d43c917ad60a9c96db9ade9a77e55854f36d3e1d740f",
-    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+    "sha256": "42db146323cb2662919bc3a398ded8d71b76820a8bb81866d621329b5bd01891",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "Adds the missing soundBoard quick button to addMissingQuickButtonsPageThree after the photoShoot button, matching the Swift diff.",
-      "SettingsQuickButtonType.soundBoard must already exist in SettingsQuickButtons.kt; the file only references it here.",
-      "No other lines changed; all Android-specific hooks (upperCaseMicIds, Cameras.backCameraSwitchOverZoomFactors, zip import/export, ioScope/mainScope) kept byte-identical."
+      "Added the SettingsZoomAndSceneButtonsLayout enum with @SerialName raw values so stored JSON stays byte-identical (\"Stacked\", \"One row\", ...).",
+      "Database.verticalButtons is replaced by zoomAndSceneButtonsLayout; the old verticalButtons key is only read for migration.",
+      "The migration default reads the legacy \"verticalButtons\" boolean and maps true to .vertical, false to .stacked, exactly like the Swift decode.",
+      "encode() now writes the \"zoomAndSceneButtonsLayout\" key instead of \"verticalButtons\".",
+      "No other Kotlin declaration in the file referenced verticalButtons, so nothing else changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 116230,
-    "tokens_out": 27984,
-    "seconds": 75.1,
-    "ported_at": "2026-11-15T23:34:53+00:00"
+    "tokens_in": 117123,
+    "tokens_out": 29140,
+    "seconds": 73.5,
+    "ported_at": "2026-11-19T20:52:35+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -15505,27 +15503,24 @@
   },
   "Moblin/View/Stream/StreamOverlayView.swift": {
     "status": "ok",
-    "sha256": "6dcf5bc74c3df4c2cdace40b1d0991490c9efc787cf271a995e5cf5b06cc95b6",
+    "sha256": "d3a056ad0ad44ff6e04573a69201af1644a25d6bbc10fe1cf81ca42493728927",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/StreamOverlayView.kt",
     "notes": [
-      "startRadiusFraction/endRadiusFraction stay as private consts; SwiftUI EllipticalGradient is approximated with a Brush.radialGradient colour-stop list (0f, 0.45f, 0.5f, 1f).",
-      "allowsHitTesting(false) has no Compose counterpart: a private Modifier.allowsHitTesting extension was added that consumes pointer events on PointerEventPass.Initial.",
-      "Clear Rectangles that only reserve space became Spacer with a height/width modifier.",
-      "Divider inside the landscape HStack becomes Material3 VerticalDivider; dividers inside Columns become HorizontalDivider with Color.Gray.",
-      "The GeometryReader width * 0.95 becomes a wrapping Box with Modifier.fillMaxWidth(0.95f).",
-      "ignoresSafeArea() has no Compose equivalent; FrontTorchView fills its parent and edge-to-edge drawing is left to the host activity.",
-      "UIDevice.current.userInterfaceIdiom == .pad is replaced by a LocalConfiguration screenLayout size check against SCREENLAYOUT_SIZE_LARGE.",
-      "SwiftUI default paddings (.padding(.trailing), .padding(.top)) became 10.dp, imported overlay composables are wrapped in Boxes because no Modifier parameter is assumed on them, and the .chat case is assumed to be declared as ShowingPanel.chat."
+      "Only the RightOverlayBottomView placement changed: the wrapping HStack, its Spacer and the trailing-aligned Row were removed, and the trailing padding is now applied directly to the view.",
+      "The new Swift call passes `orientation:`; the current Kotlin `RightOverlayBottomView` declaration in com.moblin.android.view.stream.overlay takes no such parameter, so the call keeps the declared argument list.",
+      "RightOverlayBottomView now sits directly in the overlay Box (the Compose stand-in for the ZStack) instead of inside a right-aligned, vertically centred Row.",
+      "All other declarations, imports and composables are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6776,
-    "tokens_out": 21494,
-    "seconds": 82.2,
-    "ported_at": "2026-09-22T14:08:55+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 47216,
+    "tokens_out": 3834,
+    "seconds": 13.3,
+    "ported_at": "2026-11-19T20:54:42+00:00"
   },
   "Moblin/View/Main/StealthModeView.swift": {
     "status": "ok",
@@ -15597,25 +15592,28 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift": {
     "status": "ok",
-    "sha256": "cccd267ab88b70c5c8b1d867c9919f5d069fc5cde49ea23d2c94487a58808dce",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "sha256": "55cf83a65cc61b6ee7bc1effab15e9b319a5746e11e375a47d082d7ca90fe835",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt",
     "notes": [
-      "Status children now receive plain values instead of StatusTopRight, so StatusTopRight's StateFlows are collected once in StatusesView and passed down.",
-      "The catPrinterState and workoutDeviceState observers are kept in StatusesView because the catPrinterColor()/workoutDeviceColor() helpers now live there and need to recompose when connections change.",
-      "BlackSharkCoolerDeviceStatusView takes nullable deviceState/phoneTemp/exhaustTemp and compares against BlackSharkCoolerDeviceState.connected.",
-      "CatPrinterStatusView and WorkoutDeviceStatusView take a precomputed Color instead of computing it from the model.",
-      "Every other view, layout modifier and call site is unchanged from the previous translation."
+      "Added verticalZoom / zoomAndScenesOnOneRow parameters to the vertical and horizontal bottom overlay composables, matching the new Swift structs.",
+      "The Swift @ViewBuilder `controls` properties are local @Composable functions named `controls()`; `scenes` in the vertical view is a local @Composable `scenes()`.",
+      "RightOverlayBottomView gained an `orientation` parameter (defaulted to model.orientation so existing callers keep compiling) and the new layout()/verticalScenes()/verticalZoom()/zoomAndScenesOnOneRow() helpers driven by database.zoomAndSceneButtonsLayout.",
+      "orientation.isPortrait is collected with collectAsState so layout() recomposes on rotation, like the SwiftUI body.",
+      "Modifier.padding on composables that take no modifier argument is expressed with a Box wrapper, as the file already did for the scene selector.",
+      "The new .frame(maxWidth/maxHeight: .infinity, alignment: .bottomTrailing) on the bottom overlay is Modifier.fillMaxSize() on the Column (horizontalAlignment End keeps the trailing alignment).",
+      "UIDevice.current.userInterfaceIdiom comes from the uikit shim; the 15 point leading padding is applied for UIUserInterfaceIdiom.pad only.",
+      "Enum entries for SettingsZoomAndSceneButtonsLayout are assumed to follow the settings-package lowerCamelCase convention (stacked, verticalScenes, verticalZoom, vertical, oneRow)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 75494,
-    "tokens_out": 12167,
-    "seconds": 47.4,
-    "ported_at": "2026-11-10T02:47:09+00:00"
+    "tokens_in": 75586,
+    "tokens_out": 18810,
+    "seconds": 61.5,
+    "ported_at": "2026-11-19T20:55:21+00:00"
   },
   "Moblin/View/Settings/Audio/AudioSettingsView.swift": {
     "status": "ok",
@@ -15640,25 +15638,24 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "c4732c27f7bc6170d803c9711205c45a30c242aa98b1871e700841bcf8ae8d52",
-    "moblin_commit": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+    "sha256": "c01ffc7733cf143b9e3312afa306cddebf2b5ae9c2d5ef91050e892137293bd6",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Added the new ShowingPanel.soundBoard entry after macros.",
-      "Added Model.soundBoardPlayer as a plain nullable AudioPlayer, matching the Swift stored property (not @Published).",
-      "ShowingPanel.soundBoard added to isShowingPanelQuickButton's list using SettingsQuickButtonType.soundBoard.",
-      "The backgroundRunLevel condition change (`if a || b, c` -> comma form) is only Swift syntax; the Kotlin `(isLive.value || isRecording.value) && stream.value.backgroundStreaming` is unchanged.",
-      "Everything else in the file is untouched."
+      "Added PanelState with its @Published searching property as a MutableStateFlow<Boolean>, following the ObservableObject convention used by the other providers.",
+      "Added Model.panelState right after Model.toast, matching the Swift declaration order.",
+      "Swift's @MainActor on PanelState has no Kotlin counterpart; callers already mutate it from the main scope, like the other state holders.",
+      "No other part of the file changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 148737,
-    "tokens_out": 36014,
-    "seconds": 99.9,
-    "ported_at": "2026-11-15T23:35:22+00:00"
+    "tokens_in": 148862,
+    "tokens_out": 35717,
+    "seconds": 89.9,
+    "ported_at": "2026-11-19T20:53:55+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -15748,24 +15745,25 @@
   },
   "Moblin/View/Settings/Display/DisplaySettingsView.swift": {
     "status": "ok",
-    "sha256": "46a4c9c34dc273cd68e50a4c0a505aa4db7b85f120fd364a563afcc5083f5300",
-    "moblin_commit": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+    "sha256": "b6dc3e5e8fe82dbe22bdd115a20d8129053bec9f0bd7639207025e43a5f7b4c6",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/DisplaySettingsView.kt",
     "notes": [
-      "Added the new 'Auto rotate to portrait' Section between the vibrate section and the showAllSettings block, guarded by !isMac() like the Swift.",
-      "The Toggle is driven by a binding whose setter also calls model.updateAutoRotateToPortrait(), matching the Swift .onChange side effect.",
-      "Imported com.moblin.android.various.model.updateAutoRotateToPortrait; the Model extension is assumed to exist as in the Swift model.",
-      "Footer text is wrapped in Section(footerContent = ...) as the other sections in this file."
+      "Replaced the three control-bar layout toggles with a new Local overlays Section holding two NavigationLinks (Status, Zoom and scene controls).",
+      "Removed the now unused bigButtons, bigAudioLevelMeter and verticalButtons bindings.",
+      "Removed the old LocalOverlaysSettingsView destination and its import; added LocalOverlaysStatusSettingsView and LocalOverlaysZoomAndSceneControlsSettingsView imports.",
+      "The General Section now starts directly with the showAllSettings content.",
+      "Everything else, including the background image picker and crop views, is byte-identical to the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 56312,
-    "tokens_out": 4272,
-    "seconds": 17.1,
-    "ported_at": "2026-11-05T00:53:52+00:00"
+    "tokens_in": 57706,
+    "tokens_out": 5261,
+    "seconds": 16.8,
+    "ported_at": "2026-11-19T20:55:00+00:00"
   },
   "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift": {
     "status": "ok",
@@ -16230,27 +16228,24 @@
   },
   "Moblin/View/Settings/Streams/StreamsSettingsView.swift": {
     "status": "ok",
-    "sha256": "ded75e629bbb1077dafe27e8489c986d2ce4ca13dcf61e5805ca84e590df2bc1",
+    "sha256": "62bf12256454ed40c1d129d27326b1eb981d6e02a0961c60784893501a06121e",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/streams/StreamsSettingsView.kt",
     "notes": [
-      "StreamItemView stays a private @Composable in this file; StreamsSettingsView is the public entry point, both keep their Swift names.",
-      "NavigationLink to StreamSettingsView becomes the onNavigate(\"StreamSettingsView\") callback, so navigation-compose is not pulled into this file.",
-      "SwiftUI swipeActions have no Compose counterpart, so the existing SwipeLeftToDeleteButtonView / SwipeLeftToDuplicateButtonView composables are laid out in a Row under each stream row.",
-      "contextMenu becomes a long-press DropdownMenu (combinedClickable) that is only populated when isMac() is true, matching the Swift guard.",
-      "The .sheet is translated to ModalBottomSheet and the wrapping NavigationStack is dropped; StreamWizardSettingsView is rendered directly as the sheet content.",
-      "Model (an @EnvironmentObject / @ObservedObject) is assumed to expose StateFlow properties and is read with collectAsState(); SettingsStream and Database are treated as plain persisted properties (enabled, name, streams).",
-      "createStreamWizard.presenting is read with collectAsState() and written as .value = true/false, assuming a publicly mutable MutableStateFlow backing the published bool.",
-      "List.onMove has no Compose counterpart; the reorder logic lives in the private moveStreams helper (unused until a drag-and-drop UI exists)."
+      "The NavigationLink label now wraps the Toggle's own label: the Toggle is the row and the HStack { DraggableItemPrefixView; Text(stream.name) } became the Toggle label, translated as Toggle(isOn =, onChange =, enabled =) { DraggableItemTextView(name = stream.name) }.",
+      "DraggableItemPrefixView is no longer used in this file, so its import is replaced by DraggableItemTextView.",
+      "The .disabled(...) on the outer HStack moved onto the Toggle in Swift and stays as the Toggle's enabled = !(stream.enabled || isLive || isRecording) parameter.",
+      "StreamItemView, StreamsSettingsView, the sheet, context menu, swipe actions and ForEach/onMove are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5961,
-    "tokens_out": 14661,
-    "seconds": 57.3,
-    "ported_at": "2026-09-22T14:13:49+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 53019,
+    "tokens_out": 2404,
+    "seconds": 8.6,
+    "ported_at": "2026-11-19T20:55:09+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Map/WidgetMapSettingsView.swift": {
     "status": "ok",
@@ -16455,22 +16450,24 @@
   },
   "Moblin/View/Settings/Scenes/ScenesSettingsView.swift": {
     "status": "ok",
-    "sha256": "92a6a178fc222e2611fe31425d1bce1c6615939ff312f794937c7c44658b24a2",
-    "moblin_commit": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+    "sha256": "61000995be57f03ad90f646e2463d670609eafcff46e83bafebc4b91d58309ca",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/ScenesSettingsView.kt",
     "notes": [
-      "Removed the LaunchedEffect(Unit) { model.showWidgetOutlines() } block and its two now-unused imports (LaunchedEffect, showWidgetOutlines) to match the Swift change.",
-      "Every other line of the Kotlin file is kept byte-identical."
+      "Only SceneItemView changed: the NavigationLink label is now a Toggle with a custom label holding the drag prefix and the scene name.",
+      "The Swift onChange attached to DraggableItemPrefixView fires when scene.enabled changes, so the side effect stays in the Toggle setter, which is the only place scene.enabled is written.",
+      "The HStack inside the Toggle label became a Row with 8.dp spacing and center vertical alignment, matching the SwiftUI defaults.",
+      "Everything else, including the SwipeActions, ContextMenu wrappers and the remaining composables, is byte-identical to the previous port."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 59563,
-    "tokens_out": 2928,
-    "seconds": 10.2,
-    "ported_at": "2026-11-07T23:38:31+00:00"
+    "tokens_in": 60568,
+    "tokens_out": 4027,
+    "seconds": 14.1,
+    "ported_at": "2026-11-19T20:55:24+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardPadelSettingsView.swift": {
     "status": "ok",
@@ -16821,26 +16818,26 @@
   },
   "Moblin/View/Settings/SettingsView.swift": {
     "status": "ok",
-    "sha256": "059bdd8581b6e59534f6b5ee63bd47065539626591230f53a3d5751ef78201fb",
-    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+    "sha256": "39d7950b00e44619adf4d2869016a38606d7f04e45e983f5f3c44e0c7f85e4e3",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
     "notes": [
-      "SettingsView now owns searchText/searchItems state and delegates its whole form body to a private SettingsContentView composable, mirroring the new Swift split.",
-      "The Swift .onChange(of: searchText.isEmpty) plus .onAppear become one LaunchedEffect keyed on searchText.value.isEmpty, which also runs on first composition like onAppear.",
-      "SettingsSearchFieldView takes a MutableState<String>, so searchText stays a MutableState created with remember instead of a delegated var.",
-      "All Android-only deviations of the previous port were kept verbatim: Loxen.appName for the Store label, Loxen.hidesStreamDecks, GoProSettingsView(model = model), TeslaSettingsView(model = ...) and AppleWatchSettingsDestination.",
-      "SettingsContentView keeps every NavigationLink with its real destination and collects model.stream inside the destination lambdas as before.",
-      "SettingsSearchItem, settingsSearchItems, SettingsSearchFieldView and SettingsSearchResultsView live in the same package, so no new imports were needed besides LaunchedEffect."
+      "Added private SettingsFormView that owns the Form (title \"Settings\") with the live InfoBanner, the search results and SettingsContentView, mirroring the new Swift struct.",
+      "Android has no navigation-bar searchable modifier, so the SettingsSearchFieldView row stays inside SettingsFormView and receives the searchText MutableState directly.",
+      "@Environment(\\.isSearching) is derived from searchText being non-empty; it drives model.panelState.searching on first composition and on every change, and is reset to false on dispose.",
+      "The live banner and the model.isLive read were removed from SettingsContentView, as in the Swift diff.",
+      "SettingsView keeps the searchItems update effect keyed on searchText emptiness (Swift .onChange(of: searchText.isEmpty) plus .onAppear).",
+      "Added the DisposableEffect import used by the onDisappear reset."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 65420,
-    "tokens_out": 6564,
-    "seconds": 24.8,
-    "ported_at": "2026-11-17T02:59:57+00:00"
+    "tokens_in": 62658,
+    "tokens_out": 9693,
+    "seconds": 34.2,
+    "ported_at": "2026-11-19T20:55:59+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardSettingsView.swift": {
     "status": "ok",
@@ -17228,27 +17225,23 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "b0553d2998fdd019561f0c80386b86a50c83169a897bcdaad8e12051dde575bf",
-    "moblin_commit": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+    "sha256": "e70e64ea2139ab930399167ae5fdb56337257fbbaaaf6eff32192f13a5988d5f",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "Added a private composable BrowserWidgetMinimizeButtonView before InteractiveBrowserView, matching the new Swift struct.",
-      "InteractiveBrowserView now shows the minimize button at the bottom-trailing corner of the display-size Box when browserEffect.localOnly is true, with 4dp padding.",
-      "Assumes BrowserEffect exposes localOnly: Boolean, minimized: BrowserEffectMinimized and toggleMinimized(); BrowserEffectMinimized exposes value as a MutableStateFlow<Boolean> collected with collectAsState.",
-      "Swift's two-colour .foregroundStyle(.white, .black.opacity(0.6)) becomes a single white tint because SystemImage takes one tint.",
-      "Button reuses the existing PlainButton press-dim behaviour instead of SwiftUI Button styling.",
-      "Imported com.moblin.android.videoeffects.browser.BrowserEffectMinimized for the new parameter type.",
-      "No other lines were changed; the rest of the file is byte-identical to the previous translation."
+      "Added PanelButtonsInPanelView composable mirroring the new Swift view, collecting PanelState.searching as state.",
+      "panel() now delegates its buttons block to PanelButtonsInPanelView and no longer collects isPortrait/showingPanel itself.",
+      "The portrait branch keeps the existing Android padding/offset placement for the negative top padding."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 78514,
-    "tokens_out": 12742,
-    "seconds": 40.1,
-    "ported_at": "2026-11-17T02:40:26+00:00"
+    "tokens_in": 78925,
+    "tokens_out": 14385,
+    "seconds": 40.3,
+    "ported_at": "2026-11-19T20:56:41+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",
@@ -18455,366 +18448,235 @@
     "ported_at": "2026-11-17T02:39:54+00:00"
   },
   "Moblin/View/Settings/SettingsSearchView.swift": {
-    "status": "error",
-    "error": "peer closed connection without sending complete message body (incomplete chunked read)",
-    "sha256": "fc610cab2ab9bde59bd467f6a1c46be977da3caf24aa7eec9bb3fd17eb1f4a3a",
+    "status": "ok",
+    "sha256": "1802d3a270af3a7bd1f8fd48d386999cd67acddb0e1b71844fbfa0d6d3fa738f",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/SettingsSearchView.kt",
-    "ported_at": "2026-11-18T01:56:29+00:00"
+    "notes": [
+      "settingsSearchItems is @Composable: it builds a binding() for the stream and stores @Composable destinations in the item list.",
+      "SettingsSearchItem keeps a `@Composable () -> Unit` destination instead of AnyView; AnyView(destination()) simply disappears.",
+      "text.folding(.caseInsensitive, .diacriticInsensitive) is reproduced with NFD normalisation plus combining-mark removal, and words are split on grapheme clusters with java.text.BreakIterator.",
+      "Parameter names of destination views that are not listed in the dependency declarations follow the Swift labels (e.g. StreamVideoSettingsView(database =, stream =)).",
+      "`model.stream` is read with collectAsState; the Swift Binding(get:set:) becomes binding({ model.stream.value }, { model.stream.value = it }).",
+      "The #available(iOS 17.0, *) check around the Keyboard entry is dropped, its body is kept unconditionally.",
+      "The `#if !targetEnvironment(macCatalyst)` block is kept as the isPad() check around the Stream decks entry.",
+      "model.supportsAppleLog / model.supportsAppleLog2 are used as Boolean properties of Model as in the Swift source."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 66812,
+    "tokens_out": 17857,
+    "seconds": 60.7,
+    "ported_at": "2026-11-19T20:56:23+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/RtmpChunkReader.swift": {
+  "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpChunkSuite.swift": {
     "status": "ok",
-    "sha256": "fb18fb6c5a1714903304648e164b8d615bb0b60ad9044e26b1cca6773e3a2a50",
+    "sha256": "2153487abaa4eb74b7fc2a5c3ddbb6dff5eba9d7ee0b90f12029330a4b300405",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunkSuite.kt",
+    "notes": [
+      "Swift Testing struct becomes a JUnit 4 class with kotlin.test assertions; the parameterised basic-header test is one @Test looping over its cases.",
+      "Wire types follow the existing port's unsigned conventions: RtmpChunkType, UShort chunk stream ids, UInt timestamp/streamId/chunkSize/sequence.",
+      "Data literals become a private bytes(vararg Int) helper so the hex bytes stay byte-identical.",
+      "Data/Data and [UInt8]/[UInt8] comparisons use assertContentEquals; list-of-chunk comparisons go through the assertChunks helper, which checks size then content.",
+      "Data(list.joined()) becomes the private concat(...) helper, and Data.prefix / Data.suffix become copyOfRange calls.",
+      "makePayload keeps the Swift formula UInt8($0 % 251).",
+      "The nested BasicHeaderCase struct is a nested data class; its testDescription is not needed by JUnit.",
+      "No locale or time-zone dependence, so no @Config or TimeZone setup is required."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 35873,
+    "tokens_out": 10219,
+    "seconds": 39.5,
+    "ported_at": "2026-11-19T20:45:55+00:00"
+  },
+  "Moblin/Media/HaishinKit/Rtmp/RtmpMessage.swift": {
+    "status": "ok",
+    "sha256": "bfbc738021628f0ad03da2c230d02dd61073da6612dba7d70c8e560ba86ddc2a",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
     "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunkReader.kt",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpMessage.kt",
     "notes": [
-      "RtmpChunkType is assumed to be a Kotlin enum class with entries ZERO/ONE/TWO/THREE, a UByte rawValue and a companion fromRawValue; RtmpMessageType is assumed to use fromRawValue(UByte) as well.",
-      "ByteReader is expected to expose position: Int (var), bytesAvailable: Int, readUInt8(): UByte, readUInt16Le(): UShort, readUInt24(): UInt, readUInt32(): UInt, readUInt32Le(): UInt and a throwing readBytes(count: Int): ByteArray.",
-      "messageHeaderSize() is kept as a function call on RtmpChunkType, mirroring the Swift declaration.",
-      "RtmpChunkStream in Swift is a struct copied in and out of the dictionary; in Kotlin it is a data class held by reference, so mutations apply to the stored instance. The observable behaviour is identical because every re-entry re-reads the same bytes from the same offset.",
-      "Swift's UInt32 timestamps map to Kotlin UInt, chunk stream ids to UShort, in line with the wire-format rule.",
-      "Swift's &+ / &+= wrapping arithmetic is preserved implicitly: Kotlin unsigned operators are implemented over signed Int arithmetic and wrap on overflow.",
-      "data.subdata(in:) becomes ByteArray.copyOfRange(offset, size); try! becomes a plain call to a throwing ByteReader method.",
-      "The private file-level types RtmpBasicHeader and RtmpChunkStream stay private to this file, as in the Swift source."
+      "Amf AsValue has no null variant, so the command message writes the AMF0 null marker (0x05) with Amf0Encoder.writeUInt8 instead of .null.",
+      "Swift's UInt32(data:).bigEndian / .bigEndian.data wire conversions are replaced by file-private big-endian helpers (rtmpBigEndianBytes, rtmpBigEndianUInt32, rtmpBigEndianInt32).",
+      "Amf0Encoder exposes both data and length, so the encoded payload is taken as data.copyOf(length) to drop any unused buffer tail.",
+      "encoded is an open var in the base class and every override keeps the Swift shape, reading and writing super.encoded inside the custom get/set.",
+      "UInt8 raw-value enums keep UByte rawValue plus a fromRawValue companion; Limit.dynamic is a soft keyword in Kotlin and is used as a plain identifier.",
+      "Data == Data comparisons become ByteArray.contentEquals, and SetPeerBandwidth/UserControl decoding reads unsigned bytes with toUByte().",
+      "Data.hexString() in the command error log is replaced by a local rtmpHexString helper writing lowercase hex.",
+      "logger.info is translated to Log.i with the file-level TAG \"RtmpMessage\"."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2827,
-    "tokens_out": 13347,
-    "seconds": 51.6,
-    "ported_at": "2026-09-22T12:45:43+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 39297,
+    "tokens_out": 21648,
+    "seconds": 84.6,
+    "ported_at": "2026-11-19T20:46:10+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift": {
+  "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpHandshakeSuite.swift": {
     "status": "ok",
-    "sha256": "f0badf8637758135eb2062abbb4b2f5335d0ab8832b03a6c0c70946b6bf7241d",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpConnection.kt",
+    "sha256": "1f1c344229851e7ce5d598f985825ad80dc406057b839fe928ec0cd4d5297b9b",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpHandshakeSuite.kt",
     "notes": [
-      "AsValue is assumed to expose nested String/Number/Boolean/Null/Object variants that carry a `value` property, and AsObject a String-keyed map of AsValue.",
-      "Foundation URL became java.net.URI; user/password are read through private extension properties and the tcUrl is rebuilt locally because absoluteWithoutAuthenticationString has no java.net equivalent.",
-      "socketDataReceived keeps its ByteArray return type and returns the received data unchanged, since the translated Swift body has no explicit return statement.",
-      "RtmpSetChunkSizeMessage and RtmpWindowAcknowledgementSizeMessage are called with UInt sizes; switch to Int if the port declares those message fields as Int.",
-      "The rtmps branch passes TlsOptions(); the port's TLS options type name must be confirmed against RtmpSocket.connect.",
-      "SimpleTimer is created with the CoroutineDispatcher and queue.async became scope.launch on a CoroutineScope(queue) property.",
-      "RtmpChunk.ChunkStreamId.control.rawValue, RtmpChunkType.zero, RtmpUserControlMessage.Event.ping/pong and RtmpMessageType.amf0Command are kept exactly as in the Swift source.",
-      "The weak stream reference is a plain nullable var in Kotlin, and bitrateStats.mutate { } plus info.onAck/onWritten/onTimeout are assumed to exist on RtmpStreamInfo as in Swift."
+      "RtmpSanJoseAuthSuite assumes the ported signature makeSanJoseAuthCommand(url: String, description: String): String; adjust the call if the port takes a java.net.URI.",
+      "Swift URL literals become plain String constants, matching how the command builder stores its URL.",
+      "Byte-slice comparisons (Swift Data prefix/suffix) use copyOfRange plus assertContentEquals so the byte content is compared, not the array identity.",
+      "The C2 timestamp is read from bytes 4..8 as an unsigned big-endian 32 bit value and compared as Long with the epoch seconds before and after the call.",
+      "Swift regex wholeMatch literals are Kotlin Regex.matchEntire with a raw string, keeping the escaped dot in foo.com.",
+      "The two Swift suites become two JUnit 4 classes in one Kotlin file; each test carries @Test from org.junit.Test.",
+      "No Robolectric or main-thread dispatch is needed: no test touches the main queue, locale or time zone."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6485,
-    "tokens_out": 32958,
-    "seconds": 120.0,
-    "ported_at": "2026-09-22T13:34:58+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 32627,
+    "tokens_out": 4047,
+    "seconds": 15.8,
+    "ported_at": "2026-11-19T20:46:57+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/RtmpHandshake.swift": {
+  "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpSocketSuite.swift": {
     "status": "ok",
-    "sha256": "8bf2327e9386147c0931e083f9492be1f4d9316af31579f9cec13129324fc6d7",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/RtmpHandshake.kt",
+    "sha256": "bb215f018f0877f7c88edb12cba63568a5eb4382b69cc5f5eeba8bfe84aed977",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpSocketSuite.kt",
     "notes": [
-      "Swift static-only enum becomes a Kotlin object; sigSize and protocolVersion are exposed as const val with the same names.",
-      "protocolVersion stays a UByte because it is a wire-format byte written straight into the handshake packet; timestamp stays Double seconds as TimeInterval.",
-      "createC2Packet uses Instant.now().epochSecond for Date().timeIntervalSince1970, which matches the Swift Int64 truncation of the whole-second timestamp.",
-      "Data.subdata(in:) becomes ByteArray.copyOfRange(from, to) with the same half-open semantics (1 until 5, 9 until sigSize + 1).",
-      "UInt8.random(in: 0...UInt8.max) becomes Random.nextInt(0, 256).toUByte(); the 1528 filler bytes are generated with repeat().",
-      "ByteWriter methods are called with the same names as the Swift source (writeUInt8, writeInt32, writeUInt32, writeBytes) and its result buffer is read through the 'data' property, assumed to be ByteArray."
+      "Each test builds its own single-thread CoroutineDispatcher as the Swift DispatchQueue(label:) stand-in.",
+      "RtmpStatusCode.connectFailed is used directly as the Kotlin enum entry and compared as a list against disconnectCodes.",
+      "SocketDelegateMock is a private file-level class implementing RtmpSocketDelegate with ByteArray for the received data.",
+      "Assertions use kotlin.test with assertEquals(expected, actual) and assertTrue for the isEmpty checks.",
+      "close(isDisconnected:) keeps its argument label, so calls read socket.close(isDisconnected = true/false).",
+      "No setup method is needed because the Swift suite had no init."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 1775,
-    "tokens_out": 1727,
-    "seconds": 7.4,
-    "ported_at": "2026-09-22T12:38:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 32049,
+    "tokens_out": 1587,
+    "seconds": 7.2,
+    "ported_at": "2026-11-19T20:47:04+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAbortMessge.swift": {
+  "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpMessageSuite.swift": {
     "status": "ok",
-    "sha256": "2feb5ed6fe2fdf7e1f66d2addfa0832c511eda5aee9a4e57f4ff8392331789a4",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAbortMessge.kt",
-    "notes": [
-      "Class name typo \"RtmpAbortMessge\" (missing 'a' in Message) is preserved verbatim from Swift.",
-      "`Data` maps to `ByteArray`; array equality uses `contentEquals` because ByteArray has no `==`.",
-      "`chunkStreamId` stays an unsigned `UInt` since it is a 32-bit wire-format field.",
-      "The Swift `UInt32.bigEndian.data` and `UInt32(data:)` extension helpers are not in the glossary, so they are inlined as explicit big-endian read/write of the first 4 bytes.",
-      "`override var encoded` reads and writes `super.encoded`, i.e. the base class accessors, avoiding recursion.",
-      "Swift `init()` calling `super.init(type: .abort)` becomes a secondary constructor `constructor() : super(RtmpMessageType.abort)`.",
-      "No apple-only APIs are used here, so nothing is replaced with TODO()."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2014,
-    "tokens_out": 11770,
-    "seconds": 46.8,
-    "ported_at": "2026-09-22T13:19:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAcknowledgementMessage.swift": {
-    "status": "ok",
-    "sha256": "e7ec0909366dd4052c3e15dd13a9c2e3ec1fa8542e5835353fd5372d82fe5291",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAcknowledgementMessage.kt",
+    "sha256": "0ff02b6def9ac33501b4b6d583ed7692494f8f663620952b0d159466f348b5d9",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpMessageSuite.kt",
     "notes": [],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 1663,
-    "tokens_out": 7332,
-    "seconds": 29.5,
-    "ported_at": "2026-09-22T12:41:56+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 36060,
+    "tokens_out": 23661,
+    "seconds": 95.1,
+    "ported_at": "2026-11-19T20:47:30+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAudioMessage.swift": {
+  "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpMediaSuite.swift": {
     "status": "ok",
-    "sha256": "87641e8b993c8ef2643bfa5231f2c1b72aad2e4a71aca8deb47ac3f8fba13292",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAudioMessage.kt",
+    "sha256": "9b4085fbc3ef125b98980d35c1c040eab0d264130f18aadeaaab17d0b7f1d47f",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpMediaSuite.kt",
     "notes": [
-      "AVFoundation import had no used symbols and was dropped; no Kotlin import is required.",
-      "UInt32 maps to UInt and Data maps to ByteArray.",
-      "The two Swift initializers become Kotlin secondary constructors, both delegating to super with RtmpMessageType.audio.",
-      "Swift 'final class' maps to a plain Kotlin 'class' (final by default).",
-      "streamId, timestamp and encoded are assigned, so they are assumed to be mutable properties inherited from RtmpMessage in the same package.",
-      "No Android APIs are involved, so the bodies are translated in full without TODO()."
+      "Translated the Swift Testing suite to a JUnit 4 class with kotlin.test assertions.",
+      "@Test(arguments:) cases are built inside a loop in a single @Test function as required.",
+      "ByteArray comparisons use assertContentEquals so byte contents are compared.",
+      "CMTime.invalid is replaced by kCMTimeInvalidUs from com.moblin.android.media.",
+      "The bytes helper converts Int literals above 127 to Byte while keeping values identical.",
+      "Calls to shared test helpers are positional to avoid depending on parameter names."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 1951,
-    "tokens_out": 1103,
-    "seconds": 5.2,
-    "ported_at": "2026-09-22T13:18:42+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 36291,
+    "tokens_out": 19471,
+    "seconds": 72.4,
+    "ported_at": "2026-11-19T20:48:17+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpCommandMessage.swift": {
+  "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpTestUtils.swift": {
     "status": "ok",
-    "sha256": "83002dc090730fc7e530f23cee7faf88411763bd1e5c955bf0feb1b89297514b",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpCommandMessage.kt",
+    "sha256": "1f7b1f54c38c6da56c7601a60fdf2f55d0a370817a2c40c4313310818e065a97",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpTestUtils.kt",
     "notes": [
-      "Enum entries keep the Swift case names verbatim; RtmpCommandName.fromRawValue(rawValue) returns null instead of the Swift optional, and the call site keeps the '?? .unknown' fallback.",
-      "The two Swift initializers became secondary constructors delegating to RtmpMessage(commandType); RtmpMessage is assumed to expose open 'encoded: ByteArray', 'length: Int', 'streamId: UInt32' and 'type'.",
-      "`encoded` overrides the base property and uses super.encoded for the cached value exactly like the Swift getter/setter pair (no backing field is generated).",
-      "Swift's do/catch became try/catch (e: Exception); Amf0Decoder/Amf0Encoder are assumed to expose decode(), decodeString(), decodeInt(), decodeObject(), bytesAvailable, position, encode(), writeUInt8() and data.",
-      "AMF values are built as AsValue.String / AsValue.Number / AsValue.Object / AsValue.Null; those sealed-class constructor names must match the AMF0.kt translation.",
-      "logger.info is mapped to Log.i with the class name as tag; Data.hexString() is not part of the glossary, so a private ByteArray.hexString() helper (lowercase hex) is provided at file level.",
-      "arguments is exposed as MutableList<AsValue> with a private setter so the in-place append/removeAll semantics of the Swift array are preserved.",
-      "The 'length == newValue.count' guard and the public setter write-through to super.encoded are kept unchanged."
+      "RtmpModelMock implements RtmpStreamDelegate and ProcessorDelegate in the class header; Swift used extensions for the same conformance.",
+      "The Kotlin RtmpStreamDelegate only declares rtmpStreamStatus and rtmpStreamConnected, so rtmpStreamStatus is implemented empty to satisfy the interface and rtmpStreamDisconnected is kept as a plain member function with the Swift signature.",
+      "NSLock becomes java.util.concurrent.locks.ReentrantLock with kotlin.concurrent.withLock; getDisconnectedReasons returns a snapshot copy to match Swift array value semantics.",
+      "makeH264FormatDescription has no CMVideoFormatDescriptionCreateFromH264ParameterSets shim in the platform layer, so it builds an AVC decoder configuration record by hand and stores it as csd-0 in a MediaFormat with mime video/avc.",
+      "AVAudioFormat becomes android.media.MediaFormat, AAC profile flags go into MediaFormat.KEY_AAC_PROFILE, and Opus uses MediaFormat.MIMETYPE_AUDIO_OPUS.",
+      "The AVAudioCompressedBuffer helper drops byteLength and packetCount (MediaSample carries its own data array and derives numSamples).",
+      "mediaTime converts CMTime(value:timescale: 1024) to host microseconds with value * 1_000_000 / 1024.",
+      "The helpers no longer throw because there is no #require; every #expect check was a construction-status assertion that the shims cannot fail."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2338,
-    "tokens_out": 13563,
-    "seconds": 53.2,
-    "ported_at": "2026-09-22T12:42:26+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46452,
+    "tokens_out": 13003,
+    "seconds": 53.6,
+    "ported_at": "2026-11-19T20:49:11+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpDataMessage.swift": {
+  "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysZoomAndSceneControlsSettingsView.swift": {
     "status": "ok",
-    "sha256": "22e6d0f2b53c11c9253655cdd16d9b5e0368e63b0d44802ab5c345c0df16cb1e",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpDataMessage.kt",
-    "notes": [
-      "Swift's `@unchecked Sendable` has no Kotlin counterpart and was dropped.",
-      "`encoded` is fully overridden with a custom getter/setter that delegates to `super.encoded` for lazy caching; this assumes the base `RtmpMessage.encoded` is an open `var ByteArray`.",
-      "`Data` equality (`==`/`!=`) is translated to `ByteArray.contentEquals` and `Data.count` to `ByteArray.size`.",
-      "`Amf0Encoder.writeUInt8` is assumed to take a `UByte`; the Swift literal `0` becomes `0.toUByte()`.",
-      "Swift's `AsValue.string(handlerName)` is translated as the nested case `AsValue.String(handlerName)` of the AMF sealed type.",
-      "`logger.info(...)` is translated to `Log.i(\"RtmpDataMessage\", ...)` using a private companion TAG.",
-      "`arguments` is declared `MutableList<AsValue>` so `decoder.decode()` results can be appended in the setter.",
-      "The inherited `type` property is compared against `RtmpMessageType.amf3Data`, matching the Swift `.amf3Data` case."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2106,
-    "tokens_out": 11524,
-    "seconds": 47.3,
-    "ported_at": "2026-09-22T12:42:21+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpMessage.swift": {
-    "status": "ok",
-    "sha256": "ceca7aec26828ee854b644eb4eb7247abb05d8b88bb20c381dd6043ed582ed82",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpMessage.kt",
-    "notes": [
-      "The unused `import AVFoundation` is dropped; this file only uses Foundation `Data`, mapped to `ByteArray`.",
-      "`RtmpMessageType: UInt8` becomes `enum class RtmpMessageType(val rawValue: UByte)` with a `fromRawValue` companion factory, keeping the wire values byte-identical.",
-      "`Data()` becomes `ByteArray(0)`; `length` stays `Int`, while the 32-bit wire fields `streamId` and `timestamp` use `UInt` as required for wire-format code.",
-      "The Swift `class RtmpMessage` is translated as `open class` because RtmpSetChunkSizeMessage, RtmpAbortMessge and the other subclasses inherit from it.",
-      "`let type` plus `init(type:)` collapse into the primary constructor property `val type: RtmpMessageType`.",
-      "`static func create` becomes `create` on the `companion object`; the `switch` becomes an exhaustive `when` expression returning `RtmpMessage`.",
-      "The enum literals `.amf3Data`/`.amf0Data` and `.amf3Command`/`.amf0Command` are referenced as nested `RtmpDataMessage.DataType` and `RtmpCommandMessage.CommandType` cases; adjust if that port declared them as top-level enums.",
-      "The upstream typo `RtmpAbortMessge` is preserved exactly so the class name matches the sibling file."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2565,
-    "tokens_out": 4573,
-    "seconds": 16.8,
-    "ported_at": "2026-09-22T13:21:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetChunkSizeMessage.swift": {
-    "status": "ok",
-    "sha256": "793280f47c155f1b7f65ac7020ad2a0a37a5232a19ba40b355eb2ad1b84b09ca",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetChunkSizeMessage.kt",
-    "notes": [
-      "Kotlin has no `super.property` access, so the overridden `encoded` uses a private `_encoded` backing field; the base class stores nothing else for this property, so it is equivalent.",
-      "`size` is kept as `UInt` because `UInt32` is wire-format data.",
-      "Added file-private helpers `uint32ToBigEndianBytes` and `readUInt32BigEndian` to replace the HaishinKit `UInt32.bigEndian.data` and `UInt32(data:)` conversions.",
-      "Assumes `RtmpMessage` exposes `open var encoded: ByteArray` and a constructor taking `RtmpMessageType`; the override follows Android's `: View { constructor() : super(...) }` delegation pattern.",
-      "The two Swift initializers become two secondary Kotlin constructors, since the base constructor requires an argument.",
-      "The `import AVFoundation` line is dropped: no AVFoundation API is actually used in this file.",
-      "Getter returns the existing bytes when non-empty, otherwise encodes `size`; setter early-returns on equal bytes and decodes `size` from the first four big-endian bytes."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 2040,
-    "tokens_out": 9541,
-    "seconds": 38.7,
-    "ported_at": "2026-09-22T13:19:20+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpSetPeerBandwidthMessage.swift": {
-    "status": "ok",
-    "sha256": "3d1d7edb1335b66247e8cd5ce2cecb004df381829fd4bc449f5aca698ce94dcf",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpSetPeerBandwidthMessage.kt",
-    "notes": [
-      "RtmpSetPeerBandwidthMessage has no primary constructor: the two Swift inits become secondary constructors, both delegating to super(RtmpMessageType.BANDWIDTH) (assumed to be the existing RtmpMessageType entry for 0x06).",
-      "Swift's nested 'enum Limit: UInt8' becomes a nested Kotlin enum class with a UByte rawValue plus Limit.fromRawValue(...) replacing the failable raw-value initialiser; Swift cases hard/soft/dynamic/unknown are written HARD/SOFT/DYNAMIC/UNKNOWN per Kotlin enum conventions.",
-      "UInt32 fields stay unsigned (UInt) because they are wire-format values; size.bigEndian.data is produced with a big-endian java.nio.ByteBuffer and UInt32(data:).bigEndian is parsed with ByteBuffer.wrap(value, 0, 4).int.toUInt(), so both directions are big-endian on the wire.",
-      "Swift slicing newValue[0 ..< 4] is replaced by ByteBuffer.wrap(value, 0, 4) (offset overload) so no copy of the payload is made.",
-      "Data counting, appending and equality map to ByteArray.size, ByteBuffer.put, and contentEquals.",
-      "The overridden encoded getter/setter read and write the superclass storage via super.encoded, exactly like the Swift code uses super.encoded.",
-      "The payload is always 5 bytes: 4 bytes of size followed by the limit raw value byte, matching the RTMP Set Peer Bandwidth message layout.",
-      "No Apple-only frameworks are used, so nothing is stubbed out."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1814,
-    "tokens_out": 9868,
-    "seconds": 41.8,
-    "ported_at": "2026-09-22T12:42:33+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpUserControlMessage.swift": {
-    "status": "ok",
-    "sha256": "ace141235e5757da30523131c09763a4587a1c6784258a82358c1ebe7f5f1c2a",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpUserControlMessage.kt",
-    "notes": [
-      "RtmpUserControlMessage subclasses RtmpMessage(RtmpMessageType.user) through a Kotlin primary constructor; the two Swift initializers map to the primary constructor plus one secondary constructor.",
-      "Swift's nested `Event: UInt8` becomes a nested `enum class Event(val rawValue: UByte)` with a companion `fromRawValue`, replacing `Event(rawValue:)`.",
-      "The overridden `encoded` property keeps the lazy getter/setter semantics: the getter returns the stored payload when non-empty, otherwise it builds it from `event` and `value` and stores it.",
-      "`Data` maps to `ByteArray`; `value.bigEndian.data` is produced by explicit big-endian shift/mask conversion, and the setter parses the tail big-endian.",
-      "Where Swift used the inherited `length`, this port reads `super.encoded.size` to avoid re-entering the overridden getter (which has side effects).",
-      "`Int32` maps to `Int`; `Int32(data:...).bigEndian` is reproduced by reading the trailing bytes big-endian, capped at the 4-byte value width."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1896,
-    "tokens_out": 16502,
-    "seconds": 63.6,
-    "ported_at": "2026-09-22T12:42:57+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpVideoMessage.swift": {
-    "status": "ok",
-    "sha256": "0a8fcaf2497b7a6e5b5fca0804c42723ef06fcf4276e0da5a422f4628b2d7a0f",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpVideoMessage.kt",
-    "notes": [
-      "RtmpMessage and RtmpMessageType are declared in the same package, so no import lines are needed.",
-      "Swift UInt32 fields stay as Kotlin UInt because this is RTMP wire-format code; RtmpMessage.streamId and RtmpMessage.timestamp must use UInt in the parent class for these assignments to compile.",
-      "payload: Data maps to encoded: ByteArray, matching the RtmpMessage property name used by the second initializer.",
-      "The two Swift designated initializers become two Kotlin secondary constructors delegating to the RtmpMessage(type) superclass constructor.",
-      "The AVFoundation import is unused in the Swift source and has no counterpart here."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1951,
-    "tokens_out": 930,
-    "seconds": 4.3,
-    "ported_at": "2026-09-22T13:18:46+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpWindowAcknowledgementSizeMessage.swift": {
-    "status": "ok",
-    "sha256": "baeb7a09a50553fca035a2b0a4b850b6c7d52d34a1510b99dc2295515f42a35a",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpWindowAcknowledgementSizeMessage.kt",
-    "notes": [
-      "RtmpMessage is assumed to expose an overridable 'encoded' property of type ByteArray (modeled from the Swift 'encoded: Data'); it is accessed via super.encoded in both accessors.",
-      "RtmpMessageType.windowAck is assumed to be the Kotlin enum entry matching the Swift '.windowAck' case; both types live in the same package so no imports are needed.",
-      "Swift's UInt32 constructors/initializers become secondary constructors delegating to super(RtmpMessageType.windowAck), since the base class has no no-arg constructor.",
-      "size stays a UInt because this class is RTMP wire-format code; byte serialization helpers convert to/from big-endian bytes matching Swift's 'bigEndian.data' idiom.",
-      "The setter reads the first 4 bytes big-endian, matching Swift's 'UInt32(data:).bigEndian' net behaviour (zero-fill for short arrays)."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1699,
-    "tokens_out": 5677,
-    "seconds": 22.8,
-    "ported_at": "2026-09-22T12:42:18+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift": {
-    "status": "ok",
-    "sha256": "547aea663b6b56b3d425ab5ea6a4d3b6b7fed9bb521e9bdf0355be8d3efa0ec1",
-    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
-    "mode": "incremental",
+    "sha256": "59bdd48bd7ee6e38edd74c24d5b141df1bec0c19b1b374302ba8769150108b9b",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
     "tier": "ui",
-    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysSettingsView.kt",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysZoomAndSceneControlsSettingsView.kt",
     "notes": [
-      "Wrapped the Moblin Cloud toggle in `if (!isMac())` inside the Top right Section, mirroring the new Swift `if !isMac()` block.",
-      "Added the `com.moblin.android.various.utils.isMac` import following Moblin's Kotlin import ordering.",
-      "Everything else in the file is unchanged."
+      "Form + .navigationTitle becomes Form(title = \"Zoom and scene controls\"), which supplies the NavigationStack and iOS styling.",
+      "Swift's $database.zoomAndSceneButtonsLayout binding is split into the Picker's selection value plus its onChange lambda that assigns back to the Published property.",
+      "Toggles on Published properties use binding({ get }) { set } from com.moblin.android.platform.swiftui.",
+      "SettingsZoomAndSceneButtonsLayout.allCases maps to the Kotlin enum's entries list.",
+      "The Zoom section is emitted only when database.showAllSettings is true, exactly as the Swift if-branch does.",
+      "Section headers and footers keep the Swift strings (\"General\", \"Zoom\", footer about landscape) and are localized by the components.",
+      "Settings classes read their Published properties directly, so no collectAsState is used for database or show."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 50563,
-    "tokens_out": 2320,
-    "seconds": 7.7,
-    "ported_at": "2026-10-26T23:25:13+00:00"
+    "tokens_in": 38354,
+    "tokens_out": 1941,
+    "seconds": 8.5,
+    "ported_at": "2026-11-19T20:54:15+00:00"
   },
-  "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAggregateMessage.swift": {
+  "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysStatusSettingsView.swift": {
     "status": "ok",
-    "sha256": "a3dab6bbb910be72ec2ed729daa61c37d253ad249bcf842af0c708c9a316a852",
-    "tier": "logic",
-    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/rtmp/message/RtmpAggregateMessage.kt",
+    "sha256": "dad4b0d1117f52814992c7e07bcdacecb757bf7d22fe27816c087da8009826f5",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysStatusSettingsView.kt",
     "notes": [
-      "Swift `final class` subclass becomes a plain Kotlin `class` extending the open `RtmpMessage` class.",
-      "The superclass initializer is called through Kotlin constructor delegation, so `RtmpAggregateMessage` forwards `RtmpMessageType.aggregate` as the message type.",
-      "No other members exist in the Swift source, so the Kotlin class body is empty apart from the inheritance clause.",
-      "The enum entry is referenced as `RtmpMessageType.aggregate` to match the Swift case name; align the casing with the sibling RtmpMessageType declaration if that file used uppercase constants.",
-      "`RtmpMessage` is imported from the same package `com.moblin.android.media.haishinkit.rtmp.message`, so no extra import statement is required.",
-      "No state, no coroutines and no platform APIs are involved; behaviour is identical to the Swift original."
+      "Each Swift `Label { Toggle(...) } icon: { Image(systemName:) }` becomes the Toggle overload that takes a label lambda, with the SF Symbol passed to Label via systemImage so the icon matches the iOS row.",
+      "The two Section headers become Section(header = \"...\") and the body's .navigationTitle(\"Status\") becomes Form(title = \"Status\").",
+      "Rows guarded by `database.showAllSettings` keep their `if` inside the same Section, so the ordering of rows is identical to SwiftUI.",
+      "The `if !isMac()` guard around Moblin Cloud is kept as a Kotlin `if (!isMac())` inside the Top right Section.",
+      "Toggle bindings to settings properties write directly (`show.stream = it`, `database.bigAudioLevelMeter = it`) because those settings classes expose mutable properties read by Compose."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 1560,
-    "tokens_out": 1374,
-    "seconds": 6.7,
-    "ported_at": "2026-09-22T12:41:34+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48273,
+    "tokens_out": 3495,
+    "seconds": 13.3,
+    "ported_at": "2026-11-19T20:54:28+00:00"
   }
 }

@@ -4,7 +4,7 @@ import com.moblin.android.platform.log.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.rtmp.RtmpChunk
 import com.moblin.android.media.haishinkit.rtmp.RtmpChunkType
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpAcknowledgementMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpAcknowledgementMessage
 import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.io.IOException

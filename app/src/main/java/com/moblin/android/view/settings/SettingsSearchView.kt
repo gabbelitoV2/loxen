@@ -1,33 +1,27 @@
 package com.moblin.android.view.settings
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
-import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.fallbackStream
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsStreamProtocol
-import com.moblin.android.various.utils.Identifiable
+import com.moblin.android.various.model.fallbackStream
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPad
 import com.moblin.android.various.utils.isPhone
@@ -50,7 +44,8 @@ import com.moblin.android.view.settings.chat.ChatTextToSpeechSettingsView
 import com.moblin.android.view.settings.debug.DebugSettingsView
 import com.moblin.android.view.settings.deeplinkcreator.DeepLinkCreatorSettingsView
 import com.moblin.android.view.settings.display.DisplaySettingsView
-import com.moblin.android.view.settings.display.localoverlays.LocalOverlaysSettingsView
+import com.moblin.android.view.settings.display.localoverlays.LocalOverlaysStatusSettingsView
+import com.moblin.android.view.settings.display.localoverlays.LocalOverlaysZoomAndSceneControlsSettingsView
 import com.moblin.android.view.settings.display.networkinterfacenames.LocalOverlaysNetworkInterfaceNamesSettingsView
 import com.moblin.android.view.settings.display.quickbuttons.QuickButtonsSettingsView
 import com.moblin.android.view.settings.display.streambutton.StreamButtonsSettingsView
@@ -76,12 +71,14 @@ import com.moblin.android.view.settings.store.StoreSettingsView
 import com.moblin.android.view.settings.streamdeck.StreamDecksSettingsView
 import com.moblin.android.view.settings.streaminghistory.StreamingHistorySettingsView
 import com.moblin.android.view.settings.streams.StreamsSettingsView
+import com.moblin.android.view.settings.streams.stream.golivenotification.GoLiveNotificationSettingsView
+import com.moblin.android.view.settings.streams.stream.chat.StreamEmotesSettingsView
+import com.moblin.android.view.settings.streams.stream.mobcam.StreamMobcamSettingsView
+import com.moblin.android.view.settings.streams.stream.obsremotecontrol.StreamObsRemoteControlSettingsView
+import com.moblin.android.view.settings.streams.stream.StreamPlatformsSettingsView
 import com.moblin.android.view.settings.streams.stream.StreamSettingsView
 import com.moblin.android.view.settings.streams.stream.audio.StreamAudioSettingsView
-import com.moblin.android.view.settings.streams.stream.chat.StreamEmotesSettingsView
-import com.moblin.android.view.settings.streams.stream.golivenotification.GoLiveNotificationSettingsView
 import com.moblin.android.view.settings.streams.stream.kick.StreamKickSettingsView
-import com.moblin.android.view.settings.streams.stream.obsremotecontrol.StreamObsRemoteControlSettingsView
 import com.moblin.android.view.settings.streams.stream.recording.StreamRecordingSettingsView
 import com.moblin.android.view.settings.streams.stream.replay.StreamReplaySettingsView
 import com.moblin.android.view.settings.streams.stream.rist.StreamRistSettingsView
@@ -98,23 +95,47 @@ import com.moblin.android.view.settings.watch.WatchSettingsView
 import com.moblin.android.view.settings.watch.chat.WatchChatSettingsView
 import com.moblin.android.view.settings.watch.display.WatchDisplaySettingsView
 import com.moblin.android.view.settings.workoutdevices.WorkoutDevicesSettingsView
+import java.text.BreakIterator
 import java.text.Normalizer
 
 data class SettingsSearchItem(
     val title: String,
     val path: List<String>,
-    val name: String?,
+    val breadcrumb: List<String>,
     val image: String,
     val keywords: List<String>,
     val destination: @Composable () -> Unit,
-) : Identifiable<String> {
-    override val id: String
+) {
+    val id: String
         get() = (path + listOf(title)).joinToString("/")
 }
 
 private fun settingsSearchWords(text: String): List<String> {
-    val folded = Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
-    return folded.split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
+    val folded = Normalizer.normalize(text, Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "")
+        .lowercase()
+    val words = mutableListOf<String>()
+    val iterator = BreakIterator.getCharacterInstance()
+    iterator.setText(folded)
+    val word = StringBuilder()
+    var start = iterator.first()
+    var end = iterator.next()
+    while (end != BreakIterator.DONE) {
+        val cluster = folded.substring(start, end)
+        val codePoint = cluster.codePointAt(0)
+        if (Character.isLetterOrDigit(codePoint)) {
+            word.append(cluster)
+        } else if (word.isNotEmpty()) {
+            words.add(word.toString())
+            word.setLength(0)
+        }
+        start = end
+        end = iterator.next()
+    }
+    if (word.isNotEmpty()) {
+        words.add(word.toString())
+    }
+    return words
 }
 
 fun settingsSearchMatches(text: String, title: String, path: List<String>, keywords: List<String>): Boolean {
@@ -123,10 +144,14 @@ fun settingsSearchMatches(text: String, title: String, path: List<String>, keywo
         return false
     }
     val words = settingsSearchWords((listOf(title) + path + keywords).joinToString(" "))
-    return filterWords.all { filterWord -> words.any { it.startsWith(filterWord) } }
+    return filterWords.all { filterWord ->
+        words.any { it.startsWith(filterWord) }
+    }
 }
 
-private fun searchKeywords(vararg values: String): List<String> = values.map { localized(it) }
+private fun searchKeywords(vararg values: String): List<String> {
+    return values.map { localized(it) }
+}
 
 private class SettingsSearchItemsBuilder {
     val items: MutableList<SettingsSearchItem> = mutableListOf()
@@ -139,11 +164,18 @@ private class SettingsSearchItemsBuilder {
         keywords: List<String>,
         destination: @Composable () -> Unit,
     ) {
+        val name = this.name
+        val breadcrumb = if (name != null && path.isNotEmpty()) {
+            val first = path.first()
+            listOf(first, name) + path.drop(1)
+        } else {
+            path
+        }
         items.add(
             SettingsSearchItem(
                 title = title,
                 path = path,
-                name = name,
+                breadcrumb = breadcrumb,
                 image = image,
                 keywords = keywords,
                 destination = destination,
@@ -181,8 +213,15 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
             localized("Video"),
             streamPath,
             streamImage,
-            searchKeywords("Bitrate", "Resolution", "FPS", "Framerate", "Codec", "Adaptive", "Keyframe") +
-                listOf("hevc", "h264"),
+            searchKeywords(
+                "Bitrate",
+                "Resolution",
+                "FPS",
+                "Framerate",
+                "Codec",
+                "Adaptive",
+                "Keyframe",
+            ) + listOf("hevc", "h264"),
         ) {
             StreamVideoSettingsView(database = database, stream = stream)
         }
@@ -196,43 +235,41 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
                 StreamAudioSettingsView(stream = stream)
             }
             when (stream.getProtocol()) {
-                SettingsStreamProtocol.srt -> builder.add(
-                    localized("SRT(LA)"),
-                    streamPath,
-                    streamImage,
-                    searchKeywords("Latency", "Bonding", "Adaptive bitrate") + listOf("srt", "srtla"),
-                ) {
-                    StreamSrtSettingsView(stream = stream, srt = stream.srt)
+                SettingsStreamProtocol.srt -> {
+                    builder.add(
+                        localized("SRT(LA)"),
+                        streamPath,
+                        streamImage,
+                        searchKeywords("Latency", "Bonding", "Adaptive bitrate") + listOf("srt", "srtla"),
+                    ) {
+                        StreamSrtSettingsView(stream = stream, srt = stream.srt)
+                    }
                 }
-
-                SettingsStreamProtocol.rtmp -> builder.add(
-                    localized("RTMP"),
-                    streamPath,
-                    streamImage,
-                    listOf("rtmp", "rtmps"),
-                ) {
-                    StreamRtmpSettingsView(stream = stream)
+                SettingsStreamProtocol.rtmp -> {
+                    builder.add(localized("RTMP"), streamPath, streamImage, listOf("rtmp", "rtmps")) {
+                        StreamRtmpSettingsView(stream = stream)
+                    }
                 }
-
-                SettingsStreamProtocol.rist -> builder.add(
-                    localized("RIST"),
-                    streamPath,
-                    streamImage,
-                    searchKeywords("Bonding") + listOf("rist"),
-                ) {
-                    StreamRistSettingsView(stream = stream)
+                SettingsStreamProtocol.rist -> {
+                    builder.add(
+                        localized("RIST"),
+                        streamPath,
+                        streamImage,
+                        searchKeywords("Bonding") + listOf("rist"),
+                    ) {
+                        StreamRistSettingsView(stream = stream)
+                    }
                 }
-
-                SettingsStreamProtocol.whip -> builder.add(
-                    localized("WHIP"),
-                    streamPath,
-                    streamImage,
-                    listOf("whip", "webrtc"),
-                ) {
-                    StreamWhipSettingsView(model = model, stream = stream, whip = stream.whip)
+                SettingsStreamProtocol.whip -> {
+                    builder.add(localized("WHIP"), streamPath, streamImage, listOf("whip", "webrtc")) {
+                        StreamWhipSettingsView(model = model, stream = stream, whip = stream.whip)
+                    }
                 }
-
-                else -> {}
+                SettingsStreamProtocol.mobcam -> {
+                    builder.add(localized("Mobcam"), streamPath, streamImage, listOf("mobcam")) {
+                        StreamMobcamSettingsView(stream = stream)
+                    }
+                }
             }
             builder.add(
                 localized("Recording"),
@@ -307,17 +344,19 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
         ) {
             StreamEmotesSettingsView(stream = stream)
         }
-        builder.add(
-            localized("Background streaming"),
-            streamPath,
-            streamImage,
-            searchKeywords("Background", "Picture in picture", "Portrait", "Multi streaming") + listOf("pip"),
-        ) {
-            StreamSettingsView(database = database, stream = stream)
+        if (!isMac()) {
+            builder.add(
+                localized("Background streaming"),
+                streamPath,
+                streamImage,
+                searchKeywords("Background", "Picture in picture") + listOf("pip"),
+            ) {
+                StreamSettingsView(database = database, stream = stream)
+            }
         }
         builder.add(
             localized("Bitrate presets"),
-            streamPath,
+            streamPath + listOf(localized("Video")),
             streamImage,
             searchKeywords("Bitrate", "Quick buttons"),
         ) {
@@ -382,13 +421,15 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
             elevenLabs = database.chat.elevenLabs,
         )
     }
-    builder.add(
-        localized("Filters"),
-        listOf(chat),
-        chatImage,
-        searchKeywords("Filter", "Block", "Hide", "Nicknames"),
-    ) {
-        ChatSettingsView(model = model, database = database, chat = database.chat, stream = stream)
+    if (showAll) {
+        builder.add(
+            localized("Filters"),
+            listOf(chat),
+            chatImage,
+            searchKeywords("Filter", "Block", "Hide", "Nicknames"),
+        ) {
+            ChatSettingsView(model = model, database = database, chat = database.chat, stream = stream)
+        }
     }
     val displayImage = "rectangle.inset.topright.fill"
     builder.add(
@@ -416,12 +457,28 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
         StreamButtonsSettingsView(database = database)
     }
     builder.add(
-        localized("Big buttons"),
+        localized("Status"),
         listOf(display),
         displayImage,
-        searchKeywords("Large", "Size", "Vertical buttons", "Big audio level meter"),
+        searchKeywords("Local overlays", "Overlay", "Info", "Big audio level meter"),
     ) {
-        DisplaySettingsView(database = database)
+        LocalOverlaysStatusSettingsView(database = database, show = database.show)
+    }
+    builder.add(
+        localized("Zoom and scene controls"),
+        listOf(display),
+        displayImage,
+        searchKeywords(
+            "Local overlays",
+            "Big buttons",
+            "Large",
+            "Size",
+            "Layout",
+            "Vertical",
+            "One row",
+        ),
+    ) {
+        LocalOverlaysZoomAndSceneControlsSettingsView(database = database, show = database.show)
     }
     builder.add(
         localized("Vibrate"),
@@ -442,14 +499,6 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
         }
     }
     if (showAll) {
-        builder.add(
-            localized("Local overlays"),
-            listOf(display),
-            displayImage,
-            searchKeywords("Status", "Overlay", "Info"),
-        ) {
-            LocalOverlaysSettingsView(show = database.show)
-        }
         builder.add(
             localized("Network interface names"),
             listOf(display),
@@ -593,7 +642,7 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
         localized("Store (support us) ❤️"),
         emptyList(),
         "cart",
-        searchKeywords("Donate", "Buy"),
+        searchKeywords("Donate", "Buy", "Icon"),
     ) {
         StoreSettingsView(model = model, store = model.store)
     }
@@ -603,8 +652,8 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
             ingests,
             emptyList(),
             ingestsImage,
-            searchKeywords("Server", "Receive", "Input") +
-                listOf("rtmp", "srt", "srtla", "rist", "whip", "rtsp", "whep"),
+            searchKeywords("Server", "Receive", "Input")
+                + listOf("rtmp", "srt", "srtla", "rist", "whip", "rtsp", "whep"),
         ) {
             IngestsSettingsView(model = model, database = database)
         }
@@ -782,17 +831,18 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
         if (isPhone()) {
             val watchImage = "applewatch"
             builder.add(watch, emptyList(), watchImage, emptyList()) {
-                WatchSettingsView(
-                    model = model,
-                    watch = TODO("Watch settings are not implemented"),
-                    onViaRemoteControlChange = {},
-                )
+                AppleWatchSettingsDestination(model = model, database = database)
             }
             builder.add(localized("Chat"), listOf(watch), watchImage, emptyList()) {
                 WatchChatSettingsView(model = model, chat = TODO("Watch chat settings are not implemented"))
             }
-            builder.add(localized("Display"), listOf(watch), watchImage, emptyList()) {
-                WatchDisplaySettingsView(show = TODO("Watch display settings are not implemented"))
+            builder.add(
+                localized("Display"),
+                listOf(watch),
+                watchImage,
+                emptyList(),
+            ) {
+                WatchDisplaySettingsView(show = decodeWatchSettings(database.watch).show)
             }
         }
     }
@@ -805,7 +855,12 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
         HelpAndSupportSettingsView()
     }
     if (showAll) {
-        builder.add(localized("About"), emptyList(), "info.circle", searchKeywords("Version", "License")) {
+        builder.add(
+            localized("About"),
+            emptyList(),
+            "info.circle",
+            searchKeywords("Version", "License"),
+        ) {
             AboutSettingsView()
         }
         builder.add(debug, emptyList(), "ladybug", searchKeywords("Log", "Logs", "Experimental")) {
@@ -835,51 +890,27 @@ fun settingsSearchItems(model: Model, database: Database): List<SettingsSearchIt
 }
 
 @Composable
-fun SettingsSearchFieldView(text: MutableState<String>) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        SystemImage(name = "magnifyingglass", fontSize = 17.sp, tint = formPalette().secondaryLabel)
-        Box(modifier = Modifier.weight(1f)) {
-            if (text.value.isEmpty()) {
-                Text(localized("Search"), fontSize = 17.sp, color = formPalette().secondaryLabel)
-            }
-            BasicTextField(
-                value = text.value,
-                onValueChange = { text.value = it },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = formBodyStyle.copy(color = formPalette().label),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                ),
-                singleLine = true,
-                cursorBrush = SolidColor(formPalette().accent),
-            )
-        }
-    }
-}
-
-@Composable
 fun SettingsSearchResultsView(items: List<SettingsSearchItem>, text: String) {
     val filteredItems = items.filter {
         settingsSearchMatches(text = text, title = it.title, path = it.path, keywords = it.keywords)
     }
     if (filteredItems.isEmpty()) {
-        Text(localized("No results"), fontSize = 17.sp, color = formPalette().secondaryLabel)
+        Text(localized("No results"), color = formPalette().secondaryLabel, fontSize = 17.sp)
     } else {
         Section {
             ForEach(filteredItems, id = { it.id }) { item ->
                 NavigationLink(destination = { item.destination() }) {
                     SystemImage(name = item.image, fontSize = 17.sp, tint = formPalette().accent)
-                    Column(horizontalAlignment = Alignment.Start) {
-                        Text(item.title, fontSize = 17.sp)
-                        if (item.path.isNotEmpty()) {
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier.padding(start = 8.dp),
+                    ) {
+                        Text(item.title)
+                        if (item.breadcrumb.isNotEmpty()) {
                             Text(
-                                (item.path + listOfNotNull(item.name)).joinToString(" › "),
-                                fontSize = 12.sp,
+                                text = item.breadcrumb.joinToString(" › "),
                                 color = formPalette().secondaryLabel,
+                                fontSize = 13.sp,
                             )
                         }
                     }

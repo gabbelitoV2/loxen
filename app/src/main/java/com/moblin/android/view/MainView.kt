@@ -115,6 +115,7 @@ import com.moblin.android.various.model.CameraState
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
+import com.moblin.android.various.model.PanelState
 import com.moblin.android.various.model.PhotoShootProvider
 import com.moblin.android.various.model.ReplayProvider
 import com.moblin.android.various.model.ShowingPanel
@@ -315,6 +316,36 @@ private fun onClose(model: Model) {
     model.toggleShowingPanel(type = null, panel = ShowingPanel.none)
     model.updateLutsButtonState()
     model.updateAutoSceneSwitcherButtonState()
+}
+
+@Composable
+private fun PanelButtonsInPanelView(
+    model: Model = LocalModel.current,
+    orientation: Orientation,
+    panelState: PanelState,
+) {
+    val isPortrait by orientation.isPortrait.collectAsState()
+    val panelHidden by model.panelHidden.collectAsState()
+    val searching by panelState.searching.collectAsState()
+    val showingPanel by model.showingPanel.collectAsState()
+    if (isPortrait) {
+        if (panelHidden || !searching) {
+            val backgroundColor = if (panelHidden) {
+                showingPanel.buttonsBackgroundColor()
+            } else {
+                Color.Transparent
+            }
+            PanelButtonsView(
+                model = model,
+                backgroundColor = backgroundColor,
+                modifier = Modifier
+                    .padding(end = 10.dp)
+                    .offset(y = (-7).dp)
+            )
+        }
+    } else if (!panelHidden && !searching) {
+        PanelButtonsView(model = model, backgroundColor = Color.Transparent)
+    }
 }
 
 @Composable
@@ -1143,8 +1174,6 @@ private fun streamArea(
 
 @Composable
 private fun panel(model: Model = LocalModel.current, orientation: Orientation) {
-    val isPortrait by orientation.isPortrait.collectAsState()
-    val showingPanel by model.showingPanel.collectAsState()
     val panelHidden by model.panelHidden.collectAsState()
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -1155,22 +1184,7 @@ private fun panel(model: Model = LocalModel.current, orientation: Orientation) {
         ) {
             MenuView(model = model)
         }
-        if (isPortrait) {
-            val backgroundColor = if (panelHidden) {
-                showingPanel.buttonsBackgroundColor()
-            } else {
-                Color.Transparent
-            }
-            PanelButtonsView(
-                model = model,
-                backgroundColor = backgroundColor,
-                modifier = Modifier
-                    .padding(end = 10.dp)
-                    .offset(y = (-7).dp)
-            )
-        } else if (!panelHidden) {
-            PanelButtonsView(model = model, backgroundColor = Color.Transparent)
-        }
+        PanelButtonsInPanelView(model = model, orientation = orientation, panelState = model.panelState)
     }
 }
 

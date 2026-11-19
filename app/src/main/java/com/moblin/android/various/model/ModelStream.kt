@@ -20,6 +20,7 @@ import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderSettings
 import com.moblin.android.media.haishinkit.media.RecorderDataSegment
 import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.media.haishinkit.mpeg.MpegTsPacket
+import com.moblin.android.media.haishinkit.rtmp.RtmpDisconnectReason
 import com.moblin.android.remotecontrol.RemoteControlState
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.BondingConnection
@@ -793,12 +794,15 @@ private fun Model.onConnected() {
     updateStreamUptime(now = SystemClock.elapsedRealtime())
 }
 
-private fun Model.onDisconnected(reason: String) {
+private fun Model.onDisconnected(reason: String, cause: String? = null) {
     if (!streaming) {
         return
     }
     Log.i(TAG, "stream: Disconnected with reason: $reason")
-    val subTitle = localized("Attempting again in 5 seconds.")
+    var subTitle = localized("Attempting again in 5 seconds.")
+    if (cause != null) {
+        subTitle = "$cause\n$subTitle"
+    }
     if (streamState == StreamState.connected) {
         streamTotalBytes += media.streamTotal()
         makeFffffToast(subTitle = subTitle)
@@ -1171,9 +1175,9 @@ fun Model.mediaOnRtmpConnected() {
     }
 }
 
-fun Model.mediaOnRtmpDisconnected(message: String) {
+fun Model.mediaOnRtmpDisconnected(reason: RtmpDisconnectReason) {
     mainScope.launch {
-        onDisconnected(reason = "RTMP disconnected with message $message")
+        onDisconnected(reason = "RTMP disconnected with reason $reason", cause = reason.toString())
     }
 }
 

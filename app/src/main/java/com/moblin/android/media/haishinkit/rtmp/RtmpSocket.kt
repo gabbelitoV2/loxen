@@ -1,11 +1,13 @@
 package com.moblin.android.media.haishinkit.rtmp
 
 import com.moblin.android.platform.log.Log
-import com.moblin.android.media.haishinkit.rtmp.amf.AsObject
+import com.moblin.android.media.haishinkit.util.ByteWriter
 import com.moblin.android.platform.network.NWConnection
 import com.moblin.android.platform.network.NWEndpoint
 import com.moblin.android.platform.network.NWParameters
 import com.moblin.android.platform.network.NWProtocolTLS
+import java.time.Instant
+import kotlin.random.Random
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -21,19 +23,47 @@ enum class RtmpSocketReadyState {
     closed,
 }
 
+object RtmpHandshake {
+    const val sigSize = 1536
+    val protocolVersion: UByte = 3.toUByte()
+    private const val timestamp: Double = 0.0
+
+    fun createC0C1Packet(): ByteArray {
+        val writer = ByteWriter()
+        writer.writeUInt8(RtmpHandshake.protocolVersion)
+        writer.writeInt32(timestamp.toInt())
+        writer.writeBytes(byteArrayOf(0x00, 0x00, 0x00, 0x00))
+        repeat(RtmpHandshake.sigSize - 8) {
+            writer.writeUInt8(Random.nextInt(0, 256).toUByte())
+        }
+        return writer.data
+    }
+
+    fun createC2Packet(s0s1packet: ByteArray): ByteArray {
+        val writer = ByteWriter()
+        writer.writeBytes(s0s1packet.copyOfRange(1, 5))
+        writer.writeUInt32((Instant.now().toEpochMilli() / 1000.0 - timestamp).toLong().toUInt())
+        writer.writeBytes(s0s1packet.copyOfRange(9, RtmpHandshake.sigSize + 1))
+        return writer.data
+    }
+}
+
 interface RtmpSocketDelegate {
-    fun socketDataReceived(data: ByteArray): ByteArray
+    fun socketHandshakeDone(socket: RtmpSocket)
 
-    fun socketReadyStateChanged(readyState: RtmpSocketReadyState)
+    fun socketClosed(socket: RtmpSocket)
 
-    fun socketUpdateStats(totalBytesSent: Long)
+    fun socketDisconnected(socket: RtmpSocket, code: RtmpStatusCode)
 
-    fun socketPost(data: AsObject)
+    fun socketDataReceived(socket: RtmpSocket, data: ByteArray): ByteArray
+
+    fun socketUpdateStats(socket: RtmpSocket, totalBytesSent: Long)
 }
 
 class RtmpSocket(private val name: String, private val queue: CoroutineDispatcher) {
     var maximumChunkSizeToServer = RtmpChunk.defaultSize
-    private var readyState: RtmpSocketReadyState = RtmpSocketReadyState.uninitialized
+    var readyState: RtmpSocketReadyState = RtmpSocketReadyState.uninitialized
+        private set
     private var inputBuffer = ByteArray(0)
     var delegate: RtmpSocketDelegate? = null
     private var totalBytesSending: Long = 0
@@ -57,6 +87,9 @@ class RtmpSocket(private val name: String, private val queue: CoroutineDispatche
     }
 
     fun close(isDisconnected: Boolean) {
+        if (readyState == RtmpSocketReadyState.closed) {
+            return
+        }
         val connection = connection
         if (connection != null) {
             connection.viabilityUpdateHandler = null
@@ -69,12 +102,10 @@ class RtmpSocket(private val name: String, private val queue: CoroutineDispatche
         val wasHandshakeDone = readyState == RtmpSocketReadyState.handshakeDone
         setReadyState(state = RtmpSocketReadyState.closed)
         if (isDisconnected) {
-            val data: AsObject = if (wasHandshakeDone) {
-                RtmpConnectionCode.connectClosed.eventData()
-            } else {
-                RtmpConnectionCode.connectFailed.eventData()
-            }
-            delegate?.socketPost(data = data)
+            delegate?.socketDisconnected(
+                socket = this,
+                code = if (wasHandshakeDone) RtmpStatusCode.connectClosed else RtmpStatusCode.connectFailed,
+            )
         }
     }
 
@@ -91,7 +122,11 @@ class RtmpSocket(private val name: String, private val queue: CoroutineDispatche
         }
         Log.i(TAG, "rtmp: $name: Setting socket state $readyState -> $state")
         readyState = state
-        delegate?.socketReadyStateChanged(readyState = readyState)
+        when (state) {
+            RtmpSocketReadyState.handshakeDone -> delegate?.socketHandshakeDone(socket = this)
+            RtmpSocketReadyState.closed -> delegate?.socketClosed(socket = this)
+            else -> Unit
+        }
     }
 
     private fun write(data: ByteArray) {
@@ -106,7 +141,7 @@ class RtmpSocket(private val name: String, private val queue: CoroutineDispatche
                 }
             }
         })
-        delegate?.socketUpdateStats(totalBytesSent = totalBytesSending)
+        delegate?.socketUpdateStats(socket = this, totalBytesSent = totalBytesSending)
         if (hasTooMuchDataBuffered()) {
             Log.i(TAG, "rtmp: $name: Too much data buffered. Disconnecting.")
             CoroutineScope(queue).launch {
@@ -133,6 +168,10 @@ class RtmpSocket(private val name: String, private val queue: CoroutineDispatche
                 write(data = RtmpHandshake.createC0C1Packet())
                 setReadyState(state = RtmpSocketReadyState.versionSent)
             }
+            is NWConnection.State.waiting -> {
+                Log.i(TAG, "rtmp: $name: Connection waiting: ${state.error}")
+                close(isDisconnected = true)
+            }
             is NWConnection.State.failed -> {
                 Log.i(TAG, "rtmp: $name: Connection failed: ${state.error}")
                 close(isDisconnected = true)
@@ -146,10 +185,18 @@ class RtmpSocket(private val name: String, private val queue: CoroutineDispatche
     }
 
     private fun receive(connection: NWConnection) {
-        connection.receive(minimumIncompleteLength = 0, maximumLength = 255) { data, _, _, _ ->
-            if (data != null) {
+        connection.receive(minimumIncompleteLength = 0, maximumLength = 255) { data, _, isComplete, error ->
+            if (data != null && data.isNotEmpty()) {
                 inputBuffer += data
                 processInput()
+            }
+            if (error != null) {
+                Log.i(TAG, "rtmp: $name: Receive failed: $error")
+                close(isDisconnected = true)
+            } else if (isComplete) {
+                Log.i(TAG, "rtmp: $name: Connection closed by server")
+                close(isDisconnected = true)
+            } else {
                 receive(connection = connection)
             }
         }
@@ -187,6 +234,6 @@ class RtmpSocket(private val name: String, private val queue: CoroutineDispatche
         if (inputBuffer.isEmpty() || delegate == null) {
             return
         }
-        inputBuffer = delegate.socketDataReceived(data = inputBuffer)
+        inputBuffer = delegate.socketDataReceived(socket = this, data = inputBuffer)
     }
 }

@@ -20,8 +20,8 @@ fun Model.importSettingsWithConfirmation(action: () -> Unit) {
 fun Model.importSettingsFromFile(url: String, completion: (Boolean) -> Unit) {
     cleanupBeforeImport()
     settings.importFromFile(File(url).toURI()) { message ->
-        importDone(message)
         completion(message == null)
+        importDone(message)
     }
 }
 
@@ -73,8 +73,8 @@ fun Model.importSettingsFromClipboard(context: Context, completion: () -> Unit) 
     } else if (clipboardText != null) {
         cleanupBeforeImport()
         settings.importFromClipboard(clipboardText) { message ->
-            importDone(message)
             completion()
+            importDone(message)
         }
     } else {
         importFailed(localized("No settings found in clipboard"))

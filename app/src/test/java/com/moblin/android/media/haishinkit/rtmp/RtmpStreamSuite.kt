@@ -1,21 +1,21 @@
 package com.moblin.android.media.haishinkit.rtmp
 
 import android.util.Log
-import android.util.Size
 import com.moblin.android.MessageQueue
-import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.Processor
-import com.moblin.android.media.haishinkit.media.ProcessorDelegate
-import com.moblin.android.media.haishinkit.media.RecorderDataSegment
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpAcknowledgementMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpAudioMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandName
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpMessageType
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetChunkSizeMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetPeerBandwidthMessage
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpWindowAcknowledgementSizeMessage
+import com.moblin.android.media.haishinkit.mpeg.avc.MpegTsVideoConfigAvc
+import com.moblin.android.media.haishinkit.rtmp.RtmpAcknowledgementMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpAudioMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpCommandMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpCommandName
+import com.moblin.android.media.haishinkit.rtmp.RtmpDataMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpMessageType
+import com.moblin.android.media.haishinkit.rtmp.RtmpSetChunkSizeMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpSetPeerBandwidthMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpUserControlMessage
+import com.moblin.android.media.haishinkit.rtmp.RtmpWindowAcknowledgementSizeMessage
+import com.moblin.android.platform.core.ContinuousClock
 import com.moblin.android.various.settings.SettingsStreamColorRange
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +26,6 @@ import org.junit.Test
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.Socket
-import java.util.UUID
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -34,82 +33,9 @@ import kotlin.test.assertTrue
 import com.moblin.android.media.haishinkit.rtmp.amf.AsValue
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import kotlin.time.Duration.Companion.seconds
 
-private val rtmpQueue: CoroutineDispatcher = Dispatchers.IO
-
-private class ModelMock : RtmpStreamDelegate, ProcessorDelegate {
-    private val status = MessageQueue<String>()
-    private val connected = MessageQueue<Unit>()
-
-    suspend fun waitForStatus(): String {
-        return status.get()
-    }
-
-    suspend fun waitForConnected() {
-        connected.get()
-    }
-
-    override fun rtmpStreamStatus(stream: RtmpStream, code: String) {
-        Log.i("ModelMock", "rtmp-test: Status $code")
-        status.put(code)
-    }
-
-    override fun rtmpStreamConnected(stream: RtmpStream) {
-        Log.i("ModelMock", "rtmp-test: Connected")
-        connected.put(Unit)
-    }
-
-    override fun streamAudioLevel(audioLevel: Float, numberOfAudioChannels: Int, sampleRate: Double) {
-    }
-
-    override fun streamLowFpsImage(lowFpsImage: ByteArray?, frameNumber: Long) {
-    }
-
-    override fun streamVideoAttachCameraError() {
-    }
-
-    override fun streamVideoCaptureSessionError(message: String) {
-    }
-
-    override fun streamVideoBufferedVideoReady(cameraId: UUID) {
-    }
-
-    override fun streamVideoBufferedVideoRemoved(cameraId: UUID) {
-    }
-
-    override fun streamVideoFps(fps: Int) {
-    }
-
-    override fun streamVideoEncoderResolution(resolution: Size) {
-    }
-
-    override fun streamRecorderInitSegment(data: ByteArray) {
-    }
-
-    override fun streamRecorderDataSegment(segment: RecorderDataSegment) {
-    }
-
-    override fun streamRecorderFinished() {
-    }
-
-    override fun streamAudio(sampleBuffer: MediaSample) {
-    }
-
-    override fun streamNoTorch() {
-    }
-
-    override fun streamPhotoTaken() {
-    }
-
-    override fun streamSetZoomX(x: Float) {
-    }
-
-    override fun streamSetExposureBias(bias: Float) {
-    }
-
-    override fun streamSelectedFps(auto: Boolean) {
-    }
-}
+private val rtmpQueue: CoroutineDispatcher = Dispatchers.IO.limitedParallelism(1)
 
 private class RtmpServerMock {
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -148,9 +74,18 @@ private class RtmpServerMock {
         return input.get()
     }
 
-    fun send(chunk: RtmpChunk) {
-        for (part in chunk.split(maximumSize = 128)) {
+    fun send(chunk: RtmpChunk, maximumSize: Int = 128) {
+        for (part in chunk.split(maximumSize = maximumSize)) {
             send(data = part)
+        }
+    }
+
+    fun closeClient() {
+        val socket = client ?: return
+        try {
+            socket.shutdownOutput()
+        } catch (e: IOException) {
+            Log.e("RtmpServerMock", "close failed", e)
         }
     }
 
@@ -214,7 +149,7 @@ class RtmpStreamSuite {
     fun basic() {
         runBlocking {
             val streamKey = "5"
-            val modelMock = ModelMock()
+            val modelMock = RtmpModelMock()
             val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
             val server = RtmpServerMock()
             val rtmpStream = RtmpStream(
@@ -258,7 +193,6 @@ class RtmpStreamSuite {
             )
             val setChunkSize = receiveSetChunkSize(server)
             assertEquals(8192L, setChunkSize.size.toLong())
-            assertEquals("NetConnection.Connect.Success", modelMock.waitForStatus())
             var message = receiveCommandMessage(server, 42)
             assertEquals(RtmpCommandName.releaseStream, message.commandName)
             assertEquals(1, message.arguments.size)
@@ -311,7 +245,6 @@ class RtmpStreamSuite {
                     )
                 )
             )
-            assertEquals("NetStream.Publish.Start", modelMock.waitForStatus())
             modelMock.waitForConnected()
             rtmpStream.disconnect()
             server.receive(count = 192)
@@ -334,7 +267,7 @@ class RtmpStreamSuite {
     fun youTube() {
         runBlocking {
             val streamKey = "5"
-            val modelMock = ModelMock()
+            val modelMock = RtmpModelMock()
             val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
             val server = RtmpServerMock()
             val rtmpStream = RtmpStream(
@@ -383,7 +316,6 @@ class RtmpStreamSuite {
             )
             val setChunkSize = receiveSetChunkSize(server)
             assertEquals(8192L, setChunkSize.size.toLong())
-            assertEquals("NetConnection.Connect.Success", modelMock.waitForStatus())
             var message = receiveCommandMessage(server, 42)
             assertEquals(RtmpCommandName.releaseStream, message.commandName)
             assertEquals(1, message.arguments.size)
@@ -436,7 +368,6 @@ class RtmpStreamSuite {
                     )
                 )
             )
-            assertEquals("NetStream.Publish.Start", modelMock.waitForStatus())
             modelMock.waitForConnected()
             rtmpStream.disconnect()
             server.receive(count = 192)
@@ -457,7 +388,7 @@ class RtmpStreamSuite {
 
     @Test
     fun acknowledgementChunkSplitOverTwoReads() {
-        val modelMock = ModelMock()
+        val modelMock = RtmpModelMock()
         val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
         val rtmpStream = RtmpStream(
             name = "test",
@@ -465,18 +396,17 @@ class RtmpStreamSuite {
             delegate = modelMock,
             queue = rtmpQueue
         )
-        val connection = RtmpConnection(name = "test", queue = rtmpQueue)
-        connection.stream = rtmpStream
         rtmpStream.info.onWritten(sequence = 14000)
         assertEquals(10, rtmpStream.info.stats.value.packetsInFlight.toInt())
         val typeZeroChunk = byteArrayOf(0x02, 0, 0, 0, 0, 0, 4, 0x03, 0, 0, 0, 0) + 1u.toBigEndianBytes()
-        assertTrue(connection.socketDataReceived(data = typeZeroChunk).isEmpty())
+        assertTrue(rtmpStream.socketDataReceived(rtmpStream.socket, data = typeZeroChunk).isEmpty())
         assertEquals(10, rtmpStream.info.stats.value.packetsInFlight.toInt())
         val typeThreeChunk = byteArrayOf(0xC2.toByte()) + 14001u.toBigEndianBytes()
-        val buffered = connection.socketDataReceived(data = typeThreeChunk.copyOfRange(0, 3))
+        val buffered = rtmpStream.socketDataReceived(rtmpStream.socket, data = typeThreeChunk.copyOfRange(0, 3))
         assertContentEquals(typeThreeChunk.copyOfRange(0, 3), buffered)
         assertTrue(
-            connection.socketDataReceived(
+            rtmpStream.socketDataReceived(
+                rtmpStream.socket,
                 data = buffered + typeThreeChunk.copyOfRange(typeThreeChunk.size - 2, typeThreeChunk.size)
             ).isEmpty()
         )
@@ -641,6 +571,394 @@ class RtmpStreamSuite {
             messages.mapNotNull { (it as? RtmpAcknowledgementMessage)?.sequence?.toLong() }
         )
     }
+
+    @Test
+    fun pingIsAnsweredWithPong() {
+        runBlocking {
+            val stream = connectAndPublish()
+            stream.server.send(
+                chunk = RtmpChunk(
+                    type = RtmpChunkType.zero,
+                    chunkStreamId = 2.toUShort(),
+                    message = RtmpUserControlMessage(RtmpUserControlMessage.Event.ping, 1234)
+                )
+            )
+            val (message, raw) = stream.reader.next(stream.server)
+            val pong = assertNotNull(message as? RtmpUserControlMessage)
+            assertEquals(RtmpUserControlMessage.Event.pong, pong.event)
+            assertEquals(1234, pong.value)
+            assertEquals(0x02L, raw[0].toLong())
+        }
+    }
+
+    @Test
+    fun serverChunkSizeIsUsedWhenReading() {
+        runBlocking {
+            val stream = connectAndPublish()
+            stream.server.send(
+                chunk = RtmpChunk(
+                    type = RtmpChunkType.zero,
+                    chunkStreamId = 2.toUShort(),
+                    message = RtmpSetChunkSizeMessage(4096u)
+                )
+            )
+            sendCommand(
+                server = stream.server,
+                transactionId = 0,
+                commandName = RtmpCommandName.onStatus,
+                arguments = listOf(
+                    makeStatus(
+                        code = "NetConnection.Connect.Failed",
+                        description = "x".repeat(300)
+                    )
+                ),
+                maximumSize = 4096,
+            )
+            assertEquals(RtmpDisconnectReason.connectionLost, stream.modelMock.waitForDisconnected())
+        }
+    }
+
+    @Test
+    fun closeCommandUnpublishes() {
+        runBlocking {
+            val stream = connectAndPublish()
+            sendCommand(
+                server = stream.server,
+                transactionId = 0,
+                commandName = RtmpCommandName.close,
+                arguments = emptyList()
+            )
+            expectUnpublish(stream)
+        }
+    }
+
+    @Test
+    fun connectClosedStatusUnpublishes() {
+        runBlocking {
+            val stream = connectAndPublish()
+            sendCommand(
+                server = stream.server,
+                transactionId = 0,
+                commandName = RtmpCommandName.onStatus,
+                arguments = listOf(makeStatus(code = "NetConnection.Connect.Closed"))
+            )
+            assertEquals(RtmpDisconnectReason.connectionLost, stream.modelMock.waitForDisconnected())
+            expectUnpublish(stream)
+        }
+    }
+
+    @Test
+    fun aacAudio() {
+        runBlocking {
+            val stream = connectAndPublish()
+            val format = makeAacFormat()
+            stream.rtmpStream.audioEncoderOutputFormat(format)
+            var pair = stream.reader.next(stream.server)
+            var message = pair.first
+            var raw = pair.second
+            assertEquals(RtmpMessageType.audio, message.type)
+            assertEquals(1L, message.streamId.toLong())
+            assertEquals(0L, message.timestamp.toLong())
+            assertContentEquals(byteArrayOf(0xAF.toByte(), 0x00, 0x11, 0x90.toByte()), message.encoded)
+            assertContentEquals(byteArrayOf(0x08), raw.copyOfRange(0, 1))
+            val timestamps = mutableListOf<Long>()
+            for ((index, pts) in listOf(10240, 10261, 10282, 10303, 10324, 10345).withIndex()) {
+                stream.rtmpStream.audioEncoderOutputBuffer(
+                    makeAudioBuffer(format = format, payload = byteArrayOf(index.toByte(), 1, 2)),
+                    mediaTime(pts.toLong())
+                )
+                pair = stream.reader.next(stream.server)
+                message = pair.first
+                raw = pair.second
+                assertEquals(RtmpMessageType.audio, message.type)
+                assertContentEquals(
+                    byteArrayOf(0xAF.toByte(), 0x01, index.toByte(), 1, 2),
+                    message.encoded
+                )
+                assertContentEquals(byteArrayOf(0x48), raw.copyOfRange(0, 1))
+                timestamps.add(message.timestamp.toLong())
+            }
+            assertEquals(listOf(0L, 20L, 41L, 61L, 82L, 102L), timestamps)
+        }
+    }
+
+    @Test
+    fun audioBuffersBeforeBaseOrOutOfOrderAreDropped() {
+        runBlocking {
+            val stream = connectAndPublish()
+            val format = makeAacFormat()
+            for ((index, pts) in listOf(10240, 10200, 10261, 10250, 10282).withIndex()) {
+                stream.rtmpStream.audioEncoderOutputBuffer(
+                    makeAudioBuffer(format = format, payload = byteArrayOf(index.toByte())),
+                    mediaTime(pts.toLong())
+                )
+            }
+            val timestamps = mutableListOf<Long>()
+            repeat(3) {
+                val message = stream.reader.nextMessage(stream.server)
+                assertEquals(RtmpMessageType.audio, message.type)
+                timestamps.add(message.timestamp.toLong())
+            }
+            assertEquals(listOf(0L, 20L, 41L), timestamps)
+        }
+    }
+
+    @Test
+    fun h264Video() {
+        runBlocking {
+            val stream = connectAndPublish()
+            val formatDescription = makeH264FormatDescription()
+            val avcC = assertNotNull(MpegTsVideoConfigAvc.getAvcC(formatDescription))
+            val encoder = assertNotNull(stream.processor.video.encoder)
+            stream.rtmpStream.videoEncoderOutputFormat(encoder, formatDescription)
+            var pair = stream.reader.next(stream.server)
+            var message = pair.first
+            var raw = pair.second
+            assertEquals(RtmpMessageType.video, message.type)
+            assertEquals(1L, message.streamId.toLong())
+            assertEquals(0L, message.timestamp.toLong())
+            assertContentEquals(byteArrayOf(0x17, 0x00, 0x00, 0x00, 0x00) + avcC, message.encoded)
+            assertContentEquals(byteArrayOf(0x09), raw.copyOfRange(0, 1))
+            val timestamps = mutableListOf<Long>()
+            for ((index, dts) in listOf(10240, 10272, 10304, 10336, 10368).withIndex()) {
+                val isSync = index == 0
+                stream.rtmpStream.videoEncoderOutputSampleBuffer(
+                    encoder,
+                    makeVideoSampleBuffer(
+                        formatDescription = formatDescription,
+                        decodeTimeStamp = mediaTime(dts.toLong()),
+                        presentationTimeStamp = mediaTime((dts + 64).toLong()),
+                        isSync = isSync,
+                        payload = byteArrayOf(
+                            0, 0, 0, 2,
+                            (if (isSync) 0x65 else 0x41).toByte(),
+                            index.toByte()
+                        )
+                    ),
+                    0L
+                )
+                pair = stream.reader.next(stream.server)
+                message = pair.first
+                raw = pair.second
+                assertEquals(RtmpMessageType.video, message.type)
+                assertContentEquals(
+                    byteArrayOf(
+                        (if (isSync) 0x17 else 0x27).toByte(), 0x01, 0x00, 0x00, 62,
+                        0, 0, 0, 2, (if (isSync) 0x65 else 0x41).toByte(), index.toByte()
+                    ),
+                    message.encoded
+                )
+                assertContentEquals(byteArrayOf(0x49), raw.copyOfRange(0, 1))
+                timestamps.add(message.timestamp.toLong())
+            }
+            assertEquals(listOf(0L, 31L, 62L, 93L, 125L), timestamps)
+        }
+    }
+
+    @Test
+    fun audioAndVideoShareBaseTimestamp() {
+        runBlocking {
+            val stream = connectAndPublish()
+            val formatDescription = makeH264FormatDescription()
+            stream.rtmpStream.videoEncoderOutputSampleBuffer(
+                assertNotNull(stream.processor.video.encoder),
+                makeVideoSampleBuffer(
+                    formatDescription = formatDescription,
+                    decodeTimeStamp = mediaTime(10240),
+                    presentationTimeStamp = mediaTime(10240),
+                    isSync = true,
+                    payload = byteArrayOf(0, 0, 0, 1, 0x65)
+                ),
+                0L
+            )
+            assertEquals(RtmpMessageType.video, stream.reader.nextMessage(stream.server).type)
+            val format = makeAacFormat()
+            stream.rtmpStream.audioEncoderOutputBuffer(
+                makeAudioBuffer(format = format, payload = byteArrayOf(1)),
+                mediaTime(10200)
+            )
+            stream.rtmpStream.audioEncoderOutputBuffer(
+                makeAudioBuffer(format = format, payload = byteArrayOf(2)),
+                mediaTime(10261)
+            )
+            stream.rtmpStream.audioEncoderOutputBuffer(
+                makeAudioBuffer(format = format, payload = byteArrayOf(3)),
+                mediaTime(10282)
+            )
+            val first = stream.reader.nextMessage(stream.server)
+            assertEquals(RtmpMessageType.audio, first.type)
+            assertEquals(0L, first.timestamp.toLong())
+            assertEquals(2L, first.encoded[first.encoded.size - 1].toLong())
+            val second = stream.reader.nextMessage(stream.server)
+            assertEquals(20L, second.timestamp.toLong())
+            assertEquals(3L, second.encoded[second.encoded.size - 1].toLong())
+        }
+    }
+
+    @Test
+    fun serverClosesConnectionAfterPublish() {
+        runBlocking {
+            val modelMock = RtmpModelMock()
+            val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
+            val server = RtmpServerMock()
+            val rtmpStream = RtmpStream(name = "test", processor = processor, delegate = modelMock, queue = rtmpQueue)
+            val reader = ClientMessageReader()
+            rtmpStream.setUrl("rtmp://127.0.0.1:${server.getLocalPort()}/app/bad")
+            rtmpStream.connect()
+            receiveC0C1(server)
+            sendS0S1(server)
+            receiveC2(server)
+            sendS2(server)
+            assertEquals(RtmpCommandName.connect, reader.nextCommand(server).commandName)
+            sendCommand(
+                server = server,
+                transactionId = 1,
+                commandName = RtmpCommandName.result,
+                arguments = listOf(makeStatus(code = "NetConnection.Connect.Success"))
+            )
+            assertTrue(reader.nextMessage(server) is RtmpSetChunkSizeMessage)
+            assertEquals(RtmpCommandName.releaseStream, reader.nextCommand(server).commandName)
+            assertEquals(RtmpCommandName.fcPublish, reader.nextCommand(server).commandName)
+            val createStream = reader.nextCommand(server)
+            sendCommand(
+                server = server,
+                transactionId = createStream.transactionId,
+                commandName = RtmpCommandName.result,
+                arguments = listOf(AsValue.Number(1.0))
+            )
+            assertEquals(RtmpCommandName.publish, reader.nextCommand(server).commandName)
+            val start = ContinuousClock.now
+            server.closeClient()
+            assertEquals(RtmpDisconnectReason.streamRejected, modelMock.waitForDisconnected())
+            assertTrue(start.duration(to = ContinuousClock.now) < 5.seconds)
+        }
+    }
+
+    @Test
+    fun serverReportsPublishErrorAndClosesConnection() {
+        runBlocking {
+            val modelMock = RtmpModelMock()
+            val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
+            val server = RtmpServerMock()
+            val rtmpStream = RtmpStream(name = "test", processor = processor, delegate = modelMock, queue = rtmpQueue)
+            val reader = ClientMessageReader()
+            rtmpStream.setUrl("rtmp://127.0.0.1:${server.getLocalPort()}/app/bad")
+            rtmpStream.connect()
+            receiveC0C1(server)
+            sendS0S1(server)
+            receiveC2(server)
+            sendS2(server)
+            assertEquals(RtmpCommandName.connect, reader.nextCommand(server).commandName)
+            sendCommand(
+                server = server,
+                transactionId = 1,
+                commandName = RtmpCommandName.result,
+                arguments = listOf(makeStatus(code = "NetConnection.Connect.Success"))
+            )
+            assertTrue(reader.nextMessage(server) is RtmpSetChunkSizeMessage)
+            assertEquals(RtmpCommandName.releaseStream, reader.nextCommand(server).commandName)
+            assertEquals(RtmpCommandName.fcPublish, reader.nextCommand(server).commandName)
+            val createStream = reader.nextCommand(server)
+            sendCommand(
+                server = server,
+                transactionId = createStream.transactionId,
+                commandName = RtmpCommandName.result,
+                arguments = listOf(AsValue.Number(1.0))
+            )
+            assertEquals(RtmpCommandName.publish, reader.nextCommand(server).commandName)
+            sendCommand(
+                server = server,
+                transactionId = 0,
+                commandName = RtmpCommandName.onStatus,
+                arguments = listOf(
+                    makeStatus(
+                        code = "NetStream.Publish.BadName",
+                        description = "Bad stream key.",
+                        level = "error"
+                    )
+                )
+            )
+            server.closeClient()
+            assertEquals(
+                RtmpDisconnectReason.serverError("NetStream.Publish.BadName", "Bad stream key."),
+                modelMock.waitForDisconnected()
+            )
+        }
+    }
+
+    @Test
+    fun failedCallIsNotReportedAsDisconnectReason() {
+        runBlocking {
+            val modelMock = RtmpModelMock()
+            val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
+            val server = RtmpServerMock()
+            val rtmpStream = RtmpStream(name = "test", processor = processor, delegate = modelMock, queue = rtmpQueue)
+            val reader = ClientMessageReader()
+            rtmpStream.setUrl("rtmp://127.0.0.1:${server.getLocalPort()}/app/bad")
+            rtmpStream.connect()
+            receiveC0C1(server)
+            sendS0S1(server)
+            receiveC2(server)
+            sendS2(server)
+            assertEquals(RtmpCommandName.connect, reader.nextCommand(server).commandName)
+            sendCommand(
+                server = server,
+                transactionId = 1,
+                commandName = RtmpCommandName.result,
+                arguments = listOf(makeStatus(code = "NetConnection.Connect.Success"))
+            )
+            assertTrue(reader.nextMessage(server) is RtmpSetChunkSizeMessage)
+            val releaseStream = reader.nextCommand(server)
+            assertEquals(RtmpCommandName.releaseStream, releaseStream.commandName)
+            sendCommand(
+                server = server,
+                transactionId = releaseStream.transactionId,
+                commandName = RtmpCommandName.error,
+                arguments = listOf(
+                    makeStatus(
+                        code = "NetConnection.Call.Failed",
+                        description = "Method not found (releaseStream).",
+                        level = "error"
+                    )
+                )
+            )
+            assertEquals(RtmpCommandName.fcPublish, reader.nextCommand(server).commandName)
+            val createStream = reader.nextCommand(server)
+            sendCommand(
+                server = server,
+                transactionId = createStream.transactionId,
+                commandName = RtmpCommandName.result,
+                arguments = listOf(AsValue.Number(1.0))
+            )
+            assertEquals(RtmpCommandName.publish, reader.nextCommand(server).commandName)
+            server.closeClient()
+            assertEquals(RtmpDisconnectReason.streamRejected, modelMock.waitForDisconnected())
+        }
+    }
+
+    @Test
+    fun unreachableServerIsReportedWithoutWaitingForConnectTimeout() {
+        runBlocking {
+            for (url in listOf(
+                "rtmp://127.0.0.1:1/app/key",
+                "rtmp://moblin-no-such-host.invalid/app/key"
+            )) {
+                val modelMock = RtmpModelMock()
+                val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
+                val rtmpStream = RtmpStream(
+                    name = "test",
+                    processor = processor,
+                    delegate = modelMock,
+                    queue = rtmpQueue
+                )
+                rtmpStream.setUrl(url)
+                val start = ContinuousClock.now
+                rtmpStream.connect()
+                assertEquals(RtmpDisconnectReason.connectFailed, modelMock.waitForDisconnected())
+                assertTrue(start.duration(to = ContinuousClock.now) < 10.seconds)
+            }
+        }
+    }
 }
 
 private suspend fun receiveC0C1(server: RtmpServerMock): ByteArray {
@@ -674,7 +992,7 @@ private suspend fun sendSetPeerBandwidth(server: RtmpServerMock, chunkStreamId: 
         chunk = RtmpChunk(
             type = RtmpChunkType.zero,
             chunkStreamId = chunkStreamId,
-            message = RtmpSetPeerBandwidthMessage(size = size, limit = RtmpSetPeerBandwidthMessage.Limit.DYNAMIC)
+            message = RtmpSetPeerBandwidthMessage(size = size, limit = RtmpSetPeerBandwidthMessage.Limit.dynamic)
         )
     )
 }
@@ -728,6 +1046,145 @@ private fun readMessage(data: ByteArray): RtmpMessage? {
     val messages = readMessages(data)
     assertEquals(1, messages.size)
     return messages.firstOrNull()
+}
+
+private class ClientMessageReader {
+    private val reader = RtmpChunkReader()
+    private var buffer = ByteArray(0)
+    private var raw = ByteArray(0)
+    private val messages = mutableListOf<Pair<RtmpMessage, ByteArray>>()
+
+    suspend fun next(server: RtmpServerMock): Pair<RtmpMessage, ByteArray> {
+        while (messages.isEmpty()) {
+            val data = server.receive(count = 1)
+            raw += data
+            buffer += data
+            buffer = reader.read(data = buffer) { message ->
+                messages.add(Pair(message, raw))
+                raw = ByteArray(0)
+            }
+        }
+        val pair = messages.removeAt(0)
+        val message = pair.first
+        if (message is RtmpSetChunkSizeMessage) {
+            reader.maximumChunkSize = message.size.toInt()
+        }
+        return pair
+    }
+
+    suspend fun nextMessage(server: RtmpServerMock): RtmpMessage {
+        return next(server).first
+    }
+
+    suspend fun nextCommand(server: RtmpServerMock): RtmpCommandMessage {
+        return assertNotNull(nextMessage(server) as? RtmpCommandMessage)
+    }
+}
+
+private data class PublishingStream(
+    val modelMock: RtmpModelMock,
+    val processor: Processor,
+    val server: RtmpServerMock,
+    val rtmpStream: RtmpStream,
+    val reader: ClientMessageReader,
+)
+
+private fun makeStatus(code: String, description: String = "", level: String = "status"): AsValue {
+    return AsValue.Object(
+        mapOf(
+            "level" to AsValue.String(level),
+            "code" to AsValue.String(code),
+            "description" to AsValue.String(description)
+        )
+    )
+}
+
+private suspend fun sendCommand(
+    server: RtmpServerMock,
+    transactionId: Int,
+    commandName: RtmpCommandName,
+    arguments: List<AsValue>,
+    maximumSize: Int = 128,
+) {
+    server.send(
+        chunk = RtmpChunk(
+            type = RtmpChunkType.zero,
+            chunkStreamId = 3.toUShort(),
+            message = RtmpCommandMessage(
+                streamId = 0u,
+                transactionId = transactionId,
+                commandType = RtmpMessageType.amf0Command,
+                commandName = commandName,
+                commandObject = null,
+                arguments = arguments
+            )
+        ),
+        maximumSize = maximumSize
+    )
+}
+
+private suspend fun connectAndPublish(): PublishingStream {
+    val modelMock = RtmpModelMock()
+    val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
+    val server = RtmpServerMock()
+    val rtmpStream = RtmpStream(name = "test", processor = processor, delegate = modelMock, queue = rtmpQueue)
+    val reader = ClientMessageReader()
+    rtmpStream.setUrl("rtmp://127.0.0.1:${server.getLocalPort()}/live/5")
+    rtmpStream.connect()
+    receiveC0C1(server)
+    sendS0S1(server)
+    receiveC2(server)
+    sendS2(server)
+    assertEquals(RtmpCommandName.connect, reader.nextCommand(server).commandName)
+    sendWindowAcknowledgementSize(server, 2.toUShort(), 2_500_000u)
+    assertTrue(reader.nextMessage(server) is RtmpWindowAcknowledgementSizeMessage)
+    sendCommand(
+        server = server,
+        transactionId = 1,
+        commandName = RtmpCommandName.result,
+        arguments = listOf(makeStatus(code = "NetConnection.Connect.Success"))
+    )
+    assertTrue(reader.nextMessage(server) is RtmpSetChunkSizeMessage)
+    assertEquals(RtmpCommandName.releaseStream, reader.nextCommand(server).commandName)
+    assertEquals(RtmpCommandName.fcPublish, reader.nextCommand(server).commandName)
+    val createStream = reader.nextCommand(server)
+    assertEquals(RtmpCommandName.createStream, createStream.commandName)
+    sendCommand(
+        server = server,
+        transactionId = createStream.transactionId,
+        commandName = RtmpCommandName.result,
+        arguments = listOf(AsValue.Number(1.0))
+    )
+    val publish = reader.nextCommand(server)
+    assertEquals(RtmpCommandName.publish, publish.commandName)
+    assertEquals(1L, publish.streamId.toLong())
+    sendCommand(
+        server = server,
+        transactionId = 0,
+        commandName = RtmpCommandName.onStatus,
+        arguments = listOf(makeStatus(code = "NetStream.Publish.Start"))
+    )
+    modelMock.waitForConnected()
+    val setDataFrame = assertNotNull(reader.nextMessage(server) as? RtmpDataMessage)
+    assertEquals("@setDataFrame", setDataFrame.handlerName)
+    assertEquals(1L, setDataFrame.streamId.toLong())
+    return PublishingStream(
+        modelMock = modelMock,
+        processor = processor,
+        server = server,
+        rtmpStream = rtmpStream,
+        reader = reader,
+    )
+}
+
+private suspend fun expectUnpublish(stream: PublishingStream) {
+    assertEquals(RtmpCommandName.fcUnpublish, stream.reader.nextCommand(stream.server).commandName)
+    val deleteStream = stream.reader.nextCommand(stream.server)
+    assertEquals(RtmpCommandName.deleteStream, deleteStream.commandName)
+    assertEquals(listOf<AsValue>(AsValue.Number(1.0)), deleteStream.arguments)
+    val closeStream = stream.reader.nextCommand(stream.server)
+    assertEquals(RtmpCommandName.closeStream, closeStream.commandName)
+    assertEquals(listOf<AsValue>(AsValue.Number(1.0)), closeStream.arguments)
 }
 
 private fun UInt.toBigEndianBytes(): ByteArray = byteArrayOf(

@@ -1,5 +1,7 @@
 package com.moblin.android.media.haishinkit.flv
 
+val extendedVideoHeader: UByte = 0x80u
+
 enum class FlvAacPacketType(val rawValue: UByte) {
     seq(0u),
     raw(1u);

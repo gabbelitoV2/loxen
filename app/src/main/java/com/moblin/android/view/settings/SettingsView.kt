@@ -44,6 +44,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
@@ -177,14 +178,14 @@ private val watchSettingsJson = Json {
     ignoreUnknownKeys = true
 }
 
-private fun decodeWatchSettings(watch: JsonObject): WatchSettings {
+internal fun decodeWatchSettings(watch: JsonObject): WatchSettings {
     return runCatching {
         watchSettingsJson.decodeFromJsonElement(WatchSettings.Serializer, watch)
     }.getOrElse { WatchSettings() }
 }
 
 @Composable
-private fun AppleWatchSettingsDestination(model: Model = LocalModel.current, database: Database) {
+internal fun AppleWatchSettingsDestination(model: Model = LocalModel.current, database: Database) {
     var watch by remember { mutableStateOf(decodeWatchSettings(database.watch)) }
     WatchSettingsView(
         model = model,
@@ -195,6 +196,38 @@ private fun AppleWatchSettingsDestination(model: Model = LocalModel.current, dat
             model.sendInitToWatch()
         },
     )
+}
+
+@Composable
+private fun SettingsFormView(
+    model: Model = LocalModel.current,
+    database: Database,
+    searchText: MutableState<String>,
+    searchItems: List<SettingsSearchItem>,
+) {
+    val isLive by model.isLive.collectAsState()
+    val isSearching = searchText.value.isNotEmpty()
+    LaunchedEffect(isSearching) {
+        model.panelState.searching.value = isSearching
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            model.panelState.searching.value = false
+        }
+    }
+    Form(title = "Settings") {
+        Section {
+            SettingsSearchFieldView(text = searchText)
+        }
+        if (isLive) {
+            InfoBannerView(text = "Settings that would stop the stream are disabled when live.")
+        }
+        if (searchText.value.isNotEmpty()) {
+            SettingsSearchResultsView(items = searchItems, text = searchText.value)
+        } else {
+            SettingsContentView(database = database)
+        }
+    }
 }
 
 @Composable
@@ -213,16 +246,12 @@ fun SettingsView(
         }
     }
     NavigationStack {
-        Form(title = "Settings") {
-            Section {
-                SettingsSearchFieldView(text = searchText)
-            }
-            if (searchText.value.isNotEmpty()) {
-                SettingsSearchResultsView(items = searchItems, text = searchText.value)
-            } else {
-                SettingsContentView(database = database)
-            }
-        }
+        SettingsFormView(
+            model = model,
+            database = database,
+            searchText = searchText,
+            searchItems = searchItems,
+        )
     }
 }
 
@@ -231,11 +260,7 @@ private fun SettingsContentView(
     model: Model = LocalModel.current,
     database: Database,
 ) {
-    val isLive by model.isLive.collectAsState()
     val showAllSettings = binding({ database.showAllSettings }) { database.showAllSettings = it }
-    if (isLive) {
-        InfoBannerView(text = "Settings that would stop the stream are disabled when live.")
-    }
     Section {
         NavigationLink(destination = {
             StreamsSettingsView(

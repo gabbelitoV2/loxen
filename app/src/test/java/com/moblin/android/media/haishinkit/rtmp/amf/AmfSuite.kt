@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.rtmp.amf
 
-import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandName
+import com.moblin.android.media.haishinkit.rtmp.RtmpCommandName
 import java.time.Instant
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

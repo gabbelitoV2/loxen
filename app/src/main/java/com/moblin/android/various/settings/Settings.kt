@@ -1104,6 +1104,40 @@ enum class SettingsExternalDisplayContent(val rawValue: String) {
 }
 
 @Serializable
+enum class SettingsZoomAndSceneButtonsLayout(val rawValue: String) {
+    @SerialName("Stacked")
+    stacked("Stacked"),
+
+    @SerialName("One row")
+    oneRow("One row"),
+
+    @SerialName("Vertical zoom")
+    verticalZoom("Vertical zoom"),
+
+    @SerialName("Vertical scenes")
+    verticalScenes("Vertical scenes"),
+
+    @SerialName("Vertical")
+    vertical("Vertical");
+
+    override fun toString(): String {
+        return when (this) {
+            stacked -> localized("Stacked")
+            oneRow -> localized("One row")
+            verticalZoom -> localized("Vertical zoom")
+            verticalScenes -> localized("Vertical scenes")
+            vertical -> localized("Vertical")
+        }
+    }
+
+    companion object {
+        fun fromRawValue(value: String): SettingsZoomAndSceneButtonsLayout? {
+            return entries.firstOrNull { it.rawValue == value }
+        }
+    }
+}
+
+@Serializable
 enum class SettingsAppMode(val rawValue: String) {
     streaming("streaming"),
     chatPhone("chatPhone");
@@ -1718,7 +1752,8 @@ class Database(
     pinchScale: Float = 0.5f,
     var selfieStick: SettingsSelfieStick = SettingsSelfieStick(),
     bigButtons: Boolean = false,
-    verticalButtons: Boolean = false,
+    zoomAndSceneButtonsLayout: SettingsZoomAndSceneButtonsLayout =
+        SettingsZoomAndSceneButtonsLayout.stacked,
     bigAudioLevelMeter: Boolean = false,
     var ristServer: SettingsRistServer = SettingsRistServer(),
     var disconnectProtection: SettingsDisconnectProtection = SettingsDisconnectProtection(),
@@ -1774,7 +1809,7 @@ class Database(
     var whirlpoolAngle: Float by Published(whirlpoolAngle)
     var pinchScale: Float by Published(pinchScale)
     var bigButtons: Boolean by Published(bigButtons)
-    var verticalButtons: Boolean by Published(verticalButtons)
+    var zoomAndSceneButtonsLayout: SettingsZoomAndSceneButtonsLayout by Published(zoomAndSceneButtonsLayout)
     var bigAudioLevelMeter: Boolean by Published(bigAudioLevelMeter)
     var graphicsImplementation: SettingsGraphicsImplementation by Published(graphicsImplementation)
     var graphicsHighQualityDownsampling: Boolean by Published(graphicsHighQualityDownsampling)
@@ -1869,7 +1904,7 @@ class Database(
         encode("pinchScale", pinchScale)
         encode("selfieStick", selfieStick, SettingsSelfieStick.serializer())
         encode("bigButtons", bigButtons)
-        encode("verticalButtons", verticalButtons)
+        encode("zoomAndSceneButtonsLayout", zoomAndSceneButtonsLayout)
         encode("bigAudioLevelMeter", bigAudioLevelMeter)
         encode("ristServer", ristServer, SettingsRistServer.serializer())
         encode("disconnectProtection", disconnectProtection, SettingsDisconnectProtection.serializer())
@@ -2069,7 +2104,14 @@ class Database(
                 SettingsSelfieStick(),
             )
             database.bigButtons = container.decode("bigButtons", false)
-            database.verticalButtons = container.decode("verticalButtons", false)
+            database.zoomAndSceneButtonsLayout = container.decode(
+                "zoomAndSceneButtonsLayout",
+                if (container.decode("verticalButtons", false)) {
+                    SettingsZoomAndSceneButtonsLayout.vertical
+                } else {
+                    SettingsZoomAndSceneButtonsLayout.stacked
+                },
+            )
             database.bigAudioLevelMeter = container.decode("bigAudioLevelMeter", false)
             database.ristServer = container.decode("ristServer", SettingsRistServer.serializer(), SettingsRistServer())
             database.disconnectProtection = container.decode(

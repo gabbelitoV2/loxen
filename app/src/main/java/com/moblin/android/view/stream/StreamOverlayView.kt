@@ -262,20 +262,14 @@ fun StreamOverlayView(
                     BannersView(model = model, banners = model.banners)
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-                Box(modifier = Modifier.padding(end = 16.dp)) {
-                    RightOverlayBottomView(
-                        database = model.database,
-                        show = model.database.show,
-                        streamOverlay = model.streamOverlay,
-                        zoom = model.zoom,
-                        width = width
-                    )
-                }
+            Box(modifier = Modifier.padding(end = 16.dp)) {
+                RightOverlayBottomView(
+                    database = model.database,
+                    show = model.database.show,
+                    streamOverlay = model.streamOverlay,
+                    zoom = model.zoom,
+                    width = width
+                )
             }
             Row(
                 modifier = Modifier.fillMaxSize(),

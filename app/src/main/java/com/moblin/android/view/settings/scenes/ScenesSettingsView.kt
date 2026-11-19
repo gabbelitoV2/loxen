@@ -97,17 +97,21 @@ private fun SceneItemView(
                     SceneSettingsView(database = model.database, scene = scene)
                 },
                 label = {
-                    DraggableItemPrefixView()
                     Toggle(
-                        title = scene.name,
-                        isOn = binding(
-                            get = { scene.enabled },
-                            set = { value ->
-                                scene.enabled = value
-                                model.sceneEnabledChanged(scene = scene)
-                            },
-                        ),
-                    )
+                        isOn = scene.enabled,
+                        onChange = { value ->
+                            scene.enabled = value
+                            model.sceneEnabledChanged(scene = scene)
+                        },
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            DraggableItemPrefixView()
+                            Text(scene.name)
+                        }
+                    }
                 },
             )
         }

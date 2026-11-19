@@ -30,7 +30,7 @@ import com.moblin.android.view.settings.streams.stream.StreamWizardSettingsView
 import com.moblin.android.view.utils.ContextMenuDeleteButtonView
 import com.moblin.android.view.utils.ContextMenuDuplicateButtonView
 import com.moblin.android.view.utils.CreateButtonView
-import com.moblin.android.view.utils.DraggableItemPrefixView
+import com.moblin.android.view.utils.DraggableItemTextView
 import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateOrDeleteHelpView
@@ -88,16 +88,16 @@ private fun StreamItemView(
                     StreamSettingsView(database = database, stream = stream)
                 },
             ) {
-                DraggableItemPrefixView()
                 Toggle(
-                    title = stream.name,
                     isOn = stream.enabled,
-                    enabled = !(stream.enabled || isLive || isRecording),
                     onChange = { _ ->
                         model.setCurrentStream(stream)
                         model.reloadStreamIfEnabled(stream)
                     },
-                )
+                    enabled = !(stream.enabled || isLive || isRecording),
+                ) {
+                    DraggableItemTextView(name = stream.name)
+                }
             }
         }
     }

@@ -34,7 +34,7 @@ private val swiftTopLevelKeys = listOf(
     "externalDisplayContent", "cyclingPowerDevices", "cyclingPowerDevicesMigrated", "heartRateDevices",
     "phoneCoolerDevices", "remoteSceneId", "sceneNumericInput", "goPro", "replay", "portraitVideoOffsetFromTop",
     "autoSceneSwitchers", "fixedHorizon", "whirlpoolAngle", "pinchScale", "selfieStick", "bigButtons",
-    "verticalButtons", "bigAudioLevelMeter", "ristServer", "disconnectProtection", "rtspClient", "srtClient",
+    "zoomAndSceneButtonsLayout", "bigAudioLevelMeter", "ristServer", "disconnectProtection", "rtspClient", "srtClient",
     "whipServer", "whepClient", "navigation", "wiFiAware", "face", "beauty", "talkBack", "gimbal",
     "savedWifiNetworks", "streamDecks", "graphicsImplementation",
     "graphicsHighQualityDownsampling", "ingestsSoftwareVideoDecoding", "torchLevel", "appMode", "httpProxy",

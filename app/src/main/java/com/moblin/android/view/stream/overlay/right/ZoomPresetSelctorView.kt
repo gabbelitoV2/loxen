@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
@@ -50,7 +49,6 @@ private fun ZoomPresetView(
     CompositionLocalProvider(LocalContentColor provides Color.White) {
         Box(
             modifier = Modifier
-                .padding(bottom = 5.dp)
                 .width(minOf(segmentWidth() * presets.size, maxOf(width - 20.0, 1.0)).dp),
             contentAlignment = Alignment.Center,
         ) {
@@ -90,7 +88,6 @@ private fun ZoomPresetVView(
     CompositionLocalProvider(LocalContentColor provides Color.White) {
         Box(
             modifier = Modifier
-                .padding(bottom = 5.dp)
                 .width(segmentWidth().dp),
             contentAlignment = Alignment.Center,
         ) {

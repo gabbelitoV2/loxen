@@ -155,7 +155,6 @@ fun StreamOverlayRightSceneVSelectorView(
     CompositionLocalProvider(LocalContentColor provides Color.White) {
         Box(
             modifier = Modifier
-                .padding(bottom = 5.dp)
                 .width(sceneSegmentWidth.dp),
             contentAlignment = Alignment.Center,
         ) {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,12 +33,16 @@ import com.moblin.android.common.view.StreamOverlayIconAndTextView
 import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDeviceState
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.uikit.UIUserInterfaceIdiom
+import com.moblin.android.platform.uikit.UIDevice
+import com.moblin.android.platform.uikit.userInterfaceIdiom
 import com.moblin.android.various.BondingPercentage
 import com.moblin.android.various.model.Bitrate
 import com.moblin.android.various.model.Bonding
 import com.moblin.android.various.model.Ingests
 import com.moblin.android.various.model.Moblink
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.RecordingProvider
 import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.model.StreamOverlay
@@ -71,6 +76,7 @@ import com.moblin.android.various.settings.SettingsRtmpServer
 import com.moblin.android.various.settings.SettingsShow
 import com.moblin.android.various.settings.SettingsSrtlaServer
 import com.moblin.android.various.settings.SettingsStreamReplay
+import com.moblin.android.various.settings.SettingsZoomAndSceneButtonsLayout
 import com.moblin.android.view.stream.overlay.right.AudioLevelView
 import com.moblin.android.view.stream.overlay.right.CompactAudioBarView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightBeautyView
@@ -877,6 +883,7 @@ private fun RightOverlayBottomVerticalView(
     streamOverlay: StreamOverlay,
     zoom: Zoom,
     width: Float,
+    verticalZoom: Boolean,
 ) {
     val showMediaPlayerControls by streamOverlay.showMediaPlayerControls.collectAsState()
     val showingPixellate by streamOverlay.showingPixellate.collectAsState()
@@ -886,78 +893,11 @@ private fun RightOverlayBottomVerticalView(
     val isTorchOn by streamOverlay.isTorchOn.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
     val hasZoom by zoom.hasZoom.collectAsState()
-    Row(
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Spacer(modifier = Modifier.weight(1f))
-        if (showMediaPlayerControls) {
-            StreamOverlayRightMediaPlayerControlsView(model = model, mediaPlayer = model.mediaPlayerPlayer)
-        } else {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                StreamOverlayRightFaceView(model = model, face = database.face)
-                if (showingPixellate) {
-                    StreamOverlayRightPixellateView(model = model, database = database)
-                }
-                if (showingWhirlpool) {
-                    StreamOverlayRightWhirlpoolView(model = model, database = database)
-                }
-                if (showingPinch) {
-                    StreamOverlayRightPinchView(model = model, database = database)
-                }
-                if (showingCamera) {
-                    StreamOverlayRightCameraSettingsControlView(
-                        model = model,
-                        camera = model.camera,
-                        show = model.camera.show,
-                    )
-                }
-                if (isTorchOn && !isFrontCameraSelected) {
-                    StreamOverlayRightTorchView(model = model, database = database)
-                }
-                if (show.zoomSlider && hasZoom) {
-                    StreamOverlayRightZoomSliderView(model = model)
-                }
-            }
-            if (show.zoomPresets && hasZoom) {
-                StreamOverlayRightZoomPresetVSelctorView(
-                    model = model,
-                    zoom = zoom,
-                    width = width,
-                )
-            }
-        }
-        StreamOverlayRightSceneVSelectorView(
-            database = database,
-            sceneSelector = model.sceneSelector,
-            width = width,
-        )
-    }
-}
 
-@Composable
-private fun RightOverlayBottomHorizontalView(
-    model: Model = LocalModel.current,
-    database: Database,
-    show: SettingsShow,
-    streamOverlay: StreamOverlay,
-    zoom: Zoom,
-    width: Float,
-) {
-    val showMediaPlayerControls by streamOverlay.showMediaPlayerControls.collectAsState()
-    val showingPixellate by streamOverlay.showingPixellate.collectAsState()
-    val showingWhirlpool by streamOverlay.showingWhirlpool.collectAsState()
-    val showingPinch by streamOverlay.showingPinch.collectAsState()
-    val showingCamera by streamOverlay.showingCamera.collectAsState()
-    val isTorchOn by streamOverlay.isTorchOn.collectAsState()
-    val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
-    val hasZoom by zoom.hasZoom.collectAsState()
-    if (showMediaPlayerControls) {
-        StreamOverlayRightMediaPlayerControlsView(model = model, mediaPlayer = model.mediaPlayerPlayer)
-    } else {
+    fun showZoomPresets(): Boolean = show.zoomPresets && hasZoom
+
+    @Composable
+    fun controls() {
         StreamOverlayRightFaceView(model = model, face = database.face)
         if (showingPixellate) {
             StreamOverlayRightPixellateView(model = model, database = database)
@@ -981,19 +921,181 @@ private fun RightOverlayBottomHorizontalView(
         if (show.zoomSlider && hasZoom) {
             StreamOverlayRightZoomSliderView(model = model)
         }
-        if (show.zoomPresets && hasZoom) {
-            StreamOverlayRightZoomPresetSelctorView(
-                model = model,
-                zoom = zoom,
-                width = width,
-            )
+    }
+
+    @Composable
+    fun scenes() {
+        StreamOverlayRightSceneVSelectorView(
+            database = database,
+            sceneSelector = model.sceneSelector,
+            width = width,
+        )
+    }
+
+    Row(
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Spacer(modifier = Modifier.weight(1f))
+        if (showMediaPlayerControls) {
+            StreamOverlayRightMediaPlayerControlsView(model = model, mediaPlayer = model.mediaPlayerPlayer)
+            scenes()
+        } else if (!verticalZoom && showZoomPresets()) {
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(end = 16.dp),
+                ) {
+                    controls()
+                    StreamOverlayRightZoomPresetSelctorView(
+                        model = model,
+                        zoom = zoom,
+                        width = width,
+                    )
+                }
+                scenes()
+            }
+        } else {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                controls()
+            }
+            if (verticalZoom && showZoomPresets()) {
+                StreamOverlayRightZoomPresetVSelctorView(
+                    model = model,
+                    zoom = zoom,
+                    width = width,
+                )
+            }
+            scenes()
         }
     }
-    StreamOverlayRightSceneSelectorView(
-        database = database,
-        sceneSelector = model.sceneSelector,
-        width = width,
-    )
+}
+
+@Composable
+private fun RightOverlayBottomHorizontalView(
+    model: Model = LocalModel.current,
+    database: Database,
+    show: SettingsShow,
+    streamOverlay: StreamOverlay,
+    zoom: Zoom,
+    width: Float,
+    zoomAndScenesOnOneRow: Boolean,
+    verticalZoom: Boolean,
+) {
+    val showMediaPlayerControls by streamOverlay.showMediaPlayerControls.collectAsState()
+    val showingPixellate by streamOverlay.showingPixellate.collectAsState()
+    val showingWhirlpool by streamOverlay.showingWhirlpool.collectAsState()
+    val showingPinch by streamOverlay.showingPinch.collectAsState()
+    val showingCamera by streamOverlay.showingCamera.collectAsState()
+    val isTorchOn by streamOverlay.isTorchOn.collectAsState()
+    val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
+    val hasZoom by zoom.hasZoom.collectAsState()
+
+    fun showZoomPresets(): Boolean = show.zoomPresets && hasZoom
+
+    @Composable
+    fun controls() {
+        StreamOverlayRightFaceView(model = model, face = database.face)
+        if (showingPixellate) {
+            StreamOverlayRightPixellateView(model = model, database = database)
+        }
+        if (showingWhirlpool) {
+            StreamOverlayRightWhirlpoolView(model = model, database = database)
+        }
+        if (showingPinch) {
+            StreamOverlayRightPinchView(model = model, database = database)
+        }
+        if (showingCamera) {
+            StreamOverlayRightCameraSettingsControlView(
+                model = model,
+                camera = model.camera,
+                show = model.camera.show,
+            )
+        }
+        if (isTorchOn && !isFrontCameraSelected) {
+            StreamOverlayRightTorchView(model = model, database = database)
+        }
+        if (show.zoomSlider && hasZoom) {
+            StreamOverlayRightZoomSliderView(model = model)
+        }
+    }
+
+    if (showMediaPlayerControls) {
+        StreamOverlayRightMediaPlayerControlsView(model = model, mediaPlayer = model.mediaPlayerPlayer)
+    } else if (verticalZoom && showZoomPresets()) {
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                controls()
+            }
+            Box(modifier = Modifier.padding(bottom = 16.dp)) {
+                StreamOverlayRightZoomPresetVSelctorView(
+                    model = model,
+                    zoom = zoom,
+                    width = width,
+                )
+            }
+        }
+    } else {
+        controls()
+        if (!zoomAndScenesOnOneRow && showZoomPresets()) {
+            Box(modifier = Modifier.padding(bottom = 5.dp)) {
+                StreamOverlayRightZoomPresetSelctorView(
+                    model = model,
+                    zoom = zoom,
+                    width = width,
+                )
+            }
+        }
+    }
+    if (zoomAndScenesOnOneRow) {
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (!showMediaPlayerControls && showZoomPresets()) {
+                Box(
+                    modifier = Modifier.padding(
+                        start = if (UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad) {
+                            15.dp
+                        } else {
+                            0.dp
+                        },
+                    ),
+                ) {
+                    StreamOverlayRightZoomPresetSelctorView(
+                        model = model,
+                        zoom = zoom,
+                        width = width / 2,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            StreamOverlayRightSceneSelectorView(
+                database = database,
+                sceneSelector = model.sceneSelector,
+                width = width / 2,
+            )
+        }
+    } else {
+        StreamOverlayRightSceneSelectorView(
+            database = database,
+            sceneSelector = model.sceneSelector,
+            width = width,
+        )
+    }
 }
 
 @Composable
@@ -1003,6 +1105,7 @@ fun RightOverlayBottomView(
     show: SettingsShow,
     streamOverlay: StreamOverlay,
     zoom: Zoom,
+    orientation: Orientation = model.orientation,
     width: Float,
 ) {
     val showDrawOnStream by model.showDrawOnStream.collectAsState()
@@ -1010,9 +1113,31 @@ fun RightOverlayBottomView(
     val showingBeauty by streamOverlay.showingBeauty.collectAsState()
     val showingVideoPreview by streamOverlay.showingVideoPreview.collectAsState()
     val hasZoom by zoom.hasZoom.collectAsState()
+    val isPortrait by orientation.isPortrait.collectAsState()
+
+    fun layout(): SettingsZoomAndSceneButtonsLayout =
+        if (isPortrait) {
+            SettingsZoomAndSceneButtonsLayout.stacked
+        } else {
+            database.zoomAndSceneButtonsLayout
+        }
+
+    fun verticalScenes(): Boolean = listOf(
+        SettingsZoomAndSceneButtonsLayout.verticalScenes,
+        SettingsZoomAndSceneButtonsLayout.vertical,
+    ).contains(layout())
+
+    fun verticalZoom(): Boolean = listOf(
+        SettingsZoomAndSceneButtonsLayout.verticalZoom,
+        SettingsZoomAndSceneButtonsLayout.vertical,
+    ).contains(layout())
+
+    fun zoomAndScenesOnOneRow(): Boolean = layout() == SettingsZoomAndSceneButtonsLayout.oneRow
+
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(1.dp),
+        modifier = Modifier.fillMaxSize(),
     ) {
         Spacer(modifier = Modifier.weight(1f))
         if (!showDrawOnStream && database.appMode == SettingsAppMode.streaming) {
@@ -1029,11 +1154,13 @@ fun RightOverlayBottomView(
                     StreamOverlayRightZoomSliderView(model = model)
                 }
                 if (show.zoomPresets && hasZoom) {
-                    StreamOverlayRightZoomPresetSelctorView(
-                        model = model,
-                        zoom = zoom,
-                        width = width,
-                    )
+                    Box(modifier = Modifier.padding(bottom = 5.dp)) {
+                        StreamOverlayRightZoomPresetSelctorView(
+                            model = model,
+                            zoom = zoom,
+                            width = width,
+                        )
+                    }
                 }
                 Box(modifier = Modifier.padding(bottom = 5.dp)) {
                     StreamOverlayRightSceneSelectorView(
@@ -1048,7 +1175,7 @@ fun RightOverlayBottomView(
                     videoPreview = model.videoPreview,
                 )
             } else {
-                if (database.verticalButtons) {
+                if (verticalScenes()) {
                     RightOverlayBottomVerticalView(
                         model = model,
                         database = database,
@@ -1056,6 +1183,7 @@ fun RightOverlayBottomView(
                         streamOverlay = streamOverlay,
                         zoom = zoom,
                         width = width,
+                        verticalZoom = verticalZoom(),
                     )
                 } else {
                     RightOverlayBottomHorizontalView(
@@ -1065,6 +1193,8 @@ fun RightOverlayBottomView(
                         streamOverlay = streamOverlay,
                         zoom = zoom,
                         width = width,
+                        zoomAndScenesOnOneRow = zoomAndScenesOnOneRow(),
+                        verticalZoom = verticalZoom(),
                     )
                 }
             }

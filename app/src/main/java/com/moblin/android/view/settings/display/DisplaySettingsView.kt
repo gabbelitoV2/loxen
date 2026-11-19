@@ -53,7 +53,8 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsExternalDisplayContent
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.utils.isMac
-import com.moblin.android.view.settings.display.localoverlays.LocalOverlaysSettingsView
+import com.moblin.android.view.settings.display.localoverlays.LocalOverlaysStatusSettingsView
+import com.moblin.android.view.settings.display.localoverlays.LocalOverlaysZoomAndSceneControlsSettingsView
 import com.moblin.android.view.settings.display.networkinterfacenames.LocalOverlaysNetworkInterfaceNamesSettingsView
 import com.moblin.android.view.settings.display.quickbuttons.QuickButtonsSettingsView
 import com.moblin.android.view.settings.display.streambutton.StreamButtonsSettingsView
@@ -238,9 +239,6 @@ fun DisplaySettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings = database.showAllSettings
-    val bigButtons = binding({ database.bigButtons }) { database.bigButtons = it }
-    val bigAudioLevelMeter = binding({ database.bigAudioLevelMeter }) { database.bigAudioLevelMeter = it }
-    val verticalButtons = binding({ database.verticalButtons }) { database.verticalButtons = it }
     val lowBitrateWarning = binding({ database.lowBitrateWarning }) { database.lowBitrateWarning = it }
     val startStopRecordingConfirmations = binding({ database.startStopRecordingConfirmations }) {
         database.startStopRecordingConfirmations = it
@@ -270,14 +268,19 @@ fun DisplaySettingsView(
                 BackgroundImageSettingsView(model = model, quickButtons = model.database.quickButtonsGeneral)
             }
         }
+        Section(
+            header = "Local overlays",
+            footer = "Local overlays do not appear on stream.",
+        ) {
+            NavigationLink("Status") {
+                LocalOverlaysStatusSettingsView(database = database, show = database.show)
+            }
+            NavigationLink("Zoom and scene controls") {
+                LocalOverlaysZoomAndSceneControlsSettingsView(database = database, show = database.show)
+            }
+        }
         Section(header = "General") {
-            Toggle("Big buttons", isOn = bigButtons)
-            Toggle("Big audio level meter", isOn = bigAudioLevelMeter)
-            Toggle("Vertical buttons", isOn = verticalButtons)
             if (showAllSettings) {
-                NavigationLink("Local overlays") {
-                    LocalOverlaysSettingsView(show = database.show)
-                }
                 ExternalDisplayContentView(model = model, database = database)
                 NavigationLink("Network interface names") {
                     LocalOverlaysNetworkInterfaceNamesSettingsView(model = model, database = database)

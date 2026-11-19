@@ -1,5 +1,6 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.media.haishinkit.rtmp.RtmpDisconnectReason
 import android.bluetooth.BluetoothAdapter
 import android.graphics.Bitmap
 import android.hardware.SensorManager
@@ -483,6 +484,10 @@ class Snapshot {
     val currentJob = MutableStateFlow<SnapshotJob?>(null)
 }
 
+class PanelState {
+    val searching = MutableStateFlow(false)
+}
+
 class Orientation {
     val isPortrait = MutableStateFlow(false)
 }
@@ -607,6 +612,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val sceneEditor = SceneEditor()
     val sceneSelector = SceneSelector()
     val toast = Toast()
+    val panelState = PanelState()
     val statusOther = StatusOther()
     val statusTopLeft = StatusTopLeft()
     val systemMonitor = SystemMonitor()
@@ -1226,8 +1232,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             override fun mediaOnRtmpConnected() {
                 this@Model.mediaOnRtmpConnected()
             }
-            override fun mediaOnRtmpDisconnected(message: String) {
-                this@Model.mediaOnRtmpDisconnected(message)
+            override fun mediaOnRtmpDisconnected(reason: RtmpDisconnectReason) {
+                this@Model.mediaOnRtmpDisconnected(reason)
             }
             override fun mediaOnRtmpDestinationConnected(destination: String) {
                 this@Model.mediaOnRtmpDestinationConnected(destination)

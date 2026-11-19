@@ -37,7 +37,7 @@ import com.moblin.android.media.haishinkit.media.video.VideoUnitAttachParams
 import com.moblin.android.platform.network.NWEndpoint
 import com.moblin.android.media.haishinkit.rist.RistStream
 import com.moblin.android.media.haishinkit.rist.RistStreamDelegate
-import com.moblin.android.media.haishinkit.rtmp.RtmpConnectionCode
+import com.moblin.android.media.haishinkit.rtmp.RtmpDisconnectReason
 import com.moblin.android.media.haishinkit.rtmp.RtmpStream
 import com.moblin.android.media.haishinkit.rtmp.RtmpStreamDelegate
 import com.moblin.android.media.haishinkit.srt.SrtPerformanceData
@@ -85,7 +85,7 @@ interface MediaDelegate {
     fun mediaOnSrtConnected()
     fun mediaOnSrtDisconnected(reason: String)
     fun mediaOnRtmpConnected()
-    fun mediaOnRtmpDisconnected(message: String)
+    fun mediaOnRtmpDisconnected(reason: RtmpDisconnectReason)
     fun mediaOnRtmpDestinationConnected(destination: String)
     fun mediaOnRtmpDestinationDisconnected(destination: String)
     fun mediaOnRistConnected()
@@ -1323,19 +1323,13 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         srtlaError(localized("SRT disconnected"))
     }
 
-    override fun rtmpStreamStatus(rtmpStream: RtmpStream, code: String) {
+    override fun rtmpStreamDisconnected(rtmpStream: RtmpStream, reason: RtmpDisconnectReason) {
         mainScope.launch {
-            when (RtmpConnectionCode.fromRawValue(code)) {
-                RtmpConnectionCode.connectFailed, RtmpConnectionCode.connectClosed -> {
-                    if (rtmpStream === this@Media.rtmpStream) {
-                        this@Media.delegate.mediaOnRtmpDisconnected("$code")
-                    } else {
-                        this@Media.delegate.mediaOnRtmpDestinationDisconnected(rtmpStream.name)
-                        rtmpStream.reconnectSoon()
-                    }
-                }
-                else -> {
-                }
+            if (rtmpStream === this@Media.rtmpStream) {
+                this@Media.delegate.mediaOnRtmpDisconnected(reason)
+            } else {
+                this@Media.delegate.mediaOnRtmpDestinationDisconnected(rtmpStream.name)
+                rtmpStream.reconnectSoon()
             }
         }
     }
