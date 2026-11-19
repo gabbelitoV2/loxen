@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-11-18T02:13:37+00:00
+Generated 2026-11-19T02:00:49+00:00
 
 ## Summary
 
@@ -9,8 +9,8 @@ Generated 2026-11-18T02:13:37+00:00
 | logic | 152 | 0 | 2 | 1 | 0 |
 | platform | 56 | 0 | 1 | 0 | 0 |
 | test | 79 | 0 | 2 | 6 | 0 |
-| media | 151 | 0 | 5 | 0 | 0 |
-| ui | 372 | 1 | 2 | 0 | 0 |
+| media | 150 | 0 | 6 | 0 | 0 |
+| ui | 364 | 1 | 9 | 2 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -685,7 +685,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/View/Settings/Scenes/Widgets/Widget/Effects/RemoveBackgroundEffectView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/effects/RemoveBackgroundEffectView.kt | deepseek-flash | 5.1 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/Effects/ShapeEffectView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/effects/ShapeEffectView.kt | deepseek-flash | 8.9 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectWizardSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/effects/WidgetEffectWizardSettingsView.kt | deepseek-flash | 15.1 |
-| Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/effects/WidgetEffectsView.kt | deepseek-flash | 78.7 |
+| Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/effects/WidgetEffectsView.kt | deepseek-flash | 21.5 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/Image/WidgetImageSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/image/WidgetImageSettingsView.kt | deepseek-flash | 11.2 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/Map/WidgetMapSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/map/WidgetMapSettingsView.kt | deepseek-flash | 19.2 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/PngTuber/WidgetPngTuberSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/pngtuber/WidgetPngTuberSettingsView.kt | deepseek-flash | 12.8 |

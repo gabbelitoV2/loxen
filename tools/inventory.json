@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-18T01:54:18+00:00",
+  "generated": "2026-11-19T01:32:24+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -9713,6 +9713,28 @@
         "Moblin/Various/Utils/Utils.swift",
         "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift",
         "Moblin/View/Utils/CreateButtonView.swift"
+      ],
+      "wave": 12
+    },
+    {
+      "path": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysZoomAndSceneControlsSettingsView.swift",
+      "lines": 33,
+      "sha256": "59bdd48bd7ee6e38edd74c24d5b141df1bec0c19b1b374302ba8769150108b9b",
+      "imports": [
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "LocalOverlaysZoomAndSceneControlsSettingsView"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.view.settings.display.localoverlays",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysZoomAndSceneControlsSettingsView.kt",
+      "deps": [
+        "Moblin/Various/Model/ModelZoom.swift",
+        "Moblin/Various/Settings/Settings.swift"
       ],
       "wave": 12
     },
@@ -19824,8 +19846,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/SceneSelectorView.swift",
-      "lines": 125,
-      "sha256": "099df67333f7afdb7c087e2cbbea09d67e6126579eff77b4537850308af2de40",
+      "lines": 124,
+      "sha256": "0009bfd6ca5b5572cc759923ce6062fe4d44471503ccd1b51df56408980f0b69",
       "imports": [
         "SwiftUI"
       ],
@@ -19853,8 +19875,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/Right/ZoomPresetSelctorView.swift",
-      "lines": 161,
-      "sha256": "3e509ee3ae9d9fe1919f09df2d78e06beab830c4183eb6a6e8876d5ad184d2f1",
+      "lines": 159,
+      "sha256": "4bda0bb3847364dd2920cd6d47122fe9d24edd6f2ab0a2b7987c352e4125b6a7",
       "imports": [
         "SwiftUI"
       ],
@@ -20980,8 +21002,8 @@
     },
     {
       "path": "Moblin/Various/Settings/Settings.swift",
-      "lines": 2524,
-      "sha256": "a454616b08c7290a5cb0d43c917ad60a9c96db9ade9a77e55854f36d3e1d740f",
+      "lines": 2552,
+      "sha256": "42db146323cb2662919bc3a398ded8d71b76820a8bb81866d621329b5bd01891",
       "imports": [
         "AVFoundation",
         "SwiftUI",
@@ -21015,6 +21037,7 @@
         "SettingsBlackSharkCoolerDevices",
         "SettingsNetworkInterfaceName",
         "SettingsExternalDisplayContent",
+        "SettingsZoomAndSceneButtonsLayout",
         "SettingsAppMode",
         "WebBrowserBookmarkSettings",
         "WebBrowserSettings",
@@ -21376,21 +21399,21 @@
       "wave": 38
     },
     {
-      "path": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift",
-      "lines": 155,
-      "sha256": "547aea663b6b56b3d425ab5ea6a4d3b6b7fed9bb521e9bdf0355be8d3efa0ec1",
+      "path": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysStatusSettingsView.swift",
+      "lines": 148,
+      "sha256": "dad4b0d1117f52814992c7e07bcdacecb757bf7d22fe27816c087da8009826f5",
       "imports": [
         "SwiftUI"
       ],
       "tier": "ui",
       "declared_types": [
-        "LocalOverlaysSettingsView"
+        "LocalOverlaysStatusSettingsView"
       ],
       "private_types": [],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.view.settings.display.localoverlays",
-      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysSettingsView.kt",
+      "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysStatusSettingsView.kt",
       "deps": [
         "Moblin/Media/HaishinKit/Media/Processor.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
@@ -22040,8 +22063,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
-      "lines": 854,
-      "sha256": "cccd267ab88b70c5c8b1d867c9919f5d069fc5cde49ea23d2c94487a58808dce",
+      "lines": 945,
+      "sha256": "55cf83a65cc61b6ee7bc1effab15e9b319a5746e11e375a47d082d7ca90fe835",
       "imports": [
         "Charts",
         "SwiftUI"
@@ -22148,8 +22171,8 @@
     },
     {
       "path": "Moblin/View/Stream/StreamOverlayView.swift",
-      "lines": 217,
-      "sha256": "6dcf5bc74c3df4c2cdace40b1d0991490c9efc787cf271a995e5cf5b06cc95b6",
+      "lines": 215,
+      "sha256": "d3a056ad0ad44ff6e04573a69201af1644a25d6bbc10fe1cf81ca42493728927",
       "imports": [
         "SwiftUI"
       ],
@@ -22954,8 +22977,8 @@
     },
     {
       "path": "Moblin/View/Settings/Display/DisplaySettingsView.swift",
-      "lines": 272,
-      "sha256": "46a4c9c34dc273cd68e50a4c0a505aa4db7b85f120fd364a563afcc5083f5300",
+      "lines": 280,
+      "sha256": "b6dc3e5e8fe82dbe22bdd115a20d8129053bec9f0bd7639207025e43a5f7b4c6",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -22982,11 +23005,13 @@
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelStream.swift",
+        "Moblin/Various/Model/ModelZoom.swift",
         "Moblin/Various/Settings/Settings.swift",
         "Moblin/Various/Settings/SettingsQuickButtons.swift",
         "Moblin/Various/Storages/RecordingsStorage.swift",
         "Moblin/Various/Utils/UiUtils.swift",
-        "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift",
+        "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysStatusSettingsView.swift",
+        "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysZoomAndSceneControlsSettingsView.swift",
         "Moblin/View/Settings/Display/NetworkInterfaceNames/LocalOverlaysNetworkInterfaceNamesSettingsView.swift",
         "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift",
         "Moblin/View/Settings/Display/StreamButton/StreamButtonsSettingsView.swift",
@@ -23330,8 +23355,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift",
-      "lines": 121,
-      "sha256": "aba4da5fc3fbac030bfc15e51afcef076f3d8d0fb9d3af91b4c70ac0547cc91b",
+      "lines": 123,
+      "sha256": "340fd9fd44ec456f2317d5346b29036ec3d48b44c0565508406847e9bdef5954",
       "imports": [
         "SwiftUI"
       ],
@@ -23691,8 +23716,8 @@
     },
     {
       "path": "Moblin/View/Settings/Streams/StreamsSettingsView.swift",
-      "lines": 92,
-      "sha256": "ded75e629bbb1077dafe27e8489c986d2ce4ca13dcf61e5805ca84e590df2bc1",
+      "lines": 94,
+      "sha256": "62bf12256454ed40c1d129d27326b1eb981d6e02a0961c60784893501a06121e",
       "imports": [
         "SwiftUI"
       ],
@@ -24892,8 +24917,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
-      "lines": 247,
-      "sha256": "92a6a178fc222e2611fe31425d1bce1c6615939ff312f794937c7c44658b24a2",
+      "lines": 249,
+      "sha256": "61000995be57f03ad90f646e2463d670609eafcff46e83bafebc4b91d58309ca",
       "imports": [
         "SwiftUI"
       ],
@@ -25039,8 +25064,8 @@
     },
     {
       "path": "Moblin/View/Settings/SettingsSearchView.swift",
-      "lines": 681,
-      "sha256": "fc610cab2ab9bde59bd467f6a1c46be977da3caf24aa7eec9bb3fd17eb1f4a3a",
+      "lines": 688,
+      "sha256": "1802d3a270af3a7bd1f8fd48d386999cd67acddb0e1b71844fbfa0d6d3fa738f",
       "imports": [
         "SwiftUI"
       ],
@@ -25103,7 +25128,8 @@
         "Moblin/View/Settings/Debug/DebugSettingsView.swift",
         "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorSettingsView.swift",
         "Moblin/View/Settings/Display/DisplaySettingsView.swift",
-        "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift",
+        "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysStatusSettingsView.swift",
+        "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysZoomAndSceneControlsSettingsView.swift",
         "Moblin/View/Settings/Display/NetworkInterfaceNames/LocalOverlaysNetworkInterfaceNamesSettingsView.swift",
         "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift",
         "Moblin/View/Settings/Display/StreamButton/StreamButtonsSettingsView.swift",

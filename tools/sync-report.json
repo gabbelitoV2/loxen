@@ -1,5 +1,5 @@
 {
-  "upstream": "6c49d2615011a0410dffb79cd133bd46393b521c",
+  "upstream": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
   "sync_error": null,
   "build": [],
   "pbswift": null,
@@ -224,6 +224,14 @@
       "hooks": []
     },
     {
+      "swift": "Moblin/Various/Settings/Settings.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
+      "reason": "dependency",
+      "ported_from": "e8bd765e4ae24aa9ae185be826cad79dc6b05fb9",
+      "errors": [],
+      "hooks": []
+    },
+    {
       "swift": "Moblin/View/MainView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/MainView.kt",
       "reason": "compile",
@@ -237,27 +245,132 @@
         "330: Cannot infer type for this parameter. Specify it explicitly.",
         "332: Unresolved reference 'not' for operator '!'.",
         "346: Unresolved reference 'not' for operator '!'.",
-        "1187: Unresolved reference 'panelState'."
+        "1190: Unresolved reference 'panelState'."
       ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Display/DisplaySettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/display/DisplaySettingsView.kt",
+      "reason": "dependency",
+      "ported_from": "2590dfe5d86a51c1b2e7ff31c52adce4e0fbd4c2",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysSettingsView.kt",
+      "reason": "removed upstream, but the Kotlin is still needed",
+      "ported_from": "1f0fe6374d291c65db556df9029a150d8d993694",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysStatusSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysStatusSettingsView.kt",
+      "reason": "dependency",
+      "ported_from": null,
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysZoomAndSceneControlsSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysZoomAndSceneControlsSettingsView.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "10: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "19: Cannot infer type for this parameter. Specify it explicitly.",
+        "21: Unresolved reference 'zoomAndSceneButtonsLayout'.",
+        "22: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "23: Cannot infer type for this parameter. Specify it explicitly.",
+        "24: Cannot infer type for this parameter. Specify it explicitly.",
+        "25: Unresolved reference 'zoomAndSceneButtonsLayout'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Settings/Scenes/ScenesSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/scenes/ScenesSettingsView.kt",
+      "reason": "dependency",
+      "ported_from": "6ad3761a777898a67c1aa71d746b5baaf52cdfab",
+      "errors": [],
       "hooks": []
     },
     {
       "swift": "Moblin/View/Settings/SettingsView.swift",
       "kotlin": "app/src/main/java/com/moblin/android/view/settings/SettingsView.kt",
-      "reason": "compile",
+      "reason": "hook",
       "ported_from": "ce903a1b1c796d4bacf47c64d6862d194db44f2d",
+      "errors": [],
+      "hooks": [
+        "HLOXEN.50 (LOXEN.json) view/settings/SettingsView.kt [fun SettingsView]: neither the old nor the new line was found",
+        "HLOXEN.51 (LOXEN.json) view/settings/SettingsView.kt [fun SettingsView]: neither the old nor the new line was found"
+      ]
+    },
+    {
+      "swift": "Moblin/View/Settings/Streams/StreamsSettingsView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/settings/streams/StreamsSettingsView.kt",
+      "reason": "dependency",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Stream/Overlay/Right/SceneSelectorView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/stream/overlay/right/SceneSelectorView.kt",
+      "reason": "fallback",
+      "ported_from": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Stream/Overlay/Right/ZoomPresetSelctorView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/stream/overlay/right/ZoomPresetSelctorView.kt",
+      "reason": "fallback",
+      "ported_from": "4a741f572d6a1f8ce8772a5fe71f035cc97a1bff",
+      "errors": [],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt",
+      "reason": "compile",
+      "ported_from": "ed0c4bd672433448859cd362023824b14d3b9ce5",
       "errors": [
-        "200: Unresolved reference 'panelState'.",
-        "204: Unresolved reference 'panelState'."
+        "79: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "1151: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "1153: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "1155: Unresolved reference 'zoomAndSceneButtonsLayout'.",
+        "1159: Cannot infer type for this parameter. Specify it explicitly.",
+        "1160: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "1161: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "1165: Cannot infer type for this parameter. Specify it explicitly.",
+        "1166: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "1167: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'.",
+        "1170: Unresolved reference 'SettingsZoomAndSceneButtonsLayout'."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/View/Stream/StreamOverlayView.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/view/stream/StreamOverlayView.kt",
+      "reason": "fallback",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
+      "errors": [
+        "271: No parameter with name 'orientation' found."
       ],
       "hooks": []
     },
     {
       "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpChunkSuite.swift",
       "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpChunkSuite.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": null,
-      "errors": [],
+      "errors": [
+        "56: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "176: Argument type mismatch: actual type is 'Int', but 'UInt' was expected."
+      ],
       "hooks": []
     },
     {
@@ -266,11 +379,11 @@
       "reason": "compile",
       "ported_from": null,
       "errors": [
-        "54: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
-        "71: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
-        "86: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
-        "91: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
-        "97: Argument type mismatch: actual type is 'String', but 'URI' was expected."
+        "53: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "69: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "83: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "88: Argument type mismatch: actual type is 'String', but 'URI' was expected.",
+        "94: Argument type mismatch: actual type is 'String', but 'URI' was expected."
       ],
       "hooks": []
     },
@@ -279,28 +392,7 @@
       "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpMediaSuite.kt",
       "reason": "fallback",
       "ported_from": null,
-      "errors": [
-        "75: Unresolved reference 'RtmpTimestamps'.",
-        "76: Cannot infer type for this parameter. Specify it explicitly.",
-        "76: Not enough information to infer type argument for 'R'.",
-        "77: Not enough information to infer type argument for 'K'.",
-        "82: Cannot infer type for this parameter. Specify it explicitly.",
-        "82: Not enough information to infer type argument for 'T'.",
-        "82: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
-        "90: Unresolved reference 'makeRtmpAudioSequenceHeader'.",
-        "90: Unresolved reference 'makeAacFormat'.",
-        "100: Unresolved reference 'makeRtmpAudioSequenceHeader'.",
-        "100: Unresolved reference 'makeOpusFormat'.",
-        "108: Unresolved reference 'makeRtmpAudioFrame'.",
-        "108: Unresolved reference 'makeAudioBuffer'.",
-        "108: Unresolved reference 'makeAacFormat'.",
-        "118: Unresolved reference 'makeRtmpAudioFrame'.",
-        "118: Unresolved reference 'makeAudioBuffer'.",
-        "118: Unresolved reference 'makeOpusFormat'.",
-        "124: Unresolved reference 'makeH264FormatDescription'.",
-        "129: Unresolved reference 'makeRtmpVideoSequenceHeader'.",
-        "135: Unresolved reference 'makeRtmpVideoSequenceHeader'."
-      ],
+      "errors": [],
       "hooks": []
     },
     {
@@ -309,15 +401,26 @@
       "reason": "compile",
       "ported_from": null,
       "errors": [
-        "193: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
-        "212: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
-        "226: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
-        "240: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
-        "255: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
-        "265: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
-        "267: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
-        "280: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
-        "354: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly."
+        "20: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "27: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "29: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "36: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "43: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "45: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "51: Assignment type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "58: Assignment type mismatch: actual type is 'Long', but 'UInt' was expected.",
+        "60: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "66: Assignment type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "73: Assignment type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "75: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "83: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "94: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "99: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "111: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "157: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "158: Argument type mismatch: actual type is 'Int', but 'UInt' was expected.",
+        "164: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "165: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly."
       ],
       "hooks": []
     },
@@ -327,14 +430,14 @@
       "reason": "compile",
       "ported_from": null,
       "errors": [
-        "3: Unresolved reference 'amf'.",
+        "3: Unresolved reference 'amf0'.",
         "14: Class 'SocketDelegateMock' is not abstract and does not implement abstract members:",
         "18: 'socketDataReceived' overrides nothing. Potential signatures for overriding:",
         "22: 'socketReadyStateChanged' overrides nothing.",
         "28: 'socketUpdateStats' overrides nothing. Potential signatures for overriding:",
         "30: 'socketPost' overrides nothing.",
         "30: Unresolved reference 'AsObject'.",
-        "32: Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'MatchGroup?'."
+        "31: Only safe (?.) or non-null asserted (!!.) calls are allowed on a nullable receiver of type 'MatchGroup?'."
       ],
       "hooks": []
     },
@@ -344,6 +447,9 @@
       "reason": "compile",
       "ported_from": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
       "errors": [
+        "8: Unresolved reference 'message'.",
+        "9: Unresolved reference 'message'.",
+        "10: Unresolved reference 'message'.",
         "11: Unresolved reference 'message'.",
         "12: Unresolved reference 'message'.",
         "13: Unresolved reference 'message'.",
@@ -352,18 +458,12 @@
         "16: Unresolved reference 'message'.",
         "17: Unresolved reference 'message'.",
         "18: Unresolved reference 'message'.",
-        "19: Unresolved reference 'message'.",
-        "20: Unresolved reference 'message'.",
-        "21: Unresolved reference 'message'.",
+        "400: Unresolved reference 'RtmpConnection'.",
         "587: Argument type mismatch: actual type is 'UInt', but 'Int' was expected.",
-        "621: Unresolved reference 'ConnectionLost'.",
-        "649: Unresolved reference 'ConnectionLost'.",
-        "845: Unresolved reference 'StreamRejected'.",
-        "896: Unresolved reference 'ServerError'.",
-        "951: Unresolved reference 'StreamRejected'.",
-        "965: Unresolved reference 'ConnectFailed'.",
-        "1003: Unresolved reference 'DYNAMIC'.",
-        "1208: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly."
+        "912: Unresolved reference 'ServerError'.",
+        "1032: Unresolved reference 'DYNAMIC'.",
+        "1242: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly.",
+        "1245: Type inference failed. The value of the type parameter 'T' must be mentioned in input types (argument types, receiver type, or expected type). Try to specify it explicitly."
       ],
       "hooks": []
     },
@@ -377,16 +477,18 @@
         "9: Unresolved reference 'message'.",
         "10: Unresolved reference 'message'.",
         "11: Unresolved reference 'settings'.",
-        "108: Unresolved reference 'SettingsStreamColorRange'."
+        "110: Unresolved reference 'SettingsStreamColorRange'."
       ],
       "hooks": []
     },
     {
       "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpTestUtils.swift",
       "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpTestUtils.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": null,
-      "errors": [],
+      "errors": [
+        "33: 'rtmpStreamStatus' overrides nothing."
+      ],
       "hooks": []
     }
   ],

@@ -14925,26 +14925,6 @@
     "seconds": 7.4,
     "ported_at": "2026-11-06T00:36:14+00:00"
   },
-  "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift": {
-    "status": "ok",
-    "sha256": "547aea663b6b56b3d425ab5ea6a4d3b6b7fed9bb521e9bdf0355be8d3efa0ec1",
-    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
-    "mode": "incremental",
-    "tier": "ui",
-    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysSettingsView.kt",
-    "notes": [
-      "Wrapped the Moblin Cloud toggle in `if (!isMac())` inside the Top right Section, mirroring the new Swift `if !isMac()` block.",
-      "Added the `com.moblin.android.various.utils.isMac` import following Moblin's Kotlin import ordering.",
-      "Everything else in the file is unchanged."
-    ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 50563,
-    "tokens_out": 2320,
-    "seconds": 7.7,
-    "ported_at": "2026-10-26T23:25:13+00:00"
-  },
   "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift": {
     "status": "ok",
     "sha256": "bdb1a8083f899cc7f06f6e267f3cac60519f04b917ab5d1492486d7aa4586659",
@@ -16052,27 +16032,25 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift": {
     "status": "ok",
-    "sha256": "aba4da5fc3fbac030bfc15e51afcef076f3d8d0fb9d3af91b4c70ac0547cc91b",
+    "sha256": "340fd9fd44ec456f2317d5346b29036ec3d48b44c0565508406847e9bdef5954",
+    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/effects/WidgetEffectsView.kt",
     "notes": [
-      "SwiftUI Section header/footer became a header Text plus the SwipeLeftToDeleteHelpView footer, because Compose has no Section primitive.",
-      "Toggle + onChange became a Material 3 Switch whose onCheckedChange writes effect.enabled and calls model.resetSelectedScene, which matches the Swift onChange behaviour without firing on first composition.",
-      "The NavigationLink destinations (shape, removeBackground, dewarp360, anamorphicLens, lut, opacity, mask) are not composed in this file: EffectView now takes onNavigate and passes effect.type.toString() as the destination name, the detail screens stay in the navigation graph.",
-      "EffectView keeps the widget parameter for signature parity, but it is unused now that the destination forms were moved to the navigation graph.",
-      ".contextMenuDeleteButton has no Compose counterpart; it is a TODO on the row long press and deleteEffect/makeOffsets stay translated for the navigation layer to use.",
-      "onMove is translated to the local function moveEffects (standard remove/insert algorithm) but no drag-reorder gesture is exposed by this file.",
-      "@State presentingCreateWizard and newEffect are remember { mutableStateOf(...) } values; .sheet became a ModalBottomSheet.",
-      "SettingsVideoEffect is treated as a class with plain mutable properties (enabled), so effect.enabled is read and written directly."
+      "The Swift change only restructures EffectLabelView: the Toggle now owns the draggable prefix and text as its label.",
+      "The Kotlin Toggle row already expresses that shape with DraggableItemTextView inside Toggle, so the composable body is unchanged.",
+      "Toggle(isOn = enabled.value, onChange = ...) keeps the existing binding setter that writes effect.enabled and calls model.resetSelectedScene.",
+      "The .onChange side effect stays attached to the Toggle row instead of a sibling HStack, matching the new Swift structure.",
+      "EffectView, WidgetEffectsView, ForEach, ContextMenuDeleteButton and the create wizard Sheet are untouched by the diff."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5681,
-    "tokens_out": 19289,
-    "seconds": 78.7,
-    "ported_at": "2026-09-22T14:12:52+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50074,
+    "tokens_out": 2743,
+    "seconds": 21.5,
+    "ported_at": "2026-11-19T01:36:00+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardScoreboardSettingsView.swift": {
     "status": "ok",
@@ -18796,6 +18774,26 @@
     "seconds": 22.8,
     "ported_at": "2026-09-22T12:42:18+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift": {
+    "status": "ok",
+    "sha256": "547aea663b6b56b3d425ab5ea6a4d3b6b7fed9bb521e9bdf0355be8d3efa0ec1",
+    "moblin_commit": "1f0fe6374d291c65db556df9029a150d8d993694",
+    "mode": "incremental",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/display/localoverlays/LocalOverlaysSettingsView.kt",
+    "notes": [
+      "Wrapped the Moblin Cloud toggle in `if (!isMac())` inside the Top right Section, mirroring the new Swift `if !isMac()` block.",
+      "Added the `com.moblin.android.various.utils.isMac` import following Moblin's Kotlin import ordering.",
+      "Everything else in the file is unchanged."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 50563,
+    "tokens_out": 2320,
+    "seconds": 7.7,
+    "ported_at": "2026-10-26T23:25:13+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/Message/RtmpAggregateMessage.swift": {
     "status": "ok",
