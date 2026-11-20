@@ -31,6 +31,7 @@ import com.moblin.android.view.settings.recordings.FilesLocationView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.various.model.updateDebugOverlay
+import com.moblin.android.various.model.updateShowTaps
 
 @Composable
 fun DebugSettingsView(
@@ -64,6 +65,7 @@ fun DebugSettingsView(
     val maximumLogLines = debug.maximumLogLines
     val debugLogging by debug.debugLogging.collectAsState()
     val debugOverlay by debug.debugOverlay.collectAsState()
+    val showTaps by debug.showTaps.collectAsState()
     val bitrateDropFix by debug.bitrateDropFix.collectAsState()
     val dataRateLimitFactor by debug.dataRateLimitFactor.collectAsState()
     val relaxedBitrate by debug.relaxedBitrate.collectAsState()
@@ -106,6 +108,14 @@ fun DebugSettingsView(
                     onChange = {
                         debug.debugOverlay.value = it
                         model.updateDebugOverlay()
+                    },
+                )
+                Toggle(
+                    "Show taps",
+                    isOn = showTaps,
+                    onChange = {
+                        debug.showTaps.value = it
+                        model.updateShowTaps()
                     },
                 )
             }

@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-11-19T20:44:12+00:00",
+  "generated": "2026-11-20T01:28:17+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4659,6 +4659,23 @@
       "wave": 5
     },
     {
+      "path": "Moblin/Various/Model/ModelShowTaps.swift",
+      "lines": 6,
+      "sha256": "1579473eb19db71aae3b8243f2d26a2f77fa57799be3178006380d32524dffa2",
+      "imports": [],
+      "tier": "logic",
+      "declared_types": [],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelShowTaps.kt",
+      "deps": [
+        "Moblin/Various/Model/Model.swift"
+      ],
+      "wave": 5
+    },
+    {
       "path": "Moblin/Various/Model/ModelSoundBoard.swift",
       "lines": 22,
       "sha256": "243060ba8185177af66b80f32c0236cc81bb80d5c33359c7ac5cac1900fbf468",
@@ -4833,8 +4850,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsDebug.swift",
-      "lines": 173,
-      "sha256": "44d6f79b3433b89759df40b75ab62d864f5e414af7a4edeaf84ffeb342fbdd53",
+      "lines": 177,
+      "sha256": "95f1f76f06c0adb5c904b15ea5ed0dbcd6567753b47fbe7400447f29de5100f3",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -4894,6 +4911,32 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsSelfieStick.kt",
       "deps": [
         "Moblin/Various/Settings/SettingsGameController.swift"
+      ],
+      "wave": 5
+    },
+    {
+      "path": "Moblin/Various/ShowTaps.swift",
+      "lines": 152,
+      "sha256": "10779ab52766622f719b164d3b4487e43630ef1b8da189e09ecd49b41e19ce1c",
+      "imports": [
+        "UIKit"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "ShowTapsGestureRecognizer",
+        "ShowTapsWindow",
+        "ShowTaps"
+      ],
+      "private_types": [
+        "ShowTapsGestureRecognizer",
+        "ShowTapsWindow"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/ShowTaps.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift"
       ],
       "wave": 5
     },
@@ -7225,8 +7268,8 @@
     },
     {
       "path": "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift",
-      "lines": 1015,
-      "sha256": "5c3cf6a77820b2a080f3c7892ca59da3daddfc12f2a75766031d87be8eed76e4",
+      "lines": 1041,
+      "sha256": "04c10332618477c95640850978bb195d187e1dad12b701f848ff2f45888ab542",
       "imports": [
         "Foundation"
       ],
@@ -7298,6 +7341,9 @@
         "TwitchEventSubChannelShoutoutCreateEvent",
         "NotificationChannelShoutoutCreatePayload",
         "NotificationChannelShoutoutCreateMessage",
+        "TwitchEventSubChannelShoutoutReceiveEvent",
+        "NotificationChannelShoutoutReceivePayload",
+        "NotificationChannelShoutoutReceiveMessage",
         "TwitchEventSubDelegate",
         "Subscription",
         "TwitchEventSub"
@@ -7342,6 +7388,8 @@
         "NotificationChannelModerateMessage",
         "NotificationChannelShoutoutCreatePayload",
         "NotificationChannelShoutoutCreateMessage",
+        "NotificationChannelShoutoutReceivePayload",
+        "NotificationChannelShoutoutReceiveMessage",
         "Subscription"
       ],
       "declared_functions": [],
@@ -7840,8 +7888,8 @@
     },
     {
       "path": "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift",
-      "lines": 1117,
-      "sha256": "fdd85aab966b72c366a842020ae7e8051de5b3e2d84ae9e2c6c49ed261e30d7c",
+      "lines": 1146,
+      "sha256": "f63542f0607c2f7dfe859151b7ed2827273ec76671268b68cc421e3d8e24ea7f",
       "imports": [
         "Foundation",
         "Testing"
@@ -17326,8 +17374,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
-      "lines": 923,
-      "sha256": "73cee8d720e9b4ba528135a79407876839c49f58576e46ec7832a663985f81f1",
+      "lines": 925,
+      "sha256": "3e052b3abc3ed0add51f3e4ba01b6bb52e165b2b6944a02b2757ca4b7f5b0824",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -17710,8 +17758,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelTwitch.swift",
-      "lines": 1343,
-      "sha256": "c57d89d884036ee934102696a811c82c569dc90ad7d37cdc33e263b68d857cd9",
+      "lines": 1357,
+      "sha256": "a0b8177a309997563e720b2640206a6b5f19e9dc5316dbbcb7d9d4a931f1eae0",
       "imports": [
         "CoreImage",
         "Foundation",
@@ -18742,8 +18790,8 @@
     },
     {
       "path": "Moblin/View/Settings/Debug/DebugSettingsView.swift",
-      "lines": 157,
-      "sha256": "fff5d78bd8a945c294d13bdaa7345eabdcf60e7fb0d6d39b2f55e8b6354bbce0",
+      "lines": 161,
+      "sha256": "aad2b39c656d4e3e2ee2052bf05fa662c5addfe38dcc4f1a60a78be1c4da4e88",
       "imports": [
         "Collections",
         "SwiftUI",
@@ -22063,8 +22111,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift",
-      "lines": 945,
-      "sha256": "55cf83a65cc61b6ee7bc1effab15e9b319a5746e11e375a47d082d7ca90fe835",
+      "lines": 946,
+      "sha256": "8d33cc26956bb60710c3803daf9b60873eb43d5928e3ee8f15471aa281f118f9",
       "imports": [
         "Charts",
         "SwiftUI"
@@ -22207,8 +22255,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3565,
-      "sha256": "c01ffc7733cf143b9e3312afa306cddebf2b5ae9c2d5ef91050e892137293bd6",
+      "lines": 3569,
+      "sha256": "fd3b8f9edf906323cf9a5170528848ce5ab3b7bd0bbfa98400a945b5579f8911",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -22398,6 +22446,7 @@
         "Moblin/Various/Settings/SettingsQuickButtons.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/ShowTaps.swift",
         "Moblin/Various/SpeechToText.swift",
         "Moblin/Various/Storages/AlertMediaStorage.swift",
         "Moblin/Various/Storages/ImageStorage.swift",

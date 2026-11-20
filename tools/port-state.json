@@ -2318,28 +2318,23 @@
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift": {
     "status": "ok",
-    "sha256": "5c3cf6a77820b2a080f3c7892ca59da3daddfc12f2a75766031d87be8eed76e4",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "04c10332618477c95640850978bb195d187e1dad12b701f848ff2f45888ab542",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt",
     "notes": [
-      "Adds the shoutout-create event models, delegate method, subscription type and handler exactly where the Swift diff places them.",
-      "The Swift subscription pipeline became concurrent: the sequential subscribe* helpers and createBroadcasterUserIdBody were removed and replaced by makeSubscriptions/subscribe/handleSubscribeResult/reconnectLater.",
-      "TwitchApi.createEventSubSubscription is declared in the dependency file with an (Boolean) -> Unit callback, so handleSubscribeResult takes a Boolean instead of OperationResult: true means success, false logs the failure and calls reconnectLater(). The authError-only branch of the Swift switch has no Boolean counterpart and is folded into the failure branch.",
-      "sessionId is now reset in stopInternal() and the reconnect delay is reset in start(), matching the Swift change.",
-      "min(reconnectDelay * 2, 120) is written as minOf(reconnectDelay * 2, 120.0) because reconnectDelay is a Double.",
-      "initialReconnectDelay became a private const val so the field initialiser can use it.",
-      "Subscription is a private data class built positionally in makeSubscriptions(), its property names type/version/condition match the Swift struct.",
-      "The new public event type carries @Serializable like the other Decodable structs; the payload and message wrappers stay private."
+      "Adds the channel.shoutout.receive EventSub type: event, payload, message models, delegate method, subscription entry, dispatch case and handler.",
+      "New public event struct becomes a @Serializable data class like its sibling shoutout models.",
+      "The subscription uses the broadcasterAndModerator condition, matching the Swift source."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 25458,
-    "tokens_out": 13745,
-    "seconds": 41.7,
-    "ported_at": "2026-09-23T11:19:23+00:00"
+    "tokens_in": 60767,
+    "tokens_out": 9616,
+    "seconds": 42.1,
+    "ported_at": "2026-11-20T01:29:14+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Media/Audio/AudioUnitSuite.swift": {
     "status": "ok",
@@ -3020,23 +3015,23 @@
   },
   "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift": {
     "status": "ok",
-    "sha256": "fdd85aab966b72c366a842020ae7e8051de5b3e2d84ae9e2c6c49ed261e30d7c",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "f63542f0607c2f7dfe859151b7ed2827273ec76671268b68cc421e3d8e24ea7f",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt",
     "notes": [
-      "Added shoutoutCreates list, delegate override twitchEventSubChannelShoutoutCreate and the shoutoutCreate test, matching the Swift diff.",
-      "The delegate implements the override for twitchEventSubChannelShoutoutCreate like the other TwitchEventSubDelegate callbacks.",
-      "Expectations use assertEquals/assertNull with kotlin.test as in the rest of the file, JUnit 4 via RobolectricTestRunner."
+      "Applies the incremental diff only: adds shoutoutReceives to the test delegate, its delegate override and the shoutoutReceive test.",
+      "TwitchEventSubChannelShoutoutReceiveEvent is read through from_broadcaster_user_name and viewer_count, matching the payload keys in the Swift test.",
+      "All existing hand-written Android bits (RobolectricTestRunner, AppDelegate.context in makeEventSub) are kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 29167,
-    "tokens_out": 10997,
-    "seconds": 28.1,
-    "ported_at": "2026-09-23T11:19:10+00:00"
+    "tokens_in": 56249,
+    "tokens_out": 11510,
+    "seconds": 52.3,
+    "ported_at": "2026-11-20T01:29:24+00:00"
   },
   "Moblin/Various/Storages/RecordingsStorage.swift": {
     "status": "ok",
@@ -5684,24 +5679,23 @@
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
-    "sha256": "73cee8d720e9b4ba528135a79407876839c49f58576e46ec7832a663985f81f1",
-    "moblin_commit": "33acad8eb54894bacb3b7cf647e14214f3095625",
+    "sha256": "3e052b3abc3ed0add51f3e4ba01b6bb52e165b2b6944a02b2757ca4b7f5b0824",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
     "notes": [
-      "Only the three request payloads changed: getWidgets, createWidget and updateWidget now pass secrets = true.",
-      "The matching constructor parameters live in RemoteControl.kt (RemoteControlRequest.GetWidgets/CreateWidget/UpdateWidget); this file only passes them through.",
-      "Everything else, including the hand-written WebSocket server, MainTimer loops and Twitch delegates, is unchanged.",
-      "Log calls use the Log shim with the file-level assistantLogTag, as before."
+      "Only the new TwitchEventSub delegate callback was added; every other line is unchanged.",
+      "Added the import for TwitchEventSubChannelShoutoutReceiveEvent and an empty override placed between the shoutoutCreate and pollBegin callbacks, matching Swift's order.",
+      "The existing Android WebSocket server (ServerSocket + RemoteControlWebSocket) and MainTimer hand-written port were kept as is."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 68854,
-    "tokens_out": 10286,
-    "seconds": 31.5,
-    "ported_at": "2026-11-12T01:43:28+00:00"
+    "tokens_in": 69519,
+    "tokens_out": 11221,
+    "seconds": 54.7,
+    "ported_at": "2026-11-20T01:29:26+00:00"
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
@@ -7170,23 +7164,22 @@
   },
   "Moblin/Various/Settings/SettingsDebug.swift": {
     "status": "ok",
-    "sha256": "44d6f79b3433b89759df40b75ab62d864f5e414af7a4edeaf84ffeb342fbdd53",
-    "moblin_commit": "3ffa7e0cb117dd430efd0e275060aa631f52cb3b",
+    "sha256": "95f1f76f06c0adb5c904b15ea5ed0dbcd6567753b47fbe7400447f29de5100f3",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsDebug.kt",
     "notes": [
-      "Added the @Published photosImageQuality Double property as MutableStateFlow(0.95) after externalCameraVideoRange, matching Swift declaration order.",
-      "Added the matching photosImageQuality key to encode() and to decode(), both positioned after externalCameraVideoRange as in the Swift diff.",
-      "CodingKeys is not translated; JSON keys are the literal strings passed to encode/decode, so the new key is written as \"photosImageQuality\"."
+      "Added the showTaps MutableStateFlow property, its encode call and its decode call, matching the existing MutableStateFlow pattern used in this file.",
+      "No other lines were touched; formatting, imports and declaration order are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 40458,
-    "tokens_out": 2297,
-    "seconds": 7.2,
-    "ported_at": "2026-10-08T23:59:59+00:00"
+    "tokens_in": 41733,
+    "tokens_out": 2190,
+    "seconds": 11.2,
+    "ported_at": "2026-11-20T01:28:43+00:00"
   },
   "Moblin/View/Main/LockScreenView.swift": {
     "status": "ok",
@@ -14021,24 +14014,23 @@
   },
   "Moblin/Various/Model/ModelTwitch.swift": {
     "status": "ok",
-    "sha256": "c57d89d884036ee934102696a811c82c569dc90ad7d37cdc33e263b68d857cd9",
-    "moblin_commit": "ed0c4bd672433448859cd362023824b14d3b9ce5",
+    "sha256": "a0b8177a309997563e720b2640206a6b5f19e9dc5316dbbcb7d9d4a931f1eae0",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt",
     "notes": [
-      "The Swift diff wraps the hype train, poll and prediction status text in a BannerMessage; each assignment now writes the message's text state instead of the plain string flow.",
-      "Kotlin: `x.message` is a BannerMessage held by the model object, so the text is written as `x.message.text.value = ...`.",
-      "No other lines were touched; all Android-specific hooks (createTwitchApi, TwitchEventSub delegate object, AppDelegate.context, AlertsEffectAlert) are kept byte-identical.",
-      "Raid keeps its plain `message` string flow, since the Swift file did not change it."
+      "Only the new twitchEventSubChannelShoutoutReceive extension function was added, directly after twitchEventSubChannelShoutoutCreate, matching the Swift diff.",
+      "The function reuses the existing private appendTwitchChatAlertMessage helper and makeTwitchAlertSegments, with .orange mapped to Color(0xFFFF9500) and .other to ChatHighlightKind.Other as elsewhere in the file.",
+      "The TwitchEventSubDelegate anonymous object in reloadTwitchEventSub was left byte-identical, since the Swift diff did not add an override there."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 80410,
-    "tokens_out": 19292,
-    "seconds": 88.2,
-    "ported_at": "2026-11-10T02:29:08+00:00"
+    "tokens_in": 79907,
+    "tokens_out": 14099,
+    "seconds": 64.6,
+    "ported_at": "2026-11-20T01:29:36+00:00"
   },
   "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift": {
     "status": "ok",
@@ -14251,24 +14243,23 @@
   },
   "Moblin/View/Settings/Debug/DebugSettingsView.swift": {
     "status": "ok",
-    "sha256": "fff5d78bd8a945c294d13bdaa7345eabdcf60e7fb0d6d39b2f55e8b6354bbce0",
-    "moblin_commit": "c2b8fd91a8136b0e138e1d5ee7d5f71fd59c5e73",
+    "sha256": "aad2b39c656d4e3e2ee2052bf05fa662c5addfe38dcc4f1a60a78be1c4da4e88",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/debug/DebugSettingsView.kt",
     "notes": [
-      "The model property changed from @EnvironmentObject to a plain let; the Kotlin parameter keeps its hand-written LocalModel.current default so existing Android call sites and the re-applied platform hooks stay intact.",
-      "DebugVideoSettingsView now receives the model explicitly, so the NavigationLink destination passes model = model before debug.",
-      "HttpProxySettingsView now receives the model explicitly, so the destination passes model = model, status = model.statusOther, httpProxy = model.database.httpProxy in that order.",
-      "Nothing else in the file changed: the experimental sections, sliders, text edit rows and the log full-screen cover are byte-identical to the previous Kotlin translation."
+      "Added the \"Show taps\" Toggle right after \"Debug overlay\" in the Debug logging section.",
+      "Collected debug.showTaps as state next to debugOverlay and wrote it back with .value before calling model.updateShowTaps(), matching the existing updateDebugOverlay pattern.",
+      "All other lines are unchanged from the previous translation."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 46322,
-    "tokens_out": 6350,
-    "seconds": 24.1,
-    "ported_at": "2026-10-06T23:23:31+00:00"
+    "tokens_in": 47261,
+    "tokens_out": 2796,
+    "seconds": 17.1,
+    "ported_at": "2026-11-20T01:28:49+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift": {
     "status": "ok",
@@ -15592,28 +15583,23 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayRightView.swift": {
     "status": "ok",
-    "sha256": "55cf83a65cc61b6ee7bc1effab15e9b319a5746e11e375a47d082d7ca90fe835",
-    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "sha256": "8d33cc26956bb60710c3803daf9b60873eb43d5928e3ee8f15471aa281f118f9",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt",
     "notes": [
-      "Added verticalZoom / zoomAndScenesOnOneRow parameters to the vertical and horizontal bottom overlay composables, matching the new Swift structs.",
-      "The Swift @ViewBuilder `controls` properties are local @Composable functions named `controls()`; `scenes` in the vertical view is a local @Composable `scenes()`.",
-      "RightOverlayBottomView gained an `orientation` parameter (defaulted to model.orientation so existing callers keep compiling) and the new layout()/verticalScenes()/verticalZoom()/zoomAndScenesOnOneRow() helpers driven by database.zoomAndSceneButtonsLayout.",
-      "orientation.isPortrait is collected with collectAsState so layout() recomposes on rotation, like the SwiftUI body.",
-      "Modifier.padding on composables that take no modifier argument is expressed with a Box wrapper, as the file already did for the scene selector.",
-      "The new .frame(maxWidth/maxHeight: .infinity, alignment: .bottomTrailing) on the bottom overlay is Modifier.fillMaxSize() on the Column (horizontalAlignment End keeps the trailing alignment).",
-      "UIDevice.current.userInterfaceIdiom comes from the uikit shim; the 15 point leading padding is applied for UIUserInterfaceIdiom.pad only.",
-      "Enum entries for SettingsZoomAndSceneButtonsLayout are assumed to follow the settings-package lowerCamelCase convention (stacked, verticalScenes, verticalZoom, vertical, oneRow)."
+      "Only the Swift diff was applied: the Column that holds controls() in RightOverlayBottomHorizontalView's verticalZoom branch now gets Modifier.padding(bottom = 11.dp) before StreamOverlayRightZoomPresetVSelctorView.",
+      "Every other line, import and declaration is unchanged from the current Kotlin file, including the hand-written observe() helpers, placement constants and the LocalModel default parameters.",
+      "Swift's .padding(.bottom, 11) sits on the VStack (not the HStack), so it is added as a modifier on the Column rather than on the wrapping Row."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 75586,
-    "tokens_out": 18810,
-    "seconds": 61.5,
-    "ported_at": "2026-11-19T20:55:21+00:00"
+    "tokens_in": 74155,
+    "tokens_out": 10137,
+    "seconds": 46.8,
+    "ported_at": "2026-11-20T01:29:28+00:00"
   },
   "Moblin/View/Settings/Audio/AudioSettingsView.swift": {
     "status": "ok",
@@ -15638,24 +15624,25 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "c01ffc7733cf143b9e3312afa306cddebf2b5ae9c2d5ef91050e892137293bd6",
-    "moblin_commit": "ed96f78947c8ab8bbfc1c4c08e944aac9b849449",
+    "sha256": "fd3b8f9edf906323cf9a5170528848ce5ab3b7bd0bbfa98400a945b5579f8911",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Added PanelState with its @Published searching property as a MutableStateFlow<Boolean>, following the ObservableObject convention used by the other providers.",
-      "Added Model.panelState right after Model.toast, matching the Swift declaration order.",
-      "Swift's @MainActor on PanelState has no Kotlin counterpart; callers already mutate it from the main scope, like the other state holders.",
-      "No other part of the file changed."
+      "Added `val showTaps = ShowTaps()` next to the other providers, matching the new Swift stored property.",
+      "`handleApplicationDidChangeActive` now calls `updateShowTaps()` when the app becomes active, before the isMac guard, exactly as in the new Swift code.",
+      "`ShowTaps` comes from com.moblin.android.various, already covered by the existing wildcard import.",
+      "`updateShowTaps()` is a Model extension in another file of the same package, so no import is added.",
+      "Everything else in the file is unchanged byte for byte, including the hand-written Android delegates, media proxy and timer plumbing."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 148862,
-    "tokens_out": 35717,
-    "seconds": 89.9,
-    "ported_at": "2026-11-19T20:53:55+00:00"
+    "tokens_in": 148989,
+    "tokens_out": 36155,
+    "seconds": 161.0,
+    "ported_at": "2026-11-20T01:31:28+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -18678,5 +18665,51 @@
     "tokens_out": 3495,
     "seconds": 13.3,
     "ported_at": "2026-11-19T20:54:28+00:00"
+  },
+  "Moblin/Various/Model/ModelShowTaps.swift": {
+    "status": "ok",
+    "sha256": "1579473eb19db71aae3b8243f2d26a2f77fa57799be3178006380d32524dffa2",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
+    "mode": "full",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelShowTaps.kt",
+    "notes": [
+      "Single extension function on Model, translated as a top-level Kotlin extension in com.moblin.android.various.model.",
+      "showTaps is expected to be a Model member (ShowTaps-style controller) with an update(enabled) method; it is called exactly as in Swift.",
+      "database.debug.showTaps is read directly from the Model's settings database, the same shape as other Model extension files.",
+      "No Apple frameworks are involved, so nothing needed a TODO."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 35055,
+    "tokens_out": 747,
+    "seconds": 8.2,
+    "ported_at": "2026-11-20T01:28:40+00:00"
+  },
+  "Moblin/Various/ShowTaps.swift": {
+    "status": "ok",
+    "sha256": "10779ab52766622f719b164d3b4487e43630ef1b8da189e09ecd49b41e19ce1c",
+    "moblin_commit": "6f9c3366d46355d2d932309ef7e5310a80462e0e",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/ShowTaps.kt",
+    "notes": [
+      "UIGestureRecognizer, UITouch and UIEvent have no Android counterpart: window touches are observed through a Window.Callback wrapper that records them and then delegates every event to the original callback, so touches still reach the app exactly like cancelsTouchesInView = false.",
+      "ShowTapsGestureRecognizer no longer extends UIGestureRecognizer; its touchesBegan/Moved/Ended/Cancelled take a MotionEvent (pointer ids replace ObjectIdentifier(touch)) and are driven from ShowTapsWindow.",
+      "cancelsTouchesInView, delaysTouchesBegan and delaysTouchesEnded are kept as plain properties; `delegate = self` is dropped because simultaneous recognition is implicit in the callback approach.",
+      "Tap circles are drawn by the TapMarkView helper with Canvas (white 50% fill, 2 px black 40% border, radius 22), because CALayer in the platform layer has no cornerRadius/borderWidth/borderColor.",
+      "Removal uses View.animate() (alpha 0, scale 1.5, 300 ms) and removes the view in withEndAction, matching UIView.animate + completion.",
+      "UIWindow exposes no windowLevel and UIScene no session.role, so applicationWindows() returns the windows of every UIWindowScene.",
+      "autoresizingMask has no counterpart; the overlay frame is set once from the window's decor view size.",
+      "@MainActor is dropped: ShowTaps, ShowTapsWindow and the callback must all be used on the main thread."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 45599,
+    "tokens_out": 26909,
+    "seconds": 229.9,
+    "ported_at": "2026-11-20T01:32:22+00:00"
   }
 }

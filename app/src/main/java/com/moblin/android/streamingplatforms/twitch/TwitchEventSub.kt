@@ -540,6 +540,22 @@ private data class NotificationChannelShoutoutCreateMessage(
     var payload: NotificationChannelShoutoutCreatePayload,
 )
 
+@Serializable
+data class TwitchEventSubChannelShoutoutReceiveEvent(
+    var from_broadcaster_user_name: String,
+    var viewer_count: Int,
+)
+
+@Serializable
+private data class NotificationChannelShoutoutReceivePayload(
+    var event: TwitchEventSubChannelShoutoutReceiveEvent,
+)
+
+@Serializable
+private data class NotificationChannelShoutoutReceiveMessage(
+    var payload: NotificationChannelShoutoutReceivePayload,
+)
+
 private val url = "wss://eventsub.wss.twitch.tv/ws"
 
 interface TwitchEventSubDelegate {
@@ -571,6 +587,7 @@ interface TwitchEventSubDelegate {
     fun twitchEventSubChannelPredictionEnd(event: TwitchEventSubChannelPredictionEvent)
     fun twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEvent)
     fun twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent)
+    fun twitchEventSubChannelShoutoutReceive(event: TwitchEventSubChannelShoutoutReceiveEvent)
     fun twitchEventSubUnauthorized()
     fun twitchEventSubNotification(message: String)
 }
@@ -594,6 +611,7 @@ private val subTypeChannelPredictionProgress = "channel.prediction.progress"
 private val subTypeChannelPredictionLock = "channel.prediction.lock"
 private val subTypeChannelPredictionEnd = "channel.prediction.end"
 private val subTypeChannelShoutoutCreate = "channel.shoutout.create"
+private val subTypeChannelShoutoutReceive = "channel.shoutout.receive"
 
 private const val initialReconnectDelay = 5.0
 
@@ -734,6 +752,7 @@ class TwitchEventSub(
             Subscription(subTypeChannelPredictionLock, 1, broadcaster),
             Subscription(subTypeChannelPredictionEnd, 1, broadcaster),
             Subscription(subTypeChannelShoutoutCreate, 1, broadcasterAndModerator),
+            Subscription(subTypeChannelShoutoutReceive, 1, broadcasterAndModerator),
         )
     }
 
@@ -821,6 +840,7 @@ class TwitchEventSub(
                 subTypeChannelPredictionLock -> handleChannelPredictionLock(messageData)
                 subTypeChannelPredictionEnd -> handleChannelPredictionEnd(messageData)
                 subTypeChannelShoutoutCreate -> handleChannelShoutoutCreate(messageData)
+                subTypeChannelShoutoutReceive -> handleChannelShoutoutReceive(messageData)
                 else -> {
                     val type = message.metadata.subscription_type
                     if (type != null) {
@@ -1057,6 +1077,11 @@ class TwitchEventSub(
     private fun handleChannelShoutoutCreate(messageData: ByteArray) {
         val message = decodeJson<NotificationChannelShoutoutCreateMessage>(messageData)
         delegate.twitchEventSubChannelShoutoutCreate(message.payload.event)
+    }
+
+    private fun handleChannelShoutoutReceive(messageData: ByteArray) {
+        val message = decodeJson<NotificationChannelShoutoutReceiveMessage>(messageData)
+        delegate.twitchEventSubChannelShoutoutReceive(message.payload.event)
     }
 
     override fun webSocketClientConnected(client: WebSocketClient) {}

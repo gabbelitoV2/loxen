@@ -601,6 +601,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val externalDisplay = ExternalDisplay()
     val tesla = Tesla()
     val debugOverlay = DebugOverlayProvider()
+    val showTaps = ShowTaps()
     val stealthMode = StealthMode()
     val controlBar = ControlBar()
     var faceBackgroundImage: com.moblin.android.platform.coreimage.CIImage? = null
@@ -1514,6 +1515,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun handleApplicationDidChangeActive(notificationName: String) {
         isAppActive = notificationName == "UIApplication.didBecomeActiveNotification"
+        if (isAppActive) {
+            updateShowTaps()
+        }
         if (isMac()) {
             return
         }

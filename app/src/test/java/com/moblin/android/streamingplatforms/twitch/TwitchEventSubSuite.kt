@@ -25,6 +25,7 @@ private class EventSubTestDelegate : TwitchEventSubDelegate {
     val predictions = mutableListOf<Pair<String, TwitchEventSubChannelPredictionEvent>>()
     val moderates = mutableListOf<TwitchEventSubChannelModerateEvent>()
     val shoutoutCreates = mutableListOf<TwitchEventSubChannelShoutoutCreateEvent>()
+    val shoutoutReceives = mutableListOf<TwitchEventSubChannelShoutoutReceiveEvent>()
     var unauthorizedCount = 0
     val notifications = mutableListOf<String>()
 
@@ -122,6 +123,10 @@ private class EventSubTestDelegate : TwitchEventSubDelegate {
 
     override fun twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent) {
         shoutoutCreates.add(event)
+    }
+
+    override fun twitchEventSubChannelShoutoutReceive(event: TwitchEventSubChannelShoutoutReceiveEvent) {
+        shoutoutReceives.add(event)
     }
 
     override fun twitchEventSubUnauthorized() {
@@ -701,6 +706,30 @@ class TwitchEventSubSuite {
         assertEquals(1, delegate.shoutoutCreates.size)
         assertEquals("Mod", delegate.shoutoutCreates.firstOrNull()?.moderator_user_name)
         assertEquals("Friend", delegate.shoutoutCreates.firstOrNull()?.to_broadcaster_user_name)
+        assertEquals(1, delegate.notifications.size)
+    }
+
+    @Test
+    fun shoutoutReceive() {
+        val delegate = EventSubTestDelegate()
+        makeEventSub(delegate).handleMessage(messageText = notification(
+            subscriptionType = "channel.shoutout.receive",
+            event = """
+            {
+              "broadcaster_user_id": "111",
+              "broadcaster_user_login": "me",
+              "broadcaster_user_name": "Me",
+              "from_broadcaster_user_id": "555",
+              "from_broadcaster_user_login": "friend",
+              "from_broadcaster_user_name": "Friend",
+              "viewer_count": 860,
+              "started_at": "2026-09-06T10:00:00.000Z"
+            }
+            """
+        ))
+        assertEquals(1, delegate.shoutoutReceives.size)
+        assertEquals("Friend", delegate.shoutoutReceives.firstOrNull()?.from_broadcaster_user_name)
+        assertEquals(860, delegate.shoutoutReceives.firstOrNull()?.viewer_count)
         assertEquals(1, delegate.notifications.size)
     }
 

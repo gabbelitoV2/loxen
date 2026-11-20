@@ -18,6 +18,7 @@ import com.moblin.android.streamingplatforms.twitch.TwitchEventSubChannelPollEve
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubChannelPredictionEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubChannelRaidEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubChannelShoutoutCreateEvent
+import com.moblin.android.streamingplatforms.twitch.TwitchEventSubChannelShoutoutReceiveEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubDelegate
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelFollowEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent
@@ -979,6 +980,8 @@ class RemoteControlAssistant(
     override fun twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEvent) {}
 
     override fun twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent) {}
+
+    override fun twitchEventSubChannelShoutoutReceive(event: TwitchEventSubChannelShoutoutReceiveEvent) {}
 
     override fun twitchEventSubChannelPollBegin(event: TwitchEventSubChannelPollEvent) {}
 

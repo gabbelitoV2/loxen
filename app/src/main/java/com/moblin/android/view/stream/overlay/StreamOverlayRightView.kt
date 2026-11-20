@@ -1037,6 +1037,7 @@ private fun RightOverlayBottomHorizontalView(
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(1.dp),
+                modifier = Modifier.padding(bottom = 11.dp),
             ) {
                 controls()
             }

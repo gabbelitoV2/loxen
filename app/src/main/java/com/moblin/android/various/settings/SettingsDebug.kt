@@ -87,6 +87,8 @@ class SettingsDebug {
 
     val photosImageQuality = MutableStateFlow(0.95)
 
+    val showTaps = MutableStateFlow(false)
+
     fun encode(): JsonObject = encodeContainer {
         encode("logLevel", logLevel)
         encode("logFilter", logFilter)
@@ -120,6 +122,7 @@ class SettingsDebug {
         encode("packetPadding", packetPadding)
         encode("externalCameraVideoRange", externalCameraVideoRange)
         encode("photosImageQuality", photosImageQuality)
+        encode("showTaps", showTaps)
     }
 
     companion object {
@@ -173,6 +176,7 @@ class SettingsDebug {
             debug.packetPadding.value = container.decode("packetPadding", false)
             debug.externalCameraVideoRange.value = container.decode("externalCameraVideoRange", false)
             debug.photosImageQuality.value = container.decode("photosImageQuality", 0.95)
+            debug.showTaps.value = container.decode("showTaps", false)
             return debug
         }
     }

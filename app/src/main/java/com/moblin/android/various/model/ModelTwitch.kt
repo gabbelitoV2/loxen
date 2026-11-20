@@ -165,6 +165,9 @@ fun Model.reloadTwitchEventSub() {
                 override fun twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent) {
                     this@reloadTwitchEventSub.twitchEventSubChannelShoutoutCreate(event)
                 }
+                override fun twitchEventSubChannelShoutoutReceive(event: TwitchEventSubChannelShoutoutReceiveEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelShoutoutReceive(event)
+                }
                 override fun twitchEventSubUnauthorized() {
                     this@reloadTwitchEventSub.twitchEventSubUnauthorized()
                 }
@@ -1532,6 +1535,22 @@ fun Model.twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShouto
             text = localized("gave a shoutout to ${event.to_broadcaster_user_name}!")
         ),
         title = localized("Shoutout sent"),
+        color = Color(0xFFFF9500),
+        image = "megaphone",
+        kind = ChatHighlightKind.Other,
+        sharedChat = null
+    )
+}
+
+fun Model.twitchEventSubChannelShoutoutReceive(
+    event: TwitchEventSubChannelShoutoutReceiveEvent
+) {
+    appendTwitchChatAlertMessage(
+        user = event.from_broadcaster_user_name,
+        segments = makeTwitchAlertSegments(
+            text = localized("gave you a shoutout to ${event.viewer_count} viewers!")
+        ),
+        title = localized("Shoutout received"),
         color = Color(0xFFFF9500),
         image = "megaphone",
         kind = ChatHighlightKind.Other,
